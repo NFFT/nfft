@@ -53,7 +53,8 @@ const char *Y(get_window_name)()
   return STRINGIZE(WINDOW_NAME);
 }
 
-/* Kaiser-Bessel window, scaled so that phi_hut(0) = 1. lg_tail = log I0(m b) - m b.
+/* Kaiser-Bessel window, scaled so that phi_hut(0) = 1. The per-axis constants
+ * are lg_tail = log I0(m b) - m b and i0e_peak_inv = 1/(exp(-m b) I0(m b)). */
 
 /* 1 / I0(m b). The out-of-support branch has no cancellation to preserve, so it
  * divides by the peak, formed on demand: the convolution never reaches it. */
@@ -67,18 +68,19 @@ static inline R kb_inv_peak(R b, R lg_tail, R m)
   return EXP(-xpk - lg_tail);
 }
 
-R Y(kb_phi_hut)(R b, R lg_tail, R m, R n, R k)
+/* i0e_peak_inv is cached per axis, so this carries no division. exp(-x)*I0(x)
+ * lies in (0, 1] and its reciprocal grows like sqrt(2 pi x), so the scaling
+ * cannot overflow at any m b. */
+R Y(kb_phi_hut)(R b, R i0e_peak_inv, R m, R n, R k)
 {
   const R t = K(2.0) * KPI * k / n;
-  /* (b-t)(b+t), not b*b - t*t to avoid cancellations */
-  const R s = (b - t) * (b + t); /* >= 0 in band, so SQRT is safe */
+  const R s = (b - t) * (b + t); /* not b*b - t*t; >= 0 in band, so SQRT is safe */
   const R ra = SQRT(s);
   const R a = m * ra;
 
-  /* a - m b = m*(ra - b) = -m*t^2/(ra + b), formed without the cancellation.
-   * Both logtails are O(log a) and nearly equal, so the exponent stays small
-   * and its absolute error near eps. */
-  return EXP(-m * t * t / (ra + b) + Y(bessel_i0_logtail)(a) - lg_tail);
+  /* I0(a)/I0(m b) = exp(a - m b) * i0e(a) / i0e(m b), with
+   * a - m b = -m*t^2/(ra + b) formed without the cancellation. */
+  return EXP(-m * t * t / (ra + b)) * Y(bessel_i0_exp_scaled)(a) * i0e_peak_inv;
 }
 
 R Y(kb_phi)(R b, R lg_tail, R m, R n, R x)

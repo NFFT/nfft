@@ -44,8 +44,8 @@ Two ranges per format, split at `NFFT_I0_ASYMP_SPLIT`:
 
 | range | form | evaluated by |
 |---|---|---|
-| `x <= split` | `I0(x) = 1 + y*P1(y)`, `y = (x/2)^2` | Horner in `y` |
-| `x > split` | `I0(x) = exp(x)/sqrt(x) * P2(t)`, `t = 2*split/x - 1` | Clenshaw in `t` |
+| `x <= split` | `I0(x) = 1 + y*P1(y)`, `y = (x/2)^2` | four chains in `y` |
+| `x > split` | `I0(x) = exp(x)*sqrt(u) * P2(u)`, `u = 1/x` | four chains in `u` |
 
 Both are **weighted** minimax fits (`remez.py`), the weight chosen so the
 quantity that equioscillates is the *relative* error of the final expression.
@@ -54,13 +54,38 @@ accuracy where `I0` is largest.
 
 The two forms are chosen for conditioning rather than for the smallest degree:
 
-- `1 + y*P1(y)` keeps every `P1` coefficient positive, so the Horner chain has
-  no cancellation, and the leading `1` makes the form exact at `x = 0`. `P1`
-  starts at the Taylor coefficients `1, 1/4, 1/36, ...` with a small minimax
-  correction on top.
+- `1 + y*P1(y)` keeps every `P1` coefficient positive, so the sum has no
+  cancellation at any degree, and the leading `1` makes the form exact at
+  `x = 0`. `P1` starts at the Taylor coefficients `1, 1/4, 1/36, ...` with a
+  small minimax correction on top.
 - `P2` is fitted against `sqrt(x)*exp(-x)*I0(x)`, which is smooth and bounded
-  away from zero on `(0, 1/split]`, and the argument is mapped into `[-1, 1)`
-  so Clenshaw stays in its stable domain.
+  away from zero on `(0, 1/split]`, and ships as monomial coefficients in
+  `u = 1/x`. Its leading coefficients are the asymptotic series
+  `(1 + 1/(8x) + 9/(128 x^2) + ...) / sqrt(2 pi)`.
+
+## Why four chains, and why that pins the split
+
+Both tables are summed as four independent chains over the coefficients whose
+index shares a residue mod 4, recombined at the end. The chains do not depend
+on each other, so the dependent-operation count is a quarter of a Horner pass.
+This is the whole reason `P2` is monomial rather than Chebyshev: a sum can be
+regrouped, and the Clenshaw recurrence it replaced cannot. Clenshaw cost the
+asymptotic branch about a factor of four.
+
+Regrouping a sum is only safe when the sum does not cancel. `P1` is fine at any
+degree, its coefficients all being positive. `P2` is not: its monomial
+coefficients grow with the degree, and past roughly degree 24 the growth factor
+`max sum|c_j| u^j / |P2(u)|` leaves 1 and climbs fast — 466 at `MANT_DIG` 64
+with a split of 10, 1.2e9 at `MANT_DIG` 113 with a split of 15.
+
+So the split is chosen per format as the smallest one that keeps that factor at
+1, and branch 1 absorbs the extra degree at no risk. That is why the wide
+formats split much later than the narrow ones. `scheme.branch2_growth` measures
+it, and the generator prints it for every format.
+
+Both degrees are then rounded up so each table length is a multiple of four,
+which lets the four-chain loop run without a prologue. Rounding up only lowers
+the design error.
 
 `SPEC` pins the split and the two degrees per format. `docs/bessel-i0-accuracy.md`
 records the sweep those values came from and the resulting ULP measurements.

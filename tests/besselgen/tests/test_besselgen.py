@@ -64,11 +64,36 @@ def test_branch1_coefficients_are_positive_and_start_at_the_taylor_series():
     assert abs(P1[2] - mp.mpf(1) / 36) < mp.mpf("1e-7")
 
 
-def test_branch2_starts_at_one_over_sqrt_two_pi():
-    # g(0) = 1/sqrt(2 pi); the Chebyshev coefficients sum to it at t = -1.
+def test_branch2_starts_at_the_asymptotic_series():
+    # sqrt(x) exp(-x) I0(x) = (1 + 1/(8x) + 9/(128 x^2) + ...) / sqrt(2 pi),
+    # and P2 is monomial in u = 1/x, so its leading coefficients are those terms.
     P2, _ = scheme.fit_branch2(10, 12)
-    got = remez.clenshaw(P2, mp.mpf(-1))
-    assert abs(got - 1 / mp.sqrt(2 * mp.pi)) < mp.mpf("1e-12")
+    lead = 1 / mp.sqrt(2 * mp.pi)
+    assert abs(P2[0] - lead) < mp.mpf("1e-12")
+    assert abs(P2[1] / P2[0] - mp.mpf(1) / 8) < mp.mpf("1e-8")
+    assert abs(P2[2] / P2[0] - mp.mpf(9) / 128) < mp.mpf("1e-5")
+
+
+def test_branch2_cannot_cancel_at_any_pinned_split():
+    """The split is chosen so the monomial form of P2 stays summable in any
+    order, which is what lets bessel_i0.c group it into four chains. Past
+    roughly degree 24 the growth factor leaves 1 and climbs fast."""
+    mp.mp.dps = 50
+    for prec, spec in generate.SPEC.items():
+        if prec > 64:
+            continue        # quad needs 90 digits; covered by the generator run
+        P2, _ = scheme.fit_branch2(spec["split"], spec["n2"])
+        g = scheme.branch2_growth(P2, spec["split"])
+        assert g < mp.mpf("1.05"), "MANT_DIG=%d: growth %s" % (prec, g)
+    mp.mp.dps = 40
+
+
+def test_table_lengths_are_multiples_of_four():
+    """poly4 in bessel_i0.c sums four chains with no prologue, so every table
+    length must be divisible by four."""
+    for prec, spec in generate.SPEC.items():
+        assert (spec["n1"] + 1) % 4 == 0, "MANT_DIG=%d n1" % prec
+        assert (spec["n2"] + 1) % 4 == 0, "MANT_DIG=%d n2" % prec
 
 
 def test_reported_error_is_the_error_of_the_shipped_form():
@@ -84,12 +109,14 @@ def test_reported_error_is_the_error_of_the_shipped_form():
     mp.mp.dps = 40
 
 
-@pytest.mark.parametrize("prec", [24, 53])
+@pytest.mark.parametrize("prec", [24, 53, 64, 113])
 def test_spec_degrees_meet_the_format(prec):
     """Each pinned degree must leave the design error well under the format
     epsilon, so that what is measured at run time is evaluation rounding."""
     spec = generate.SPEC[prec]
-    mp.mp.dps = 50
+    # The working precision the generator uses for this format; 50 digits
+    # cannot resolve the quadruple target with any margin.
+    mp.mp.dps = 60 if prec <= 64 else 90
     _, e1 = scheme.fit_branch1(spec["split"], spec["n1"])
     _, e2 = scheme.fit_branch2(spec["split"], spec["n2"])
     eps = mp.mpf(2) ** -prec
@@ -98,10 +125,10 @@ def test_spec_degrees_meet_the_format(prec):
     mp.mp.dps = 40
 
 
-@pytest.mark.parametrize("prec", [24, 53])
+@pytest.mark.parametrize("prec", [24, 53, 64, 113])
 def test_emulated_evaluation_is_accurate_in_the_target_format(prec):
     spec = generate.SPEC[prec]
-    mp.mp.dps = 50
+    mp.mp.dps = 60 if prec <= 64 else 90
     P1, _ = scheme.fit_branch1(spec["split"], spec["n1"])
     P2, _ = scheme.fit_branch2(spec["split"], spec["n2"])
     with mp.workprec(prec):

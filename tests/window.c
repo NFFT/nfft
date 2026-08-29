@@ -128,7 +128,8 @@ void X(check_kaiser_bessel_peak)(void)
       const INT n = 2 * (INT)(kb_sigma[s] * (R)N / K(2.0));
       const R sh = KPI * (K(2.0) - (R)N / (R)n);
       const R lt = Y(bessel_i0_logtail)((R)m * sh);
-      const R peak = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, K(0.0));
+      const R pk = K(1.0) / Y(bessel_i0_exp_scaled)((R)m * sh);
+      const R peak = Y(kb_phi_hut)(sh, pk, (R)m, (R)n, K(0.0));
       const R err = ERR(peak, K(1.0));
       const int ok = IF(err < b, 1, 0);
       R prev = peak;
@@ -143,7 +144,7 @@ void X(check_kaiser_bessel_peak)(void)
       /* phi_hut decays from the peak across the band and stays finite */
       for (k = 1; k <= N / 2; k++)
       {
-        const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
+        const R v = Y(kb_phi_hut)(sh, pk, (R)m, (R)n, (R)k);
         const int okk = IF(FINITE(v) && v > K(0.0)
             && v <= prev * (K(1.0) + b), 1, 0);
         if (okk == 0)
@@ -181,6 +182,7 @@ void X(check_kaiser_bessel_reference)(void)
   const INT N = 64, n = 128;
   const R sh = KPI * (K(2.0) - (R)N / (R)n);
   const R lt = Y(bessel_i0_logtail)((R)m * sh);
+  const R pk = K(1.0) / Y(bessel_i0_exp_scaled)((R)m * sh);
   const R peak = Y(bessel_i0)((R)m * sh);
   const R b = K(4.0) * bound();
   INT k;
@@ -193,7 +195,7 @@ void X(check_kaiser_bessel_reference)(void)
     const R t = K(2.0) * KPI * (R)k / (R)n;
     const R a = (R)m * SQRT(sh * sh - t * t);
     const R ref = Y(bessel_i0)(a) / peak;
-    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
+    const R v = Y(kb_phi_hut)(sh, pk, (R)m, (R)n, (R)k);
     const R err = ERR(v, ref);
     const int ok = IF(err < b, 1, 0);
     printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
@@ -243,6 +245,7 @@ void X(check_kaiser_bessel_cancellation)(void)
   const int m = 8;
   const R sh = KPI * (K(2.0) - (R)N / (R)n);
   const R lt = Y(bessel_i0_logtail)((R)m * sh);
+  const R pk = K(1.0) / Y(bessel_i0_exp_scaled)((R)m * sh);
   /* leaves room for the rounding of b and t, which no formulation can undo */
   const R b = bound();
   unsigned int k;
@@ -252,7 +255,7 @@ void X(check_kaiser_bessel_cancellation)(void)
   for (k = 0; k < sizeof(kb_phi_hut_ref_512_256_8) / sizeof(R); k++)
   {
     const R ref = kb_phi_hut_ref_512_256_8[k];
-    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)k);
+    const R v = Y(kb_phi_hut)(sh, pk, (R)m, (R)n, (R)k);
     const R err = ERR(v, ref);
     const int ok = IF(err < b, 1, 0);
     printf("phi_hut[k=%u] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
@@ -263,7 +266,7 @@ void X(check_kaiser_bessel_cancellation)(void)
 
   {
     const R ref = KB_PHI_HUT_EDGE_512_256_8;
-    const R v = Y(kb_phi_hut)(sh, lt, (R)m, (R)n, (R)(N / 2));
+    const R v = Y(kb_phi_hut)(sh, pk, (R)m, (R)n, (R)(N / 2));
     const R err = ERR(v, ref);
     const int ok = IF(err < b, 1, 0);
     printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__

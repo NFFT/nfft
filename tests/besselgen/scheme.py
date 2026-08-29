@@ -8,11 +8,17 @@ Two ranges, split at S:
            is equioscillating. The leading 1 makes the form exact at x = 0 and
            every P1 coefficient is positive, so Horner cannot cancel.
 
-  x > S    I0(x) = exp(x)/sqrt(x) * P2(t), t = 2S/x - 1 in [-1, 1)
-           P2 is a Chebyshev series in the mapped reciprocal argument, fitted
-           against the exponentially scaled Bessel function
-           g(u) = sqrt(1/u) * exp(-1/u) * I0(1/u), which is smooth and bounded
-           away from zero on [0, 1/S], so Clenshaw stays in its stable domain.
+  x > S    I0(x) = exp(x)/sqrt(x) * P2(u), u = 1/x in (0, 1/S]
+           P2 is fitted against the exponentially scaled Bessel function
+           g(u) = sqrt(1/u) * exp(-1/u) * I0(1/u), smooth and bounded away
+           from zero on [0, 1/S], then shipped as monomial coefficients in u.
+           The runtime then evaluates a plain sum, which splits into
+           independent chains; the Clenshaw recurrence it replaced does not,
+           and that cost the evaluation a factor of four.
+
+           The monomial form is well conditioned only while the degree stays
+           low, and that is what pins the split per format. See
+           `branch2_growth` and the SPEC notes in generate.py.
 """
 import mpmath as mp
 
@@ -81,13 +87,39 @@ def verify_branch1(P1, split, npts=1200):
 
 
 def verify_branch2(P2, split, npts=1200):
-    """Relative error of the shipped Chebyshev form for the scaled I0."""
+    """Relative error of the shipped monomial form P2(u), in exact arithmetic.
+
+    The runtime groups the sum into four chains rather than one Horner pass.
+    That is the same value in exact arithmetic; what the grouping changes is
+    rounding, which `branch2_growth` bounds.
+    """
     worst = mp.mpf(0)
     for i in range(npts + 1):
         u = (1 / mp.mpf(split)) * i / npts
-        t = 2 * split * u - 1
         ref = g2(u)
-        worst = max(worst, abs(remez.clenshaw(P2, t) - ref) / ref)
+        worst = max(worst, abs(_horner(P2, u) - ref) / ref)
+    return worst
+
+
+def branch2_growth(P2, split, npts=800):
+    """max sum|c_j| u^j / |P2(u)| over the branch.
+
+    1 means no ordering of the sum can cancel, so the four-chain grouping is
+    as safe as Horner. This pins the split: the monomial coefficients of g2
+    grow with the degree, and past roughly degree 24 the factor leaves 1 and
+    climbs fast -- 466 at MANT_DIG 64 with a split of 10, 1.2e9 at MANT_DIG
+    113 with a split of 15. Raising the split shortens branch 2 until the
+    factor returns to 1. Branch 1 absorbs the degree, and its coefficients are
+    positive at any degree, so it stays stable however long it gets.
+    """
+    hi = 1 / mp.mpf(split)
+    worst = mp.mpf(0)
+    for i in range(npts + 1):
+        u = hi * i / npts
+        num = sum(abs(c) * u ** j for j, c in enumerate(P2))
+        den = abs(_horner(P2, u))
+        if den > 0:
+            worst = max(worst, num / den)
     return worst
 
 
@@ -102,17 +134,10 @@ def fit_branch1(split, n, prec_digits=None):
 
 
 def fit_branch2(split, n, prec_digits=None):
-    """Chebyshev coefficients of P2 for `x > split`, degree n, in t = 2S/x - 1."""
+    """Monomial coefficients of P2 in u = 1/x for `x > split`, degree n."""
     with mp.workdps(prec_digits or mp.mp.dps):
         hi = 1 / mp.mpf(split)
         c, _ = remez.minimax_poly(g2, w2, 0, hi, n)
-        c = [+v for v in c]
-        return c, +verify_branch2(c, split)
+        mono = [+v for v in remez.cheb_to_monomial(c, mp.mpf(0), hi)]
+        return mono, +verify_branch2(mono, split)
 
-
-def cheb_series_branch2(split, n, prec_digits=None):
-    """Unweighted Chebyshev interpolant of g2; cheap near-minimax alternative."""
-    with mp.workdps(prec_digits or mp.mp.dps):
-        hi = 1 / mp.mpf(split)
-        c = remez.cheb_series(g2, 0, hi, n)
-        return [+v for v in c]

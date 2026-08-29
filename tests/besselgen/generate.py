@@ -17,16 +17,28 @@ from . import scheme
 
 # Per-format scheme: split, degree of P1, degree of P2.
 #
-# The split balances the two branches: branch 1 costs one Horner step per
-# degree and its rounding error grows with the degree, branch 2 needs more
-# degrees the smaller the split is but sits near its own floor (~3.5 ulp) set
-# by the exp/sqrt/divide around it. These values come from the sweep recorded
-# in docs/bessel-i0-accuracy.md; --search reproduces them.
+# Two constraints fix these, beyond reaching the accuracy target.
+#
+# The split is set by branch 2's conditioning. P2 ships as monomial
+# coefficients in u = 1/x so the runtime can sum it as independent chains, and
+# that form is well conditioned only while the degree stays low. Past roughly
+# degree 24 the growth factor leaves 1 and climbs fast: at MANT_DIG 64 a split
+# of 10 needs degree 32 and gives 466, and at MANT_DIG 113 a split of 15 needs
+# degree 59 and gives 1.2e9. Raising the split shortens branch 2 until the
+# factor returns to 1, and branch 1 absorbs the degree at no risk, its
+# coefficients being positive however long it gets. scheme.branch2_growth
+# measures it and the generator reports it.
+#
+# Both degrees are then rounded up so that the table length n+1 is a multiple
+# of four, which is what lets the four-chain loop in bessel_i0.c run without a
+# prologue. Rounding up only lowers the design error.
+#
+# --search re-derives the degrees; the splits are deliberate, not searched.
 SPEC = {
-    24: dict(split=8, n1=10, n2=7),
-    53: dict(split=10, n1=17, n2=23),
-    64: dict(split=10, n1=19, n2=32),
-    113: dict(split=15, n1=32, n2=59),
+    24: dict(split=8, n1=11, n2=7),
+    53: dict(split=10, n1=19, n2=23),
+    64: dict(split=15, n1=23, n2=23),
+    113: dict(split=25, n1=43, n2=39),
 }
 
 # Working precision and printed digits per format. The printed digit count is
@@ -66,17 +78,21 @@ HEADER = """/*
  *
  * Two ranges per format, split at NFFT_I0_ASYMP_SPLIT:
  *
- *   x <= split   I0(x) = 1 + y * P1(y),  y = (x/2)^2, Horner in y.
+ *   x <= split   I0(x) = 1 + y * P1(y),  y = (x/2)^2.
  *                Every P1 coefficient is positive, so the sum cannot cancel,
  *                and the leading 1 makes the form exact at x = 0.
  *
- *   x >  split   I0(x) = exp(x)/sqrt(x) * P2(t),  t = 2*split/x - 1 in [-1,1),
- *                Clenshaw in the Chebyshev basis, fitted against the
- *                exponentially scaled sqrt(x)*exp(-x)*I0(x).
+ *   x >  split   I0(x) = exp(x)/sqrt(x) * P2(u),  u = 1/x in (0, 1/split],
+ *                monomial in u, fitted against the exponentially scaled
+ *                sqrt(x)*exp(-x)*I0(x). The split is chosen per format so that
+ *                this form cannot cancel, which caps its degree.
  *
  * Both are weighted minimax fits, so the weighted error equioscillates and the
  * design error of each is far below the format epsilon; what is left at run
  * time is rounding in the evaluation itself.
+ *
+ * Each table length is a multiple of four: bessel_i0.c sums both as four
+ * independent chains, and that lets the loop run without a prologue.
  */
 
 #ifndef NFFT_BESSEL_I0_DATA_H
@@ -116,7 +132,8 @@ def build(prec, spec, dps, search_target=None, log=None):
         n1, n2 = spec["n1"], spec["n2"]
     P1, e1 = scheme.fit_branch1(split, n1)
     P2, e2 = scheme.fit_branch2(split, n2)
-    return dict(split=split, n1=n1, n2=n2, P1=P1, P2=P2, e1=e1, e2=e2)
+    g2 = scheme.branch2_growth(P2, split)
+    return dict(split=split, n1=n1, n2=n2, P1=P1, P2=P2, e1=e1, e2=e2, g2=g2)
 
 
 def _search(fit, split, target, lo=3, hi=60):
@@ -165,9 +182,11 @@ def main(argv=None):
         r = build(prec, spec, dps,
                   search_target=target if args.search else None,
                   log=lambda s: sys.stderr.write(s + "\n"))
-        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s\n"
+        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s"
+                         "  P2 growth %s\n"
                          % (r["split"], r["n1"], r["n2"],
-                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3)))
+                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3),
+                            mp.nstr(r["g2"], 6)))
         out.append("")
         out.append("#%s %s" % ("if" if first else "elif", GUARD[prec]))
         first = False
@@ -185,9 +204,11 @@ def main(argv=None):
         sys.stderr.write("fitting MANT_DIG=%d (dps=%d, emitted as the fallback)\n"
                          % (tail, dps))
         r = build(tail, SPEC[tail], dps)
-        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s\n"
+        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s"
+                         "  P2 growth %s\n"
                          % (r["split"], r["n1"], r["n2"],
-                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3)))
+                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3),
+                            mp.nstr(r["g2"], 6)))
         out.append("#else")
         out.append("  /* %s Also the fallback for any format not named above." % NAME[tail])
         out.append("   * Correct there only if that format is no wider than double. */")

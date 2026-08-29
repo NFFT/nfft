@@ -18,7 +18,7 @@ def horner(c, x):
 
 
 def clenshaw_c(c, x):
-    """The `evaluate_chebyshev` recurrence as written in kernel/util/bessel_i0.c."""
+    """The `evaluate_chebyshev` recurrence, as the pre-generator I0 wrote it."""
     n = len(c)
     a = c[n - 2]
     b = c[n - 1]
@@ -27,6 +27,20 @@ def clenshaw_c(c, x):
         b = a + 2 * x * b
         a = t
     return a + x * b
+
+
+def poly4(c, u):
+    """The `poly4` four-chain sum as written in kernel/util/bessel_i0.c."""
+    n = len(c)
+    assert n >= 4 and n % 4 == 0, "table length must be a multiple of four"
+    v = u * u
+    w = v * v
+    j = n - 4
+    a = [c[j], c[j + 1], c[j + 2], c[j + 3]]
+    for j in range(n - 8, -1, -4):
+        for k in range(4):
+            a[k] = a[k] * w + c[j + k]
+    return (a[0] + u * a[1]) + v * (a[2] + u * a[3])
 
 
 def i0_new(x, prec, P1, P2, split, split_exp=True):
@@ -38,9 +52,8 @@ def i0_new(x, prec, P1, P2, split, split_exp=True):
         if x <= split:
             h = x * mp.mpf(0.5)
             y = h * h
-            return 1 + y * horner(P1, y)
-        t = (2 * mp.mpf(split) - x) / x
-        p = clenshaw_c(P2, t)
+            return 1 + y * poly4(P1, y)
+        p = poly4(P2, 1 / x)
         if split_exp:
             # exp(x/2) twice keeps the intermediate below the overflow
             # threshold, so the usable range ends where I0 itself overflows.
