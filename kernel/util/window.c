@@ -130,19 +130,9 @@ int Y(get_window_id)(void)
  * macros. Dirac and unrecognized ordinals return 0; callers must decline. */
 
 /* Kaiser-Bessel evaluation against the per-axis constants of kb_consts: xpk = m*b,
- * lg_peak = log I0(xpk), lt_xpk = lg_peak - xpk == bessel_i0_logtail(xpk). */
-static inline R kb_phi_hut_eval(R b, R xpk, R lg_peak, R lt_xpk, INT n, int m, INT k)
-{
-  R t = K(2.0) * KPI * (R)k / (R)n;
-  R s = b * b - t * t; /* >= 0 in band, so SQRT is safe */
-  R a = (R)m * SQRT(s);
-  if (a > NFFT_I0_ASYMP_SPLIT && xpk > NFFT_I0_ASYMP_SPLIT)
-  {
-    R lin = -(R)m * t * t / (SQRT(s) + b);
-    return EXP(lin + Y(bessel_i0_logtail)(a) - lt_xpk);
-  }
-  return Y(bessel_i0_scaled)(a, lg_peak);
-}
+ * lg_peak = log I0(xpk), lt_xpk = lg_peak - xpk == bessel_i0_logtail(xpk),
+ * i0e_pk = 1 / (exp(-xpk) * I0(xpk)). phi_hut needs only b and i0e_pk, so it
+ * calls Y(kb_phi_hut) rather than carrying a second copy of the formula. */
 
 static inline R kb_phi_eval(R b, R xpk, R lg_peak, R lt_xpk, INT n, int m, R arg)
 {
@@ -172,12 +162,13 @@ static inline R kb_phi_eval(R b, R xpk, R lg_peak, R lt_xpk, INT n, int m, R arg
 }
 
 static inline void kb_consts(int window, INT n, INT N, int m,
-                             R *b, R *xpk, R *lg_peak, R *lt_xpk)
+                             R *b, R *xpk, R *lg_peak, R *lt_xpk, R *i0e_pk)
 {
   *b = KPI * (K(2.0) - (R)N / (R)n);
   *xpk = (R)m * *b;
   *lg_peak = Y(bessel_i0_log)(*xpk);
   *lt_xpk = *lg_peak - *xpk;
+  *i0e_pk = K(1.0) / Y(bessel_i0_exp_scaled)(*xpk);
 }
 
 void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
@@ -185,11 +176,11 @@ void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
 {
   if (window == NFFT_WINDOW_KAISER_BESSEL)
   {
-    R b, xpk, lg_peak, lt_xpk;
+    R b, xpk, lg_peak, lt_xpk, i0e_pk;
     INT i;
-    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk);
+    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk, &i0e_pk);
     for (i = 0; i < count; i++)
-      out[i] = kb_phi_hut_eval(b, xpk, lg_peak, lt_xpk, n, m, k0 + i);
+      out[i] = Y(kb_phi_hut)(b, i0e_pk, (R)m, (R)n, (R)(k0 + i));
   }
   else
   {
@@ -205,9 +196,9 @@ void Y(window_phi_precompute)(int window, INT n, INT N, int m,
 {
   if (window == NFFT_WINDOW_KAISER_BESSEL)
   {
-    R b, xpk, lg_peak, lt_xpk;
+    R b, xpk, lg_peak, lt_xpk, i0e_pk;
     INT j;
-    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk);
+    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk, &i0e_pk);
     for (j = 0; j < num_nodes; j++)
     {
       R xj = x[(size_t)j * (size_t)x_stride];
@@ -245,9 +236,9 @@ R Y(window_phi_hut)(int window, INT n, INT N, int m, INT k)
   {
   case NFFT_WINDOW_KAISER_BESSEL:
   {
-    R b, xpk, lg_peak, lt_xpk;
-    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk);
-    return kb_phi_hut_eval(b, xpk, lg_peak, lt_xpk, n, m, k);
+    R b, xpk, lg_peak, lt_xpk, i0e_pk;
+    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk, &i0e_pk);
+    return Y(kb_phi_hut)(b, i0e_pk, (R)m, (R)n, (R)k);
   }
   case NFFT_WINDOW_GAUSSIAN:
   {
@@ -282,8 +273,8 @@ R Y(window_phi)(int window, INT n, INT N, int m, R x)
   {
   case NFFT_WINDOW_KAISER_BESSEL:
   {
-    R b, xpk, lg_peak, lt_xpk;
-    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk);
+    R b, xpk, lg_peak, lt_xpk, i0e_pk;
+    kb_consts(window, n, N, m, &b, &xpk, &lg_peak, &lt_xpk, &i0e_pk);
     return kb_phi_eval(b, xpk, lg_peak, lt_xpk, n, m, x);
   }
   case NFFT_WINDOW_GAUSSIAN:
