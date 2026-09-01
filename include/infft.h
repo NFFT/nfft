@@ -255,20 +255,45 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #else /* Kaiser-Bessel is the default. */
-  #define PHI_HUT(n,k,d) (Y(bessel_i0)((R)(ths->m) * SQRT(ths->b[d] * ths->b[d] - (K(2.0) * KPI * (R)(k) / (R)(n)) * (K(2.0) * KPI * (R)(k) / (R)(n)))))
-  #define PHI(n,x,d) (  (((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) > K(0.0)) \
-                      ?   SINH(ths->b[d] * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
-                        / (KPI * SQRT((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n))) \
-                      :   ((((R)(ths->m) * (R)(ths->m) - (x) * (R)(n) * (x) * (R)(n)) < K(0.0)) \
-                        ?   SIN(ths->b[d] * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
-                          / (KPI * SQRT((x) * (R)(n) * (x) * (R)(n) - (R)(ths->m) * (R)(ths->m))) \
-                        : ths->b[d] / KPI))
+  /* PHI and PHI_HUT both carry the factor exp(-log I0(m b)) so that PHI_HUT(n,0,ax) 
+   * is normalized to 1. Deconvolution divides by PHI_HUT and convolution multiplies 
+   * by PHI, so the factor cancels and the transform is unchanged.
+   *
+   * ths->b holds 4 * ths->d reals: b per axis, log I0(m b) - m b,
+   * 1 / (exp(-m b) * I0(m b)) and 1 / I0(m b). The last two are the peak in the
+   * two forms the window needs it in; both are constant per axis, so neither
+   * costs a Bessel evaluation inside a loop. The second follows from the first,
+   * since log I0(m b) is m b + lg_tail. */
+  #define KB_B(ax) (ths->b[(ax)])
+  #define KB_LG_TAIL(ax) (ths->b[(ths->d) + (ax)])
+  #define KB_I0E_PEAK_INV(ax) (ths->b[2 * (ths->d) + (ax)])
+  #define KB_PEAK_INV(ax) (ths->b[3 * (ths->d) + (ax)])
+  #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_I0E_PEAK_INV(ax), \
+                             (R)(ths->m), (R)(n), (R)(k)))
+  #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
+                         (R)(ths->m), (R)(n) * (R)(x)))
+  /* Fills dst[0 .. 2m+1] with phi(x - (u + l)/n), the run every psi table is
+   * built from. The window sees the whole run, so it can hoist its constants,
+   * step the argument by one grid cell rather than dividing per point, and put
+   * the points that need the guarded evaluation in their own branch. */
+  #define PHI_RUN(dst,n,x,u,ax) \
+    Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
+        (R)(ths->m), (ths->m), (R)(n) * (R)(x) - (R)(u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)((size_t)(ths->d) * sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(4 * ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
-        ths->b[WINDOW_idx] = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
+      { \
+        R WINDOW_b = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
+        R WINDOW_xpk = ((R)(ths->m)) * WINDOW_b; \
+        R WINDOW_lg = Y(bessel_i0_logtail)(WINDOW_xpk); \
+        ths->b[WINDOW_idx] = WINDOW_b; \
+        ths->b[ths->d + WINDOW_idx] = WINDOW_lg; \
+        ths->b[2 * ths->d + WINDOW_idx] = K(1.0) / \
+            Y(bessel_i0_exp_scaled)(WINDOW_xpk); \
+        ths->b[3 * ths->d + WINDOW_idx] = EXP(-WINDOW_xpk - WINDOW_lg); \
+      } \
   }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -288,6 +313,18 @@ typedef ptrdiff_t INT;
     // Assume IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 8
   #endif
+#endif
+
+/* Generic run fill: dst[0 .. 2m+1] = phi(x - (u + l)/n). Windows that gain from
+ * seeing the whole run at once override PHI_RUN above. */
+#ifndef PHI_RUN
+  #define PHI_RUN(dst,n,x,u,ax) \
+    do { \
+      INT PHI_RUN_l; \
+      for (PHI_RUN_l = 0; PHI_RUN_l < 2 * ths->m + 2; PHI_RUN_l++) \
+        (dst)[PHI_RUN_l] = PHI((n), \
+            (x) - ((R)(PHI_RUN_l + (u))) / ((R)(n)), (ax)); \
+    } while (0)
 #endif
 
 /* window.c */
@@ -1479,8 +1516,136 @@ R Y(lambda)(R z, R eps);
 /* lambda2(mu, nu) = sqrt(gamma(mu + nu + 1) / (gamma(mu + 1) * gamma(nu + 1))) */
 R Y(lambda2)(R mu, R nu);
 
-/* bessel_i0.c: */
-R Y(bessel_i0)(R x);
+/* bessel_i0.c: I0 in the two scaled forms the Kaiser-Bessel window needs.
+ * Neither exponentiates a large argument, so neither inherits the relative
+ * error of EXP, which grows with the argument on some targets. I0 itself is not
+ * provided: nothing needs it, and every form of it would carry that error. */
+R Y(bessel_i0_logtail)(R x); /* log I0(x) - x, <= 0 */
+R Y(bessel_i0_exp_scaled)(R x); /* exp(-x) * I0(x), in (0, 1] */
+
+/* Kaiser-Bessel window, scaled by 1/I0(m b) so that phi_hut(0) == 1.
+ *
+ *   phi(nx) = sinh(b ra) / (pi ra I0(m b)),  ra = sqrt(m^2 - nx^2),  |nx| < m
+ *             sin (b ri) / (pi ri I0(m b)),  ri = sqrt(nx^2 - m^2),  |nx| > m
+ *             b / (pi I0(m b)),                                      |nx| = m
+ *
+ * The argument is nx = n x rather than x: every caller has n x to hand, and the
+ * points of a run differ by exactly one in nx, so the run form needs no divide.
+ *
+ * Constants per axis: lg_tail = log I0(m b) - m b, peak_inv = 1 / I0(m b).
+ */
+
+/* |nx| >= m. */
+static inline R Y(kb_phi_out)(R b, R peak_inv, R m, R nx)
+{
+  const R a = (nx - m) * (nx + m);
+
+  if (a <= K(0.0))
+    return (b / KPI) * peak_inv;
+
+  {
+    const R ri = SQRT(a);
+    return (SIN(b * ri) / (KPI * ri)) * peak_inv;
+  }
+}
+
+/* |nx| <= m, accurate down to ra = 0 and free of overflow at any m b.
+ *
+ * sinh(b ra)/I0(m b) = exp(b ra - m b - lg_tail) * (1 - exp(-2 b ra)) / 2, with
+ * b ra - m b = -b nx^2/(ra + m) so that the peak does not cancel. One
+ * reciprocal serves both 1/(ra + m) and 1/ra. */
+static inline R Y(kb_phi_in)(R b, R lg_tail, R peak_inv, R m, R nx)
+{
+  const R a = (m - nx) * (m + nx);
+
+  if (a <= K(0.0))
+    return (b / KPI) * peak_inv;
+
+  {
+    const R ra = SQRT(a);
+    const R w = K(1.0) / (ra * (ra + m));
+
+    return EXP(-b * (nx * nx) * (w * ra) - lg_tail)
+      * (-EXPM1(K(-2.0) * b * ra)) * (w * (ra + m)) * (K(0.5) / KPI);
+  }
+}
+
+/* |nx| <= m - 1, so b ra >= b sqrt(2m - 1) and exp(-2 b ra) is far below 1.
+ *
+ * With E = exp(b ra - m b - lg_tail) the second exponential is redundant:
+ * exp(-2 b ra) = peak_inv^2 / E^2, so 1 - exp(-2 b ra) costs one reciprocal
+ * instead of an EXPM1, and E - peak_inv^2/E cannot cancel while b ra is bounded
+ * away from zero. peak_inv^2 underflows only past m b ~ 357, where exp(-2 b ra)
+ * is already far below the format epsilon and zero is the right value. */
+static inline R Y(kb_phi_in_interior)(R b, R lg_tail, R peak_inv_sq, R m, R nx)
+{
+  const R ra = SQRT((m - nx) * (m + nx));
+  const R w = K(1.0) / (ra * (ra + m));
+  const R e = EXP(-b * (nx * nx) * (w * ra) - lg_tail);
+
+  return (e - peak_inv_sq / e) * (w * (ra + m)) * (K(0.5) / KPI);
+}
+
+static inline R Y(kb_phi)(R b, R lg_tail, R peak_inv, R m, R nx)
+{
+  if ((m - nx) * (m + nx) > K(0.0))
+    return Y(kb_phi_in)(b, lg_tail, peak_inv, m, nx);
+
+  return Y(kb_phi_out)(b, peak_inv, m, nx);
+}
+
+/* dst[l] = phi(nx0 - l) for l = 0 .. 2m+1.
+ *
+ * A run straddles the support: its ends lie outside, and next to them ra comes
+ * arbitrarily close to zero. The stretch with |nx| <= m - 1 keeps b ra at or
+ * above b sqrt(2m - 1), which is what the interior kernel needs; it is found by
+ * inverting |nx0 - l| <= m - 1 rather than assumed, so a caller whose run sits
+ * differently still gets the guarded evaluation everywhere it is due. The
+ * interior loop has no branch and one transcendental, so it vectorises. */
+static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
+  INT mi, R nx0)
+{
+  const INT last = 2 * mi + 1;
+  const R lim = m - K(1.0);
+  INT lo = (INT)CEIL(nx0 - lim);
+  INT hi = (INT)FLOOR(nx0 + lim);
+  INT l;
+
+  if (lo < 0)
+    lo = 0;
+  if (hi > last)
+    hi = last;
+
+  for (l = 0; l < lo; l++)
+    dst[l] = Y(kb_phi)(b, lg_tail, peak_inv, m, nx0 - (R)l);
+
+  if (lo <= hi)
+  {
+    const R peak_inv_sq = peak_inv * peak_inv;
+
+    for (l = lo; l <= hi; l++)
+      dst[l] = Y(kb_phi_in_interior)(b, lg_tail, peak_inv_sq, m, nx0 - (R)l);
+  }
+  else
+    hi = lo - 1;
+
+  for (l = hi + 1; l <= last; l++)
+    dst[l] = Y(kb_phi)(b, lg_tail, peak_inv, m, nx0 - (R)l);
+}
+
+/* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
+ * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed
+ * without the cancellation, so nothing overflows at any m b.
+ * i0e_peak_inv = 1/(exp(-m b) I0(m b)) is constant per axis. */
+static inline R Y(kb_phi_hut)(R b, R i0e_peak_inv, R m, R n, R k)
+{
+  const R t = K(2.0) * KPI * k / n;
+  const R s = (b - t) * (b + t); /* not b*b - t*t; >= 0 in band, so SQRT is safe */
+  const R ra = SQRT(s);
+
+  return EXP(-m * t * t / (ra + b)) * Y(bessel_i0_exp_scaled)(m * ra)
+    * i0e_peak_inv;
+}
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);

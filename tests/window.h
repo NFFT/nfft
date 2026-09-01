@@ -18,5 +18,10 @@
 
 #include "infft.h"
 
-void X(check_bessel_i0_exp_scaled)(void);
-void X(check_bessel_i0_logtail)(void);
+void X(check_bessel_i0_scaling)(void);
+void X(check_kaiser_bessel_peak)(void);
+void X(check_kaiser_bessel_reference)(void);
+void X(check_kaiser_bessel_cancellation)(void);
+void X(check_kaiser_bessel_nfft)(void);
+void X(check_kaiser_bessel_run)(void);
+void X(check_kaiser_bessel_phi)(void);

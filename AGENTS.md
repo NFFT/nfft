@@ -175,6 +175,20 @@ Continuous tracking happens via CodSpeed in GitHub Actions (same CMake build,
 > --enable-benchmarks --with-codspeed=<path>` + `make bench`) predates CodSpeed; it
 > needs a hand-built `codspeed-cpp` and prints no measurements. Use the CMake build.
 
+## 5. Bessel I0 coefficients
+
+The Kaiser-Bessel window rests on the modified Bessel function I0
+(`kernel/util/bessel_i0.c`). Its coefficient tables live in the generated
+`kernel/util/bessel_i0_data.h`, produced by `tests/besselgen` — a deterministic
+mpmath minimax fitter that replaced the former Mathematica notebook:
+
+```bash
+uv run --with mpmath==1.3.0 python -m tests.besselgen.generate
+```
+
+Do not hand-edit the generated header. The generator's own
+notes are in `tests/besselgen/README.md`.
+
 ## Quick reference
 
 | Task | Command |
@@ -188,6 +202,7 @@ Continuous tracking happens via CodSpeed in GitHub Actions (same CMake build,
 | Measure (walltime) | `CODSPEED_PROFILE_FOLDER=/tmp/wt build-cmake/benchmarks/bench_nfft_direct` → `/tmp/wt/results/*.json` |
 | Clean | `make clean` / full reset: `make distclean` |
 | Format C code | `clang-format -i <file>` (uses repo `.clang-format`) |
+| Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m tests.besselgen.generate` (§5) |
 
 CI mirrors these steps in `.github/workflows/build-linux.yml`, `bench-linux.yml`,
 `build-macos.yml`, and `build-windows.yml` across different window × precision × OpenMP 

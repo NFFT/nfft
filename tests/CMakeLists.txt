@@ -8,6 +8,7 @@ set(NFFT_TEST_SOURCES
   reflect.c reflect.h
   bspline.c bspline.h
   bessel.c  bessel.h
+  window.c  window.h
   nfft.c    nfft.h
   nfct.c    nfct.h
   nfst.c    nfst.h)
