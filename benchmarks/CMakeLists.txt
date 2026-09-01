@@ -66,6 +66,15 @@ if(UNIX)
   target_link_libraries(bench_nfft_direct PRIVATE m)
 endif()
 
+add_executable(bench_nfft_fast bench_nfft_fast.cpp util.h)
+target_include_directories(bench_nfft_fast PRIVATE
+  ${PROJECT_SOURCE_DIR}/include
+  ${NFFT_GENERATED_INCLUDE_DIR})              # config.h (with BENCHMARKS_PREFIX)
+target_link_libraries(bench_nfft_fast PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
+if(UNIX)
+  target_link_libraries(bench_nfft_fast PRIVATE m)
+endif()
+
 add_executable(bench_nfct_direct bench_nfct_direct.cpp util.h)
 target_include_directories(bench_nfct_direct PRIVATE
   ${PROJECT_SOURCE_DIR}/include
@@ -105,6 +114,21 @@ if(NFFT_ENABLE_OPENMP)
   endif()
   if(UNIX)
     target_link_libraries(bench_nfft_direct_omp PRIVATE m)
+  endif()
+
+  add_executable(bench_nfft_fast_omp bench_nfft_fast.cpp util.h)
+  target_include_directories(bench_nfft_fast_omp PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+  target_link_libraries(bench_nfft_fast_omp PRIVATE
+    nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
+  if(FFTW3_OMP_FOUND)
+    target_link_libraries(bench_nfft_fast_omp PRIVATE FFTW3::fftw3_omp)
+  elseif(FFTW3_THREADS_FOUND)
+    target_link_libraries(bench_nfft_fast_omp PRIVATE FFTW3::fftw3_threads)
+  endif()
+  if(UNIX)
+    target_link_libraries(bench_nfft_fast_omp PRIVATE m)
   endif()
 
   add_executable(bench_nfct_direct_omp bench_nfct_direct.cpp util.h)
