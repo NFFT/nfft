@@ -837,35 +837,35 @@
   },
   "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_FG_PSI": {
     "accuracy-digits": {
-      "value": 15.554226571271142
+      "value": 15.599941852094293
     },
     "bound-digits": {
       "value": 15.485208404918687
     },
     "max-error": {
-      "value": 2.7910873521025573e-16
+      "value": 2.512222771757897e-16
     }
   },
   "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 15.750406996186989
+      "value": 15.77574914840992
     },
     "bound-digits": {
       "value": 15.485208404918687
     },
     "max-error": {
-      "value": 1.7766136879420144e-16
+      "value": 1.675910614436505e-16
     }
   },
   "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 15.719545009701262
+      "value": 15.766693383138003
     },
     "bound-digits": {
       "value": 15.485208404918687
     },
     "max-error": {
-      "value": 1.9074580273381062e-16
+      "value": 1.711223031704444e-16
     }
   },
   "nfft/omp/file/fast/forward/1d/init": {
