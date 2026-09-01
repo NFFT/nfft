@@ -63,7 +63,7 @@ jobs:
             build_octave: 0
             build_julia: 1
     steps:    
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
         persist-credentials: false
 
@@ -391,7 +391,7 @@ jobs:
       checks: write  # post the Check
       pull-requests: write  # upsert the comment
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -443,7 +443,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "distcheck"
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
         persist-credentials: false
 
@@ -483,7 +483,7 @@ jobs:
     runs-on: ubuntu-24.04
     name: "cmake-octave"
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           persist-credentials: false
 
