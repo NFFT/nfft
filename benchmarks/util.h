@@ -48,4 +48,54 @@ static inline void nfft_bench_cap_threads(void)
 #endif
 }
 
+// Aligns every plan allocation to (hopefully) a cache line and rounds its size up to one.
+//
+// nfft_malloc is fftw_malloc, which promises 16 bytes: enough for the SIMD
+// codelets, but it leaves the plan's small heap arrays wherever the allocator
+// puts them. Change the size of any early allocation and x, f and c_phi_inv all
+// shift, which moves a cache-resident benchmark by several percent for reasons
+// that have nothing to do with the code under test. Rounding the size up is
+// what absorbs the change; aligning alone does not.
+//
+// Costs a little memory and measures a slightly better aligned configuration
+// than a caller who uses nfft_malloc directly gets.
+#define NFFT_BENCH_ALIGNMENT 64
+
+static inline void *nfft_bench_aligned_malloc(size_t n)
+{
+    void *p = NULL;
+
+    if (n == 0)
+        n = 1;
+    n = (n + (NFFT_BENCH_ALIGNMENT - 1)) & ~(size_t)(NFFT_BENCH_ALIGNMENT - 1);
+
+#ifdef _WIN32
+    p = _aligned_malloc(n, NFFT_BENCH_ALIGNMENT);
+#else
+    if (posix_memalign(&p, NFFT_BENCH_ALIGNMENT, n) != 0)
+        p = NULL;
+#endif
+    if (p == NULL)
+        std::abort();
+
+    return p;
+}
+
+static inline void nfft_bench_aligned_free(void *p)
+{
+#ifdef _WIN32
+    _aligned_free(p);
+#else
+    std::free(p);
+#endif
+}
+
+// Both hooks go in together: nfft_free falls back to fftw_free when only one is
+// set, which would not match the allocation.
+static inline void nfft_bench_align_allocations(void)
+{
+    NFFT(malloc_hook) = nfft_bench_aligned_malloc;
+    NFFT(free_hook) = nfft_bench_aligned_free;
+}
+
 #endif // NFFT_BENCHMARKS_UTIL_H

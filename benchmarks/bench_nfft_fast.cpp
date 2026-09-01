@@ -129,6 +129,7 @@ static void warm_omp_team(void) {
 
 static void DoSetup(const benchmark::State& state) {
     nfft_bench_cap_threads();
+    nfft_bench_align_allocations();
     #ifdef _OPENMP
     #ifdef HAVE_FFTW_THREADS
     if (!fftw_threads_started) {
