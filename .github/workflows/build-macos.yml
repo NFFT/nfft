@@ -95,7 +95,7 @@ jobs:
       uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v2
 
     - name: Set up uv
-      uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v7
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v7
       with:
         enable-cache: true
 
