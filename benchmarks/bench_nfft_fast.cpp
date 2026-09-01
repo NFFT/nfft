@@ -69,9 +69,16 @@ static bool same_geometry(const Geometry& a, const Geometry& b) {
  * different geometry finalizes the previous one. Benchmarks are registered
  * grouped by geometry, so precomputation and both transforms for one geometry
  * share a single init. */
+
+/* Which benchmark last seeded f_hat and f. Neither transform modifies its own
+ * input so repeated entries into one benchmark need no reseeding. Moving between the
+ * two does. */
+enum DataRole { DATA_NONE, DATA_TRAFO, DATA_ADJOINT };
+
 struct PlanSlot {
     bool valid = false;
     bool psi_ready = false;
+    DataRole data_role = DATA_NONE;
     Geometry geom = {};
     NFFT(plan) plan = {};
 };
@@ -84,6 +91,7 @@ static void release_plan(void) {
         NFFT(finalize)(&slot.plan);
         slot.valid = false;
         slot.psi_ready = false;
+        slot.data_role = DATA_NONE;
     }
 }
 
@@ -103,6 +111,22 @@ struct SlotCleanup {
 };
 static SlotCleanup slot_cleanup;
 
+/* Flag to indicate if OpenMP thread team has been created. It's a one-off cost 
+ * of the first parallel region in the process so it should be done once outside
+ * a timing loop. */
+static bool omp_team_started = false;
+
+static void warm_omp_team(void) {
+    #ifdef _OPENMP
+    int sink = 0;
+    #pragma omp parallel reduction(+:sink)
+    {
+        sink += 1;
+    }
+    benchmark::DoNotOptimize(sink);
+    #endif
+}
+
 static void DoSetup(const benchmark::State& state) {
     #ifdef _OPENMP
     #ifdef HAVE_FFTW_THREADS
@@ -111,6 +135,10 @@ static void DoSetup(const benchmark::State& state) {
         fftw_threads_started = true;
     }
     #endif
+    if (!omp_team_started) {
+        warm_omp_team();
+        omp_team_started = true;
+    }
     #endif
 }
 
@@ -140,6 +168,7 @@ static NFFT(plan)* acquire_plan(const Geometry& geom, bool fresh = false) {
 
     slot.valid = true;
     slot.psi_ready = false;
+    slot.data_role = DATA_NONE;
     slot.geom = geom;
     return &slot.plan;
 }
@@ -149,6 +178,14 @@ static void reseed_data(NFFT(plan)* plan) {
     NFFT(srand48)(BENCH_SEED);
     NFFT(vrand_unit_complex)(plan->f_hat, plan->N_total);
     NFFT(vrand_unit_complex)(plan->f, plan->M_total);
+}
+
+/* Seeds only when the data on the plan belongs to another benchmark. */
+static void ensure_data(NFFT(plan)* plan, DataRole role) {
+    if (slot.data_role == role)
+        return;
+    reseed_data(plan);
+    slot.data_role = role;
 }
 
 static void ensure_psi(NFFT(plan)* plan) {
@@ -177,13 +214,8 @@ static void prefault_psi(NFFT(plan)* plan) {
     memset(plan->psi, 0, len * sizeof(R));
 }
 
-/* Times one nfft_precompute_one_psi on a plan whose psi table has never been
- * filled. Nothing in the API promises that a second call on the same plan
- * redoes the work, so every measured call gets its own plan; Iterations(1) at
- * the registration keeps that true, and repetitions, which re-enter this
- * function, supply the statistics. Building the plan here rather than inside
- * the loop keeps init and allocation out of the measurement in both walltime
- * and simulation mode. */
+/* Times nfft_precompute_one_psi on a plan built here, so init and allocation
+ * stay out of the measurement. */
 static void run_precompute(benchmark::State& state, int d) {
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
     prefault_psi(plan);
@@ -199,7 +231,7 @@ static void run_precompute(benchmark::State& state, int d) {
 static void run_trafo(benchmark::State& state, int d) {
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d));
     ensure_psi(plan);
-    reseed_data(plan);
+    ensure_data(plan, DATA_TRAFO);
 
     for (auto _ : state) {
         NFFT(trafo)(plan);
@@ -210,7 +242,7 @@ static void run_trafo(benchmark::State& state, int d) {
 static void run_adjoint(benchmark::State& state, int d) {
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d));
     ensure_psi(plan);
-    reseed_data(plan);
+    ensure_data(plan, DATA_ADJOINT);
 
     for (auto _ : state) {
         NFFT(adjoint)(plan);
@@ -237,7 +269,7 @@ DEFINE_DIM(4d, 4)
 /* Args are N[0..d-1], M, m. */
 #define REGISTER_CASE(tag, ...) \
     BENCH(nfft_fast_precompute_psi_##tag, SUFFIX) \
-        ->Args({__VA_ARGS__})->Iterations(1)->Setup(DoSetup); \
+        ->Args({__VA_ARGS__})->Iterations(3)->Setup(DoSetup); \
     BENCH(nfft_fast_trafo_##tag, SUFFIX) \
         ->Args({__VA_ARGS__})->Setup(DoSetup); \
     BENCH(nfft_fast_adjoint_##tag, SUFFIX) \

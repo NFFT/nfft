@@ -70,7 +70,6 @@ static void nfst_forward_direct_1d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N * M);
 }
 
 // Benchmark for NFST adjoint direct transform (adjoint_direct)
@@ -87,7 +86,6 @@ static void nfst_adjoint_direct_1d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N * M);
 }
 
 // Benchmark for 2D NFST direct transform
@@ -105,7 +103,6 @@ static void nfst_forward_direct_2d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N1 * N2 * M);
 }
 
 // Benchmark for 2D NFST adjoint direct transform
@@ -123,7 +120,6 @@ static void nfst_adjoint_direct_2d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N1 * N2 * M);
 }
 
 // Benchmark for 3D NFST direct transform
@@ -142,7 +138,6 @@ static void nfst_forward_direct_3d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N1 * N2 * N3 * M);
 }
 
 // Benchmark for 3D NFST adjoint direct transform
@@ -161,61 +156,40 @@ static void nfst_adjoint_direct_3d(benchmark::State& state) {
     }
 
     NFST(finalize)(&plan);
-    state.SetComplexityN(N1 * N2 * N3 * M);
 }
 
 // Register benchmarks for direct transforms
 BENCH(nfst_forward_direct_1d, SUFFIX)
-    ->Args({32, 100})
-    ->Args({64, 200})
     ->Args({128, 400})
-    ->Args({256, 800})
     ->Args({512, 1600})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 BENCH(nfst_adjoint_direct_1d, SUFFIX)
-    ->Args({32, 100})
-    ->Args({64, 200})
     ->Args({128, 400})
-    ->Args({256, 800})
     ->Args({512, 1600})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 BENCH(nfst_forward_direct_2d, SUFFIX)
-    ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
-    ->Args({64, 64, 2000})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 BENCH(nfst_adjoint_direct_2d, SUFFIX)
-    ->Args({16, 16, 500})
     ->Args({32, 32, 1000})
-    ->Args({64, 64, 2000})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 BENCH(nfst_forward_direct_3d, SUFFIX)
-    ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
-    ->Args({16, 16, 16, 1000})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 BENCH(nfst_adjoint_direct_3d, SUFFIX)
-    ->Args({4, 4, 4, 250})
     ->Args({8, 8, 8, 500})
-    ->Args({16, 16, 16, 1000})
     ->Setup(DoSetup)
-    ->Teardown(DoTeardown)
-    ->Complexity();
+    ->Teardown(DoTeardown);
 
 // Main function.
 BENCHMARK_MAIN();
