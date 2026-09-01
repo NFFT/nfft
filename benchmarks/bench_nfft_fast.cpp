@@ -266,14 +266,22 @@ DEFINE_DIM(2d, 2)
 DEFINE_DIM(3d, 3)
 DEFINE_DIM(4d, 4)
 
+/* MinWarmUpTime is dropped unless the same benchmark also sets MinTime. Without the warm-up, 
+ * the CPU frequency ramp and the OpenMP team wake-up land inside the measured rounds of
+ * whicheve benchmark runs first in the process. BENCH_MIN_TIME tracks the
+ * --benchmark_min_time in .github/workflows/bench-linux.yml. */
+#define BENCH_MIN_TIME 0.1
+#define BENCH_WARMUP_TIME 0.1
+
+#define BENCH_BUDGET(name) \
+    BENCH(name, SUFFIX)->MinTime(BENCH_MIN_TIME) \
+        ->MinWarmUpTime(BENCH_WARMUP_TIME)->Setup(DoSetup)
+
 /* Args are N[0..d-1], M, m. */
 #define REGISTER_CASE(tag, ...) \
-    BENCH(nfft_fast_precompute_psi_##tag, SUFFIX) \
-        ->Args({__VA_ARGS__})->Iterations(3)->Setup(DoSetup); \
-    BENCH(nfft_fast_trafo_##tag, SUFFIX) \
-        ->Args({__VA_ARGS__})->Setup(DoSetup); \
-    BENCH(nfft_fast_adjoint_##tag, SUFFIX) \
-        ->Args({__VA_ARGS__})->Setup(DoSetup);
+    BENCH_BUDGET(nfft_fast_precompute_psi_##tag)->Args({__VA_ARGS__}); \
+    BENCH_BUDGET(nfft_fast_trafo_##tag)->Args({__VA_ARGS__}); \
+    BENCH_BUDGET(nfft_fast_adjoint_##tag)->Args({__VA_ARGS__});
 
 /* 1d size sweep. */
 REGISTER_CASE(1d, 1024, 1024, DEFAULT_M)
