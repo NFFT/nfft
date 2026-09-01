@@ -30,7 +30,7 @@
         "ghcr.io/devcontainers/features/git:1.3.8": {
             "version": "os-provided"
         },
-        "ghcr.io/devcontainers/features/github-cli:1.1.0": {},
+        "ghcr.io/devcontainers/features/github-cli:1.1.1": {},
         "ghcr.io/anthropics/devcontainer-features/claude-code:1.0.5": {}
     },
     // Node must install before claude-code so the latter reuses it instead of
