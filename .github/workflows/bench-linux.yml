@@ -141,6 +141,10 @@ jobs:
         # hosted macro runners for stable walltime data.
         mode: walltime
         run: |
+          # Binding and OMP_DYNAMIC are read when the OpenMP runtime starts.
+          export OMP_PROC_BIND=close
+          export OMP_PLACES=cores
+          export OMP_DYNAMIC=false
           ARGS="--benchmark_min_time=0.1s"
           for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct; do
             ./build-cmake/benchmarks/$b $ARGS

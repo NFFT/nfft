@@ -34,6 +34,7 @@
 #endif
 
 static void DoSetup(const benchmark::State& state) {
+    nfft_bench_cap_threads();
     #ifdef _OPENMP
     #ifdef HAVE_FFTW_THREADS
     FFTW(init_threads)();
