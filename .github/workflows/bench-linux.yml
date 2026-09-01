@@ -10,8 +10,22 @@ on:
   # `workflow_dispatch` runs are also un-gated (ad-hoc manual runs).
   push:
     branches: [ main, develop, master ]
+    paths:
+      - 'kernel/**'
+      - 'include/**'
+      - 'benchmarks/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/bench-linux.yml'
   pull_request:
     branches: [ main, develop, master ]
+    paths:
+      - 'kernel/**'
+      - 'include/**'
+      - 'benchmarks/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/bench-linux.yml'
   workflow_dispatch:
 
 permissions:
@@ -65,7 +79,7 @@ jobs:
         sudo apt-get install -y software-properties-common
         sudo add-apt-repository universe
         sudo apt-get update
-        sudo apt-get install -y libc6-dbg build-essential cmake libfftw3-dev libomp-dev libatomic1
+        sudo apt-get install -y build-essential cmake libfftw3-dev libatomic1
 
     - name: Cache CodSpeed integration library
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -127,19 +141,10 @@ jobs:
         # hosted macro runners for stable walltime data.
         mode: walltime
         run: |
-          ./build-cmake/benchmarks/bench_nfft_direct
-          if [ -x ./build-cmake/benchmarks/bench_nfft_direct_omp ]; then
-            ./build-cmake/benchmarks/bench_nfft_direct_omp
-          fi
-          ./build-cmake/benchmarks/bench_nfft_fast
-          if [ -x ./build-cmake/benchmarks/bench_nfft_fast_omp ]; then
-            ./build-cmake/benchmarks/bench_nfft_fast_omp
-          fi
-          ./build-cmake/benchmarks/bench_nfct_direct
-          if [ -x ./build-cmake/benchmarks/bench_nfct_direct_omp ]; then
-            ./build-cmake/benchmarks/bench_nfct_direct_omp
-          fi
-          ./build-cmake/benchmarks/bench_nfst_direct
-          if [ -x ./build-cmake/benchmarks/bench_nfst_direct_omp ]; then
-            ./build-cmake/benchmarks/bench_nfst_direct_omp
-          fi
+          ARGS="--benchmark_min_time=0.1s"
+          for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct; do
+            ./build-cmake/benchmarks/$b $ARGS
+            if [ -x ./build-cmake/benchmarks/${b}_omp ]; then
+              ./build-cmake/benchmarks/${b}_omp $ARGS
+            fi
+          done
