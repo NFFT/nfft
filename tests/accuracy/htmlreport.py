@@ -129,7 +129,8 @@ def _cell_html(cell, change=None):
     if change is not None:
         arrow = "▲" if change.delta_digits > 0 else "▼"
         cls = ' class="chg"'
-        text = f"{text} {arrow}"
+        pr_head = "∞" if max_error == 0.0 else f"{digits:.1f}"
+        text = f"{change.base_digits:.1f} → {pr_head} ({bound_digits:.1f}) {arrow}"
         tip = (
             f"{change.base_digits:.2f} -> {change.pr_digits:.2f} digits "
             f"(delta {change.delta_digits:+.2f})"
