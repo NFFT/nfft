@@ -1,0 +1,118 @@
+--- /tmp/claude-0/-home-user-nfft/53582953-f98c-55dc-afd6-1eabd35f3e7e/scratchpad/infft.h.orig	2026-09-02 21:02:40.253291356 +0000
++++ include/infft.h	2026-09-02 21:28:07.054225554 +0000
+@@ -169,16 +169,32 @@
+   #define WINDOW_HELP_FINALIZE
+   #define WINDOW_HELP_ESTIMATE_m 0
+ #elif defined(GAUSSIAN)
+-  #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
+-  #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
+-    ths->b[d])/SQRT(KPI*ths->b[d]))
++  /* ths->b holds 4 * ths->d reals: b per axis, 1/b, 1/sqrt(pi b) and the
++   * unscaled 1/b for the FG_PSI callers that still form exp(2 nx / b). */
++  #define GA_B(ax) (ths->b[(ax)])
++  #define GA_B_INV(ax) (ths->b[(ths->d) + (ax)])
++  #define GA_NORM(ax) (ths->b[2 * (ths->d) + (ax)])
++  #define GA_STEP(ax) (ths->b[3 * (ths->d) + (ax)])
++  #define PHI_HUT(n,k,ax) (Y(gaussian_phi_hut)(GA_B(ax), (R)(k) * KPI / (R)(n)))
++  #define PHI(n,x,ax) (Y(gaussian_phi)(GA_B_INV(ax), GA_NORM(ax), \
++                          (R)(n) * (x)))
++  #define PHI_RUN(dst,n,x,u,ax) \
++    Y(gaussian_phi_run)((dst), GA_B_INV(ax), GA_NORM(ax), GA_STEP(ax), \
++        (ths->m), (R)(n) * (x) - (R)(u))
+   #define WINDOW_HELP_INIT \
+     { \
+       int WINDOW_idx; \
+-      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
++      ths->b = (R*) Y(malloc)((size_t)(4 * ths->d) * sizeof(R)); \
+       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
+-        ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
+-          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
++      { \
++        const R WINDOW_b = (K(2.0)*ths->sigma[WINDOW_idx]) / \
++          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
++          (((R)ths->m + K(1.0)) / KPI); \
++        ths->b[WINDOW_idx] = WINDOW_b; \
++        ths->b[ths->d + WINDOW_idx] = K(1.0) / WINDOW_b; \
++        ths->b[2 * ths->d + WINDOW_idx] = K(1.0) / SQRT(KPI * WINDOW_b); \
++        ths->b[3 * ths->d + WINDOW_idx] = EXP(K(-2.0) / WINDOW_b); \
++      } \
+     }
+   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+   #if MANT_DIG == 113
+@@ -1647,6 +1663,76 @@
+     * i0e_peak_inv;
+ }
+ 
++/* Gaussian window, phi(nx) = exp(-nx^2/b)/sqrt(pi b), phi_hut(t) = exp(-t^2 b).
++ *
++ * b_inv = 1/b and norm = 1/sqrt(pi b) are constant per axis, so no evaluation
++ * divides or takes a square root. */
++static inline R Y(gaussian_phi_hut)(R b, R t)
++{
++  return EXP(-(t * t) * b);
++}
++
++static inline R Y(gaussian_phi)(R b_inv, R norm, R nx)
++{
++  return EXP(-(nx * nx) * b_inv) * norm;
++}
++
++/* dst[l] = phi(nx0 - l) for l = 0 .. 2m+1.
++ *
++ * Fast Gaussian gridding, recentred. The neighbour ratio
++ *
++ *   phi(nx0 - (l+1)) / phi(nx0 - l) = exp((2 (nx0 - l) - 1) / b)
++ *
++ * is itself geometric: stepping l multiplies it by step = exp(-2/b), which is
++ * constant per axis. So the whole run is two exponentials and one division,
++ * whatever m, plus two multiplies per point in two branch-free loops.
++ *
++ * It is anchored at c, the grid point of the run nearest the node, rather than
++ * at an end. That is what keeps it in range: with |r| <= 1/2 the running factor
++ * stays inside exp(+-(m+1)/b), about 12 to 19 for the b this library uses,
++ * where anchoring at the end lets it reach exp(2(m+1)(2m+1)/b) -- 3e59 at
++ * m = 13, sigma = 2, which overflows single precision from m = 8 on. It is also
++ * the accurate order: the factor is stepped at most m+1 times rather than
++ * 2m+1, from the peak of the run rather than from its smallest value.
++ *
++ * c is clamped rather than assumed, so a caller whose run sits differently
++ * against the support still gets one evaluation per point. */
++static inline void Y(gaussian_phi_run)(R *dst, R b_inv, R norm, R step,
++  INT mi, R nx0)
++{
++  const INT last = 2 * mi + 1;
++  INT c = (INT)LRINT(nx0);
++  R r, p, g, w;
++  INT l;
++
++  if (c < 0)
++    c = 0;
++  else if (c > last)
++    c = last;
++
++  r = nx0 - (R)c;
++  p = EXP(-(r * r) * b_inv) * norm;
++  dst[c] = p;
++
++  g = EXP((K(2.0) * r - K(1.0)) * b_inv);
++
++  for (w = p, l = c + 1; l <= last; l++)
++  {
++    w *= g;
++    g *= step;
++    dst[l] = w;
++  }
++
++  g = step / EXP((K(2.0) * r - K(1.0)) * b_inv);
++
++  for (w = p, l = c - 1; l >= 0; l--)
++  {
++    w *= g;
++    g *= step;
++    dst[l] = w;
++  }
++}
++
+ /* bspline.c: */
+ R Y(bsplines)(const INT, const R x);
+ 
