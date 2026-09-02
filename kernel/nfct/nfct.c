@@ -842,7 +842,6 @@ void X(precompute_fg_psi)(X(plan) *ths)
 void X(precompute_psi)(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
-  INT lj; /* index 0<=lj<u+o+1 */
   INT u, o; /* depends on x_j */
 
   //sort(ths);
@@ -855,9 +854,8 @@ void X(precompute_psi)(X(plan) *ths)
     {
       uo(ths, j, &u, &o, t);
 
-      for(lj = 0; lj < (2 * ths->m + 2); lj++)
-        ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj] =
-            (PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + (t)]) - ((R)(lj + u)) / (K(2.0) * ((R)NN(ths->n[t])))), t));
+      PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
+          (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
     } /* for (j) */
   } /* for (t) */
 } /* precompute_psi */

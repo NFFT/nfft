@@ -26,6 +26,7 @@
 #include "util.h"
 #include "bspline.h"
 #include "bessel.h"
+#include "window.h"
 #include "nfft.h"
 #include "nfct.h"
 #include "nfst.h"
@@ -43,7 +44,15 @@ int main(void)
 #define X(name) Y(name)
   util = CU_add_suite("util", 0, 0);
   CU_add_test(util, "bspline", X(check_bspline));
-  CU_add_test(util, "bessel_i0", X(check_bessel_i0));
+  CU_add_test(util, "bessel_i0_exp_scaled", X(check_bessel_i0_exp_scaled));
+  CU_add_test(util, "bessel_i0_logtail", X(check_bessel_i0_logtail));
+  CU_add_test(util, "bessel_i0_scaling", X(check_bessel_i0_scaling));
+  CU_add_test(util, "kaiser_bessel_peak", X(check_kaiser_bessel_peak));
+  CU_add_test(util, "kaiser_bessel_reference", X(check_kaiser_bessel_reference));
+  CU_add_test(util, "kaiser_bessel_cancellation", X(check_kaiser_bessel_cancellation));
+  CU_add_test(util, "kaiser_bessel_nfft", X(check_kaiser_bessel_nfft));
+  CU_add_test(util, "kaiser_bessel_run", X(check_kaiser_bessel_run));
+  CU_add_test(util, "kaiser_bessel_phi", X(check_kaiser_bessel_phi));
   CU_add_test(util, "version", X(check_get_version));
   CU_add_test(util, "window_name", X(check_get_window_name));
   CU_add_test(util, "log2i", X(check_log2i));
