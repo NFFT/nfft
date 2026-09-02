@@ -200,13 +200,23 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
-  #define PHI_HUT(n,k,d) ((R)(((k) == 0) ? K(1.0) / n : \
-    POW(SIN((k) * KPI / n) / ((k) * KPI / n), \
-      K(2.0) * ths->m)/n))
-  #define PHI(n,x,d) (Y(bsplines)(2*ths->m,((x)*n) + \
-    (R)ths->m) / n)
-  #define WINDOW_HELP_INIT
-  #define WINDOW_HELP_FINALIZE
+  /* ths->b holds 1/(j+1) for j = 0 .. 2m-1: for cardinal knots every row of the
+   * de Boor scheme divides by the same integer, so the run needs no division. */
+  #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)((R)ths->m, (R)(n), (R)(k)))
+  #define PHI(n,x,ax) (Y(bsplines)(2 * ths->m, \
+                          (x) * (R)(n) + (R)ths->m) / (R)(n))
+  #define PHI_RUN(dst,n,x,u,ax) \
+    Y(bspline_phi_run)((dst), ths->b, (ths->m), \
+        (R)(n) * (x) - (R)(u) + (R)ths->m, K(1.0) / (R)(n))
+  #define WINDOW_HELP_INIT \
+    { \
+      int WINDOW_idx; \
+      const int WINDOW_k = 2 * ths->m; \
+      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k) * sizeof(R)); \
+      for (WINDOW_idx = 0; WINDOW_idx < WINDOW_k; WINDOW_idx++) \
+        ths->b[WINDOW_idx] = K(1.0) / (R)(WINDOW_idx + 1); \
+    }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -226,16 +236,34 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #elif defined(SINC_POWER)
-  #define PHI_HUT(n,k,d) (Y(bsplines)(2 * ths->m, (K(2.0) * ths->m*(k)) / \
-    ((K(2.0) * ths->sigma[(d)] - 1) * n / \
-      ths->sigma[(d)]) + (R)ths->m))
-  #define PHI(n,x,d) ((R)(n / ths->sigma[(d)] * \
-    (K(2.0) * ths->sigma[(d)] - K(1.0))/ (K(2.0)*ths->m) * \
-    POW(Y(sinc)(KPI * n / ths->sigma[(d)] * (x) * \
-    (K(2.0) * ths->sigma[(d)] - K(1.0)) / (K(2.0)*ths->m)) , 2*ths->m) / \
-    n))
-  #define WINDOW_HELP_INIT
-  #define WINDOW_HELP_FINALIZE
+  /* phi(x) = w sinc(pi n w x)^(2m) and phi_hut(k) = B_{2m}(k/(w n) + m), with
+   * w = (2 sigma - 1)/(2 m sigma). n cancels out of both prefactors, which it
+   * must: NFCT and NFST pass a doubled n to the same macros. ths->b holds 2d
+   * reals, w per axis then 1/w. */
+  #define SP_W(ax) (ths->b[(ax)])
+  #define SP_W_INV(ax) (ths->b[(ths->d) + (ax)])
+  #define PHI_HUT(n,k,ax) (Y(bsplines)(2 * ths->m, \
+                              (R)(k) * SP_W_INV(ax) / (R)(n) + (R)ths->m))
+  #define PHI(n,x,ax) (Y(sincpow_phi)(SP_W(ax), (R)ths->m, \
+                           KPI * (R)(n) * SP_W(ax) * (x)))
+  /* The sinc arguments across a run are one step of KPI * w apart. */
+  #define PHI_RUN(dst,n,x,u,ax) \
+    Y(sincpow_phi_run)((dst), SP_W(ax), (R)ths->m, (ths->m), \
+        KPI * SP_W(ax), (R)(n) * (x) - (R)(u))
+  #define WINDOW_HELP_INIT \
+    { \
+      int WINDOW_idx; \
+      ths->b = (R*) Y(malloc)((size_t)(2 * ths->d) * sizeof(R)); \
+      for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
+      { \
+        const R WINDOW_s = ths->sigma[WINDOW_idx]; \
+        const R WINDOW_w = (K(2.0) * WINDOW_s - K(1.0)) \
+            / (K(2.0) * ((R)ths->m) * WINDOW_s); \
+        ths->b[WINDOW_idx] = WINDOW_w; \
+        ths->b[ths->d + WINDOW_idx] = K(1.0) / WINDOW_w; \
+      } \
+    }
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -1508,6 +1536,9 @@ R Y(elapsed_seconds)(ticks t1, ticks t0);
 /* Sinus cardinalis. */
 R Y(sinc)(R x);
 
+/* log|sinc(x)|; even, 0 at x = 0, -inf at every other multiple of pi */
+R Y(log_sinc)(R x);
+
 /* lambda.c: */
 
 /* lambda(z, eps) = gamma(z + eps) / gamma(z + 1) */
@@ -1649,6 +1680,91 @@ static inline R Y(kb_phi_hut)(R b, R i0e_peak_inv, R m, R n, R k)
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);
+
+/* sinc(t)^(2m)/n with t = k pi / n. Formed as exp(2m log|sinc t|), because 2m
+ * multiplies the rounding error of sinc but only the absolute error of its
+ * logarithm. Here |t| <= pi/(2 sigma), so log_sinc never leaves its polynomial
+ * branch, and k = 0 needs no special case: log_sinc(0) is zero. */
+static inline R Y(bspline_phi_hut)(R m, R n, R k)
+{
+  return EXP(K(2.0) * m * Y(log_sinc)(k * KPI / n)) / n;
+}
+
+/* dst[l] = B_{2m}(t - l) / n for l = 0 .. 2m+1, with inv[j] = 1/(j+1).
+ *
+ * The run arguments are one grid cell apart, so the nonzero entries are the 2m
+ * cardinal B-splines of order 2m at a single point, and de Boor's scheme gives
+ * all of them in one triangular sweep of O(m^2) rather than one sweep each.
+ * The recurrence is linear in its seed, so the 1/n enters there instead of
+ * costing a rounding per entry.
+ *
+ * The nonzero stretch is derived from t, so a run that sits differently against
+ * the support still gets one evaluation per point. */
+static inline void Y(bspline_phi_run)(R *dst, const R *inv, INT mi, R t,
+  R inv_n)
+{
+  const INT k = 2 * mi;
+  const INT last = 2 * mi + 1;
+  const INT i = (INT)FLOOR(t);
+  const INT lo = i - k + 1;
+  INT j, l, r;
+
+  if (lo < 0 || lo + k > last + 1)
+  {
+    for (l = 0; l <= last; l++)
+      dst[l] = Y(bsplines)(k, t - (R)l) * inv_n;
+
+    return;
+  }
+
+  {
+    const R g = t - (R)i;
+    R *b = dst + lo;
+
+    for (l = 0; l < lo; l++)
+      dst[l] = K(0.0);
+
+    for (l = lo + k; l <= last; l++)
+      dst[l] = K(0.0);
+
+    b[0] = inv_n;
+
+    for (j = 0; j < k - 1; j++)
+    {
+      const R iv = inv[j];
+      R saved = K(0.0);
+
+      for (r = 0; r <= j; r++)
+      {
+        const R term = b[r] * iv;
+
+        b[r] = saved + ((R)(r + 1) - g) * term;
+        saved = (g + (R)(j - r)) * term;
+      }
+
+      b[j + 1] = saved;
+    }
+  }
+}
+
+/* w sinc(a)^(2m). The exponent is even, so the sign of sinc past its first zero
+ * does not matter and the logarithm may take the absolute value. */
+static inline R Y(sincpow_phi)(R w, R m, R a)
+{
+  return w * EXP(K(2.0) * m * Y(log_sinc)(a));
+}
+
+/* dst[l] = phi(x - (u + l)/n) for l = 0 .. 2m+1, with the sinc argument
+ * a_l = h (nx0 - l). Both h and the prefactor are constant per axis. */
+static inline void Y(sincpow_phi_run)(R *dst, R w, R m, INT mi, R h, R nx0)
+{
+  const INT last = 2 * mi + 1;
+  const R e = K(2.0) * m;
+  INT l;
+
+  for (l = 0; l <= last; l++)
+    dst[l] = w * EXP(e * Y(log_sinc)(h * (nx0 - (R)l)));
+}
 
 /* float.c: */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,

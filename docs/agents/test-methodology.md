@@ -87,6 +87,26 @@ the generator self-tests.
 The committed `tests/data/*.txt` are now produced by this generator (regenerated with
 `--module all --precision 64 --seed 1`), replacing the original Mathematica-era data.
 
+## Window evaluation reference tests
+
+`tests/window.c` also bounds the window evaluations themselves against
+reference values, separately from the transform tests above. The Kaiser-Bessel
+tables were taken from mpmath by hand, with the recipe in the comment over each
+one. The B-spline and sinc-power tables come from `tests/windowref`:
+
+```bash
+uv run --with mpmath==1.3.0 python -m tests.windowref.generate
+```
+
+It prints C literals for pasting into `tests/window.c`; there is no generated
+header, so the values stay next to the test. Sinc powers come from mpmath at 60
+digits, cardinal B-splines from exact rational arithmetic. See
+`tests/windowref/README.md` for the parameter choices.
+
+These tests call the kernels in `include/infft.h` directly rather than through
+the `PHI`/`PHI_HUT` macros, so they run in every window build, not only the one
+whose window they cover.
+
 ## How to add a new transform's tests
 
 1. **Generator:** add the transform's direct forward/adjoint and frequency index
