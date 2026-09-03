@@ -392,6 +392,36 @@ typedef ptrdiff_t INT;
     } while (0)
 #endif
 
+/* Gaussian run fill for the FG_PSI paths: dst[0 .. len-1], stepping outward
+ * from the peak. seed is the window at the grid point nearest the node, kc
+ * that point's index in the run, s is exp(2 d / b) for its offset d, e is
+ * exp(-1/b) and q is e * e. Stepping outward keeps each step on a value no
+ * larger than the one before, holding the run to about an ulp of its peak;
+ * stepping up from the tail instead costs an ulp per grid point. */
+#define FG_RUN(dst,len,seed,s,e,q,kc) \
+  do { \
+    const R FG_RUN_v0 = (seed), FG_RUN_s = (s), FG_RUN_e = (e), \
+        FG_RUN_q = (q); \
+    const INT FG_RUN_c = (kc), FG_RUN_n = (len); \
+    R FG_RUN_v = FG_RUN_v0, FG_RUN_r = FG_RUN_s * FG_RUN_e; \
+    INT FG_RUN_k; \
+    (dst)[FG_RUN_c] = FG_RUN_v0; \
+    for (FG_RUN_k = FG_RUN_c + 1; FG_RUN_k < FG_RUN_n; FG_RUN_k++) \
+    { \
+      FG_RUN_v *= FG_RUN_r; \
+      (dst)[FG_RUN_k] = FG_RUN_v; \
+      FG_RUN_r *= FG_RUN_q; \
+    } \
+    FG_RUN_v = FG_RUN_v0; \
+    FG_RUN_r = FG_RUN_e / FG_RUN_s; \
+    for (FG_RUN_k = FG_RUN_c - 1; FG_RUN_k >= 0; FG_RUN_k--) \
+    { \
+      FG_RUN_v *= FG_RUN_r; \
+      (dst)[FG_RUN_k] = FG_RUN_v; \
+      FG_RUN_r *= FG_RUN_q; \
+    } \
+  } while (0)
+
 /* window.c */
 INT Y(m2K)(const INT m);
 
