@@ -152,6 +152,10 @@ typedef ptrdiff_t INT;
 /* Size of array. */
 #define SIZE(x) sizeof(x)/sizeof(x[0])
 
+/* How far Clenshaw on a Chebyshev piece of B_k may lose relative accuracy
+ * before the evaluation falls back to de Boor. */
+#define NFFT_CHEB_GUARD K(256.0)
+
 /** Swap two vectors. */
 #define CSWAP(x,y) {C* NFFT_SWAP_temp__; \
   NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
@@ -200,10 +204,18 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
-  /* ths->b holds 1/(j+1) for j = 0 .. 2m-1: for cardinal knots every row of the
-   * de Boor scheme divides by the same integer, so the run needs no division. */
+  /* ths->b holds 2m reals of 1/(j+1) (PHI_RUN's de Boor triangular sweep),
+   * then the (2m)x(2m) Chebyshev table Y(bspline_cheb_init) builds (PHI's
+   * single-point evaluator) -- the same table-building function the
+   * sinc-power window's phi_hut uses. PHI is a rarer single-point call (fg_psi
+   * table builds, precompute_lin_psi) where the O(m) Chebyshev evaluator
+   * beats de Boor's O(m^2) outright. PHI_RUN already amortizes to O(m) per
+   * point via one shared triangular sweep over the whole run -- an
+   * independent per-point Chebyshev evaluation was measured slower there, so
+   * it keeps de Boor. */
+  #define BS_CHEB (ths->b + 2 * ths->m)
   #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)((R)ths->m, (R)(n), (R)(k)))
-  #define PHI(n,x,ax) (Y(bsplines)(2 * ths->m, \
+  #define PHI(n,x,ax) (Y(bspline_cheb)(BS_CHEB, 2 * ths->m, \
                           (x) * (R)(n) + (R)ths->m) / (R)(n))
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(bspline_phi_run)((dst), ths->b, (ths->m), \
@@ -211,10 +223,12 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      const int WINDOW_k = 2 * ths->m; \
-      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k) * sizeof(R)); \
+      const INT WINDOW_k = 2 * ths->m; \
+      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k + WINDOW_k * WINDOW_k) \
+          * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < WINDOW_k; WINDOW_idx++) \
         ths->b[WINDOW_idx] = K(1.0) / (R)(WINDOW_idx + 1); \
+      Y(bspline_cheb_init)(BS_CHEB, WINDOW_k); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -242,7 +256,12 @@ typedef ptrdiff_t INT;
    * reals, w per axis then 1/w. */
   #define SP_W(ax) (ths->b[(ax)])
   #define SP_W_INV(ax) (ths->b[(ths->d) + (ax)])
-  #define PHI_HUT(n,k,ax) (Y(bsplines)(2 * ths->m, \
+  #define SP_CHEB (ths->b + 2 * (ths->d))
+  #define SP_CHEB_I0 ((INT)(ths->b[2 * (ths->d) + 4 * (ths->m) * (ths->m)]))
+  /* Deconvolution divides by phi_hut, so this one needs relative accuracy and
+   * takes the guarded evaluation. */
+  #define PHI_HUT(n,k,ax) (Y(bspline_cheb_rel)(SP_CHEB, 2 * ths->m, \
+                              SP_CHEB_I0, \
                               (R)(k) * SP_W_INV(ax) / (R)(n) + (R)ths->m))
   #define PHI(n,x,ax) (Y(sincpow_phi)(SP_W(ax), (R)ths->m, \
                            KPI * (R)(n) * SP_W(ax) * (x)))
@@ -253,7 +272,9 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)((size_t)(2 * ths->d) * sizeof(R)); \
+      const INT WINDOW_k = 2 * ths->m; \
+      ths->b = (R*) Y(malloc)((size_t)(2 * ths->d + WINDOW_k * WINDOW_k + 1) \
+          * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
       { \
         const R WINDOW_s = ths->sigma[WINDOW_idx]; \
@@ -262,6 +283,10 @@ typedef ptrdiff_t INT;
         ths->b[WINDOW_idx] = WINDOW_w; \
         ths->b[ths->d + WINDOW_idx] = K(1.0) / WINDOW_w; \
       } \
+      Y(bspline_cheb_init)(ths->b + 2 * ths->d, WINDOW_k); \
+      ths->b[2 * ths->d + WINDOW_k * WINDOW_k] = \
+          (R)Y(bspline_cheb_guard)(ths->b + 2 * ths->d, WINDOW_k, \
+              NFFT_CHEB_GUARD); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -1680,6 +1705,62 @@ static inline R Y(kb_phi_hut)(R b, R i0e_peak_inv, R m, R n, R k)
 
 /* bspline.c: */
 R Y(bsplines)(const INT, const R x);
+
+/* Chebyshev series of every piece of B_k; tab holds k rows of k reals. */
+void Y(bspline_cheb_init)(R *tab, const INT k);
+
+/* First piece whose Clenshaw evaluation keeps relative accuracy within thresh;
+ * the admissible pieces are i0 through k-1-i0. */
+INT Y(bspline_cheb_guard)(const R *tab, const INT k, const R thresh);
+
+/* B_k(x) from the Chebyshev table, in O(k) rather than de Boor's O(k^2).
+ *
+ * Clenshaw's error is bounded by the coefficient sum, so this holds accuracy
+ * against the peak of B_k everywhere but loses relative accuracy in the tail,
+ * where B_k runs below the peak by any number of orders. Callers that divide by
+ * the result want Y(bspline_cheb_rel) instead. */
+static inline R Y(bspline_cheb)(const R *tab, const INT k, const R x)
+{
+  const INT i = (INT)FLOOR(x);
+  const R *c;
+  R s, s2, b1 = K(0.0), b2 = K(0.0);
+  INT l;
+
+  if (x <= K(0.0) || x >= (R)k)
+    return K(0.0);
+
+  c = tab + i * k;
+  s = K(2.0) * (x - (R)i) - K(1.0);
+  s2 = K(2.0) * s;
+
+  for (l = k - 1; l >= 1; l--)
+  {
+    const R b = s2 * b1 - b2 + c[l];
+
+    b2 = b1;
+    b1 = b;
+  }
+
+  return s * b1 - b2 + c[0];
+}
+
+/* B_k(x) with relative accuracy, for callers that divide by it. Outside the
+ * pieces Y(bspline_cheb_guard) admits it falls back to de Boor, which costs
+ * O(k^2) but is reached only where the deconvolution is already the transform's
+ * limit. */
+static inline R Y(bspline_cheb_rel)(const R *tab, const INT k, const INT i0,
+  const R x)
+{
+  const INT i = (INT)FLOOR(x);
+
+  if (x <= K(0.0) || x >= (R)k)
+    return K(0.0);
+
+  if (i < i0 || i >= k - i0)
+    return Y(bsplines)(k, x);
+
+  return Y(bspline_cheb)(tab, k, x);
+}
 
 /* sinc(t)^(2m)/n with t = k pi / n. Formed as exp(2m log|sinc t|), because 2m
  * multiplies the rounding error of sinc but only the absolute error of its
