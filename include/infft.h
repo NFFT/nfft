@@ -166,18 +166,17 @@ typedef ptrdiff_t INT;
 
 /* macros for window functions */
 
-/* Half-width, in grid spacings, that the Gaussian is fitted to: the distance
- * to the nearest point uo() leaves out, plus a measured correction of about
- * 0.3. The default is the floor(n x) centring, whose offset lies in [0,1) and
- * so reaches m+1; a module whose uo() centres the run differently defines this
- * before including. The correction is needed because the balance below equates
- * two exponentials and drops their algebraic prefactors; carrying those
- * through moves the optimum out by an O(1) amount. Measured against the direct
- * transform it is the same for float, double and long double, and drifts only
- * slowly with m and sigma. Only the Gaussian reads this, the other windows
- * being zero past |x| <= m/n. */
-#ifndef GAUSSIAN_HALF_WIDTH
-  #define GAUSSIAN_HALF_WIDTH (((R)ths->m) + K(1.3))
+/* The Gaussian is fitted to a half-width of m + GAUSSIAN_REACH +
+ * GAUSSIAN_CORRECTION grid spacings. The reach is the distance to the nearest
+ * point uo() leaves out, 1 for the floor(n x) centring; a module whose uo()
+ * centres the run differently defines both before including. The correction
+ * is measured: the balance below drops the prefactors of its two exponentials,
+ * which moves the optimum out by about 0.3. Y(gaussian_half_width) withdraws
+ * it before saturation (window.c). Only the Gaussian reads these; the other
+ * windows are zero past |x| <= m/n. */
+#ifndef GAUSSIAN_REACH
+  #define GAUSSIAN_REACH K(1.0)
+  #define GAUSSIAN_CORRECTION K(0.3)
 #endif
 
 #if defined(DIRAC_DELTA)
@@ -191,7 +190,7 @@ typedef ptrdiff_t INT;
   #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
   /* b balances the two error terms (frequency and time/space) of a Gaussian
-   * truncated at half-width GAUSSIAN_HALF_WIDTH. */
+   * truncated at the half-width Y(gaussian_half_width) returns. */
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -199,7 +198,8 @@ typedef ptrdiff_t INT;
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
         ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
-          (GAUSSIAN_HALF_WIDTH / KPI); \
+          (Y(gaussian_half_width)((R)ths->m, ths->sigma[WINDOW_idx], ths->d, \
+              GAUSSIAN_REACH, GAUSSIAN_CORRECTION) / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -429,6 +429,8 @@ typedef ptrdiff_t INT;
 
 /* window.c */
 INT Y(m2K)(const INT m);
+R Y(gaussian_half_width)(const R m, const R sigma, const INT d, const R reach,
+    const R corr);
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0

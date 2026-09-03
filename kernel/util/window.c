@@ -52,3 +52,31 @@ const char *Y(get_window_name)()
 {
   return STRINGIZE(WINDOW_NAME);
 }
+
+/* Half-width the Gaussian is fitted to: the stencil reach plus the measured
+ * correction, withdrawn before the transform saturates, since past that point
+ * a wider window only raises the round-off floor. At s = 0 the width is the
+ * bare reach exactly, so saturated cases keep their old error.
+ *
+ * Measured in binary128, one axis of the corrected window leaves about
+ * 0.70 exp(-6.54 (sigma - 1) h / (2 sigma - 1)). The round-off floor is near
+ * 10 epsilon on one axis and grows with the deconvolution amplification
+ * lambda (rms of 1 / phi_hat over the band) as lambda^((d - 1) / 2): measured
+ * 4, 25, 186 times the one-axis floor for d = 2, 3, 4 at sigma = 2, against
+ * 5, 25, 125 predicted. Full correction at 20 floors up, none at 2; the 2
+ * covers that spread. */
+R Y(gaussian_half_width)(const R m, const R sigma, const INT d, const R reach,
+    const R corr)
+{
+  const R h = m + reach + corr;
+  const R b = K(2.0) * sigma * h / ((K(2.0) * sigma - K(1.0)) * KPI);
+  const R err = K(0.70)
+      * EXP(-K(6.54) * (sigma - K(1.0)) * h / (K(2.0) * sigma - K(1.0)));
+  const R lambda = EXP(b * KPI * KPI / (K(4.0) * sigma * sigma))
+      * sigma / (KPI * SQRT(b));
+  const R floor_d = K(10.0) * EPSILON * POW(lambda, ((R)(d - 1)) / K(2.0));
+  R s = LOG10(err / (K(2.0) * floor_d));
+
+  s = s < K(0.0) ? K(0.0) : (s > K(1.0) ? K(1.0) : s);
+  return m + reach + s * corr;
+}

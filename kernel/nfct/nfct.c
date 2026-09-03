@@ -30,9 +30,9 @@
 
 /* NFFT headers */
 #include "nfft3.h"
-/* uo() rounds to the nearest grid point, so the run reaches m + 1/2;
- * 0.8 is that plus the fitted correction. */
-#define GAUSSIAN_HALF_WIDTH (((R)ths->m) + K(0.8))
+/* uo() rounds to the nearest grid point, so the run reaches m + 1/2. */
+#define GAUSSIAN_REACH K(0.5)
+#define GAUSSIAN_CORRECTION K(0.3)
 #include "infft.h"
 
 #ifdef _OPENMP
