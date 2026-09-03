@@ -166,6 +166,15 @@ typedef ptrdiff_t INT;
 
 /* macros for window functions */
 
+/* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
+ * to the nearest point uo() leaves out. The default is the floor(n x)
+ * centring, whose offset lies in [0,1); a module whose uo() centres the run
+ * differently defines this before including. Only the Gaussian reads it, the
+ * other windows being zero past |x| <= m/n. */
+#ifndef WINDOW_STENCIL_REACH
+  #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
+#endif
+
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
@@ -176,13 +185,16 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
   #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
+  /* b balances the two error terms (frequency and time/space) of a Gaussian
+   * truncated at half-width WINDOW_STENCIL_REACH. */
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
       ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
         ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
-          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
+          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
+          (WINDOW_STENCIL_REACH / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -379,6 +391,36 @@ typedef ptrdiff_t INT;
             (x) - ((R)(PHI_RUN_l + (u))) / ((R)(n)), (ax)); \
     } while (0)
 #endif
+
+/* Gaussian run fill for the FG_PSI paths: dst[0 .. len-1], stepping outward
+ * from the peak. seed is the window at the grid point nearest the node, kc
+ * that point's index in the run, s is exp(2 d / b) for its offset d, e is
+ * exp(-1/b) and q is e * e. Stepping outward keeps each step on a value no
+ * larger than the one before, holding the run to about an ulp of its peak;
+ * stepping up from the tail instead costs an ulp per grid point. */
+#define FG_RUN(dst,len,seed,s,e,q,kc) \
+  do { \
+    const R FG_RUN_v0 = (seed), FG_RUN_s = (s), FG_RUN_e = (e), \
+        FG_RUN_q = (q); \
+    const INT FG_RUN_c = (kc), FG_RUN_n = (len); \
+    R FG_RUN_v = FG_RUN_v0, FG_RUN_r = FG_RUN_s * FG_RUN_e; \
+    INT FG_RUN_k; \
+    (dst)[FG_RUN_c] = FG_RUN_v0; \
+    for (FG_RUN_k = FG_RUN_c + 1; FG_RUN_k < FG_RUN_n; FG_RUN_k++) \
+    { \
+      FG_RUN_v *= FG_RUN_r; \
+      (dst)[FG_RUN_k] = FG_RUN_v; \
+      FG_RUN_r *= FG_RUN_q; \
+    } \
+    FG_RUN_v = FG_RUN_v0; \
+    FG_RUN_r = FG_RUN_e / FG_RUN_s; \
+    for (FG_RUN_k = FG_RUN_c - 1; FG_RUN_k >= 0; FG_RUN_k--) \
+    { \
+      FG_RUN_v *= FG_RUN_r; \
+      (dst)[FG_RUN_k] = FG_RUN_v; \
+      FG_RUN_r *= FG_RUN_q; \
+    } \
+  } while (0)
 
 /* window.c */
 INT Y(m2K)(const INT m);

@@ -30,6 +30,8 @@
 
 /* NFFT headers */
 #include "nfft3.h"
+/* uo() rounds to the nearest grid point, so the run reaches m + 1/2. */
+#define WINDOW_STENCIL_REACH (((R)ths->m) + K(0.5))
 #include "infft.h"
 
 #ifdef _OPENMP
@@ -503,9 +505,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R *fj; /* local copy */ \
   R y[ths->d]; \
   R fg_psi[ths->d][2*ths->m+2]; \
-  R fg_exp_l[ths->d][2*ths->m+2+1]; \
+  R fg_e[ths->d], fg_q[ths->d]; \
   INT l_fg,lj_fg; \
-  R tmpEXP1, tmpEXP2, tmpEXP2sq, tmp1, tmp2, tmp3; \
   R ip_w; \
   INT ip_u; \
   INT ip_s = ths->K/(ths->m+2); \
@@ -556,18 +557,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
   { \
     for (t = 0; t < ths->d; t++) \
     { \
-      tmpEXP2 = EXP(K(-1.0) / ths->b[t]); \
-      tmpEXP2sq = tmpEXP2 * tmpEXP2; \
-      tmp2 = K(1.0); \
-      tmp3 = K(1.0); \
-      fg_exp_l[t][0] = K(1.0); \
- \
-      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++) \
-      { \
-        tmp3 = tmp2 * tmpEXP2; \
-        tmp2 *= tmpEXP2sq; \
-        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg-1] * tmp3; \
-      } \
+      fg_e[t] = EXP(K(-1.0) / ths->b[t]); \
+      fg_q[t] = fg_e[t] * fg_e[t]; \
     } \
  \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -576,15 +567,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
       for (t = 0; t < ths->d; t++) \
       { \
-        fg_psi[t][0] = ths->psi[2 * (j * ths->d + t)]; \
-        tmpEXP1 = ths->psi[2 * (j * ths->d + t) + 1]; \
-        tmp1 = K(1.0); \
- \
-        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++) \
-        { \
-          tmp1 *= tmpEXP1; \
-          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg]; \
-        } \
+        FG_RUN(fg_psi[t], 2 * ths->m + 2, ths->psi[2 * (j * ths->d + t)], \
+            ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t], ths->m); \
       } \
  \
       for (l_L= 0; l_L < lprod; l_L++) \
@@ -603,17 +587,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
   { \
     for (t = 0; t < ths->d; t++) \
     { \
-      tmpEXP2 = EXP(K(-1.0) / ths->b[t]); \
-      tmpEXP2sq = tmpEXP2 * tmpEXP2; \
-      tmp2 = K(1.0); \
-      tmp3 = K(1.0); \
-      fg_exp_l[t][0] = K(1.0); \
-      for (lj_fg = 1; lj_fg <= (2 * ths->m + 2); lj_fg++) \
-      { \
-        tmp3 = tmp2 * tmpEXP2; \
-        tmp2 *= tmpEXP2sq; \
-        fg_exp_l[t][lj_fg] = fg_exp_l[t][lj_fg-1] * tmp3; \
-      } \
+      fg_e[t] = EXP(K(-1.0) / ths->b[t]); \
+      fg_q[t] = fg_e[t] * fg_e[t]; \
     } \
  \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -622,15 +597,11 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
       for (t = 0; t < ths->d; t++) \
       { \
-        fg_psi[t][0] = (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)u[t])/(2 * NN(ths->n[t]))),(t)));\
- \
-        tmpEXP1 = EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - u[t]) / ths->b[t]); \
-        tmp1 = K(1.0); \
-        for (l_fg = u[t] + 1, lj_fg = 1; l_fg <= o[t]; l_fg++, lj_fg++) \
-        { \
-          tmp1 *= tmpEXP1; \
-          fg_psi[t][lj_fg] = fg_psi[t][0] * tmp1 * fg_exp_l[t][lj_fg]; \
-        } \
+        const INT fg_c = u[t] + ths->m; \
+        FG_RUN(fg_psi[t], 2 * ths->m + 2, \
+            (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)fg_c)/(2 * NN(ths->n[t]))),(t))), \
+            EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - fg_c) / ths->b[t]), \
+            fg_e[t], fg_q[t], ths->m); \
       } \
   \
       for (l_L = 0; l_L < lprod; l_L++) \
@@ -820,7 +791,7 @@ void X(precompute_lin_psi)(X(plan) *ths)
 void X(precompute_fg_psi)(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
-  INT u, o; /* depends on x_j */
+  INT u, o, c; /* depends on x_j */
 
 //  sort(ths);
 
@@ -832,8 +803,12 @@ void X(precompute_fg_psi)(X(plan) *ths)
     {
       uo(ths, j, &u, &o, t);
 
-      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),(ths->x[j * ths->d + t] - ((R)u) / (2 * NN(ths->n[t]))),(t)));
-      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - u) / ths->b[t]);
+      /* anchored at the grid point nearest the node, which uo() puts at run
+       * index m */
+      c = u + ths->m;
+
+      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),(ths->x[j * ths->d + t] - ((R)c) / (2 * NN(ths->n[t]))),(t)));
+      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - c) / ths->b[t]);
       } /* for(j) */
   }
   /* for(t) */
