@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<!--
+  HUMAN-FACING SUMMARY for one optimization run. Copy to the task dir as `summary.html`
+  and fill it. Produced at close-out — whether the run COMPLETED (Phase F passed) or was
+  REVERTED/BLOCKED (hard gate or give-up). It is the report a human reviewer reads to
+  approve the work; it walks them concisely from the idea, through the process, to the
+  result, and banks any reusable lessons.
+
+  Fill the <…> placeholders (drop the brackets). Delete guidance comments as you go.
+  Set the body class to the outcome: class="ok" | "partial" | "fail". The verdict banner
+  and accents follow it. If the run SUCCEEDED cleanly, delete §6 (Why it stalled). Never delete §5 (Risk assessment) — it is mandatory on every outcome. If it
+  FAILED/REVERTED, keep §6 and be candid about known and hypothetical causes.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perf · <target> — optimization summary</title>
+<style>
+  :root{ --ink:#1a1a1a; --bg:#fffefb; --muted:#6b6256; --rule:#e4ddcf;
+         --brown:#9a6b2f; --blue:#26506e; --green:#5f8a59; --red:#b4412f;
+         --ok:#e7f1e3; --okline:#5f8a59; --fail:#f7e2dd; --failline:#b4412f;
+         --warn:#fbeecb; --warnline:#c79a3a;}
+  *{box-sizing:border-box}
+  body{ background:var(--bg); color:var(--ink); margin:0;
+        font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+        line-height:1.58; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:820px; margin:0 auto; padding:3rem 1.5rem 6rem;}
+  .kicker{font-size:.72rem; text-transform:uppercase; letter-spacing:.16em; color:var(--brown);}
+  h1{font-size:2rem; line-height:1.12; margin:.3rem 0 .4rem; letter-spacing:-.015em;}
+  .deck{font-size:1.12rem; color:var(--muted); font-style:italic; margin:0 0 1.4rem;}
+  /* verdict banner — accent set by body class */
+  .verdict{border-left:3px solid var(--brown); padding:.8rem 1.1rem; border-radius:0 4px 4px 0;
+           margin:1.4rem 0 2rem; font-size:1rem; background:#f6efe0;}
+  .verdict b{font-size:1.05rem}
+  body.ok      .verdict{background:var(--ok);   border-color:var(--okline)}
+  body.fail    .verdict{background:var(--fail); border-color:var(--failline)}
+  body.partial .verdict{background:var(--warn); border-color:var(--warnline)}
+  .meta{display:grid; grid-template-columns:auto 1fr; gap:.25rem 1rem; font-size:.9rem;
+        color:var(--muted); margin:.6rem 0 0;}
+  .meta b{color:var(--ink); font-weight:600}
+  h2{font-size:1.32rem; margin:2.6rem 0 .7rem; letter-spacing:-.01em;}
+  p{margin:.8rem 0}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.85em;
+       background:#f3eede; padding:.05em .35em; border-radius:3px;}
+  pre{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.82rem; line-height:1.45;
+      background:#f3eede; border:1px solid var(--rule); border-radius:6px;
+      padding:.9rem 1.1rem; overflow:auto;}
+  pre code{background:none; padding:0; font-size:1em;}
+  .cap{font-size:.84rem; color:var(--muted); margin:.4rem 0 1.4rem;}
+  figure{margin:1.3rem 0;}
+  figure img, img.chart{max-width:100%; height:auto; border:1px solid var(--rule);
+                        border-radius:6px; background:#fff; padding:.4rem;}
+  figcaption{font-size:.82rem; color:var(--muted); margin-top:.45rem;}
+  .checklist{list-style:none; margin:.7rem 0; padding:0; font-size:.95rem;}
+  .checklist li{margin:.28rem 0;}
+  .assets{font-size:.86rem; line-height:1.9;}
+  .assets b{color:var(--ink);}
+  /* CSS-only tabs (no JS) — one chart per precision, kept readable */
+  .tabs{margin:1.3rem 0;}
+  .tabs > input[type=radio]{display:none;}
+  .tabs > label{display:inline-block; padding:.4rem .9rem; cursor:pointer; font-size:.9rem;
+                color:var(--muted); background:#f3eede; margin-right:.2rem;
+                border:1px solid var(--rule); border-bottom:none; border-radius:6px 6px 0 0;}
+  .tabs > input:checked + label{background:#fff; color:var(--brown); font-weight:600;}
+  .tabpanels{border:1px solid var(--rule); border-radius:0 6px 6px 6px; padding:.6rem; margin-top:-1px;}
+  .tabpanels > .panel{display:none;}
+  .tabpanels figure{margin:.2rem 0;}
+  #su-d:checked ~ .tabpanels > .panel-d, #tr-d:checked ~ .tabpanels > .panel-d,
+  #su-f:checked ~ .tabpanels > .panel-f, #tr-f:checked ~ .tabpanels > .panel-f,
+  #su-l:checked ~ .tabpanels > .panel-l, #tr-l:checked ~ .tabpanels > .panel-l{display:block;}
+  table{border-collapse:collapse; width:100%; font-size:.92rem; margin:1.1rem 0;}
+  th,td{border:1px solid var(--rule); padding:.4rem .6rem; text-align:left;}
+  th{background:#f6efe0; font-weight:600;}
+  td.num{text-align:right; font-family:"SF Mono",Menlo,Consolas,monospace;}
+  .good{color:var(--green); font-weight:600} .bad{color:var(--red); font-weight:600}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; margin:1.1rem 0;}
+  .cols h3{font-size:1rem; margin:.2rem 0 .4rem; color:var(--blue)}
+  ul{margin:.5rem 0 .5rem 1.1rem; padding:0} li{margin:.3rem 0}
+  aside{font-size:.92rem; color:var(--muted); border-left:2px solid var(--rule);
+        padding-left:1rem; margin:1.4rem 0;}
+  .carry{background:#f7f2e7; border:1px solid var(--rule); border-radius:8px; padding:1.1rem 1.3rem; margin:1.4rem 0;}
+  .carry h2{margin-top:.2rem}
+  a{color:var(--blue)}
+  footer{margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule);
+         color:var(--muted); font-size:.82rem;}
+  footer a{margin-right:1rem;}
+</style>
+</head>
+<!-- set the class from the RISK outcome (Decisions resolved in grilling §6):
+     ok      = faster, full suite green, every material risk retired/within-bound, no unsettled residual
+     partial = faster, full suite green, BUT an unsettled residual material-accuracy risk the reviewer must weigh
+     fail    = reverted (incl. a proven material drop that couldn't be fixed) or a Phase B/C hard-gate block -->
+<body class="ok">
+<div class="wrap">
+
+  <div class="kicker">Performance optimization · NFFT3</div>
+  <h1><code>X(target)()</code> — <one-line what changed></h1>
+  <p class="deck"><one sentence: the optimization in plain words, and how it ended.></p>
+
+  <!-- VERDICT: lead with the bottom line so a reviewer gets it in 5 seconds. -->
+  <div class="verdict">
+    <b><✅ Completed | ⚠ Landed with caveats | ⛔ Reverted / blocked></b> —
+    <headline result, e.g. "1.3× wall-clock on forward_direct_1d, full suite green" OR
+    "no benchmark covers the target — blocked at Phase C, see §5".>
+    <div class="meta">
+      <b>Target</b><span><code>X(target)()</code> — <file:line></span>
+      <b>Metric</b><span>walltime (median_ns) — local + CI (CodSpeed Macro Runners)</span>
+      <b>Precisions</b><span><float · double · long double — net green in all, or name the exception></span>
+      <b>Baseline commit</b><span><sha></span>
+      <b>Date</b><span><YYYY-MM-DD></span>
+      <b>Tracker</b><span><a href="README.md">README.md</a> · phase deliverables linked in the footer</span>
+    </div>
+  </div>
+
+  <h2>1 · The target — what we optimized and why</h2>
+  <p><Where the code sits and what it does — the transform/loop, its role, its cost shape
+     (e.g. O(N·M) per call), and why it is worth the effort (hot path, benchmarked, called
+     often). Name the precision-agnostic context if relevant (Y()/X()/FFTW(), R/C/E).></p>
+  <!-- If the region is small, paste it verbatim; if large, the hot lines only. -->
+  <pre><code>&lt;verbatim target code or the hot snippet — kernel/.../file.c:NN&gt;</code></pre>
+  <p class="cap"><one line: what to read in the snippet — the loop/expression that dominates.></p>
+
+  <h2>2 · The idea — what to change, and the reasoning</h2>
+  <p><The hypothesis BEFORE touching anything: the specific change (hoist, precompute,
+     vectorize, strength-reduce, kill a transcendental, reuse a buffer…) and WHY it should
+     be faster — what work it removes or reorders. State the expected pattern up front.></p>
+  <aside><b>Anticipated pattern:</b> <e.g. "loop-invariant hoist", "phase-recurrence for
+     trig", "precompute_one_psi reuse". Patterns actually used/found are catalogued in §6.></aside>
+
+  <h2>3 · The process — idea to verdict</h2>
+  <!-- Walk the reviewer through the phases concisely. Prose or the table below; keep it tight. -->
+  <table>
+    <tr><th>Phase</th><th>What happened</th></tr>
+    <tr><td>A · baseline</td><td><build all 3 precision trees; full suite green in each; N benchmark cases × 3 captured.></td></tr>
+    <tr><td>B · correctness net</td><td><fault injected; M cases pinned as the net (suite <code>nfft</code>).></td></tr>
+    <tr><td>C · performance metric</td><td><slowdown injected; which benchmark case(s) moved = the metric.></td></tr>
+    <tr><td>D · error analysis</td><td><standard-model bound; verdict <b>clean | improve-first: &lt;source&gt;</b>; the accuracy objective it set. See <a href="error-analysis.html">error-analysis.html</a>.></td></tr>
+    <tr><td>E · inner loop</td><td><the iterations that worked and the ones reverted — the real story, incl. any precision-specific surprise.></td></tr>
+    <tr><td>F · exit gate</td><td><full re-run in float/double/long double: net green everywhere, no regression in any precision, accuracy objective honoured (or what bounced it back).></td></tr>
+  </table>
+
+  <h2>4 · Performance results</h2>
+  <!-- The numbers that justify the change. Use medians; mark noise vs real movement.
+       Show the target metric in each precision (d/f/l) — a one-precision-only win or
+       regression is exactly what the matrix exists to surface. The table is the
+       perf-bench.py compare output; the chart is REQUIRED (perf-summary.py charts). -->
+  <!-- One chart per precision (tabbed, CSS-only) so the full case list stays readable.
+       perf-summary.py charts writes chart-speedup-{d,f,l}.svg. Drop a tab + its panel if a
+       precision was correctness-only (no benchmark) — perf-summary.py check flags a tab that
+       points at a chart that wasn't produced. -->
+  <div class="tabs">
+    <input type="radio" name="su" id="su-d" checked><label for="su-d">double</label>
+    <input type="radio" name="su" id="su-f"><label for="su-f">float</label>
+    <input type="radio" name="su" id="su-l"><label for="su-l">long&nbsp;double</label>
+    <div class="tabpanels">
+      <figure class="panel panel-d"><img class="chart" src="artifacts/chart-speedup-d.svg"
+        alt="double — % faster per case (base→final)"></figure>
+      <figure class="panel panel-f"><img class="chart" src="artifacts/chart-speedup-f.svg"
+        alt="float — % faster per case (base→final)"></figure>
+      <figure class="panel panel-l"><img class="chart" src="artifacts/chart-speedup-l.svg"
+        alt="long double — % faster per case (base→final)"></figure>
+    </div>
+  </div>
+  <p class="cap">% faster per case (green faster · red regressed · grey within noise, threshold
+     max(3σ, 2%)). One tab per precision; generated by <code>perf-summary.py charts</code> from
+     the baseline/final benchmark JSON (linked below).</p>
+  <table>
+    <tr><th>prec</th><th>case</th><th>before (ns)</th><th>after (ns)</th><th>Δ</th><th>note</th></tr>
+    <tr><td>d</td><td><nfft_forward_direct_1d/…></td><td class="num"><123456></td><td class="num"><95012></td>
+        <td class="good"><−23%></td><td><target — real, beyond noise></td></tr>
+    <tr><td>f</td><td><nfft_forward_direct_1d/…></td><td class="num"><98765></td><td class="num"><80120></td>
+        <td class="good"><−19%></td><td><target — float></td></tr>
+    <tr><td>l</td><td><nfft_forward_direct_1d/…></td><td class="num"><210987></td><td class="num"><165430></td>
+        <td class="good"><−22%></td><td><target — long double></td></tr>
+  </table>
+  <p><One or two lines interpreting it: the speedup per precision (consistent, or precision-dependent?).
+     If reverted, say what the numbers would have needed to be.></p>
+  <!-- The Phase-F exit gate, six conditions, pass/fail per precision — the reviewer's checklist. -->
+  <ul class="checklist">
+    <li><✅/❌> Full suite passes as Phase A (d/f/l, incl. <code>checkall_threads</code>)</li>
+    <li><✅/❌> No benchmark regresses beyond noise (every case, every precision)</li>
+    <li><✅/N/A> Surviving regressions on untouched cases attributed (callgrind <code>I refs</code>: layout vs real coupling)</li>
+    <li><✅/❌> <code>git diff</code> is only the intended change</li>
+    <li><✅/❌> Phase-D accuracy objective honoured (avoidable source removed / derived bound held)</li>
+    <li><✅/❌> Risk assessment complete &amp; honest — no <code>proven</code> material drop landed</li>
+  </ul>
+
+  <h2>5 · Accuracy &amp; error behaviour</h2>
+  <!-- Phase D's RESULT, surfaced for the reviewer: the verdict, the role, the derived bound,
+       and whether the optimization held/improved accuracy. The trend chart is REQUIRED WHEN a
+       differential trend study was run (improve-first / size-dependent risk). Full derivation
+       is in error-analysis.html — link it, don't repeat the math. -->
+  <p><b>Verdict:</b> <clean | improve-first: &lt;source&gt;> · <b>role:</b> <downstream-limited
+     | leveraged | terminal>. <One or two lines: was the error at the √N floor / worst-case
+     N·u envelope; did the change hold the derived bound (clean) or remove the avoidable
+     source (improve-first); any accuracy/speed trade-off the reviewer must weigh.>
+     Full derivation: <a href="error-analysis.html">error-analysis.html</a>.</p>
+  <!-- Trend study PER PRECISION (tabbed) — float/long double can behave differently (float
+       cancels/overflows sooner), so each precision gets its own error-vs-N fit. KEEP only the
+       tabs/panels for precisions a study was run in; delete the whole block if none ran.
+       perf-summary.py charts writes chart-trend-{d,f,l}.svg from trend-{baseline,optimized}-{p}.dat. -->
+  <div class="tabs">
+    <input type="radio" name="tr" id="tr-d" checked><label for="tr-d">double</label>
+    <input type="radio" name="tr" id="tr-f"><label for="tr-f">float</label>
+    <input type="radio" name="tr" id="tr-l"><label for="tr-l">long&nbsp;double</label>
+    <div class="tabpanels">
+      <figure class="panel panel-d"><img class="chart" src="artifacts/chart-trend-d.svg"
+        alt="double — error vs N (log-log), baseline vs optimized"></figure>
+      <figure class="panel panel-f"><img class="chart" src="artifacts/chart-trend-f.svg"
+        alt="float — error vs N (log-log), baseline vs optimized"></figure>
+      <figure class="panel panel-l"><img class="chart" src="artifacts/chart-trend-l.svg"
+        alt="long double — error vs N (log-log), baseline vs optimized"></figure>
+    </div>
+  </div>
+  <p class="cap">Error growth vs <code>N</code> (log-log), baseline vs optimized, fitted
+     exponents <code>p</code> (expect ≈0.5, √N); one tab per precision. Generated by
+     <code>perf-summary.py charts</code> from <code>trend-{baseline,optimized}-{d,f,l}.dat</code>
+     (linked below).</p>
+  <table>
+    <tr><th>prec</th><th>case (N, M)</th><th>error before</th><th>error after</th><th>bound</th><th>trend p</th></tr>
+    <tr><td>d</td><td><…></td><td class="num"><…></td><td class="num"><…></td><td class="num"><…></td><td><≈0.5></td></tr>
+  </table>
+
+  <h2>6 · Risk assessment — what this result might still hide</h2>
+  <!-- ALWAYS present, even on a clean success: a green suite is authoritative only for
+       what it covers. List every material risk the optimization carries that the tests in
+       hand do not, or may not, detect — proven or not. See details/risk-assessment.md. -->
+  <p><One or two lines: the survey behind a green (or reverted) result — what the narrow
+     net and bounded suite could not see, and how far you settled it.></p>
+  <table>
+    <tr><th>Risk</th><th>Category</th><th>State</th><th>Evidence / disposition</th></tr>
+    <tr><td><accuracy may drop for N≫ tested 1d sizes></td><td><size-dependent></td>
+        <td class="good"><retired></td><td><added online check N=4096, green d/f/l (temporary probe)></td></tr>
+    <tr><td><reassociated sum loses bits in long double></td><td><accuracy-for-speed></td>
+        <td class="bad"><residual></td><td><plausible; no case isolates it — a refgen long-double case at N≥… would settle it></td></tr>
+  </table>
+  <p class="cap">State: <b>proven</b> = a material accuracy drop, a hard no (fixed or
+     reverted — never lands) · <b>retired</b> = a check that would expose it now passes ·
+     <b>accepted</b> = shown within the documented error bound, or a non-accuracy concern
+     reasoned through · <b>residual</b> = a suspected material drop no constructible check
+     could settle. A residual material risk doesn't block landing but makes this run
+     <b>partial</b>, not ok — "we didn't look" and "we looked and couldn't settle it" are
+     different, and only the second may land (for the reviewer to weigh).</p>
+
+  <!-- ===== §7 — KEEP only if the run was reverted, blocked, or landed with caveats. ===== -->
+  <h2>7 · Why it stalled (failure analysis)</h2>
+  <p><What blocked it and where (e.g. "Phase C hard gate: no benchmark exercises the target").
+     Separate KNOWN causes from HYPOTHESES — be explicit which is which.></p>
+  <ul>
+    <li><b>Known:</b> <fact established during the run.></li>
+    <li><b>Hypothesis:</b> <plausible but unverified cause; what would test it.></li>
+    <li><b>To unblock:</b> <what a future attempt should add/change first.></li>
+  </ul>
+  <!-- ================================================================================= -->
+
+  <h2>8 · Patterns</h2>
+  <div class="cols">
+    <div>
+      <h3>Used</h3>
+      <ul><li><pattern applied, one line each — hoist, precompute, recurrence, SIMD, …></li></ul>
+    </div>
+    <div>
+      <h3>Discovered</h3>
+      <ul><li><something learned in-flight: a pattern that worked unexpectedly, or a
+              dead-end worth recording so the next attempt skips it.></li></ul>
+    </div>
+  </div>
+
+  <div class="carry">
+    <h2>9 · Carry-forward notes</h2>
+    <p>Reusable when optimizing <em>other</em> targets in this codebase — accumulate the
+       knowledge so the next run starts ahead.</p>
+    <ul>
+      <li><a transferable observation: a measurement gotcha, a build flag that mattered, a
+          structural fact about the kernel, a benchmark gap to fill, a noise quirk…></li>
+    </ul>
+  </div>
+
+  <!-- Footer = the full asset index. Every deliverable AND every raw artifact must be linked
+       (perf-summary.py check enforces it: nothing in the task dir may be orphaned). Prune the
+       raw-data lines to the files that actually exist (e.g. no final-*/charts on a hard-gate
+       block; trend-*.dat only if a trend study ran). -->
+  <footer>
+    <div class="assets">
+      <b>Deliverables:</b>
+      <a href="README.md">tracker</a> ·
+      <a href="phase-a-baseline.md">A·baseline</a> ·
+      <a href="phase-b-correctness-net.md">B·net</a> ·
+      <a href="phase-c-performance-metric.md">C·metric</a> ·
+      <a href="phase-d-error-analysis.md">D·error-analysis (md)</a> ·
+      <a href="error-analysis.html">D·error-analysis (html)</a> ·
+      <a href="phase-e-inner-loop.md">E·inner</a> ·
+      <a href="phase-f-exit-gate.md">F·exit</a>
+    </div>
+    <div class="assets">
+      <b>Raw data (<code>artifacts/</code>):</b>
+      tests
+      <a href="artifacts/baseline-tests-d.log">base d</a>/<a href="artifacts/baseline-tests-f.log">f</a>/<a href="artifacts/baseline-tests-l.log">l</a>,
+      <a href="artifacts/final-tests-d.log">final d</a>/<a href="artifacts/final-tests-f.log">f</a>/<a href="artifacts/final-tests-l.log">l</a> ·
+      benchmarks
+      <a href="artifacts/baseline-bench-d.json">base d</a>/<a href="artifacts/baseline-bench-f.json">f</a>/<a href="artifacts/baseline-bench-l.json">l</a>,
+      <a href="artifacts/final-bench-d.json">final d</a>/<a href="artifacts/final-bench-f.json">f</a>/<a href="artifacts/final-bench-l.json">l</a> ·
+      diffs
+      <a href="artifacts/fault.diff">fault</a>/<a href="artifacts/slowdown.diff">slowdown</a>/<a href="artifacts/change.diff">change</a> ·
+      net <a href="artifacts/net-cases.txt">net-cases.txt</a> ·
+      charts speedup <a href="artifacts/chart-speedup-d.svg">d</a>/<a href="artifacts/chart-speedup-f.svg">f</a>/<a href="artifacts/chart-speedup-l.svg">l</a>,
+      trend <a href="artifacts/chart-trend-d.svg">d</a>/<a href="artifacts/chart-trend-f.svg">f</a>/<a href="artifacts/chart-trend-l.svg">l</a> ·
+      trend data
+      base <a href="artifacts/trend-baseline-d.dat">d</a>/<a href="artifacts/trend-baseline-f.dat">f</a>/<a href="artifacts/trend-baseline-l.dat">l</a>,
+      opt <a href="artifacts/trend-optimized-d.dat">d</a>/<a href="artifacts/trend-optimized-f.dat">f</a>/<a href="artifacts/trend-optimized-l.dat">l</a>
+    </div>
+  </footer>
+</div>
+</body>
+</html>
