@@ -254,6 +254,8 @@ Issue: [`issues/05-fg-exp-table.md`](issues/05-fg-exp-table.md),
 3. `01-shape-parameter` — semantic. Changes every Gaussian result, so it wants
    its own commit, a note in the accuracy report, and a look at whether any
    reference data in `tests/data/` is Gaussian-specific.
+   **Done:** branch `feature/gaussian-shape-parameter` (`d5b233b`), off
+   `develop`, green in all three precisions with no test-data changes.
 4. `05`, `06` — cleanup, after the above.
 
 Items 1, 3 and 4 have been prototyped together and pass the full CUnit suite

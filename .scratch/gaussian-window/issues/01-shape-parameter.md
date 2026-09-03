@@ -1,6 +1,17 @@
 # 01 — Set the Gaussian `b` for the truncation width the stencil actually has
 
-Status: needs-triage
+Status: ready-for-human
+
+Implemented on branch `feature/gaussian-shape-parameter` (`d5b233b`), branched
+from `develop` so it can be filed on its own — it is a semantic change and wants
+reviewing apart from the `FG_PSI` correctness fix in
+[`02-centred-fast-gaussian.md`](02-centred-fast-gaussian.md). `make check` is
+green there in float, double and long double with no test-data changes.
+
+Note for whoever reviews the two together: the wider `b` lowers the `FG_PSI`
+running factor, so in float the m=9 failure drops from every node to 187 of
+2000 while m >= 11 stays wholly non-finite. Landing this first masks the bug a
+little; it does not fix it.
 
 ## Problem
 
