@@ -557,10 +557,10 @@ void X(check_log_sinc_exp)(void)
 
 #define BSPLINE_RUN_MAX_M 16
 
-/* One de Boor sweep over the whole run must reproduce what one evaluation per
- * point gives, at every offset of the run against the support and at every
- * cutoff, and the run must sum to one, because the cardinal B-splines of one
- * order partition unity. */
+/* Every independent Clenshaw evaluation in the run must reproduce what one
+ * evaluation per point gives, at every offset of the run against the support
+ * and at every cutoff, and the run must sum to one, because the cardinal
+ * B-splines of one order partition unity. */
 void X(check_bspline_run)(void)
 {
 #if defined(B_SPLINE)
@@ -858,5 +858,75 @@ void X(check_sincpow_phi_hut_reference)(void)
       " -> %-4s\n", k, v, err, IF(ok == 0, ">=", "<"), b,
       IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
+  }
+}
+
+/* The Chebyshev table must reproduce what de Boor gives, at the accuracy each
+ * of them owes its caller: against the peak everywhere, because the table is
+ * built for phi and psi weights, and relatively over the pieces the guard
+ * admits, because sinc-power phi_hut is divided by. The tail pieces the guard
+ * rejects are where B_k runs orders below its peak; there the fallback returns
+ * de Boor itself, so agreement is exact. */
+void X(check_bspline_cheb)(void)
+{
+  static const int cheb_m[] = {1, 2, 4, 8, 11, 16};
+  /* against the peak this is an ordinary evaluation; relatively it is only
+   * promised what the guard admits */
+  const R b = K(64.0) * Y(float_property)(NFFT_EPSILON);
+  const R br = NFFT_CHEB_GUARD * Y(float_property)(NFFT_EPSILON);
+  unsigned int i;
+  INT t;
+
+  printf("B-SPLINE CHEBYSHEV\n------------------\n");
+
+  for (i = 0; i < SIZE(cheb_m); i++)
+  {
+    const INT m = (INT)cheb_m[i], k = 2 * m;
+    R *tab = (R*)Y(malloc)((size_t)(k * k) * sizeof(R));
+    R peak = K(0.0), wpeak = K(0.0), wrel = K(0.0);
+    INT i0, guarded = 0;
+    int ok;
+
+    Y(bspline_cheb_init)(tab, k);
+    i0 = Y(bspline_cheb_guard)(tab, k, NFFT_CHEB_GUARD);
+
+    for (t = 0; t <= 64 * k; t++)
+      peak = FMAX(peak, Y(bsplines)(k, (R)t / K(64.0)));
+
+    for (t = 1; t < 64 * k; t++)
+    {
+      const R x = (R)t / K(64.0);
+      const R ref = Y(bsplines)(k, x);
+      const R v = Y(bspline_cheb)(tab, k, x);
+      const R g = Y(bspline_cheb_rel)(tab, k, i0, x);
+
+      if (!(FINITE(v)) || !(FINITE(g)))
+      {
+        wpeak = K(1.0);
+        break;
+      }
+      wpeak = FMAX(wpeak, ABS(v - ref) / peak);
+
+      if ((INT)FLOOR(x) >= i0 && (INT)FLOOR(x) < k - i0)
+        wrel = FMAX(wrel, ERR(g, ref));
+      else
+      {
+        guarded++;
+        /* outside the admitted pieces the fallback is de Boor itself */
+        if (g != ref)
+          wrel = K(1.0);
+      }
+    }
+
+    /* the ends are always rejected: B_k reaches zero there. Everything the
+     * guard does admit is contiguous around the middle, so i0 bounds it. */
+    ok = IF(wpeak < b && wrel < br && i0 > 0 && i0 <= k / 2 && guarded > 0,
+        1, 0);
+    printf("cheb[m=" __D__ "] i0 = " __D__ " err_peak = " __FE__ " err_rel = "
+      __FE__ " %-2s " __FE__ " -> %-4s\n", m, i0, wpeak, wrel,
+      IF(ok == 0, ">=", "<"), br, IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+
+    Y(free)(tab);
   }
 }

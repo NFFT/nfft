@@ -32,3 +32,4 @@ void X(check_bspline_phi_hut_reference)(void);
 void X(check_bspline_phi_reference)(void);
 void X(check_sincpow_phi_reference)(void);
 void X(check_sincpow_phi_hut_reference)(void);
+void X(check_bspline_cheb)(void);
