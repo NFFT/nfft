@@ -6,10 +6,10 @@ The output goes to stdout for pasting into tests/window.c; nothing in the tree
 is written. Each table names the window evaluation it bounds and the parameters
 it was taken at.
 
-Sinc powers come from mpmath at 60 digits. Cardinal B-spline values come from
-the truncated power basis in exact rational arithmetic: that formula cancels
-catastrophically in floating point, but over the rationals it is exact, and it
-shares nothing with the de Boor scheme it is used to check.
+Sinc powers and Gaussians come from mpmath at 60 digits. Cardinal B-spline
+values come from the truncated power basis in exact rational arithmetic: that
+formula cancels catastrophically in floating point, but over the rationals it
+is exact, and it shares nothing with the de Boor scheme it is used to check.
 """
 import argparse
 import sys
@@ -36,6 +36,12 @@ K_STEP = 8
 # window rather than to the constant.
 M_BSPLINE = 11
 M_SINCPOW = 8
+
+# The Gaussian tables run at a dyadic b, exact in every precision, rather than
+# at the b nfft_init computes: b carries a 1/pi and would charge its own
+# rounding to the window. 4 is what sigma = 2, m = 8 asks for to two digits.
+M_GAUSSIAN = 8
+B_GAUSSIAN = Fraction(4)
 
 
 def bspline(k, x):
@@ -142,6 +148,38 @@ def sincpow_phi_hut(out):
          % (n, N_FREQ, m, K_STEP, N_FREQ // 2), out)
 
 
+def gaussian_phi(out):
+    """phi over one run: exp(-(nx0 - l)^2/b)/sqrt(pi b), nx0 = m + FRAC."""
+    m, b = M_GAUSSIAN, B_GAUSSIAN
+    nx0 = Fraction(m) + FRAC
+    bm = mpf(b)
+    vals = []
+
+    for l in range(2 * m + 2):
+        d = mpf(nx0 - l)
+        vals.append(mp.e ** (-d * d / bm) / mp.sqrt(mp.pi * bm))
+
+    emit("gaussian_phi_ref_4_8", vals,
+         "/* Gaussian phi over one full run for b = %s, m = %d, with the node\n"
+         " * %s of a cell past a grid point, at %d digits. Regenerate with\n"
+         " * tests/windowref. */" % (b, m, FRAC, DIGITS), out)
+    out.append("#define GAUSSIAN_PHI_PEAK_4_8 K(%s)" % cnum(max(vals)))
+    out.append("")
+
+
+def gaussian_phi_hut(out):
+    """phi_hut(k) = exp(-t^2 b), t = k pi / n."""
+    n, b = N_GRID, B_GAUSSIAN
+    ks = range(0, N_FREQ // 2 + 1, K_STEP)
+    bm = mpf(b)
+    vals = [mp.e ** (-((mp.pi * k / n) ** 2) * bm) for k in ks]
+
+    emit("gaussian_phi_hut_ref_4_512_256", vals,
+         "/* Gaussian phi_hut for b = %s, n = %d, N = %d, k = 0, %d, .. %d, at\n"
+         " * %d digits. Regenerate with tests/windowref. */"
+         % (b, n, N_FREQ, K_STEP, N_FREQ // 2, DIGITS), out)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dps", type=int, default=DPS)
@@ -154,6 +192,8 @@ def main(argv=None):
     bspline_phi(out)
     sincpow_phi(out)
     sincpow_phi_hut(out)
+    gaussian_phi(out)
+    gaussian_phi_hut(out)
     sys.stdout.write("\n".join(out) + "\n")
     return 0
 

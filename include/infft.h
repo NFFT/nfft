@@ -182,19 +182,34 @@ typedef ptrdiff_t INT;
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)
-  #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
-  #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
-    ths->b[d])/SQRT(KPI*ths->b[d]))
+  /* ths->b holds 3 * ths->d reals: b per axis, then 1/b and 1/sqrt(pi b). b
+   * keeps index ax, where the FG_PSI paths read it. The other two are what an
+   * evaluation would otherwise recompute per point: with them, phi is a
+   * multiply, an exponential and a multiply. */
+  #define GA_B(ax) (ths->b[(ax)])
+  #define GA_B_INV(ax) (ths->b[(ths->d) + (ax)])
+  #define GA_NORM(ax) (ths->b[2 * (ths->d) + (ax)])
+  #define PHI_HUT(n,k,ax) (Y(gaussian_phi_hut)(GA_B(ax), (R)(k) * KPI / (R)(n)))
+  #define PHI(n,x,ax) (Y(gaussian_phi)(GA_B_INV(ax), GA_NORM(ax), \
+                          (R)(n) * (x)))
+  #define PHI_RUN(dst,n,x,u,ax) \
+    Y(gaussian_phi_run)((dst), GA_B_INV(ax), GA_NORM(ax), (ths->m), \
+        (R)(n) * (x) - (R)(u))
   /* b balances the two error terms (frequency and time/space) of a Gaussian
    * truncated at half-width WINDOW_STENCIL_REACH. */
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(3 * ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
-        ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
+      { \
+        const R WINDOW_b = (K(2.0)*ths->sigma[WINDOW_idx]) / \
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
           (WINDOW_STENCIL_REACH / KPI); \
+        ths->b[WINDOW_idx] = WINDOW_b; \
+        ths->b[ths->d + WINDOW_idx] = K(1.0) / WINDOW_b; \
+        ths->b[2 * ths->d + WINDOW_idx] = K(1.0) / SQRT(KPI * WINDOW_b); \
+      } \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -1887,6 +1902,53 @@ static inline void Y(sincpow_phi_run)(R *dst, R w, R m, INT mi, R h, R nx0)
 
   for (l = 0; l <= last; l++)
     dst[l] = w * EXP(e * Y(log_sinc)(h * (nx0 - (R)l)));
+}
+
+/* Gaussian window, phi(nx) = exp(-nx^2/b)/sqrt(pi b) and phi_hut(t) =
+ * exp(-t^2 b) with t = k pi / n.
+ *
+ * b_inv = 1/b and norm = 1/sqrt(pi b) are constant per axis, so neither
+ * evaluation divides or takes a square root, and the argument is nx = n x
+ * rather than x: every caller has n x to hand, and the points of a run differ
+ * by exactly one in nx. */
+static inline R Y(gaussian_phi_hut)(R b, R t)
+{
+  return EXP(-(t * t) * b);
+}
+
+static inline R Y(gaussian_phi)(R b_inv, R norm, R nx)
+{
+  return EXP(-(nx * nx) * b_inv) * norm;
+}
+
+/* dst[l] = phi(nx0 - l) for l = 0 .. 2m+1.
+ *
+ * One exponential per point, the same as the generic fill, but the argument is
+ * stepped by one in nx rather than divided by n per point, and the two
+ * constants are already formed. The loop carries nothing, so it vectorises,
+ * which is what makes it the right shape here: a Gaussian run can also be had
+ * from two exponentials and a geometric recurrence outward from its peak, the
+ * way FG_RUN does it, and that measures faster only past m of about 12 -- the
+ * serial dependency costs more than the exponentials it saves while the run is
+ * short. Measured at sigma = 2 on one 1-D transform of 20000 nodes, the
+ * recurrence is 12% slower at m = 4 and 13% faster at m = 24 against this
+ * loop, and the crossover moves with the vector width and with whether the
+ * libm has a vector exp at all; the cutoffs nfft_init picks straddle it, so
+ * the form that does not depend on where it falls is the one to have.
+ *
+ * A run needs no clamping or special case: phi is entire and positive, so
+ * every point of every run is an ordinary evaluation. */
+static inline void Y(gaussian_phi_run)(R *dst, R b_inv, R norm, INT mi, R nx0)
+{
+  const INT last = 2 * mi + 1;
+  INT l;
+
+  for (l = 0; l <= last; l++)
+  {
+    const R t = nx0 - (R)l;
+
+    dst[l] = EXP(-(t * t) * b_inv) * norm;
+  }
 }
 
 /* float.c: */

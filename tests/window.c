@@ -930,3 +930,208 @@ void X(check_bspline_cheb)(void)
     Y(free)(tab);
   }
 }
+
+#define GAUSSIAN_RUN_MAX_M 24
+
+#if defined(GAUSSIAN)
+/* b as WINDOW_HELP_INIT computes it: the stencil reaches m + 1 grid cells. */
+static R gaussian_b(R sigma, INT m)
+{
+  return (K(2.0) * sigma) / (K(2.0) * sigma - K(1.0))
+    * ((R)(m + 1) / KPI);
+}
+#endif
+
+/* The run fill must reproduce what one evaluation per point gives, at every
+ * offset of the run against the grid and at every cutoff, and no entry may
+ * leave the format or go negative.
+ *
+ * The cutoffs run well past what any precision picks by default, which is the
+ * point of the check. A Gaussian run is where a scheme is tempted to trade the
+ * exponentials for a running factor seeded at one end, and that factor then
+ * spans the whole dynamic range of the window -- exp(2 (m+1) (2m+1) / b),
+ * which is 3e59 at m = 13, sigma = 2, and overflows single precision from
+ * m = 8. Nothing here does that, and this is what would say so if it did. */
+void X(check_gaussian_run)(void)
+{
+#if defined(GAUSSIAN)
+  static const int ga_run_m[] = {1, 2, 4, 8, 13, 17, GAUSSIAN_RUN_MAX_M};
+  static const R ga_run_sigma[] = {K(1.25), K(2.0)};
+  /* fractions of a grid cell, the ends included */
+  static const R ga_run_frac[] =
+  {
+    K(0.0), K(1.0E-6), K(0.25), K(0.5), K(0.75), K(1.0) - K(1.0E-6), K(1.0)
+  };
+  const R bnd = tight_bound();
+  unsigned int i, s, f;
+
+  printf("GAUSSIAN RUN\n------------\n");
+
+  for (s = 0; s < SIZE(ga_run_sigma); s++)
+  {
+    for (i = 0; i < SIZE(ga_run_m); i++)
+    {
+      const INT m = (INT)ga_run_m[i];
+      const R b = gaussian_b(ga_run_sigma[s], m);
+      const R b_inv = K(1.0) / b;
+      const R norm = K(1.0) / SQRT(KPI * b);
+      R *run = (R*)Y(malloc)((size_t)(2 * m + 2) * sizeof(R));
+
+      for (f = 0; f < SIZE(ga_run_frac); f++)
+      {
+        const R nx0 = (R)m + ga_run_frac[f];
+        R peak = K(0.0), err = K(0.0);
+        INT l, worst = 0;
+        int ok, finite = 1;
+
+        Y(gaussian_phi_run)(run, b_inv, norm, m, nx0);
+
+        for (l = 0; l < 2 * m + 2; l++)
+          peak = FMAX(peak, Y(gaussian_phi)(b_inv, norm, nx0 - (R)l));
+
+        for (l = 0; l < 2 * m + 2; l++)
+        {
+          const R ref = Y(gaussian_phi)(b_inv, norm, nx0 - (R)l);
+          R e;
+
+          if (!(FINITE(run[l])) || run[l] < K(0.0))
+          {
+            finite = 0;
+            worst = l;
+            break;
+          }
+          e = ABS(run[l] - ref) / peak;
+          if (e > err)
+          {
+            err = e;
+            worst = l;
+          }
+        }
+
+        ok = IF(finite && err < bnd, 1, 0);
+        printf("gaussian_run[sigma=" __FE__ ", m=" __D__ ", frac=" __FE__
+          "] max err_peak = " __FE__ " %-2s " __FE__ " at l = " __D__
+          " -> %-4s\n", ga_run_sigma[s], m, ga_run_frac[f], err,
+          IF(ok == 0, ">=", "<"), bnd, worst, IF(ok == 0, "FAIL", "OK"));
+        CU_ASSERT(ok == 1);
+      }
+
+      Y(free)(run);
+    }
+  }
+#else
+  printf("GAUSSIAN RUN\n------------\nskipped: %s window\n",
+    Y(get_window_name)());
+#endif
+}
+
+/* Gaussian phi over one full run for b = 4, m = 8, with the node
+ * 5/16 of a cell past a grid point, at 45 digits. Regenerate with
+ * tests/windowref. */
+static const R gaussian_phi_ref_4_8[] =
+{
+  K(8.87589922150435467015312236576292441642812349e-9),
+  K(4.41240311454034363455880592512301952266254695e-7),
+  K(1.33042611612673857543363597671610440923555229e-5),
+  K(2.43309518615057247910056708311904933073079228e-4),
+  K(2.69885900512031484615680047722905346109808995e-3),
+  K(1.81574163758137046986476316928517188528857626e-2),
+  K(7.40935951243533647841567992198042817532481934e-2),
+  K(1.83383409134791088961370706111264023648394110e-1),
+  K(2.75291102681488101048715051342180554664158606e-1),
+  K(2.50655401387229813013706099786851213918671064e-1),
+  K(1.38425059562692997988367803578860209262569698e-1),
+  K(4.63665870429370319327963394332613272998211043e-2),
+  K(9.41994352170416261781300964521664818996281886e-3),
+  K(1.16076479394541774146199755835145522384215805e-3),
+  K(8.67546805622576762409533166227883709004042388e-5),
+  K(3.93273208738372207399887516575128032047377229e-6),
+  K(1.08130588661789462224154272078171789126320350e-7),
+  K(1.80324830234933695117390652072514966521831254e-9),
+};
+
+#define GAUSSIAN_PHI_PEAK_4_8 K(2.75291102681488101048715051342180554664158606e-1)
+
+/* Gaussian phi_hut for b = 4, n = 512, N = 256, k = 0, 8, .. 128, at
+ * 45 digits. Regenerate with tests/windowref. */
+static const R gaussian_phi_hut_ref_4_512_256[] =
+{
+  K(1.00000000000000000000000000000000000000000000e0),
+  K(9.90408013857851487504393456557819784101547961e-1),
+  K(9.62180570996742831735810238204084022208327336e-1),
+  K(9.16911272433153407584531016164437497322161912e-1),
+  K(8.57089811121701143471363222822964635804829301e-1),
+  K(7.85875309305090114557529068382194494489944771e-1),
+  K(7.06820680430012914418667726915759146905135642e-1),
+  K(6.23581385786335351284873208897517093317233083e-1),
+  K(5.39641485816297175885665323269119334646233734e-1),
+  K(4.58084722027171338301034654290924402189429140e-1),
+  K(3.81429762192938332998671657554216246657530193e-1),
+  K(3.11538438186315355374502071125604010026658593e-1),
+  K(2.49595637924601713606218700432275857191718515e-1),
+  K(1.96151049155197652149692909216872563589163022e-1),
+  K(1.51207234766595589796359543839966589126876946e-1),
+  K(1.14335948417885680454540219109649349775905290e-1),
+  K(8.48049724711137773021915226411034876963348485e-2),
+};
+
+/* Scaled by the peak of the run, which is what the psi table owes the
+ * transform. b is dyadic so it is exact in every precision; norm carries the
+ * rounding of KPI and of one square root, which is what the bound leaves room
+ * for. Both the run and one evaluation per point are checked, so the two
+ * cannot drift apart against the reference. */
+void X(check_gaussian_phi_reference)(void)
+{
+  const INT m = 8;
+  const R b = K(4.0), b_inv = K(0.25);
+  const R norm = K(1.0) / SQRT(KPI * b);
+  const R nx0 = (R)m + K(0.3125);
+  const R peak = GAUSSIAN_PHI_PEAK_4_8;
+  const R bnd = tight_bound();
+  R run[2 * 8 + 2];
+  unsigned int j;
+
+  printf("GAUSSIAN PHI REFERENCE\n----------------------\n");
+
+  Y(gaussian_phi_run)(run, b_inv, norm, m, nx0);
+
+  for (j = 0; j < SIZE(gaussian_phi_ref_4_8); j++)
+  {
+    const R ref = gaussian_phi_ref_4_8[j];
+    const R v = Y(gaussian_phi)(b_inv, norm, nx0 - (R)j);
+    const R err = FMAX(ABS(v - ref), ABS(run[j] - ref)) / peak;
+    const int ok = IF(FINITE(v) && FINITE(run[j]) && err < bnd, 1, 0);
+
+    printf("phi[l=%2u] = " __FE__ " err_peak = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", j, v, err, IF(ok == 0, ">=", "<"), bnd,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* phi_hut carries the rounding of KPI as well as its own. Over this range the
+ * exponent -t^2 b is at most 0.25 pi^2 in magnitude, so a perturbation of t is
+ * amplified by at most 2 |t^2| b = 4.9, under two ulp. */
+void X(check_gaussian_phi_hut_reference)(void)
+{
+  const INT n = 512;
+  const R b = K(4.0);
+  const R bnd = tight_bound();
+  unsigned int j;
+
+  printf("GAUSSIAN PHI HUT REFERENCE\n--------------------------\n");
+
+  for (j = 0; j < SIZE(gaussian_phi_hut_ref_4_512_256); j++)
+  {
+    const INT k = (INT)(8 * j);
+    const R ref = gaussian_phi_hut_ref_4_512_256[j];
+    const R v = Y(gaussian_phi_hut)(b, (R)k * KPI / (R)n);
+    const R err = ERR(v, ref);
+    const int ok = IF(FINITE(v) && err < bnd, 1, 0);
+
+    printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", k, v, err, IF(ok == 0, ">=", "<"), bnd,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}

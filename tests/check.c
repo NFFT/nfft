@@ -61,6 +61,10 @@ int main(void)
   CU_add_test(util, "sincpow_phi_reference", X(check_sincpow_phi_reference));
   CU_add_test(util, "sincpow_phi_hut_reference", X(check_sincpow_phi_hut_reference));
   CU_add_test(util, "bspline_cheb", X(check_bspline_cheb));
+  CU_add_test(util, "gaussian_run", X(check_gaussian_run));
+  CU_add_test(util, "gaussian_phi_reference", X(check_gaussian_phi_reference));
+  CU_add_test(util, "gaussian_phi_hut_reference",
+      X(check_gaussian_phi_hut_reference));
   CU_add_test(util, "version", X(check_get_version));
   CU_add_test(util, "window_name", X(check_get_window_name));
   CU_add_test(util, "log2i", X(check_log2i));
