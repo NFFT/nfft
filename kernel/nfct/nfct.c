@@ -30,8 +30,9 @@
 
 /* NFFT headers */
 #include "nfft3.h"
-/* uo() rounds to the nearest grid point, so the run reaches m + 1/2. */
-#define WINDOW_STENCIL_REACH (((R)ths->m) + K(0.5))
+/* uo() rounds to the nearest grid point, so the run reaches m + 1/2;
+ * 0.8 is that plus the fitted correction. */
+#define GAUSSIAN_HALF_WIDTH (((R)ths->m) + K(0.8))
 #include "infft.h"
 
 #ifdef _OPENMP
