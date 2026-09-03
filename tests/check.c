@@ -53,6 +53,13 @@ int main(void)
   CU_add_test(util, "kaiser_bessel_nfft", X(check_kaiser_bessel_nfft));
   CU_add_test(util, "kaiser_bessel_run", X(check_kaiser_bessel_run));
   CU_add_test(util, "kaiser_bessel_phi", X(check_kaiser_bessel_phi));
+  CU_add_test(util, "log_sinc", X(check_log_sinc));
+  CU_add_test(util, "log_sinc_exp", X(check_log_sinc_exp));
+  CU_add_test(util, "bspline_run", X(check_bspline_run));
+  CU_add_test(util, "bspline_phi_hut_reference", X(check_bspline_phi_hut_reference));
+  CU_add_test(util, "bspline_phi_reference", X(check_bspline_phi_reference));
+  CU_add_test(util, "sincpow_phi_reference", X(check_sincpow_phi_reference));
+  CU_add_test(util, "sincpow_phi_hut_reference", X(check_sincpow_phi_hut_reference));
   CU_add_test(util, "version", X(check_get_version));
   CU_add_test(util, "window_name", X(check_get_window_name));
   CU_add_test(util, "log2i", X(check_log2i));

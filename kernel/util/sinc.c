@@ -17,6 +17,7 @@
  */
 
 #include "infft.h"
+#include "sinc_data.h"
 
 R Y(sinc)(const R x)
 {
@@ -42,4 +43,28 @@ R Y(sinc)(const R x)
 
     return r;
   }
+}
+
+/* log|sinc(x)|, for callers that form EXP(2m * log_sinc(x)) instead of
+ * POW(sinc(x), 2m). Absolute value, not log(sinc): 2m is even, so the callers
+ * need a value past the first zero of sinc, which PHI for the sinc-power
+ * window reaches at large sigma. Coefficients and their rationale in
+ * tests/sincgen. */
+R Y(log_sinc)(const R x)
+{
+  const R a = FABS(x);
+
+  if (a <= NFFT_LOG_SINC_SPLIT)
+  {
+    const R y = a * a;
+    R q = NFFT_LOG_SINC_Q[SIZE(NFFT_LOG_SINC_Q) - 1];
+    INT j;
+
+    for (j = (INT)SIZE(NFFT_LOG_SINC_Q) - 2; j >= 0; j--)
+      q = q * y + NFFT_LOG_SINC_Q[j];
+
+    return y * q;
+  }
+
+  return LOG(FABS(SIN(a) / a));
 }
