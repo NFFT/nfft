@@ -477,3 +477,386 @@ void X(check_kaiser_bessel_phi)(void)
     Y(get_window_name)());
 #endif
 }
+
+/* log|sinc(x)| at 60 digits. The arguments are dyadic, so their literals are
+ * exact in every precision. Regenerate with mpmath.log(abs(mpmath.sin(x)/x))
+ * at mpmath.mp.dps = 60. */
+static const R log_sinc_args[] =
+{
+  K(0.0), K(0.0009765625), K(0.0625), K(0.25), K(0.5), K(0.75), K(1.0),
+  K(1.5), K(1.75), K(1.9375), K(2.0), K(2.125), K(2.5), K(3.0), K(3.5),
+  K(4.0), K(5.0), K(6.0)
+};
+
+static const R log_sinc_ref[] =
+{
+  K(0.0),
+  K(-1.589457244537903157973261989827636306810e-7),
+  K(-6.511264587477414330056542128013714207687e-4),
+  K(-1.043845457789935401184945573043609341100e-2),
+  K(-4.201950582536896172579838403790203712454e-2),
+  K(-9.557336640065549370377720803908670442410e-2),
+  K(-1.726037462690916785134109758639090698401e-1),
+  K(-4.079732642997607841582797016799435332387e-1),
+  K(-5.757594515994677430825497749105942216683e-1),
+  K(-7.301975001705864507030295078523610852806e-1),
+  K(-7.882302166551059406604484922728009331910e-1),
+  K(-9.159145793125751502284428482141424133358e-1),
+  K(-1.429666029791948529048265147097077863789),
+  K(-3.056756918278195617196798690265269719773),
+  K(-2.300349799725624325702134320468842225703),
+  K(-1.664947325187014385896374493824454668416),
+  K(-1.651381082462686277424410260467381509305),
+  K(-3.066814833351888510250775163544230639745)
+};
+
+void X(check_log_sinc)(void)
+{
+  const R b = bound();
+  unsigned int j;
+
+  printf("LOG SINC\n--------\n");
+
+  for (j = 0; j < SIZE(log_sinc_args); j++)
+  {
+    const R x = log_sinc_args[j];
+    const R v = Y(log_sinc)(x);
+    const R err = ERR(v, log_sinc_ref[j]);
+    /* Even in x, so the mirrored argument must give the identical bits. */
+    const int ok = IF(FINITE(v) && err < b && v == Y(log_sinc)(-x), 1, 0);
+    printf("log_sinc(" __FE__ ") = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", x, v, err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* EXP(log_sinc(x)) must return |sin(x)/x|, across the split and past the first
+ * zero of sinc. */
+void X(check_log_sinc_exp)(void)
+{
+  const R b = bound();
+  R worst = K(0.0);
+  int j, ok;
+
+  printf("LOG SINC ROUND TRIP\n-------------------\n");
+
+  for (j = 1; j <= 60; j++)
+  {
+    const R x = (R)j / K(20.0);
+    const R ref = FABS(SIN(x) / x);
+    const R err = ERR(EXP(Y(log_sinc)(x)), ref);
+    worst = FMAX(worst, err);
+  }
+
+  ok = IF(FINITE(worst) && worst < b, 1, 0);
+  printf("exp(log_sinc) err_rel = " __FE__ " %-2s " __FE__ " -> %-4s\n",
+    worst, IF(ok == 0, ">=", "<"), b, IF(ok == 0, "FAIL", "OK"));
+  CU_ASSERT(ok == 1);
+}
+
+#define BSPLINE_RUN_MAX_M 16
+
+/* One de Boor sweep over the whole run must reproduce what one evaluation per
+ * point gives, at every offset of the run against the support and at every
+ * cutoff, and the run must sum to one, because the cardinal B-splines of one
+ * order partition unity. */
+void X(check_bspline_run)(void)
+{
+#if defined(B_SPLINE)
+  static const int bs_run_m[] = {1, 2, 4, 8, 11, BSPLINE_RUN_MAX_M};
+  /* fractions of a grid cell, the ends included */
+  static const R bs_run_frac[] =
+  {
+    K(0.0), K(1.0E-12), K(1.0E-6), K(0.25), K(0.5), K(0.75),
+    K(1.0) - K(1.0E-6), K(1.0)
+  };
+  const R b = tight_bound();
+  R inv[2 * BSPLINE_RUN_MAX_M];
+  unsigned int i, f;
+  INT j;
+
+  printf("B-SPLINE RUN\n------------\n");
+
+  for (j = 0; j < 2 * BSPLINE_RUN_MAX_M; j++)
+    inv[j] = K(1.0) / (R)(j + 1);
+
+  for (i = 0; i < SIZE(bs_run_m); i++)
+  {
+    const INT m = (INT)bs_run_m[i];
+    R *run = (R*)Y(malloc)((size_t)(2 * m + 2) * sizeof(R));
+
+    for (f = 0; f < SIZE(bs_run_frac); f++)
+    {
+      const R t = (R)(2 * m) + bs_run_frac[f];
+      R peak = K(0.0), err = K(0.0), sum = K(0.0);
+      INT l, worst = 0;
+      int ok;
+
+      Y(bspline_phi_run)(run, inv, m, t, K(1.0));
+
+      for (l = 0; l < 2 * m + 2; l++)
+        peak = FMAX(peak, Y(bsplines)(2 * m, t - (R)l));
+
+      for (l = 0; l < 2 * m + 2; l++)
+      {
+        const R ref = Y(bsplines)(2 * m, t - (R)l);
+        R e;
+
+        if (!(FINITE(run[l])))
+        {
+          err = K(1.0);
+          worst = l;
+          break;
+        }
+        e = ABS(run[l] - ref) / peak;
+        if (e > err)
+        {
+          err = e;
+          worst = l;
+        }
+        sum += run[l];
+      }
+
+      ok = IF(err < b && ERR(sum, K(1.0)) < b, 1, 0);
+      printf("bspline_run[m=" __D__ ", frac=" __FE__ "] max err_peak = " __FE__
+        " %-2s " __FE__ " at l = " __D__ " sum-1 = " __FE__ " -> %-4s\n", m,
+        bs_run_frac[f], err, IF(ok == 0, ">=", "<"), b, worst,
+        ERR(sum, K(1.0)), IF(ok == 0, "FAIL", "OK"));
+      CU_ASSERT(ok == 1);
+    }
+
+    Y(free)(run);
+  }
+#else
+  printf("B-SPLINE RUN\n------------\nskipped: %s window\n",
+    Y(get_window_name)());
+#endif
+}
+
+/* B-spline phi_hut for n = 512, N = 256, m = 11, k = 0, 8, .. 128, at
+ * 45 digits. Regenerate with tests/windowref. */
+static const R bspline_phi_hut_ref_512_256_11[] =
+{
+  K(1.95312500000000000000000000000000000000000000e-3),
+  K(1.93594358630009186311578288650563870965255356e-3),
+  K(1.88528482941776629943034204572880157565517174e-3),
+  K(1.80373089487902124776434144254828551822251216e-3),
+  K(1.69534629235609927237473028524735291254398690e-3),
+  K(1.56534783216229833627136086623454819426842273e-3),
+  K(1.41969556338760304110678980475386601477386333e-3),
+  K(1.26464859743901316525070422565733692355519045e-3),
+  K(1.10633101190372100065318355064685183166551524e-3),
+  K(9.50348555876092574771234895494703173290163051e-4),
+  K(8.01487674996058986126093358201508137622569129e-4),
+  K(6.63516121348329183487788911569770406464546355e-4),
+  K(5.39091100831158274053159970819464337440066295e-4),
+  K(4.29768483105561443818441647473641523891266777e-4),
+  K(3.36096640830027773092193674133496053347832340e-4),
+  K(2.57772004112209819983699482678435346029178899e-4),
+  K(1.93830759132412245295343433343789551401816276e-4),
+};
+
+/* The evaluation carries the rounding of KPI as well as its own. Over this
+ * range |t| <= pi/4, where the exponent 2m amplifies a perturbation of t by at
+ * most 2m |t d(log sinc)/dt| = 3.4, so that costs under two ulp. */
+void X(check_bspline_phi_hut_reference)(void)
+{
+  const INT m = 11, n = 512;
+  const R b = tight_bound();
+  unsigned int j;
+
+  printf("B-SPLINE PHI HUT REFERENCE\n--------------------------\n");
+
+  for (j = 0; j < SIZE(bspline_phi_hut_ref_512_256_11); j++)
+  {
+    const INT k = (INT)(8 * j);
+    const R ref = bspline_phi_hut_ref_512_256_11[j];
+    const R v = Y(bspline_phi_hut)((R)m, (R)n, (R)k);
+    const R err = ERR(v, ref);
+    const int ok = IF(FINITE(v) && err < b, 1, 0);
+
+    printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", k, v, err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* B-spline phi over one full run for n = 512, m = 11, with the node 5/16 of a
+ * cell past a grid point, exactly. Regenerate with tests/windowref. */
+static const R bspline_phi_ref_512_11[] =
+{
+  K(0.0),
+  K(1.46255726667649444039432977010989116915111891e-26),
+  K(2.26206706815254378402002903440249673559203781e-18),
+  K(3.96423328726049195101177642945694358070951166e-14),
+  K(2.95893189828169424184368140050253227154580188e-11),
+  K(4.03959793477833029716510367329659454224574999e-9),
+  K(1.76294252635112805078724397469070352661777913e-7),
+  K(3.22236783135750553361558570780220201720795257e-6),
+  K(2.86646368560905105806986148831801990663641313e-5),
+  K(1.35726504120086485471928294660028230483461825e-4),
+  K(3.61154774091844053591416348689386924276002766e-4),
+  K(5.56905475628424193528322711193526483252857425e-4),
+  K(5.04089129801325900969047549242893230987443202e-4),
+  K(2.67057365274301469578621297112843567486302795e-4),
+  K(8.12375513875158214806960760367346961404177694e-5),
+  K(1.36514280899762779180172930711925560347649505e-5),
+  K(1.18675675043218049293885956310162680560032029e-6),
+  K(4.78975993762742430677902934623596881193538917e-8),
+  K(7.45921482721972249638727884062332599728723649e-10),
+  K(3.16656253752052469510544008518504721286688634e-12),
+  K(1.69058667978236500053514027018215199202892026e-15),
+  K(1.15470668751465213119007510996947578407386178e-20),
+  K(9.42402832342794418047808376805973030499025120e-34),
+  K(0.0),
+};
+
+#define BSPLINE_PHI_PEAK_512_11 K(5.56905475628424193528322711193526483252857425e-4)
+
+/* Scaled by the peak of the run, which is what the psi table owes the
+ * transform: relative error is not the yardstick in a tail that is 1e-30 of
+ * the peak. */
+void X(check_bspline_phi_reference)(void)
+{
+  const INT m = 11, n = 512;
+  const R t = (R)(2 * m) + K(0.3125);
+  const R peak = BSPLINE_PHI_PEAK_512_11;
+  const R b = tight_bound();
+  R inv[2 * 11];
+  R run[2 * 11 + 2];
+  INT j;
+  unsigned int l;
+
+  printf("B-SPLINE PHI REFERENCE\n----------------------\n");
+
+  for (j = 0; j < 2 * m; j++)
+    inv[j] = K(1.0) / (R)(j + 1);
+
+  Y(bspline_phi_run)(run, inv, m, t, K(1.0) / (R)n);
+
+  for (l = 0; l < SIZE(bspline_phi_ref_512_11); l++)
+  {
+    const R ref = bspline_phi_ref_512_11[l];
+    const R err = ABS(run[l] - ref) / peak;
+    const int ok = IF(FINITE(run[l]) && err < b, 1, 0);
+
+    printf("phi[l=%u] = " __FE__ " err_peak = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", l, run[l], err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* Sinc-power phi over one full run for n = 512, m = 8, sigma = 2,
+ * with the node 5/16 of a cell past a grid point, at 45 digits.
+ * Regenerate with tests/windowref. */
+static const R sincpow_phi_ref_512_8[] =
+{
+  K(4.36207586065430746387232746447349724977706968e-11),
+  K(2.43680743518711969357518281964372277366506755e-8),
+  K(2.34293077514470900494033946774452399401838925e-6),
+  K(7.26304931890152642363910375424280653843661635e-5),
+  K(9.80501338998901095072353779317351126248453582e-4),
+  K(6.79832785934676595981396341059056602713432049e-3),
+  K(2.66797992154586308167968186733703615422369400e-2),
+  K(6.28119218563758742590312193724812453766520929e-2),
+  K(9.16553687098782541881852710555349615598479185e-2),
+  K(8.40277875338755162795744869185860849194731528e-2),
+  K(4.82504217468975899417126337655798080331273772e-2),
+  K(1.70056629677184414621021078479783954399443935e-2),
+  K(3.53036381578621282853178780309425694356361411e-3),
+  K(4.02254150508882857825322138174645139839879033e-4),
+  K(2.23572346927523570911968586768458633293762271e-5),
+  K(4.94132555907791169878213439563993391417467121e-7),
+  K(2.94595404023347758253385857899695838024837600e-9),
+  K(1.97379694955786135670254676056348595056548479e-12),
+};
+
+#define SINCPOW_PHI_PEAK_512_8 K(9.16553687098782541881852710555349615598479185e-2)
+
+/* m is 8 rather than the default cutoff so that w = (2 sigma - 1)/(2 m sigma)
+ * is 3/32 and exactly representable; at 11 it is 3/44, whose rounding would be
+ * charged to the window. The scalar evaluation is checked against the run, so
+ * the batching cannot drift from what PHI gives. */
+void X(check_sincpow_phi_reference)(void)
+{
+  const INT m = 8;
+  const R sigma = K(2.0);
+  const R w = (K(2.0) * sigma - K(1.0)) / (K(2.0) * (R)m * sigma);
+  const R nx0 = (R)m + K(0.3125);
+  const R peak = SINCPOW_PHI_PEAK_512_8;
+  const R b = tight_bound();
+  R run[2 * 8 + 2];
+  unsigned int l;
+
+  printf("SINC-POWER PHI REFERENCE\n------------------------\n");
+
+  Y(sincpow_phi_run)(run, w, (R)m, m, KPI * w, nx0);
+
+  for (l = 0; l < SIZE(sincpow_phi_ref_512_8); l++)
+  {
+    const R ref = sincpow_phi_ref_512_8[l];
+    const R s = Y(sincpow_phi)(w, (R)m, KPI * w * (nx0 - (R)l));
+    const R err = ABS(run[l] - ref) / peak;
+    const int ok = IF(FINITE(run[l]) && err < b
+        && ABS(run[l] - s) / peak < b, 1, 0);
+
+    printf("phi[l=%u] = " __FE__ " err_peak = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", l, run[l], err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
+
+/* Sinc-power phi_hut for n = 512, N = 256, m = 8, sigma = 2,
+ * k = 0, 8, .. 128, exactly. Regenerate with tests/windowref. */
+static const R sincpow_phi_hut_ref_512_256_8[] =
+{
+  K(3.42240261355340720420085499450578815658180738e-1),
+  K(3.38824153447004483507437458309156379687532505e-1),
+  K(3.28774151231265859059605533349723993187870495e-1),
+  K(3.12666606251760809745782502788951201649614348e-1),
+  K(2.91402434821646596718351229654690575010814302e-1),
+  K(2.66125543472254185414009769273148172864898261e-1),
+  K(2.38123194910707311500962294613088263881914676e-1),
+  K(2.08720123267057691655396762694173722991948452e-1),
+  K(1.79178216565491298033718038325929439740481808e-1),
+  K(1.50611949803996986842046998813698549148284598e-1),
+  K(1.23926850826279051318194677196824049501956566e-1),
+  K(9.97846726607076617126524811846554674654411158e-2),
+  K(7.85952538667485757432847379937327027274117221e-2),
+  K(6.05318412360053820176892995127200283934300358e-2),
+  K(4.55643445808147538625550334425132732457154837e-2),
+  K(3.35038025716498355259280229311644655559999475e-2),
+  K(2.40512578451359977196034432985131716577929348e-2),
+};
+
+/* The argument carries the rounding of 1/w, which the plan stores rather than
+ * dividing per evaluation. */
+void X(check_sincpow_phi_hut_reference)(void)
+{
+  const INT m = 8, n = 512;
+  const R sigma = K(2.0);
+  const R w = (K(2.0) * sigma - K(1.0)) / (K(2.0) * (R)m * sigma);
+  const R winv = K(1.0) / w;
+  const R b = tight_bound();
+  unsigned int j;
+
+  printf("SINC-POWER PHI HUT REFERENCE\n----------------------------\n");
+
+  for (j = 0; j < SIZE(sincpow_phi_hut_ref_512_256_8); j++)
+  {
+    const INT k = (INT)(8 * j);
+    const R ref = sincpow_phi_hut_ref_512_256_8[j];
+    const R v = Y(bsplines)(2 * m, (R)k * winv / (R)n + (R)m);
+    const R err = ERR(v, ref);
+    const int ok = IF(FINITE(v) && err < b, 1, 0);
+
+    printf("phi_hut[k=" __D__ "] = " __FE__ " err_rel = " __FE__ " %-2s " __FE__
+      " -> %-4s\n", k, v, err, IF(ok == 0, ">=", "<"), b,
+      IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+}
