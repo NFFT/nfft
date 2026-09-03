@@ -30,6 +30,8 @@
 
 /* NFFT headers */
 #include "nfft3.h"
+/* uo() rounds to the nearest grid point, so the run reaches m + 1/2. */
+#define WINDOW_STENCIL_REACH (((R)ths->m) + K(0.5))
 #include "infft.h"
 
 #ifdef _OPENMP

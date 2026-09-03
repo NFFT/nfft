@@ -166,6 +166,15 @@ typedef ptrdiff_t INT;
 
 /* macros for window functions */
 
+/* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
+ * to the nearest point uo() leaves out. The default is the floor(n x)
+ * centring, whose offset lies in [0,1); a module whose uo() centres the run
+ * differently defines this before including. Only the Gaussian reads it, the
+ * other windows being zero past |x| <= m/n. */
+#ifndef WINDOW_STENCIL_REACH
+  #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
+#endif
+
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
@@ -176,13 +185,16 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
   #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
+  /* b balances the two error terms (frequency and time/space) of a Gaussian
+   * truncated at half-width WINDOW_STENCIL_REACH. */
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
       ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
         ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
-          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * (((R)ths->m) / KPI); \
+          (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
+          (WINDOW_STENCIL_REACH / KPI); \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
