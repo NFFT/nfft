@@ -171,9 +171,10 @@ typedef ptrdiff_t INT;
  * point uo() leaves out, 1 for the floor(n x) centring; a module whose uo()
  * centres the run differently defines both before including. The correction
  * is measured: the balance below drops the prefactors of its two exponentials,
- * which moves the optimum out by about 0.3. Y(gaussian_half_width) withdraws
- * it before saturation (window.c). Only the Gaussian reads these; the other
- * windows are zero past |x| <= m/n. */
+ * which moves the optimum out by about 0.3. Y(gaussian_half_width) (window.c)
+ * finds the width from a model of the whole error, round-off included, so the
+ * two only bound its search. Only the Gaussian reads these; the other windows
+ * are zero past |x| <= m/n. */
 #ifndef GAUSSIAN_REACH
   #define GAUSSIAN_REACH K(1.0)
   #define GAUSSIAN_CORRECTION K(0.3)
