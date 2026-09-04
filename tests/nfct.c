@@ -66,6 +66,7 @@ typedef struct testcase_delegate_online_s
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
 static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 /* Initialization delegate. */
@@ -395,7 +396,7 @@ static int check_single(const testcase_delegate_t *testcase,
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfct",
-      testcase->setup == setup_online ? "online" : "file",
+      testcase->setup == setup_online || testcase->setup == setup_adjoint_online ? "online" : "file",
       d, N, M, init_delegate->name, trafo_delegate->name,
       (long double)err, (long double)bound, ok);
   }
@@ -731,6 +732,46 @@ static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)",
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+
+/* Gaussian at fixed m below the round-off floor, where the window's
+ * truncation error shows. The default m reaches that floor. The bound is the
+ * theoretical 4 exp(-m pi (1 - 1/(2 sigma - 1))) at sigma 2; err_trafo's
+ * prefactor is fitted to the default m only. */
+static R err_trafo_gaussian_m(X(plan) *p)
+{
+  return FMAX(K(4.0) * EXP(-((R)p->m) * KPI * (K(1.0) - K(1.0) / K(3.0))), err_trafo(p));
+}
+static trafo_delegate_t trafo_gaussian_m = {"trafo", X(trafo), X(check), 0, err_trafo_gaussian_m};
+static trafo_delegate_t adjoint_gaussian_m = {"adjoint", X(adjoint), X(check), 0, err_trafo_gaussian_m};
+static const trafo_delegate_t* trafos_gaussian_m[] = {&trafo_gaussian_m};
+static const trafo_delegate_t* trafos_adjoint_gaussian_m[] = {&adjoint_gaussian_m};
+#define GAUSSIAN_M_DELEGATE(mm) \
+  static init_delegate_t init_gaussian_m##mm = {"init_guru (PRE PSI, m=" #mm ")", init_advanced_pre_psi_, mm, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+#if MANT_DIG == 24
+  // IEEE 754 single precision, 32 bits.
+GAUSSIAN_M_DELEGATE(2)
+GAUSSIAN_M_DELEGATE(3)
+GAUSSIAN_M_DELEGATE(4)
+static const init_delegate_t* initializers_gaussian_m[] = {&init_gaussian_m2, &init_gaussian_m3, &init_gaussian_m4};
+#elif MANT_DIG == 64 || MANT_DIG == 113
+  // Intel double extended, 80 bits, and IEEE 754 quadruple precision, 128 bits.
+GAUSSIAN_M_DELEGATE(2)
+GAUSSIAN_M_DELEGATE(4)
+GAUSSIAN_M_DELEGATE(8)
+GAUSSIAN_M_DELEGATE(12)
+GAUSSIAN_M_DELEGATE(16)
+static const init_delegate_t* initializers_gaussian_m[] = {&init_gaussian_m2, &init_gaussian_m4, &init_gaussian_m8, &init_gaussian_m12, &init_gaussian_m16};
+#else
+  // IEEE 754 double precision, 64 bits; assumed for unknown types.
+GAUSSIAN_M_DELEGATE(2)
+GAUSSIAN_M_DELEGATE(4)
+GAUSSIAN_M_DELEGATE(6)
+GAUSSIAN_M_DELEGATE(8)
+GAUSSIAN_M_DELEGATE(10)
+GAUSSIAN_M_DELEGATE(12)
+static const init_delegate_t* initializers_gaussian_m[] = {&init_gaussian_m2, &init_gaussian_m4, &init_gaussian_m6, &init_gaussian_m8, &init_gaussian_m10, &init_gaussian_m12};
+#endif
+#undef GAUSSIAN_M_DELEGATE
 #endif
 
 /* Check routines. */
@@ -912,6 +953,15 @@ void X(check_1d_online)(void)
     testcases_1d_online_, initializers_1d, &check_trafo, trafos_1d_online);
 }
 
+#if defined(GAUSSIAN)
+void X(check_1d_online_gaussian_m)(void)
+{
+  printf("check_1d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_1d_online), SIZE(initializers_gaussian_m), SIZE(trafos_gaussian_m),
+    testcases_1d_online_, initializers_gaussian_m, &check_trafo, trafos_gaussian_m);
+}
+#endif
+
 static const testcase_delegate_online_t nfct_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
 static const testcase_delegate_online_t nfct_adjoint_online_1d_100_50 = {setup_adjoint_online, destroy_online, 1, 100 ,50};
 static const testcase_delegate_online_t nfct_adjoint_online_1d_200_50 = {setup_adjoint_online, destroy_online, 1, 200 ,50};
@@ -944,6 +994,15 @@ void X(check_adjoint_1d_online)(void)
   check_many(SIZE(testcases_adjoint_1d_online), SIZE(initializers_1d), SIZE(trafos_adjoint_1d_online),
     testcases_adjoint_1d_online_, initializers_1d, &check_adjoint, trafos_adjoint_1d_online);
 }
+
+#if defined(GAUSSIAN)
+void X(check_adjoint_1d_online_gaussian_m)(void)
+{
+  printf("check_adjoint_1d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_adjoint_1d_online), SIZE(initializers_gaussian_m), SIZE(trafos_adjoint_gaussian_m),
+    testcases_adjoint_1d_online_, initializers_gaussian_m, &check_adjoint, trafos_adjoint_gaussian_m);
+}
+#endif
 
 /* 2D */
 
@@ -1023,6 +1082,15 @@ void X(check_2d_online)(void)
     testcases_2d_online_, initializers_2d, &check_trafo, trafos_2d_online);
 }
 
+#if defined(GAUSSIAN)
+void X(check_2d_online_gaussian_m)(void)
+{
+  printf("check_2d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_2d_online), SIZE(initializers_gaussian_m), SIZE(trafos_gaussian_m),
+    testcases_2d_online_, initializers_gaussian_m, &check_trafo, trafos_gaussian_m);
+}
+#endif
+
 static const testcase_delegate_online_t nfct_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
 static const testcase_delegate_online_t nfct_adjoint_online_2d_100_50 = {setup_adjoint_online, destroy_online, 2, 100 ,50};
 static const testcase_delegate_online_t nfct_adjoint_online_2d_200_50 = {setup_adjoint_online, destroy_online, 2, 200 ,50};
@@ -1049,6 +1117,15 @@ void X(check_adjoint_2d_online)(void)
   check_many(SIZE(testcases_adjoint_2d_online), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_online),
     testcases_adjoint_2d_online_, initializers_2d, &check_adjoint, trafos_adjoint_2d_online);
 }
+
+#if defined(GAUSSIAN)
+void X(check_adjoint_2d_online_gaussian_m)(void)
+{
+  printf("check_adjoint_2d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_adjoint_2d_online), SIZE(initializers_gaussian_m), SIZE(trafos_adjoint_gaussian_m),
+    testcases_adjoint_2d_online_, initializers_gaussian_m, &check_adjoint, trafos_adjoint_gaussian_m);
+}
+#endif
 
 /* 3D */
 
@@ -1119,6 +1196,15 @@ void X(check_3d_online)(void)
     testcases_3d_online_, initializers_3d, &check_trafo, trafos_3d_online);
 }
 
+#if defined(GAUSSIAN)
+void X(check_3d_online_gaussian_m)(void)
+{
+  printf("check_3d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_3d_online), SIZE(initializers_gaussian_m), SIZE(trafos_gaussian_m),
+    testcases_3d_online_, initializers_gaussian_m, &check_trafo, trafos_gaussian_m);
+}
+#endif
+
 static const testcase_delegate_online_t nfct_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
@@ -1135,6 +1221,15 @@ void X(check_adjoint_3d_online)(void)
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
     testcases_adjoint_3d_online_, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
 }
+
+#if defined(GAUSSIAN)
+void X(check_adjoint_3d_online_gaussian_m)(void)
+{
+  printf("check_adjoint_3d_online_gaussian_m:\n");
+  check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_gaussian_m), SIZE(trafos_adjoint_gaussian_m),
+    testcases_adjoint_3d_online_, initializers_gaussian_m, &check_adjoint, trafos_adjoint_gaussian_m);
+}
+#endif
 #endif
 
 /* 4D. */
