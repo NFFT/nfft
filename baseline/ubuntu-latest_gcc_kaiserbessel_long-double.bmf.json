@@ -67,167 +67,90 @@
   },
   "nfct/serial/file/fast/adjoint/1d/init": {
     "accuracy-digits": {
-      "value": 15.702990158480084
+      "value": 18.21487767701455
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 1.9815719295730744e-16
+      "value": 6.097086030237085e-19
     }
   },
   "nfct/serial/file/fast/adjoint/1d/init_1d": {
     "accuracy-digits": {
-      "value": 15.702990158480084
+      "value": 18.21487767701455
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 1.9815719295730744e-16
+      "value": 6.097086030237085e-19
     }
   },
   "nfct/serial/file/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 15.586654950836603
+      "value": 17.745746296456623
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 2.590270080516431e-16
+      "value": 1.7957823698432664e-18
     }
   },
   "nfct/serial/file/fast/adjoint/1d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 15.702864282101665
+      "value": 18.33981641362285
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 1.9821463537482331e-16
+      "value": 4.572814522677814e-19
     }
   },
   "nfct/serial/file/fast/adjoint/2d/init": {
     "accuracy-digits": {
-      "value": 16.424672323027718
+      "value": 18.534515177452423
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 3.761210821599103e-17
+      "value": 2.9206856881235356e-19
     }
   },
   "nfct/serial/file/fast/adjoint/2d/init_2d": {
     "accuracy-digits": {
-      "value": 16.424672323027718
+      "value": 18.534515177452423
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 3.761210821599103e-17
+      "value": 2.9206856881235356e-19
     }
   },
   "nfct/serial/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.424364712710123
+      "value": 18.488057776213424
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 3.763875826904913e-17
+      "value": 3.2504405238794187e-19
     }
   },
   "nfct/serial/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.41694590655038
+      "value": 18.68345419046449
     },
     "bound-digits": {
       "value": 15.387481019513139
     },
     "max-error": {
-      "value": 3.8287242893462766e-17
-    }
-  },
-  "nfct/serial/file/fast/adjoint/3d/init": {
-    "accuracy-digits": {
-      "value": 17.914292940464605
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 1.2181676428818867e-18
-    }
-  },
-  "nfct/serial/file/fast/adjoint/3d/init_3d": {
-    "accuracy-digits": {
-      "value": 17.914292940464605
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 1.2181676428818867e-18
-    }
-  },
-  "nfct/serial/file/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 17.858435122999605
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 1.3853671232774398e-18
-    }
-  },
-  "nfct/serial/file/fast/adjoint/3d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.920007423989038
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 1.202243882844215e-18
-    }
-  },
-  "nfct/serial/file/fast/adjoint/4d/init": {
-    "accuracy-digits": {
-      "value": 17.960194357339034
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 1.0959876052771564e-18
-    }
-  },
-  "nfct/serial/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 18.049594768568344
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 8.92082934527918e-19
-    }
-  },
-  "nfct/serial/file/fast/adjoint/4d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 18.035354329453735
-    },
-    "bound-digits": {
-      "value": 15.387481019513139
-    },
-    "max-error": {
-      "value": 9.218190323455152e-19
+      "value": 2.072744681894122e-19
     }
   },
   "nfct/serial/file/fast/forward/1d/init": {
@@ -316,6 +239,171 @@
     },
     "max-error": {
       "value": 3.0450585459279133e-20
+    }
+  },
+  "nfct/serial/online/fast/adjoint/1d/init": {
+    "accuracy-digits": {
+      "value": 15.702990158480084
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.9815719295730744e-16
+    }
+  },
+  "nfct/serial/online/fast/adjoint/1d/init_1d": {
+    "accuracy-digits": {
+      "value": 15.702990158480084
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.9815719295730744e-16
+    }
+  },
+  "nfct/serial/online/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 15.586654950836603
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 2.590270080516431e-16
+    }
+  },
+  "nfct/serial/online/fast/adjoint/1d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 15.702864282101665
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.9821463537482331e-16
+    }
+  },
+  "nfct/serial/online/fast/adjoint/2d/init": {
+    "accuracy-digits": {
+      "value": 16.424672323027718
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 3.761210821599103e-17
+    }
+  },
+  "nfct/serial/online/fast/adjoint/2d/init_2d": {
+    "accuracy-digits": {
+      "value": 16.424672323027718
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 3.761210821599103e-17
+    }
+  },
+  "nfct/serial/online/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 16.424364712710123
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 3.763875826904913e-17
+    }
+  },
+  "nfct/serial/online/fast/adjoint/2d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.41694590655038
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 3.8287242893462766e-17
+    }
+  },
+  "nfct/serial/online/fast/adjoint/3d/init": {
+    "accuracy-digits": {
+      "value": 17.914292940464605
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.2181676428818867e-18
+    }
+  },
+  "nfct/serial/online/fast/adjoint/3d/init_3d": {
+    "accuracy-digits": {
+      "value": 17.914292940464605
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.2181676428818867e-18
+    }
+  },
+  "nfct/serial/online/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.858435122999605
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.3853671232774398e-18
+    }
+  },
+  "nfct/serial/online/fast/adjoint/3d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.920007423989038
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.202243882844215e-18
+    }
+  },
+  "nfct/serial/online/fast/adjoint/4d/init": {
+    "accuracy-digits": {
+      "value": 17.960194357339034
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 1.0959876052771564e-18
+    }
+  },
+  "nfct/serial/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 18.049594768568344
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 8.92082934527918e-19
+    }
+  },
+  "nfct/serial/online/fast/adjoint/4d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 18.035354329453735
+    },
+    "bound-digits": {
+      "value": 15.387481019513139
+    },
+    "max-error": {
+      "value": 9.218190323455152e-19
     }
   },
   "nfct/serial/online/fast/forward/1d/init": {
@@ -551,211 +639,167 @@
   },
   "nfft/omp/file/fast/adjoint/1d/init": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/omp/file/fast/adjoint/1d/init_1d": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/omp/file/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 17.208956089572542
+      "value": 18.024197709507963
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.1807888938794376e-18
+      "value": 9.458064915912542e-19
     }
   },
   "nfft/omp/file/fast/adjoint/1d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/omp/file/fast/adjoint/1d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init": {
     "accuracy-digits": {
-      "value": 16.480265747369376
+      "value": 19.021097388691583
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.3092856236522357e-17
+      "value": 9.52582527488198e-20
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_2d": {
     "accuracy-digits": {
-      "value": 16.480265747369376
+      "value": 19.021097388691583
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.3092856236522357e-17
+      "value": 9.52582527488198e-20
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.479062186570914
+      "value": 18.94124696725783
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.318469370302996e-17
+      "value": 1.1448617156565943e-19
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.480265747369376
+      "value": 18.965989648797787
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.3092856236522357e-17
+      "value": 1.0814597270684819e-19
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.480265747369376
+      "value": 19.008521969049113
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.3092856236522357e-17
+      "value": 9.805687104059087e-20
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init": {
     "accuracy-digits": {
-      "value": 17.76011674470152
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7373337452806174e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_3d": {
     "accuracy-digits": {
-      "value": 17.76011674470152
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7373337452806174e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 17.757751898218537
+      "value": 18.68492567338345
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7468197832138935e-18
+      "value": 2.0657336621578554e-19
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.76011674470152
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7373337452806174e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.76011674470152
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7373337452806174e-18
-    }
-  },
-  "nfft/omp/file/fast/adjoint/4d/init": {
-    "accuracy-digits": {
-      "value": 17.37439954858971
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.2227994022807635e-18
-    }
-  },
-  "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 17.377694005544036
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.190887419400841e-18
-    }
-  },
-  "nfft/omp/file/fast/adjoint/4d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.374302533445533
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.2237428203326316e-18
-    }
-  },
-  "nfft/omp/file/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.37419353164566
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.224803053354342e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/omp/file/fast/forward/1d/init": {
@@ -921,6 +965,215 @@
     },
     "max-error": {
       "value": 8.698346340999999e-20
+    }
+  },
+  "nfft/omp/online/fast/adjoint/1d/init": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/1d/init_1d": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.208956089572542
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.1807888938794376e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/1d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/1d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/2d/init": {
+    "accuracy-digits": {
+      "value": 16.480265747369376
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.3092856236522357e-17
+    }
+  },
+  "nfft/omp/online/fast/adjoint/2d/init_2d": {
+    "accuracy-digits": {
+      "value": 16.480265747369376
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.3092856236522357e-17
+    }
+  },
+  "nfft/omp/online/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 16.479062186570914
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.318469370302996e-17
+    }
+  },
+  "nfft/omp/online/fast/adjoint/2d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.480265747369376
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.3092856236522357e-17
+    }
+  },
+  "nfft/omp/online/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.480265747369376
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.3092856236522357e-17
+    }
+  },
+  "nfft/omp/online/fast/adjoint/3d/init": {
+    "accuracy-digits": {
+      "value": 17.76011674470152
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7373337452806174e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/3d/init_3d": {
+    "accuracy-digits": {
+      "value": 17.76011674470152
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7373337452806174e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.757751898218537
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7468197832138935e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/3d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.76011674470152
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7373337452806174e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/3d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.76011674470152
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7373337452806174e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/4d/init": {
+    "accuracy-digits": {
+      "value": 17.37439954858971
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.2227994022807635e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.37599737888526
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.2072916762024365e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.374302533445533
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.2237428203326316e-18
+    }
+  },
+  "nfft/omp/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.372951051646748
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.2369071658530085e-18
     }
   },
   "nfft/omp/online/fast/forward/1d/init": {
@@ -1200,211 +1453,167 @@
   },
   "nfft/serial/file/fast/adjoint/1d/init": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/serial/file/fast/adjoint/1d/init_1d": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/serial/file/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 17.208956089572542
+      "value": 18.024197709507963
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.1807888938794376e-18
+      "value": 9.458064915912542e-19
     }
   },
   "nfft/serial/file/fast/adjoint/1d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/serial/file/fast/adjoint/1d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.206015144004613
+      "value": 17.961739821061126
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 6.2227858571297655e-18
+      "value": 1.0920943969498827e-18
     }
   },
   "nfft/serial/file/fast/adjoint/2d/init": {
     "accuracy-digits": {
-      "value": 16.480327693399097
+      "value": 19.021097388691583
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.308813634034946e-17
+      "value": 9.52582527488198e-20
     }
   },
   "nfft/serial/file/fast/adjoint/2d/init_2d": {
     "accuracy-digits": {
-      "value": 16.480327693399097
+      "value": 19.021097388691583
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.308813634034946e-17
+      "value": 9.52582527488198e-20
     }
   },
   "nfft/serial/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.479123908701876
+      "value": 18.916042215519028
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.317997781426065e-17
+      "value": 1.2132709089466802e-19
     }
   },
   "nfft/serial/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.480327693399097
+      "value": 19.011511995512336
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.308813634034946e-17
+      "value": 9.738408868019708e-20
     }
   },
   "nfft/serial/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.480327693399097
+      "value": 19.011511995512336
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 3.308813634034946e-17
+      "value": 9.738408868019708e-20
     }
   },
   "nfft/serial/file/fast/adjoint/3d/init": {
     "accuracy-digits": {
-      "value": 17.764908424836406
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.71827066283756e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/serial/file/fast/adjoint/3d/init_3d": {
     "accuracy-digits": {
-      "value": 17.764908424836406
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.71827066283756e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/serial/file/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 17.7601412591838
+      "value": 18.781642580784336
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.7372356813238166e-18
+      "value": 1.6533219028245393e-19
     }
   },
   "nfft/serial/file/fast/adjoint/3d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.764908424836406
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.71827066283756e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/serial/file/fast/adjoint/3d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.764908424836406
+      "value": 18.691994381318892
     },
     "bound-digits": {
       "value": 15.68851101517712
     },
     "max-error": {
-      "value": 1.71827066283756e-18
-    }
-  },
-  "nfft/serial/file/fast/adjoint/4d/init": {
-    "accuracy-digits": {
-      "value": 17.374724191606614
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.219643962515146e-18
-    }
-  },
-  "nfft/serial/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 17.376344006845397
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.203935006576144e-18
-    }
-  },
-  "nfft/serial/file/fast/adjoint/4d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.37339864338424
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.2325427821914005e-18
-    }
-  },
-  "nfft/serial/file/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.373604965770028
-    },
-    "bound-digits": {
-      "value": 15.68851101517712
-    },
-    "max-error": {
-      "value": 4.230532485123169e-18
+      "value": 2.0323833047075881e-19
     }
   },
   "nfft/serial/file/fast/forward/1d/init": {
@@ -1570,6 +1779,215 @@
     },
     "max-error": {
       "value": 8.698346340999999e-20
+    }
+  },
+  "nfft/serial/online/fast/adjoint/1d/init": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/1d/init_1d": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.208956089572542
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.1807888938794376e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/1d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/1d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.206015144004613
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 6.2227858571297655e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/2d/init": {
+    "accuracy-digits": {
+      "value": 16.480327693399097
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.308813634034946e-17
+    }
+  },
+  "nfft/serial/online/fast/adjoint/2d/init_2d": {
+    "accuracy-digits": {
+      "value": 16.480327693399097
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.308813634034946e-17
+    }
+  },
+  "nfft/serial/online/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 16.479123908701876
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.317997781426065e-17
+    }
+  },
+  "nfft/serial/online/fast/adjoint/2d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.480327693399097
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.308813634034946e-17
+    }
+  },
+  "nfft/serial/online/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.480327693399097
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 3.308813634034946e-17
+    }
+  },
+  "nfft/serial/online/fast/adjoint/3d/init": {
+    "accuracy-digits": {
+      "value": 17.764908424836406
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.71827066283756e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/3d/init_3d": {
+    "accuracy-digits": {
+      "value": 17.764908424836406
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.71827066283756e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.7601412591838
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.7372356813238166e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/3d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.764908424836406
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.71827066283756e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/3d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.764908424836406
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 1.71827066283756e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/4d/init": {
+    "accuracy-digits": {
+      "value": 17.374724191606614
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.219643962515146e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.376344006845397
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.203935006576144e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/4d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.37339864338424
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.2325427821914005e-18
+    }
+  },
+  "nfft/serial/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.373604965770028
+    },
+    "bound-digits": {
+      "value": 15.68851101517712
+    },
+    "max-error": {
+      "value": 4.230532485123169e-18
     }
   },
   "nfft/serial/online/fast/forward/1d/init": {
@@ -1849,167 +2267,90 @@
   },
   "nfst/serial/file/fast/adjoint/1d/init": {
     "accuracy-digits": {
-      "value": 15.665483203234107
+      "value": 18.228223447043018
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 2.1603135854100117e-16
+      "value": 5.912573505502549e-19
     }
   },
   "nfst/serial/file/fast/adjoint/1d/init_1d": {
     "accuracy-digits": {
-      "value": 15.665483203234107
+      "value": 18.228223447043018
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 2.1603135854100117e-16
+      "value": 5.912573505502549e-19
     }
   },
   "nfst/serial/file/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 15.588976601385532
+      "value": 17.49024219454738
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 2.5764599659719867e-16
+      "value": 3.2341324761421364e-18
     }
   },
   "nfst/serial/file/fast/adjoint/1d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 15.665473580152556
+      "value": 18.442328225897494
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 2.1603614540912748e-16
+      "value": 3.611368237993437e-19
     }
   },
   "nfst/serial/file/fast/adjoint/2d/init": {
     "accuracy-digits": {
-      "value": 16.42672864543903
+      "value": 18.767699923238276
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 3.743444119560373e-17
+      "value": 1.7072616178652926e-19
     }
   },
   "nfst/serial/file/fast/adjoint/2d/init_2d": {
     "accuracy-digits": {
-      "value": 16.42672864543903
+      "value": 18.767699923238276
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 3.743444119560373e-17
+      "value": 1.7072616178652926e-19
     }
   },
   "nfst/serial/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.43332275851448
+      "value": 18.56164544080515
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 3.687034840587406e-17
+      "value": 2.743813314426363e-19
     }
   },
   "nfst/serial/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.424672323027718
+      "value": 18.83464671286889
     },
     "bound-digits": {
       "value": 15.402204276333844
     },
     "max-error": {
-      "value": 3.761210821599103e-17
-    }
-  },
-  "nfst/serial/file/fast/adjoint/3d/init": {
-    "accuracy-digits": {
-      "value": 17.94024505097945
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 1.1475059577147184e-18
-    }
-  },
-  "nfst/serial/file/fast/adjoint/3d/init_3d": {
-    "accuracy-digits": {
-      "value": 17.94024505097945
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 1.1475059577147184e-18
-    }
-  },
-  "nfst/serial/file/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 17.900327284327783
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 1.257977042976066e-18
-    }
-  },
-  "nfst/serial/file/fast/adjoint/3d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 17.93463151549777
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 1.1624344827500358e-18
-    }
-  },
-  "nfst/serial/file/fast/adjoint/4d/init": {
-    "accuracy-digits": {
-      "value": 18.162299048759635
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 6.881782637786796e-19
-    }
-  },
-  "nfst/serial/file/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
-    "accuracy-digits": {
-      "value": 18.116541558198957
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 7.646425153096439e-19
-    }
-  },
-  "nfst/serial/file/fast/adjoint/4d/init_guru_PRE_PSI": {
-    "accuracy-digits": {
-      "value": 18.187122632484666
-    },
-    "bound-digits": {
-      "value": 15.402204276333844
-    },
-    "max-error": {
-      "value": 6.499461380131973e-19
+      "value": 1.4633671010273936e-19
     }
   },
   "nfst/serial/file/fast/forward/1d/init": {
@@ -2098,6 +2439,171 @@
     },
     "max-error": {
       "value": 8.231088013219633e-20
+    }
+  },
+  "nfst/serial/online/fast/adjoint/1d/init": {
+    "accuracy-digits": {
+      "value": 15.665483203234107
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 2.1603135854100117e-16
+    }
+  },
+  "nfst/serial/online/fast/adjoint/1d/init_1d": {
+    "accuracy-digits": {
+      "value": 15.665483203234107
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 2.1603135854100117e-16
+    }
+  },
+  "nfst/serial/online/fast/adjoint/1d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 15.588976601385532
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 2.5764599659719867e-16
+    }
+  },
+  "nfst/serial/online/fast/adjoint/1d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 15.665473580152556
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 2.1603614540912748e-16
+    }
+  },
+  "nfst/serial/online/fast/adjoint/2d/init": {
+    "accuracy-digits": {
+      "value": 16.42672864543903
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 3.743444119560373e-17
+    }
+  },
+  "nfst/serial/online/fast/adjoint/2d/init_2d": {
+    "accuracy-digits": {
+      "value": 16.42672864543903
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 3.743444119560373e-17
+    }
+  },
+  "nfst/serial/online/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 16.43332275851448
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 3.687034840587406e-17
+    }
+  },
+  "nfst/serial/online/fast/adjoint/2d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 16.424672323027718
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 3.761210821599103e-17
+    }
+  },
+  "nfst/serial/online/fast/adjoint/3d/init": {
+    "accuracy-digits": {
+      "value": 17.94024505097945
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 1.1475059577147184e-18
+    }
+  },
+  "nfst/serial/online/fast/adjoint/3d/init_3d": {
+    "accuracy-digits": {
+      "value": 17.94024505097945
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 1.1475059577147184e-18
+    }
+  },
+  "nfst/serial/online/fast/adjoint/3d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 17.900327284327783
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 1.257977042976066e-18
+    }
+  },
+  "nfst/serial/online/fast/adjoint/3d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 17.93463151549777
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 1.1624344827500358e-18
+    }
+  },
+  "nfst/serial/online/fast/adjoint/4d/init": {
+    "accuracy-digits": {
+      "value": 18.162299048759635
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 6.881782637786796e-19
+    }
+  },
+  "nfst/serial/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
+    "accuracy-digits": {
+      "value": 18.116541558198957
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 7.646425153096439e-19
+    }
+  },
+  "nfst/serial/online/fast/adjoint/4d/init_guru_PRE_PSI": {
+    "accuracy-digits": {
+      "value": 18.187122632484666
+    },
+    "bound-digits": {
+      "value": 15.402204276333844
+    },
+    "max-error": {
+      "value": 6.499461380131973e-19
     }
   },
   "nfst/serial/online/fast/forward/1d/init": {
