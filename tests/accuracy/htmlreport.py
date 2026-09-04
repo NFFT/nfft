@@ -12,6 +12,8 @@ import html
 # Window functions whose token may appear in a testbed name
 # (`<os>_<compiler>_<window>_<precision>`). Used to split the window axis out.
 KNOWN_WINDOWS = ("kaiserbessel", "gaussian", "bspline", "sinc", "dirac")
+# Precision tokens of a testbed name, in mantissa order; columns sort by it.
+PRECISIONS = ("float", "double", "long-double")
 
 # Margin color bands. Hex equals round(255*c) of the old matplotlib RGBA floats.
 RED = "#d63026"  # margin < 0      (error exceeds bound -- should never happen)
@@ -44,6 +46,15 @@ def parse_window(testbed):
             rest = tokens[:i] + tokens[i + 1 :]
             return tok, "_".join(rest)
     return "other", testbed
+
+
+def precision_rank(label):
+    """Position of the label's precision token in PRECISIONS; unknown last."""
+    tokens = label.split("_")
+    for i, p in enumerate(PRECISIONS):
+        if p in tokens:
+            return i
+    return len(PRECISIONS)
 
 
 def metric_module(name):
@@ -254,7 +265,7 @@ def render_report(tree, diff_result=None, *, title):
     order = [w for w in (list(KNOWN_WINDOWS) + ["other"]) if w in windows]
     inputs, panels = [], []
     for idx, win in enumerate(order):
-        testbeds = sorted(windows[win], key=lambda x: x[1])
+        testbeds = sorted(windows[win], key=lambda x: (precision_rank(x[1]), x[1]))
         checked = " checked" if idx == 0 else ""
         inputs.append(
             f'<input type="radio" name="wintab" id="tab-{win}"{checked}>'

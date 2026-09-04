@@ -87,6 +87,16 @@ int main(void)
   CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfft, "nfft_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#if defined(GAUSSIAN)
+  CU_add_test(nfft, "nfft_1d_online_gaussian_m", X(check_1d_online_gaussian_m));
+  CU_add_test(nfft, "nfft_adjoint_1d_online_gaussian_m", X(check_adjoint_1d_online_gaussian_m));
+  CU_add_test(nfft, "nfft_2d_online_gaussian_m", X(check_2d_online_gaussian_m));
+  CU_add_test(nfft, "nfft_adjoint_2d_online_gaussian_m", X(check_adjoint_2d_online_gaussian_m));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfft, "nfft_3d_online_gaussian_m", X(check_3d_online_gaussian_m));
+  CU_add_test(nfft, "nfft_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
+#endif
+#endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
   CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
@@ -117,6 +127,16 @@ int main(void)
   CU_add_test(nfct, "nfct_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#if defined(GAUSSIAN)
+  CU_add_test(nfct, "nfct_1d_online_gaussian_m", X(check_1d_online_gaussian_m));
+  CU_add_test(nfct, "nfct_adjoint_1d_online_gaussian_m", X(check_adjoint_1d_online_gaussian_m));
+  CU_add_test(nfct, "nfct_2d_online_gaussian_m", X(check_2d_online_gaussian_m));
+  CU_add_test(nfct, "nfct_adjoint_2d_online_gaussian_m", X(check_adjoint_2d_online_gaussian_m));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfct, "nfct_3d_online_gaussian_m", X(check_3d_online_gaussian_m));
+  CU_add_test(nfct, "nfct_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
+#endif
+#endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfct, "nfct_3d_online", X(check_3d_online));
   CU_add_test(nfct, "nfct_adjoint_3d_online", X(check_adjoint_3d_online));
@@ -149,6 +169,16 @@ int main(void)
   CU_add_test(nfst, "nfst_3d_fast_file", X(check_3d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
+#if defined(GAUSSIAN)
+  CU_add_test(nfst, "nfst_1d_online_gaussian_m", X(check_1d_online_gaussian_m));
+  CU_add_test(nfst, "nfst_adjoint_1d_online_gaussian_m", X(check_adjoint_1d_online_gaussian_m));
+  CU_add_test(nfst, "nfst_2d_online_gaussian_m", X(check_2d_online_gaussian_m));
+  CU_add_test(nfst, "nfst_adjoint_2d_online_gaussian_m", X(check_adjoint_2d_online_gaussian_m));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfst, "nfst_3d_online_gaussian_m", X(check_3d_online_gaussian_m));
+  CU_add_test(nfst, "nfst_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
+#endif
+#endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfst, "nfst_3d_online", X(check_3d_online));
   CU_add_test(nfst, "nfst_adjoint_3d_online", X(check_adjoint_3d_online));
