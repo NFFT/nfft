@@ -66,7 +66,10 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 
 #define NODE(p,r) (ths->x[(p) * ths->d + (r)])
 
-#define MACRO_with_FG_PSI fg_psi[t][lj[t]]
+/* uo() anchors the run at the grid point nearest the node, run index m,
+ * which FG_RUN puts at buffer index m + 1 */
+#define MACRO_with_FG_PSI fg_psi[t][lj[t] + 1]
+#define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + t]) \
   - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)NN(ths->n[t])))), t)
@@ -503,7 +506,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R *f, *g; /* local copy */ \
   R *fj; /* local copy */ \
   R y[ths->d]; \
-  R fg_psi[ths->d][2*ths->m+2]; \
+  R fg_psi[ths->d][2*ths->m+3]; \
   R fg_e[ths->d], fg_q[ths->d]; \
   INT l_fg,lj_fg; \
   R ip_w; \
@@ -566,8 +569,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
       for (t = 0; t < ths->d; t++) \
       { \
-        FG_RUN(fg_psi[t], 2 * ths->m + 2, ths->psi[2 * (j * ths->d + t)], \
-            ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t], ths->m); \
+        FG_RUN(fg_psi[t], ths->m, ths->psi[2 * (j * ths->d + t)], \
+            ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t]); \
       } \
  \
       for (l_L= 0; l_L < lprod; l_L++) \
@@ -597,10 +600,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
       for (t = 0; t < ths->d; t++) \
       { \
         const INT fg_c = u[t] + ths->m; \
-        FG_RUN(fg_psi[t], 2 * ths->m + 2, \
+        FG_RUN(fg_psi[t], ths->m, \
             (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)fg_c)/(2 * NN(ths->n[t]))),(t))), \
             EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - fg_c) / ths->b[t]), \
-            fg_e[t], fg_q[t], ths->m); \
+            fg_e[t], fg_q[t]); \
       } \
   \
       for (l_L = 0; l_L < lprod; l_L++) \
@@ -637,7 +640,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   \
       for (l_L = 0; l_L < lprod; l_L++) \
       { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
+        MACRO_update_phi_prod_ll_plain(which_one, with_LIN_PSI); \
  \
         MACRO_B_compute_ ## which_one; \
  \

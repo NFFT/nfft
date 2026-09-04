@@ -392,35 +392,43 @@ typedef ptrdiff_t INT;
     } while (0)
 #endif
 
-/* Gaussian run fill for the FG_PSI paths: dst[0 .. len-1], stepping outward
- * from the peak. seed is the window at the grid point nearest the node, kc
- * that point's index in the run, s is exp(2 d / b) for its offset d, e is
+/* Gaussian run fill for the FG_PSI paths: buf[0 .. 2m+2] holds the window at
+ * the 2m+3 grid points -(m+1) .. m+1 away from the anchor, whose value seed
+ * lands in buf[m+1]. s is exp(2 d / b) for the anchor's offset d, e is
  * exp(-1/b) and q is e * e. Stepping outward keeps each step on a value no
  * larger than the one before, holding the run to about an ulp of its peak;
- * stepping up from the tail instead costs an ulp per grid point. */
-#define FG_RUN(dst,len,seed,s,e,q,kc) \
+ * stepping up from the tail instead costs an ulp per grid point. The trip
+ * counts are fixed, so the fill has no branch that depends on the node: a
+ * caller picks its 2m+2 point run with FG_RUN_START. */
+#define FG_RUN(buf,m,seed,s,e,q) \
   do { \
     const R FG_RUN_v0 = (seed), FG_RUN_s = (s), FG_RUN_e = (e), \
         FG_RUN_q = (q); \
-    const INT FG_RUN_c = (kc), FG_RUN_n = (len); \
+    const INT FG_RUN_h = (m) + 1; \
     R FG_RUN_v = FG_RUN_v0, FG_RUN_r = FG_RUN_s * FG_RUN_e; \
     INT FG_RUN_k; \
-    (dst)[FG_RUN_c] = FG_RUN_v0; \
-    for (FG_RUN_k = FG_RUN_c + 1; FG_RUN_k < FG_RUN_n; FG_RUN_k++) \
+    (buf)[FG_RUN_h] = FG_RUN_v0; \
+    for (FG_RUN_k = 1; FG_RUN_k <= FG_RUN_h; FG_RUN_k++) \
     { \
       FG_RUN_v *= FG_RUN_r; \
-      (dst)[FG_RUN_k] = FG_RUN_v; \
+      (buf)[FG_RUN_h + FG_RUN_k] = FG_RUN_v; \
       FG_RUN_r *= FG_RUN_q; \
     } \
     FG_RUN_v = FG_RUN_v0; \
     FG_RUN_r = FG_RUN_e / FG_RUN_s; \
-    for (FG_RUN_k = FG_RUN_c - 1; FG_RUN_k >= 0; FG_RUN_k--) \
+    for (FG_RUN_k = 1; FG_RUN_k <= FG_RUN_h; FG_RUN_k++) \
     { \
       FG_RUN_v *= FG_RUN_r; \
-      (dst)[FG_RUN_k] = FG_RUN_v; \
+      (buf)[FG_RUN_h - FG_RUN_k] = FG_RUN_v; \
       FG_RUN_r *= FG_RUN_q; \
     } \
   } while (0)
+
+/* Start of the 2m+2 point run inside a FG_RUN buffer. The anchor is the grid
+ * point nearest the node; it sits at run index m when it lies at or below the
+ * node (offset d >= 0) and at m+1 when above (d < 0). Any value with the
+ * sign of d serves, such as the seed nfft_precompute_fg_psi() stores. */
+#define FG_RUN_START(buf,d) ((buf) + ((d) < K(0.0) ? 0 : 1))
 
 /* window.c */
 INT Y(m2K)(const INT m);
