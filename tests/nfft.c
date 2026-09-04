@@ -66,6 +66,7 @@ typedef struct testcase_delegate_online_s
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
+static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
 static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, C *f_hat, C *f);
 
 /* Initialization delegate. */
@@ -397,7 +398,7 @@ static int check_single(const testcase_delegate_t *testcase,
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfft",
-      testcase->setup == setup_online ? "online" : "file",
+      testcase->setup == setup_online || testcase->setup == setup_adjoint_online ? "online" : "file",
       d, N, M, init_delegate->name, trafo_delegate->name,
       (long double)err, (long double)bound, ok);
   }

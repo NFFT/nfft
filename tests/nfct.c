@@ -66,6 +66,7 @@ typedef struct testcase_delegate_online_s
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
 static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 /* Initialization delegate. */
@@ -395,7 +396,7 @@ static int check_single(const testcase_delegate_t *testcase,
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfct",
-      testcase->setup == setup_online ? "online" : "file",
+      testcase->setup == setup_online || testcase->setup == setup_adjoint_online ? "online" : "file",
       d, N, M, init_delegate->name, trafo_delegate->name,
       (long double)err, (long double)bound, ok);
   }
@@ -733,8 +734,7 @@ static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", i
 static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 
 /* Gaussian at fixed m below the round-off floor, where the window's
- * truncation error shows. The default m reaches that floor, so each list
- * stops one below WINDOW_HELP_ESTIMATE_m (infft.h). The bound is the
+ * truncation error shows. The default m reaches that floor. The bound is the
  * theoretical 4 exp(-m pi (1 - 1/(2 sigma - 1))) at sigma 2; err_trafo's
  * prefactor is fitted to the default m only. */
 static R err_trafo_gaussian_m(X(plan) *p)
