@@ -194,3 +194,13 @@ def test_changes_itemized_capped_at_10():
     )
     doc = render_report(_tree(), big, title="PR")
     assert "+3 more" in doc
+
+
+def test_render_orders_precision_columns_by_mantissa():
+    tree = {
+        f"ci_gcc_kaiserbessel_{p}": {"nfft/serial/file/fast/forward/1d/a": _cell(6.0, 5.0)}
+        for p in ("long-double", "double", "float")
+    }
+    doc = render_report(tree, title="T")
+    head = re.findall(r"<th>(ci_gcc_[a-z-]+)</th>", doc)
+    assert head == ["ci_gcc_float", "ci_gcc_double", "ci_gcc_long-double"]
