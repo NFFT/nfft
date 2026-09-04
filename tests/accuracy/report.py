@@ -13,13 +13,34 @@ MARKER = "<!-- nfft-accuracy-report -->"
 CAP = 10
 
 
-def check_summary(result):
+def _counts(result):
     y, z = len(result.improvements), len(result.regressions)
+    na, nr = len(result.added), len(result.removed)
+    line = f"{result.unchanged_count} unchanged · {y} improved · {z} regressed"
+    if na or nr:
+        line += f" · {na} added · {nr} removed"
+    return y, z, na, nr, line
+
+
+# A renamed or regrouped metric shows up as one added plus one removed name, and
+# the max-merged neighbours it left change too, so those counts are not accuracy.
+def _regroup_note(na, nr):
+    if not (na or nr):
+        return ""
+    return (
+        f"The metric set changed ({na} added, {nr} removed), so improved and "
+        "regressed counts may reflect regrouping rather than accuracy changes."
+    )
+
+
+def check_summary(result):
+    y, z, na, nr, summary = _counts(result)
     if y == 0 and z == 0:
         title = "accuracy unchanged"
     else:
         title = f"{z} regressed, {y} improved"
-    summary = f"{result.unchanged_count} unchanged · {y} improved · {z} regressed"
+    if na or nr:
+        title += f", {na} added, {nr} removed"
     return "neutral", title, summary
 
 
@@ -41,19 +62,18 @@ def _module_table(result):
 
 
 def comment_body(result, report_url):
-    y, z = len(result.improvements), len(result.regressions)
+    y, z, na, nr, summary = _counts(result)
+    note = _regroup_note(na, nr)
     if y == 0 and z == 0:
         body = f"{MARKER}\nAccuracy: {result.unchanged_count} cases unchanged."
+        if note:
+            body += f" {na} metrics added, {nr} removed."
         link = _report_link(report_url)
         return (body + (f"\n\n{link}" if link else "")).rstrip() + "\n"
-    lines = [
-        MARKER,
-        "## Accuracy report",
-        f"{result.unchanged_count} unchanged · {y} improved · {z} regressed",
-        "",
-        _module_table(result),
-        "",
-    ]
+    lines = [MARKER, "## Accuracy report", summary, ""]
+    if note:
+        lines += [note, ""]
+    lines += [_module_table(result), ""]
     link = _report_link(report_url)
     if link:
         lines.append(link)
