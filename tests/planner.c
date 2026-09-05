@@ -1606,5 +1606,14 @@ void Y(check_planner_timelimit_default_and_set)(void) {
 
 void Y(check_planner_clock_now_monotonic)(void) {
   double t0 = Y(planner_clock_now)();
+  long k;
+  double dt = 0.0;
+
   CK(Y(planner_elapsed_seconds)(t0) >= 0.0);
+
+  /* The clock must resolve far below the timing loop's budget. A float-typed
+   * epoch near 1.7e9 has a 128 s ulp, so it would sit at 0.0 here. */
+  for (k = 0; k < 10000000L && dt <= 0.0; k++)
+    dt = Y(planner_elapsed_seconds)(t0);
+  CK(dt > 0.0 && dt < 1.0);
 }

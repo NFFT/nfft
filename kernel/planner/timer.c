@@ -20,6 +20,10 @@
 #include "infft.h"
 #include "iplanner.h"
 
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+
 /* Measurement of pln->adt->apply(pln, p), on two clocks: a fine clock times
  * the executions (raw ticks via ticks.h where a cycle counter exists, else
  * wall seconds), and a budget clock (wall seconds, Y(planner_clock_now))
@@ -29,7 +33,7 @@
  * PLNR_TIME_REPEAT batches of n back-to-back applies and keeps the minimum
  * batch reading: scheduler interruptions can only inflate a batch, never
  * shrink it, so the minimum is the faithful signal. A level is accepted once
- * that minimum reaches the mode's floor, returning minimum / n.
+ * that minimum reaches the fine clock's floor, returning minimum / n.
  *
  * Returns a strictly-positive reading or exactly -1.0; zero and negatives
  * never escape. Every degraded exit returns the best positive reading seen,
@@ -41,11 +45,35 @@
 #define PLNR_TIME_N_CAP (1L << 30) /* hard cap on n; past this the clock is broken */
 #define PLNR_TIME_N_ZERO (1L << 16) /* all-zero level at this n => frozen clock */
 
+#if defined(HAVE_TICK_COUNTER)
+/* cycle.h sets TIME_MIN per counter where short reads are noise (5000 ticks
+ * for rdtsc); 100.0 is the fallback where it defines none. */
+#ifndef TIME_MIN
+#define TIME_MIN 100.0
+#endif
+typedef ticks fine_t;
+#define FINE_NOW() getticks()
+#define FINE_DIFF(t1, t0) elapsed(t1, t0)
+#define FINE_FLOOR TIME_MIN
+#elif defined(HAVE_CLOCK_GETTIME)
+typedef double fine_t;
+#define FINE_NOW() Y(planner_clock_now)()
+#define FINE_DIFF(t1, t0) ((t1) - (t0))
+#define FINE_FLOOR PLNR_TIME_MIN_SLOW_SECONDS
+#endif
+
 /* The budget clock. Routing every budget read through this one wrapper keeps
  * plan_measure_cost and the measured-race timelimit check on the same
- * underlying clock by construction. */
+ * underlying clock. The result is a double whatever the build precision is:
+ * in the float build an epoch near 1.7e9 has a 128 s ulp, which would starve
+ * every budget check. */
 double Y(planner_clock_now)(void) {
-  return (double)Y(clock_gettime_seconds)();
+#if defined(HAVE_CLOCK_GETTIME)
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+    return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+#endif
+  return 0.0;
 }
 
 double Y(planner_elapsed_seconds)(double since) {
@@ -53,11 +81,7 @@ double Y(planner_elapsed_seconds)(double since) {
 }
 
 double Y(plan_measure_cost)(plan *pln, const problem *p) {
-#if defined(HAVE_TICK_COUNTER)
-  /* Tick mode: fine clock = raw ticks, budget clock = wall seconds.
-   * getticks()/elapsed() must stay inside this arm. On counter-less platforms
-   * ticks.h defines getticks() to 0U, which compiles only as a whole
-   * statement, not inside a shared expression. */
+#if defined(FINE_NOW)
   double budget_start;
   long n;
   double best_ratio = -1.0; /* best strictly-positive (min-batch / n) seen */
@@ -69,21 +93,21 @@ double Y(plan_measure_cost)(plan *pln, const problem *p) {
     int rep;
 
     for (rep = 0; rep < PLNR_TIME_REPEAT; rep++) {
-      ticks t_batch_start, t_batch_end;
-      double batch_ticks;
+      fine_t t_batch_start, t_batch_end;
+      double batch;
       long k;
 
-      t_batch_start = getticks();
+      t_batch_start = FINE_NOW();
       for (k = 0; k < n; k++)
         pln->adt->apply(pln, p);
-      t_batch_end = getticks();
+      t_batch_end = FINE_NOW();
 
-      batch_ticks = elapsed(t_batch_end, t_batch_start);
+      batch = FINE_DIFF(t_batch_end, t_batch_start);
 
-      if (batch_min < 0.0 || batch_ticks < batch_min)
-        batch_min = batch_ticks;
+      if (batch_min < 0.0 || batch < batch_min)
+        batch_min = batch;
 
-      if ((Y(planner_clock_now)() - budget_start) >= (double)PLNR_TIME_LIMIT_SECONDS) {
+      if (Y(planner_elapsed_seconds)(budget_start) >= (double)PLNR_TIME_LIMIT_SECONDS) {
         if (batch_min > 0.0) {
           double ratio = batch_min / (double)n;
           if (best_ratio < 0.0 || ratio < best_ratio)
@@ -102,64 +126,10 @@ double Y(plan_measure_cost)(plan *pln, const problem *p) {
         best_ratio = ratio;
     }
 
-    if (batch_min >= PLNR_TIME_MIN_TICKS)
+    if (batch_min >= FINE_FLOOR)
       return batch_min / (double)n;
 
     /* Check before doubling: n must not overflow a 32-bit long. */
-    if (n > (PLNR_TIME_N_CAP / 2L))
-      return -1.0;
-  }
-  /* unreachable */
-#elif defined(HAVE_CLOCK_GETTIME)
-  /* Slow-timer fallback: wall seconds as both fine and budget clock; the
-   * floor is PLNR_TIME_MIN_SLOW_SECONDS. */
-  double budget_start;
-  long n;
-  double best_ratio = -1.0;
-
-  budget_start = Y(planner_clock_now)();
-
-  for (n = 1;; n *= 2) {
-    double batch_min = -1.0;
-    int rep;
-
-    for (rep = 0; rep < PLNR_TIME_REPEAT; rep++) {
-      double t_batch_start, t_batch_end;
-      double batch_sec;
-      long k;
-
-      t_batch_start = Y(planner_clock_now)();
-      for (k = 0; k < n; k++)
-        pln->adt->apply(pln, p);
-      t_batch_end = Y(planner_clock_now)();
-
-      batch_sec = t_batch_end - t_batch_start;
-
-      if (batch_min < 0.0 || batch_sec < batch_min)
-        batch_min = batch_sec;
-
-      if ((t_batch_end - budget_start) >= (double)PLNR_TIME_LIMIT_SECONDS) {
-        if (batch_min > 0.0) {
-          double ratio = batch_min / (double)n;
-          if (best_ratio < 0.0 || ratio < best_ratio)
-            best_ratio = ratio;
-        }
-        return best_ratio;
-      }
-    }
-
-    if (batch_min <= 0.0 && n >= PLNR_TIME_N_ZERO)
-      return -1.0;
-
-    if (batch_min > 0.0) {
-      double ratio = batch_min / (double)n;
-      if (best_ratio < 0.0 || ratio < best_ratio)
-        best_ratio = ratio;
-    }
-
-    if (batch_min >= PLNR_TIME_MIN_SLOW_SECONDS)
-      return batch_min / (double)n;
-
     if (n > (PLNR_TIME_N_CAP / 2L))
       return -1.0;
   }
