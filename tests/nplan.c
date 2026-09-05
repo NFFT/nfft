@@ -28,6 +28,7 @@
 #include "iplanner.h"
 #include "plan_ng_test.h" /* test-only plan_ng_test_awake_state hook */
 #include "nplan.h"
+#include "util.h"
 
 /* The test-only raceable permuting native solver in tests/nplan_perm.c. */
 extern int Y(nfft_perm_break_restore);
@@ -657,84 +658,6 @@ static void fill_fhat(C *f_hat, INT Ntot, unsigned seed) {
     f_hat[j] = lcg_unit() + _Complex_I * lcg_unit();
 }
 
-static R rel_max_err(const C *a, const C *b, INT len) {
-  R num = (R)0, den = (R)0;
-  INT j;
-  for (j = 0; j < len; j++) {
-    R e = CABS(a[j] - b[j]);
-    if (e > num)
-      num = e;
-    if (CABS(b[j]) > den)
-      den = CABS(b[j]);
-  }
-  return den > (R)0 ? num / den : num;
-}
-
-/* Per-window accuracy bound for the native fast pipeline against the exact
- * NDFT oracle. The a/b calibration follows err_trafo in tests/nfft.c, with the
- * fast pipeline's 56*eps round-off floor. A single KB-calibrated tolerance is
- * far too tight for gaussian/bspline/sinc, whose true error at m=6/sigma=2 is
- * ~1e-6..1e-7. */
-static R err_bound(int window, R m, R s) {
-  R eps = Y(float_property)(NFFT_EPSILON), a, b, err;
-  switch (window) {
-  case NFFT_WINDOW_GAUSSIAN:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(0.41);
-    b = K(50.0);
-#else
-    a = K(0.95);
-    b = K(50.0);
-#endif
-    err = EXP(-m * KPI * (K(1.0) - K(1.0) / (K(2.0) * K(2.0) - K(1.0))));
-    break;
-  case NFFT_WINDOW_B_SPLINE:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(1.0);
-    b = K(2000.0);
-#else
-    a = K(0.3);
-    b = K(50.0);
-#endif
-    err = K(3000.0) * K(4.0) * POW(K(1.0) / (K(2.0) * s - K(1.0)), K(2.0) * m);
-    break;
-  case NFFT_WINDOW_SINC_POWER:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(1.0);
-    b = K(2000.0);
-#else
-    a = K(0.3);
-    b = K(50.0);
-#endif
-    err = (K(1.0) / (m - K(1.0))) * ((K(2.0) / POW(s, K(2.0) * m)) + POW(s / (K(2.0) * s - K(1.0)), K(2.0) * m));
-    break;
-  case NFFT_WINDOW_KAISER_BESSEL:
-  default:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(0.3);
-    b = K(2100.0);
-#else
-    a = K(1.5);
-    b = K(50.0);
-#endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0) / K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
-    break;
-  }
-  return FMAX(FMAX(a * err, b * eps), K(56.0) * eps);
-}
-
 static void check_case_against_direct(int d, INT Nv, INT nv, INT M,
                                       unsigned seed, unsigned planning) {
   INT N[4], n[4], Ntot = 1;
@@ -782,7 +705,7 @@ static void check_case_against_direct(int d, INT Nv, INT nv, INT M,
     ref.f_hat[j] = f_hat[j];
   NFFT(trafo_direct)
   (&ref);
-  err = rel_max_err(f, ref.f, M);
+  err = Y(test_rel_max_err)(f, ref.f, M);
   /* max(1e-10, 1e4*eps): window truncation at m=6 is precision-independent,
    * ~4e-12 in 1d and ~1e-11 in 2d */
   {
@@ -800,7 +723,7 @@ static void check_case_against_direct(int d, INT Nv, INT nv, INT M,
   (p);
   NFFT(adjoint_direct)
   (&ref);
-  err = rel_max_err(f_hat, ref.f_hat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref.f_hat, Ntot);
   {
     R tol = (R)1.0e-10;
     if ((R)1.0e4 * EPSILON > tol)
@@ -822,7 +745,7 @@ static void check_case_against_direct(int d, INT Nv, INT nv, INT M,
 
 /* Brute-force direct NDFT reference. k[] is decoded per k_L by modular
  * arithmetic (row-major, last axis fastest), which stays correct for unit axes
- * (k[unit] == 0). The legacy X(trafo_direct)/X(adjoint_direct) odometer has a
+ * (k[unit] == 0). The legacy X(trafo_direct)/X(adjoint_direct) carry loop has a
  * broken carry test for a non-outermost unit axis, so the unit-axis cases in
  * check_case_against_direct_arr must validate against this, not against the
  * legacy oracle. */
@@ -911,7 +834,7 @@ static void check_case_against_direct_arr(int d, const INT *N, const INT *n,
   (p);
 
   ndft_ref_trafo(d, N, 0, Ntot, M, xin, f_hat, ref_f);
-  err = rel_max_err(f, ref_f, M);
+  err = Y(test_rel_max_err)(f, ref_f, M);
   tol = (R)1.0e-10;
   if ((R)1.0e4 * EPSILON > tol)
     tol = (R)1.0e4 * EPSILON;
@@ -923,7 +846,7 @@ static void check_case_against_direct_arr(int d, const INT *N, const INT *n,
   Y(execute_adjoint)
   (p);
   ndft_ref_adjoint(d, N, 0, Ntot, M, xin, ref_f, ref_fhat);
-  err = rel_max_err(f_hat, ref_fhat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref_fhat, Ntot);
   CU_ASSERT(err < tol);
 
   Y(plan_ng_destroy)
@@ -1074,31 +997,6 @@ void Y(check_nplan_wisdom_memo)(void) {
 }
 
 /* Measured planning */
-
-static char *export_to_string(planner *pl) {
-  size_t cnt;
-  char *s;
-  printer *pr = Y(printer_create_cnt)(&cnt);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
-  s = (char *)Y(malloc)(cnt + 1);
-  pr = Y(printer_create_str)(s);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
-  return s;
-}
-
-static int import_from_string(planner *pl, const char *s) {
-  scanner *sc = Y(scanner_create_str)(s);
-  int ret = Y(planner_import)(pl, sc);
-  Y(scanner_destroy)
-  (sc);
-  return ret;
-}
 
 /* Extract the per-direction winning solver names from the bundle print
  * "(nfft-plan-ng (fwd (NAME pcost=...)) (adj (null)))". The measured winner is
@@ -1334,7 +1232,7 @@ void Y(check_nplan_destructive_default)(void) {
     ref.f_hat[j] = f_hat[j];
   NFFT(trafo_direct)
   (&ref);
-  err = rel_max_err(f, ref.f, M);
+  err = Y(test_rel_max_err)(f, ref.f, M);
   CU_ASSERT(err < tol);
   NFFT(finalize)
   (&ref);
@@ -1362,10 +1260,10 @@ void Y(check_nplan_execute_on)(void) {
   int Ni, ni, w;
   R sigma;
 
-  /* window-aware tolerance from err_bound; sigma = n/N = 2.0 */
+  /* window-aware tolerance from Y(test_err_bound); sigma = n/N = 2.0 */
   w = Y(get_window_id)();
   sigma = ((R)n) / ((R)N);
-  tol = err_bound(w, (R)6, sigma);
+  tol = Y(test_err_bound)(w, (R)6, sigma);
   Ni = (int)N;
   ni = (int)n;
 
@@ -1392,7 +1290,7 @@ void Y(check_nplan_execute_on)(void) {
     ref.f_hat[j] = f_hat_b[j];
   NFFT(trafo_direct)
   (&ref);
-  err = rel_max_err(f_b, ref.f, M);
+  err = Y(test_rel_max_err)(f_b, ref.f, M);
   CU_ASSERT(err < tol);
   memcpy(f_b_snap, f_b, (size_t)M * sizeof(C));
 
@@ -1405,7 +1303,7 @@ void Y(check_nplan_execute_on)(void) {
     ref.f_hat[j] = f_hat[j];
   NFFT(trafo_direct)
   (&ref);
-  err = rel_max_err(f, ref.f, M);
+  err = Y(test_rel_max_err)(f, ref.f, M);
   CU_ASSERT(err < tol);
   /* f_b from the _on call must be untouched by nfft_execute(p) */
   CU_ASSERT_EQUAL(memcmp(f_b, f_b_snap, (size_t)M * sizeof(C)), 0);
@@ -1417,7 +1315,7 @@ void Y(check_nplan_execute_on)(void) {
     ref.f[j] = f_b[j];
   NFFT(adjoint_direct)
   (&ref);
-  err = rel_max_err(f_hat_b, ref.f_hat, N);
+  err = Y(test_rel_max_err)(f_hat_b, ref.f_hat, N);
   CU_ASSERT(err < tol);
 
   NFFT(finalize)
@@ -1456,7 +1354,7 @@ void Y(check_nplan_measured_wisdom)(void) {
   }
   /* remember the per-direction winners chosen on this machine */
   bundle_winners(p, f0, a0);
-  wis = export_to_string(Y(the_planner)());
+  wis = Y(test_wisdom_export)(Y(the_planner)());
   Y(plan_ng_destroy)
   (p);
 
@@ -1465,7 +1363,7 @@ void Y(check_nplan_measured_wisdom)(void) {
   ();
   Y(nfft_ensure_registered)
   (); /* import checks the config signature */
-  CU_ASSERT(import_from_string(Y(the_planner)(), wis));
+  CU_ASSERT(Y(test_wisdom_import)(Y(the_planner)(), wis));
   Y(free)
   (wis);
   /* the race is forward-only, so only the sign=+1 entry is exported */
@@ -1819,7 +1717,7 @@ void Y(check_nplan_apply_adjoint)(void) {
   (p);
   NFFT(adjoint_direct)
   (&ref);
-  err = rel_max_err(f_hat, ref.f_hat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref.f_hat, Ntot);
   CU_ASSERT(err < tol);
 
   NFFT(finalize)
@@ -1882,7 +1780,7 @@ void Y(check_nplan_x_copied_not_aliased)(void) {
   memcpy(ref.f_hat, f_hat, (size_t)N * sizeof(C));
   NFFT(trafo_direct)
   (&ref);
-  err = rel_max_err(f, ref.f, M);
+  err = Y(test_rel_max_err)(f, ref.f, M);
   CU_ASSERT(err < tol);
 
   NFFT(finalize)
@@ -2067,7 +1965,7 @@ void Y(check_nplan_direct_only_bundle)(void) {
       ref.f_hat[j] = f_hat[j];
     NFFT(trafo_direct)
     (&ref);
-    err = rel_max_err(f, ref.f, M);
+    err = Y(test_rel_max_err)(f, ref.f, M);
     CU_ASSERT(err < tol);
     NFFT(finalize)
     (&ref);
@@ -2112,7 +2010,7 @@ void Y(check_nplan_direct_only_bundle)(void) {
       ref.f_hat[j] = f_hat[j];
     NFFT(trafo_direct)
     (&ref);
-    err = rel_max_err(f, ref.f, M);
+    err = Y(test_rel_max_err)(f, ref.f, M);
     CU_ASSERT(err < tol);
     NFFT(finalize)
     (&ref);
@@ -2149,25 +2047,8 @@ void Y(check_nplan_variant_guru)(void) {
   (f);
 }
 
-/* The plan tree must name the given solver, so a test that means to exercise
- * the fast path fails loudly if a direct solver served it instead. */
-static void assert_plan_names(Y(plan_ng) * p, const char *needle)
-{
-  FILE *tmp = tmpfile();
-  char buf[1024];
-  size_t got;
-  CU_ASSERT_PTR_NOT_NULL_FATAL(tmp);
-  Y(fprint_plan)
-  (p, tmp);
-  rewind(tmp);
-  got = fread(buf, 1, sizeof(buf) - 1, tmp);
-  buf[got] = '\0';
-  fclose(tmp);
-  CU_ASSERT_PTR_NOT_NULL(strstr(buf, needle));
-}
-
 /* One geometry through the composed fast solver, forced with NFFT_NO_DIRECT
- * and checked against the exact NDFT reference at the window-aware err_bound
+ * and checked against the exact NDFT reference at the window-aware Y(test_err_bound)
  * (m = 6, sigma = min axis oversampling), widened 4x for -ffast-math. */
 static void fast_case(int d, const INT *N, const int *variant, const INT *n,
                       INT M, unsigned seed)
@@ -2183,7 +2064,7 @@ static void fast_case(int d, const INT *N, const int *variant, const INT *n,
     if (sigma == (R)0 || st < sigma)
       sigma = st;
   }
-  tol = K(4.0) * err_bound(NFFT_WINDOW_KAISER_BESSEL, (R)6, sigma);
+  tol = K(4.0) * Y(test_err_bound)(NFFT_WINDOW_KAISER_BESSEL, (R)6, sigma);
   for (t = 0; t < d; t++)
     Ntot *= N[t];
   xin = (R *)Y(malloc)((size_t)(d * M) * sizeof(R));
@@ -2195,21 +2076,21 @@ static void fast_case(int d, const INT *N, const int *variant, const INT *n,
   p = Y(plan_ng_guru)(d, N, variant, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, xin,
                       f_hat, f, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  assert_plan_names(p, "nfft_solver_fast_native");
+  Y(test_assert_plan_names)(p, "nfft_solver_fast_native");
   Y(precompute)
   (p);
   fill_fhat(f_hat, Ntot, seed + 1000u);
   Y(execute)
   (p);
   ndft_ref_trafo(d, N, variant, Ntot, M, xin, f_hat, ref_f);
-  err = rel_max_err(f, ref_f, M);
+  err = Y(test_rel_max_err)(f, ref_f, M);
   CU_ASSERT(err <= tol);
   for (j = 0; j < M; j++)
     f[j] = ref_f[j];
   Y(execute_adjoint)
   (p);
   ndft_ref_adjoint(d, N, variant, Ntot, M, xin, ref_f, ref_fhat);
-  err = rel_max_err(f_hat, ref_fhat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref_fhat, Ntot);
   CU_ASSERT(err <= tol);
   Y(plan_ng_destroy)
   (p);
@@ -2228,7 +2109,7 @@ static void fast_case(int d, const INT *N, const int *variant, const INT *n,
 /* Odd per-axis N for the nD native, forced through the direct native with
  * NFFT_NO_FAST_NATIVE and validated against ndft_ref_trafo / ndft_ref_adjoint
  * above rather than the legacy oracle, which carries its own copy of the
- * odometer bug. */
+ * carry-test bug. */
 static void odd_case(int d, const INT *N, const INT *n, INT M, unsigned seed) {
   INT Ntot = 1, j;
   int t;
@@ -2256,14 +2137,14 @@ static void odd_case(int d, const INT *N, const INT *n, INT M, unsigned seed) {
   Y(execute)
   (p);
   ndft_ref_trafo(d, N, 0, Ntot, M, xin, f_hat, ref_f);
-  err = rel_max_err(f, ref_f, M);
+  err = Y(test_rel_max_err)(f, ref_f, M);
   CU_ASSERT(err < tol);
   for (j = 0; j < M; j++)
     f[j] = ref_f[j];
   Y(execute_adjoint)
   (p);
   ndft_ref_adjoint(d, N, 0, Ntot, M, xin, ref_f, ref_fhat);
-  err = rel_max_err(f_hat, ref_fhat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref_fhat, Ntot);
   CU_ASSERT(err < tol);
   Y(plan_ng_destroy)
   (p);
@@ -2327,7 +2208,7 @@ void Y(check_nplan_odd_n)(void) {
   }
   {
     INT N[4] = {7, 7, 7, 7}, n[4] = {16, 16, 16, 16};
-    fast_case(4, N, 0, n, 100, 46u); /* rank >= 4 odometer */
+    fast_case(4, N, 0, n, 100, 46u); /* rank >= 4 carry loop */
   }
   {
     INT N[3] = {15, 16, 9}, n[3] = {32, 32, 20};
@@ -2365,7 +2246,7 @@ static void type_ii_1d_once(unsigned steer) {
   Y(execute)
   (p);
   ndft_ref_trafo(1, &N, &v_ii, Ntot, M, xin, f_hat, ref);
-  err = rel_max_err(f, ref, M);
+  err = Y(test_rel_max_err)(f, ref, M);
   CU_ASSERT(err < tol);
   /* modulation identity and difference vs type-I */
   ndft_ref_trafo(1, &N, 0, Ntot, M, xin, f_hat, ref_i);
@@ -2373,17 +2254,17 @@ static void type_ii_1d_once(unsigned steer) {
     C *mod = (C *)Y(malloc)((size_t)M * sizeof(C));
     for (j = 0; j < M; j++)
       mod[j] = (COS(K2PI * xin[j]) - II * SIN(K2PI * xin[j])) * ref_i[j];
-    CU_ASSERT(rel_max_err(ref, mod, M) < tol); /* f_II = e^{-2pi i x} f_I */
+    CU_ASSERT(Y(test_rel_max_err)(ref, mod, M) < tol); /* f_II = e^{-2pi i x} f_I */
     Y(free)
     (mod);
   }
-  CU_ASSERT(rel_max_err(ref, ref_i, M) > (R)1.0e-3); /* differs from type-I */
+  CU_ASSERT(Y(test_rel_max_err)(ref, ref_i, M) > (R)1.0e-3); /* differs from type-I */
   for (j = 0; j < M; j++)
     f[j] = ref[j];
   Y(execute_adjoint)
   (p);
   ndft_ref_adjoint(1, &N, &v_ii, Ntot, M, xin, ref, ref_fhat);
-  err = rel_max_err(f_hat, ref_fhat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref_fhat, Ntot);
   CU_ASSERT(err < tol);
   Y(plan_ng_destroy)
   (p);
@@ -2436,14 +2317,14 @@ static void type_ii_nd_once(unsigned steer)
   Y(execute)
   (p);
   ndft_ref_trafo(2, N, variant, Ntot, M, xin, f_hat, ref);
-  err = rel_max_err(f, ref, M);
+  err = Y(test_rel_max_err)(f, ref, M);
   CU_ASSERT(err < tol);
   for (j = 0; j < M; j++)
     f[j] = ref[j];
   Y(execute_adjoint)
   (p);
   ndft_ref_adjoint(2, N, variant, Ntot, M, xin, ref, ref_fhat);
-  err = rel_max_err(f_hat, ref_fhat, Ntot);
+  err = Y(test_rel_max_err)(f_hat, ref_fhat, Ntot);
   CU_ASSERT(err < tol);
   Y(plan_ng_destroy)
   (p);
@@ -2879,7 +2760,7 @@ void Y(check_nplan_unit_axis_correct)(void) {
   int w = Y(get_window_id)();
   for (s = 0; s < 4; s++) {
     INT *N = shapes[s], *n = nshape[s], Ntot = N[0] * N[1] * N[2];
-    R sigma = (R)2.0, tol = err_bound(w, (R)m, sigma), err;
+    R sigma = (R)2.0, tol = Y(test_err_bound)(w, (R)m, sigma), err;
     R *x = (R *)Y(malloc)((size_t)d * M * sizeof(R));
     C *fh = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
     C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -2895,7 +2776,7 @@ void Y(check_nplan_unit_axis_correct)(void) {
     Y(execute)
     (p);
     ndft_ref(d, N, M, x, fh, ref);
-    err = rel_max_err(f, ref, M);
+    err = Y(test_rel_max_err)(f, ref, M);
     /* -ffast-math reassociation pushes the intrinsic pipeline error to ~1.1x
      * the theoretical bound, so the assertions here widen it by 4x. */
     CU_ASSERT(err <= K(4.0) * tol); /* forward */
@@ -2905,7 +2786,7 @@ void Y(check_nplan_unit_axis_correct)(void) {
     Y(execute_adjoint)
     (p);
     ndft_adj_ref(d, N, M, x, f, fhref);
-    err = rel_max_err(fh, fhref, Ntot);
+    err = Y(test_rel_max_err)(fh, fhref, Ntot);
     CU_ASSERT(err <= K(4.0) * tol); /* adjoint */
     /* the fast path engages only after elision */
     {
@@ -2943,7 +2824,7 @@ void Y(check_nplan_newarray_native_fast)(void) {
   INT N[2] = {16, 16}, n[2] = {32, 32}, M = 200, Ntot = N[0] * N[1], j;
   const int d = 2, m = 6;
   int w = Y(get_window_id)();
-  R sigma = (R)2.0, tol = err_bound(w, (R)m, sigma), err;
+  R sigma = (R)2.0, tol = Y(test_err_bound)(w, (R)m, sigma), err;
   R *x = (R *)Y(malloc)((size_t)d * M * sizeof(R));
   C *fh = (C *)Y(malloc)((size_t)Ntot * sizeof(C)); /* plan-time bound arrays */
   C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -2964,14 +2845,14 @@ void Y(check_nplan_newarray_native_fast)(void) {
   Y(execute_on)
   (p, fh_b, f_b);
   ndft_ref(d, N, M, x, fh_b, ref_f);
-  err = rel_max_err(f_b, ref_f, M);
+  err = Y(test_rel_max_err)(f_b, ref_f, M);
   CU_ASSERT(err <= tol); /* must match the oracle, not be all-zero */
 
   /* (b) adjoint new-array execute: reads f_b, writes fh_b. */
   Y(execute_adjoint_on)
   (p, fh_b, f_b);
   ndft_adj_ref(d, N, M, x, f_b, ref_fh);
-  err = rel_max_err(fh_b, ref_fh, Ntot);
+  err = Y(test_rel_max_err)(fh_b, ref_fh, Ntot);
   CU_ASSERT(err <= K(4.0) * tol); /* adjoint: the same widened bound */
 
   Y(plan_ng_destroy)
@@ -3006,7 +2887,7 @@ void Y(check_nplan_unit_axis_execute_on)(void) {
   INT Ntot = N[0] * N[1] * N[2], j;
   int t;
   int w = Y(get_window_id)();
-  R sigma = (R)2.0, tol = err_bound(w, (R)m, sigma), err;
+  R sigma = (R)2.0, tol = Y(test_err_bound)(w, (R)m, sigma), err;
   R *x = (R *)Y(malloc)((size_t)d * M * sizeof(R));
   C *fh0 = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
   C *fh1 = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
@@ -3027,7 +2908,7 @@ void Y(check_nplan_unit_axis_execute_on)(void) {
   Y(execute_on)
   (p, fh1, f); /* run on the new f_hat */
   ndft_ref(d, N, M, x, fh1, ref);
-  err = rel_max_err(f, ref, M);
+  err = Y(test_rel_max_err)(f, ref, M);
   /* The residual here is the pipeline's own window-approximation error, not a
    * new-array defect: the decaying fh1 = 1/(j+3) lands it at ~0.8x the
    * theoretical KB bound. Random data is no safer, scattering around the

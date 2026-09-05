@@ -17,6 +17,30 @@
  */
 
 #include "infft.h"
+#include "iplanner.h"
+
+struct Y(plan_ng_s);
 
 void X(check_log2i)(void);
 void X(check_next_power_of_2)(void);
+
+/* Read a tests/refgen reference case file: d, N[d], M, x[d*M] node-major
+ * (x[j*d+t]), f_hat[prod N] then f[M] as "re im" pairs. On success returns 1
+ * and four arrays the caller releases with Y(free); on failure returns 0 with
+ * every out pointer NULL. */
+int Y(test_read_case)(const char *rel, int *d, INT **N, INT *NN, INT *M, R **x,
+                      C **f_hat, C **f);
+
+/* max|a - b| over max|b|, or max|a - b| when b is zero. */
+R Y(test_rel_max_err)(const C *a, const C *b, INT len);
+
+/* Relative accuracy bound for the fast NFFT pipeline, per window. */
+R Y(test_err_bound)(int window, R m, R s);
+
+/* Assert the printed plan tree of p contains needle. */
+void Y(test_assert_plan_names)(struct Y(plan_ng_s) *p, const char *needle);
+
+/* Wisdom round-trip through a string. The export is malloc'd; release it with
+ * Y(free). */
+char *Y(test_wisdom_export)(planner *pl);
+int Y(test_wisdom_import)(planner *pl, const char *s);
