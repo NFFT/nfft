@@ -123,7 +123,7 @@ Y(mkproblem_nfft)(int d, const INT *N, const int *variant, const INT *n,
   A(d >= 1); /* caller rank >= 1; only the compressed rank may be 0 */
   A(M >= (INT)1);
 
-  /* The copy_x path elides unit axes from N/n/variant and the x copy below, 
+  /* The copy_x path elides unit axes from N/n/variant and the x copy below,
    * so sz is the compressed forward tensor in caller order.
    * The borrowed (copy_x==0) path cannot gather x into a fresh buffer, so it
    * keeps full rank. */

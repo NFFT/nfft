@@ -848,7 +848,7 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 #define NFFT_NO_DIRECT       (1U << 1)  /* Do not use direct (slow) algorithms. */
 #define NFFT_NO_FAST_NATIVE  (1U << 4)  /* Do not use the fast NFFT algorithm. */
 
-/* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2. 
+/* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2.
  * For odd N, there is only one type (defined as type-I) and the range is k = -(N-1)/2 .. (N-1)/2. */
 #define NFFT_NDFT_TYPE_I  (0)
 #define NFFT_NDFT_TYPE_II (1)
