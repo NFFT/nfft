@@ -116,6 +116,16 @@ SortIncludes: Never
 IncludeBlocks: Preserve
 SortUsingDeclarations: false
 
+# ---- Name-mangling macros ------------------------------------------------------
+# Y(foo), X(foo), FFTW(foo) and NFFT(foo) expand to plain identifiers. Without
+# these, clang-format reads Y(free)(p) as two expressions and breaks the line
+# between the name and its arguments.
+Macros:
+  - "Y(x)=x"
+  - "X(x)=x"
+  - "FFTW(x)=x"
+  - "NFFT(x)=x"
+
 # ---- Misc -------------------------------------------------------------------
 Standard: c++03
 CommentPragmas: '^ IWYU pragma:'
