@@ -1,6 +1,6 @@
 # Planning modes, the race & flags
 
-How the planner chooses an algorithm. Ground truth: `kernel/nfft/plan_ng.c`
+How the planner chooses an algorithm. Ground truth: `kernel/nfft/plan.c`
 (the NFFT guru), `kernel/planner/planner.c` (search + lattice),
 `kernel/planner/timer.c` (measurement), `include/iplanner.h`.
 
@@ -41,12 +41,11 @@ the `PLNR_*` image of your gate flags:
    the raced candidates and **restart in estimate mode** (unblessed). A
    timelimit-induced or clockless loser is never blessed.
 
-The race is **value-blind**: it does *not* zero or otherwise touch `f_hat`/`f` —
-it times `apply()` on whatever they hold. This is safe because NFFT trip counts
-and access patterns derive entirely from the nodes `x`, not from the values. ψ
-is *precomputed, not zeroed* (zeroing it would destroy the access pattern the
-race exists to measure). Numerical output during the race is meaningless by
-design.
+The race is **value-blind**: it zeroes `f_hat` and `f` before timing, FFTW's
+zero-operand measurement. This is safe because NFFT trip counts and access
+patterns derive entirely from the nodes `x`, not from the values. ψ is
+*precomputed, not zeroed* — zeroing it would destroy the access pattern the
+race exists to measure.
 
 ### The timer (`kernel/planner/timer.c`)
 
@@ -105,7 +104,7 @@ are **never blessed** (`planner_bless` asserts no `PLNR_ESTIMATE` in `u`).
 ## The public planning flags → internal images
 
 Public `NFFT_*` (in `nfft3.h`) map to internal `PLNR_*` (in `iplanner.h`) via
-`map_planning_flags` in `plan_ng.c`:
+`map_planning_flags` in `plan.c`:
 
 | Public flag | Value | Internal | Effect |
 |-------------|-------|----------|--------|

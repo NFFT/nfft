@@ -38,7 +38,7 @@ current-branch code wins.**
 | Two awake states `PLNR_SLEEPY`/`PLNR_AWAKE` | **Three:** `SLEEPY=0 < AWAKE_ZERO=1 < AWAKE=2`. `AWAKE_ZERO` is the race's measurement state. |
 | Per-direction race; forward and adjoint each own a wisdom entry (`NFFT_FORWARD_ONLY`/`NFFT_ADJOINT_ONLY`) | **Forward-only race.** One plan serves both directions via `apply_adjoint`; the adjoint is not separately blessed. Those flags were dropped. |
 | A separate `nfft_optimize()` verb; measurement happens after `precompute` | **Never shipped.** Measurement is at plan time (nodes arrive at the guru). There is no `nfft_optimize`. |
-| The measured race zeroes `f_hat`/`f` (and/or the ψ index tables) | **No.** The race is value-blind but does *not* touch `f_hat`/`f`; ψ is *precomputed, not zeroed* (zeroing the node-derived tables would destroy the access pattern being measured). |
+| The measured race leaves `f_hat`/`f` untouched | **No.** The race zeroes both before timing (FFTW's zero-operand measurement); ψ is *precomputed, not zeroed* (zeroing the node-derived tables would destroy the access pattern being measured). |
 | Cost model uses `TICKS_PER_SECOND` / wall seconds; window is a compile-time key term | **Cycle-counter ticks** (arbitrary units) for measurement, wall clock only for the budget. Window is a **runtime ordinal**, hashed in the key. |
 | Accuracy floor is a wisdom-key term / an `applicable()` gate | **Reverted.** Redesigned as a (still-unbuilt) construction-time `digits → (m, σ)` helper; not in the key, never in the cost scalar. |
 | The native fast solver is 1D-only / KB-only | **Rank-general** and **all four real windows (KB, Gaussian, B-spline, sinc)**; DIRAC declined. Serial. |
@@ -63,6 +63,6 @@ These are real, unresolved limitations — not drift:
   live in the *generic* `iplanner.h`; `kind_head[NFFT_PROBLEM_LAST]` hardcodes
   the kind universe. A first port of another transform (NFSFT/NSFFT/FPT) must do
   a header split.
-- **Exported test symbols:** five `Y(plan_ng_test_*)` accessors ship as `T`
-  symbols in the shared library (no `-export-symbols-regex`). Reviewed and
+- **Exported test symbols:** the `Y(plan_ng_test_awake_state)` accessor ships as
+  a `T` symbol in the shared library (no `-export-symbols-regex`). Reviewed and
   accepted.

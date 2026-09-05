@@ -19,21 +19,16 @@
 /*! \file nfast_native.c
  *
  * Six-way check of the composed planner-native fast NFFT: legacy direct NDFT,
- * legacy fast NFFT, planner direct NDFT, and planner native fast NFFT, all
- * built over the same problem (data/nfft_1d_8192_128.txt, an offline
- * exact-precision reference) and the same compile-time-selected window. The two
- * fast NFFTs (legacy + native) are each built twice, once with FFTW_ESTIMATE
- * and once with FFTW_MEASURE for the internal DFT plan, so the effect of the
- * FFTW planner flag is visible side by side. Each of the two planner plans
- * prints its plan tree. For every plan, legacy and planner alike,
- * precompute/forward/adjoint are timed separately; forward-transform error is
- * checked against the file reference and PASS/FAIL'd.
+ * legacy fast NFFT, planner direct NDFT and planner native fast NFFT, all over
+ * one reference problem (tests/data/nfft_1d_8192_128.txt) and the
+ * compile-time-selected window. Each fast NFFT is built twice, with
+ * FFTW_ESTIMATE and with FFTW_MEASURE for the internal DFT plan.
+ * Precompute/forward/adjoint are timed separately; the forward error is
+ * checked against the file reference.
  *
- * The two FFTW_MEASURE plans are constructed after every FFTW_ESTIMATE plan:
- * FFTW caches wisdom process-globally, so a measured plan of a given size would
- * otherwise bless a later estimate plan of the same size and spoil the
- * comparison. The NFFT-level planner mode stays NFFT_ESTIMATE throughout, so
- * only the FFTW DFT plan quality changes between the est/meas rows.
+ * The FFTW_MEASURE plans are constructed after every FFTW_ESTIMATE plan,
+ * because FFTW caches wisdom process-globally and measured wisdom would
+ * otherwise bless a later estimate plan of the same size.
  */
 
 #include "config.h"
@@ -64,13 +59,12 @@
 #endif
 
 #ifndef NFAST_NATIVE_DATA
-#define NFAST_NATIVE_DATA "data/nfft_1d_8192_128.txt"
+#define NFAST_NATIVE_DATA "../../tests/data/nfft_1d_8192_128.txt"
 #endif
 
-/* Loose PASS/FAIL gate; the point of the table is the printed magnitudes
- * (the legacy direct worst), not the threshold. Scaled by build precision: at
- * N=8192 the legacy per-term direct accumulates ~N*eps, ~1e-3 in float but
- * ~1e-12/~1e-15 in double/long-double, so one bound cannot fit all three. */
+/* Loose PASS/FAIL gate, scaled by build precision: at N=8192 the legacy
+ * per-term direct accumulates ~N*eps, ~1e-3 in float but ~1e-12/~1e-15 in
+ * double/long-double, so one bound cannot fit all three. */
 #if defined(NFFT_SINGLE)
 #define NFAST_NATIVE_BOUND NFFT_K(1e-2)
 #else
@@ -183,15 +177,12 @@ static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len) {
   return num / den;
 }
 
-/* Cumulative wall-time budget for each measured step: every precompute /
- * forward / adjoint below is re-run until at least this many seconds have
- * elapsed, and the per-run figures are reduced to a mean +/- standard
- * deviation (one run is too noisy). Plan creation is not measured. */
+/* Wall-time budget per measured step: each precompute/forward/adjoint is
+ * re-run until this many seconds elapse. */
 #define NFAST_MEASURE_SECONDS 2.0
 
-/* Aggregated timing over many runs: mean and population standard deviation of
- * the per-run wall-clock seconds (clock_gettime) and CPU ticks (getticks cycle
- * counter), plus the run count that fit in the budget. */
+/* Mean and population standard deviation of the per-run wall seconds and CPU
+ * ticks, plus the run count that fit in the budget. */
 typedef struct
 {
   double secs_mean, secs_std;
@@ -347,6 +338,7 @@ int main(void) {
 
   int Narr[1];
   NFFT_INT n[1];
+  int narr[1]; /* legacy init_guru takes int*, the planner guru NFFT_INT* */
   int m = WINDOW_M;
   int window;
 
@@ -383,6 +375,7 @@ int main(void) {
 
   Narr[0] = (int)N;
   n[0] = 2 * N;
+  narr[0] = (int)n[0];
   window = NFFT(get_window_id)();
 
   printf("nfast_native: d=%d N=%td M=%td m=%d n=%td window=%s\n", d,
@@ -391,7 +384,7 @@ int main(void) {
   /* --- legacy NFFT: one plan shared by the direct and fast runs, both
    * directions -------------------------------------------------------- */
   NFFT(init_guru)
-  (&lp, 1, Narr, (int)M, (int *)n, m,
+  (&lp, 1, Narr, (int)M, narr, m,
    PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F |
        FFTW_INIT | FFT_OUT_OF_PLACE,
    FFTW_ESTIMATE);
@@ -426,6 +419,10 @@ int main(void) {
   f_dir = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
   p_dir = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_dir, 0u,
                              NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
+  if (!p_dir) {
+    fprintf(stderr, "nfast_native: planner direct guru rejected the arguments\n");
+    return EXIT_FAILURE;
+  }
   /* "(adj (null))" is expected here: the adjoint direction reuses the
    * forward winner rather than racing its own plan (Y(plan_ng_print)). */
   printf("\nplan: planner direct\n");
@@ -439,6 +436,10 @@ int main(void) {
   f_native = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
   p_native = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat,
                                 f_native, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
+  if (!p_native) {
+    fprintf(stderr, "nfast_native: planner native fast guru rejected the arguments\n");
+    return EXIT_FAILURE;
+  }
   printf("\nplan: planner native fast\n");
   NFFT(fprint_plan)
   (p_native, stdout);
@@ -446,18 +447,14 @@ int main(void) {
   t_pre_native = time_run(run_precompute, p_native);
   t_native = time_run(run_plan_ng, p_native);
 
-  /* --- FFTW_MEASURE variants of the two fast NFFTs -------------------------
-   * Same two fast transforms as above, but with FFTW_MEASURE (instead of
-   * FFTW_ESTIMATE) for the internal DFT plan.  Built here, AFTER every
-   * FFTW_ESTIMATE plan (lp, p_native) is already constructed, so the estimate
-   * plans cannot inherit measured FFTW wisdom (FFTW's planner caches wisdom
-   * process-globally).  Plan construction -- where FFTW_MEASURE actually spends
-   * its time -- is not timed; only precompute/forward/adjoint are. */
+  /* FFTW_MEASURE variants of the two fast NFFTs. Built after every
+   * FFTW_ESTIMATE plan, so the estimate plans cannot inherit measured FFTW
+   * wisdom. */
 
-  /* legacy fast, FFTW_MEASURE.  FFTW_MEASURE clobbers the internal g1/g2 during
-   * planning (allocated inside init_guru), never f_hat/f, so fill f_hat after. */
+  /* FFTW_MEASURE clobbers the internal g1/g2 during planning, so fill f_hat
+   * after init_guru. */
   NFFT(init_guru)
-  (&lp_m, 1, Narr, (int)M, (int *)n, m,
+  (&lp_m, 1, Narr, (int)M, narr, m,
    PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F |
        FFTW_INIT | FFT_OUT_OF_PLACE,
    FFTW_MEASURE);
@@ -478,6 +475,10 @@ int main(void) {
   p_native_m = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat,
                                   f_native_m, (unsigned)FFTW_MEASURE,
                                   NFFT_ESTIMATE | NFFT_NO_DIRECT);
+  if (!p_native_m) {
+    fprintf(stderr, "nfast_native: planner native fast (FFTW_MEASURE) guru rejected the arguments\n");
+    return EXIT_FAILURE;
+  }
   t_pre_native_m = time_run(run_precompute, p_native_m);
   t_native_m = time_run(run_plan_ng, p_native_m);
 

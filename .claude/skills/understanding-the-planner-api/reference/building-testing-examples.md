@@ -76,7 +76,7 @@ guard; the x-restore guard tests are no-ops unless `--enable-debug`.
 ## CMake
 
 CMake builds **the same** new-API sources:
-`kernel/CMakeLists.txt` lists `nfft/nfft-nd.c`, `nfft/nconst.c`, `nfft/xcheck.c`,
+`kernel/CMakeLists.txt` lists `nfft/nfft-nd.c`, `nfft/rnk0.c`, `nfft/xcheck.c`,
 the whole `conv/` and `deconv/` modules, plus `checkall_ng` / `checkall_ng_threads`
 `ctest` targets. `nfct`/`nfst` are legacy-only (their planner glue was removed,
 not merely un-wired). If you add a planner source file, add it to **both**
@@ -85,17 +85,17 @@ not merely un-wired). If you add a planner source file, add it to **both**
 ## Runnable examples (`examples/nfft/`)
 
 - **`nfast_native.c`** — the best worked example. A six-way check over one 1D
-  problem (`data/nfft_1d_8192_128.txt`): legacy direct NDFT, legacy fast NFFT,
+  problem (`tests/data/nfft_1d_8192_128.txt`): legacy direct NDFT, legacy fast NFFT,
   planner direct NDFT, and planner native fast (each fast one twice, FFTW
   estimate vs measure). It forces specific solvers via flags (e.g.
   `NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE` to isolate the direct NDFT), prints each plan tree with
   `nfft_fprint_plan`, times precompute/forward/adjoint separately, and checks the
   forward error against the file reference. Shows correct guru → `precompute` →
   `execute`/`execute_adjoint_on` → `plan_ng_destroy` usage.
-- **`ndft_fast.c`** — direct-NDFT-focused example.
 
-Build them with `--enable-all`; both are `noinst_PROGRAMS` linking
-`libnfft3<suffix>`.
+Build it with `--enable-all`; it is a `noinst_PROGRAMS` target linking
+`libnfft3<suffix>`. (`examples/nfft/ndft_fast.c` is a legacy-API example, not a
+planner one.)
 
 ## Reading a plan tree
 

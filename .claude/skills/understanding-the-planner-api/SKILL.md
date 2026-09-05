@@ -24,10 +24,10 @@ Ground truth is always the **current-branch code**, not the (removed) design
 docs. Key files:
 - `include/nfft3.h` — public API (search `NFFT_DEFINE_PLANNER_API`).
 - `include/iplanner.h` — internal planner + problem/solver/plan ADTs (never installed).
-- `kernel/nfft/plan_ng.c` — the NFFT bundle lifecycle (guru, precompute, execute, destroy).
-- `kernel/nfft/api_ng.c` — wisdom + fprint_plan wrappers.
+- `kernel/nfft/plan.c` — the NFFT bundle lifecycle (guru, precompute, execute, destroy).
+- `kernel/nfft/api.c` — wisdom + fprint_plan wrappers.
 - `kernel/planner/` — kind-agnostic trinity core (search, wisdom, md5, tensor, printer/scanner, timer).
-- `kernel/nfft/{nfast,ndft,ndft-nd,nconst}.c`, `kernel/{deconv,conv}/` — the solvers.
+- `kernel/nfft/{nfft-nd,ndft-1d,ndft-nd,rnk0}.c`, `kernel/{deconv,conv}/` — the solvers.
 
 ## The mental model (read this first)
 
@@ -82,15 +82,24 @@ int   nfft_get_window_id(void);                    /* compile-time window ordina
 ```
 
 The names shown are the double-precision spellings. In precision-agnostic C use
-the mangling macros (`Y(...)`, `X(...)`, `FFTW(...)`); see `CONVENTIONS.md`. The
-guru returns `NULL` on bad arguments (a real release-safe guard, not just a
-debug assert). Bad arguments include **insufficient oversampling**: unless
-`NFFT_NO_FAST_NATIVE` is set, every axis with `N[t] > 1` must satisfy
-`n[t] > N[t]`. `sigma <= 1` is refused rather than served by a direct
-transform, because the guru does not reveal which solver won and a silent
-fallback would cost `O(N*M)` instead of `O(n log n)`; excluding the fast solver
-explicitly lifts the requirement. Unit axes (`N[t] == 1`) are elided and
-exempt.
+the mangling macros (`Y(...)`, `X(...)`, `FFTW(...)`); see `CONVENTIONS.md`.
+
+The guru returns `NULL` on bad arguments — a release-safe guard, not a debug
+assert. It rejects a null `N`/`n`/`x`/`f_hat`/`f`, `d < 1`, `M < 1`, `m < 1`, a
+non-positive `N[t]` or `n[t]`, an unknown `window` ordinal, and — unless
+`NFFT_NO_FAST_NATIVE` is set — any axis failing the fast solver's geometry
+guard `N[t] > m`, `n[t] > 2m+2`, `n[t] > N[t]`. A geometry the fast solver
+cannot serve is refused rather than served silently by a direct transform,
+because the guru does not reveal which solver won and the fallback would cost
+`O(N*M)` instead of `O(n log n)`; excluding the fast solver explicitly lifts
+the requirement. Unit axes (`N[t] == 1`) are elided and exempt.
+
+`fftw_flags` reaches the internal FFTW plans with `FFTW_PRESERVE_INPUT`
+stripped and `FFTW_DESTROY_INPUT` forced; otherwise it is FFTW's own
+vocabulary, so `0` means `FFTW_MEASURE`.
+
+Planning and wisdom import/export are **not thread-safe**, and `execute_on` /
+`execute_adjoint_on` are not reentrant on a single plan.
 
 ## The lifecycle contract — the #1 thing to get right
 
@@ -110,10 +119,8 @@ plan_ng_guru(...)   ->   precompute(p)   ->   execute(p) / execute_adjoint(p)
    ownership of your `x` and may free/reuse it after the guru returns. The plan
    never writes or frees your `x`.
 3. **`f_hat` and `f` are aliased** (borrowed, never freed by the plan).
-   **Measured planning may clobber them** during the race — so fill `f_hat`
-   *after* constructing, or use the `_on` new-array variants to run on scratch.
-   (Estimate mode runs no race, so it never touches your arrays — but filling
-   *after* the guru is the safe habit for both modes.)
+   **Measured planning zeroes them** during the race — so fill `f_hat` *after*
+   constructing, or use the `_on` new-array variants to run on scratch.
 4. **Measured is the default.** `NFFT_MEASURE == 0`. Passing `NFFT_ESTIMATE`
    skips measurement and picks by an analytic cost model instead (instant, never
    time-bounded).
@@ -152,10 +159,9 @@ NFFT(execute_adjoint_on)(p, f_hat_adj, f_in);   /* adjoint on scratch arrays */
 NFFT(plan_ng_destroy)(p);
 ```
 
-Working, runnable examples on the current branch:
-`examples/nfft/nfast_native.c` (five-way legacy-vs-planner check, prints plan
-trees) and `examples/nfft/ndft_fast.c`. Tests: `tests/checkall_ng`
-(`nplan.c`, `nfast.c`, ...). See
+Working, runnable example on the current branch:
+`examples/nfft/nfast_native.c` (six-way legacy-vs-planner check, prints plan
+trees). Tests: `tests/checkall_ng` (`nplan.c`, `nfast.c`, ...). See
 [building-testing-examples.md](reference/building-testing-examples.md).
 
 ## Where to go next (progressive disclosure)

@@ -4,7 +4,7 @@ Wisdom is the planner's **memo**: for a problem *size class* (a 128-bit MD5
 signature), which solver won a search conducted under given impatience bounds.
 It is a **cache, never a source of truth** — any mismatch on lookup or import
 degrades to a miss, never a wrong plan. Ground truth: `kernel/planner/planner.c`
-(store), `kernel/planner/md5.c`, `kernel/nfft/api_ng.c` (public wrappers),
+(store), `kernel/planner/md5.c`, `kernel/nfft/api.c` (public wrappers),
 `include/iplanner.h`.
 
 ## What the key is (the "size class")

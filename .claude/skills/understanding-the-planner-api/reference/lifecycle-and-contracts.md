@@ -1,7 +1,7 @@
 # Lifecycle & contracts
 
 The rules a caller (or a test, or a new example) must obey. Ground truth:
-`kernel/nfft/plan_ng.c`, `include/iplanner.h`, `include/nfft3.h`.
+`kernel/nfft/plan.c`, `include/iplanner.h`, `include/nfft3.h`.
 
 ## The three awake states
 
@@ -47,7 +47,7 @@ nfft_plan_ng_destroy(p)    SLEEPY-first teardown of the plan(s) + problem(s).
 ### precompute() is mandatory — for every plan
 
 `Y(execute)`, `Y(execute_adjoint)`, `Y(execute_on)`, `Y(execute_adjoint_on)` all
-assert `p->dir[FWD]->awake_state == PLNR_AWAKE` (`plan_ng.c`). This is a
+assert `p->dir[FWD]->awake_state == PLNR_AWAKE` (`plan.c`). This is a
 **uniform rule** — direct NDFT plans need no ψ, but they still must be walked
 `SLEEPY -> AWAKE` by `precompute()` so the state assertion holds.
 
@@ -76,10 +76,9 @@ no setter API — FFTW's guru contract).
 
 Consequences:
 
-- **Fill `f_hat`/`f` *after* the guru returns**, because a measured race may
-  clobber them (the race is destructive on values — it times the real
-  node-driven access pattern, values are irrelevant). If you must preserve
-  existing contents during planning, plan on scratch and use the `_on` variants.
+- **Fill `f_hat`/`f` *after* the guru returns**: a measured race zeroes both
+  before timing. To preserve existing contents during planning, plan on
+  scratch and use the `_on` variants.
 - There are **no** `plan_ng_x` / `plan_ng_f_hat` / `plan_ng_f` accessors. They
   were removed. The arrays are yours; you already hold the pointers.
 - Because `x` is copied, unit axes (`N_t == 1`) are elided at construction and
@@ -121,18 +120,11 @@ independently optimized or blessed.
 
 ## Input validation (release-safe)
 
-`nfft_plan_ng_guru` validates explicitly and returns `NULL` (FFTW's contract)
-rather than relying on debug-only `A(...)`:
-
-```c
-if (d <= 0 || N == 0 || n == 0 || x == 0 || f_hat == 0 || f == 0) return 0;
-for (t = 0; t < d; t++) if (N[t] <= 0 || n[t] <= 0) return 0;  /* N[t]==1 is valid */
-```
-
-Checked before any allocation, so a `NULL` return leaks nothing. **Everything
-else** — execute-before-precompute, double-destroy, the x-restore guard — is
-`A(...)`-gated and therefore **only enforced under `--enable-debug`**. Treat
-those as caller discipline in release.
+`nfft_plan_ng_guru` validates explicitly and returns `NULL` before any
+allocation, so a `NULL` return leaks nothing; the rejected-argument list is in
+SKILL.md. **Everything else** — execute-before-precompute, double-destroy, the
+x-restore guard — is `A(...)`-gated and therefore **only enforced under
+`--enable-debug`**. Treat those as caller discipline in release.
 
 ## Thread-safety
 

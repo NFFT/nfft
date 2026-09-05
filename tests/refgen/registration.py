@@ -7,6 +7,10 @@ from tests.refgen import grids as G
 
 _MODULES = ("nfft", "nfct", "nfst")
 
+# Committed reference data outside the grid, distributed but never regenerated
+# here. Read by examples/nfft/nfast_native.c.
+_UNGENERATED = ("nfft_1d_8192_128.txt",)
+
 
 def _legacy_grid(module):
     # The legacy (tests/nfft.c) roster only ever knew the original nfft grid
@@ -67,11 +71,13 @@ def render_header(module):
 
 
 def render_extra_dist():
-    files = []
+    # The full grid, not _legacy_grid: the odd-N and type-II files are opened by
+    # tests/nplan_data.c and tests/nfast.c and must stay in the distribution.
+    files = list(_UNGENERATED)
     for module in _MODULES:
         for kind in G.KINDS:
-            for (d, N, M) in _legacy_grid(module):
-                files.append(G.basename(module, kind, d, N, M) + ".txt")
+            for (d, N, M, variant) in G.GRIDS[module]:
+                files.append(G.basename(module, kind, d, N, M, variant) + ".txt")
     files = sorted(set(files))
     body = "  \\\n".join(files)
     return "EXTRA_DIST = " + body + "\n"
