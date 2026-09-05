@@ -153,6 +153,23 @@ static inline void sort(const X(plan) *ths)
  * profit at smaller Nlast, but a single precision-agnostic threshold is used). */
 #define NFFT_DIRECT_RECURRENCE_MIN_INNER 8
 
+/* Split-phase granularity for the univariate direct transforms: the complex phase advances only
+ * every T-th frequency (coarse chain); the T values in between come from a complex multiply
+ * against a per-node table exp(-+i 2pi r x), r=0..T-1. Removes the loop-carried dependence from
+ * the fine loop (vectorizable) and shortens the per-block coarse chain from B to B/T steps. B
+ * must be a multiple of T. */
+#define NFFT_DIRECT_SPLIT_PHASE 8
+
+/* Below this N the per-node table build (2T transcendentals) does not amortize, so the plain
+ * recurrence wins; long double's crossover is higher since its x87 path has no SIMD. The
+ * threaded adjoint keeps the recurrence unconditionally: each thread owns only ~B frequencies,
+ * never enough to amortize the table. */
+#ifdef NFFT_LDOUBLE
+  #define NFFT_DIRECT_SPLIT_PHASE_MIN 512
+#else
+  #define NFFT_DIRECT_SPLIT_PHASE_MIN 128
+#endif
+
 /* Accurate phase for exp(+-i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
  * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
 static inline R X(reduced_omega)(const R k, const R x)
@@ -187,6 +204,8 @@ void X(trafo_direct)(const X(plan) *ths)
   {
     /* specialize for univariate case, rationale: faster */
     const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+    const INT T = NFFT_DIRECT_SPLIT_PHASE;
+    const int use_split = (ths->N_total >= NFFT_DIRECT_SPLIT_PHASE_MIN);
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
@@ -195,19 +214,53 @@ void X(trafo_direct)(const X(plan) *ths)
     {
       C v = K(0.0);
       const R x = ths->x[j];
-      const R dphi = K2PI * x;                 /* |dphi| <= pi: accurate without reduction */
-      const C dw = COS(dphi) - II * SIN(dphi); /* per-step phase factor exp(-i 2pi x)      */
-      INT k_L = 0;
-      while (k_L < ths->N_total)
+      if (use_split)
       {
-        /* Accurate seed exp(-i 2pi (k_L - N/2) x), then recur within the block. */
-        const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
-        C w = COS(omega) - II * SIN(omega);
-        INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
-        for (; k_L < kend; k_L++)
+        /* Fine table exp(-i 2pi r x), r = 0..T-1; built once per node, reused for every coarse
+         * step within it. */
+        C Fr[NFFT_DIRECT_SPLIT_PHASE];
+        INT r;
+        for (r = 0; r < T; r++)
         {
-          v += f_hat[k_L] * w;
-          w *= dw;
+          const R br = X(reduced_omega)((R)r, x);
+          Fr[r] = COS(br) - II * SIN(br);
+        }
+        /* Coarse step factor exp(-i 2pi T x); reduced argument (T*2pi*x can reach 16pi). */
+        const R omT = X(reduced_omega)((R)T, x);
+        const C dW = COS(omT) - II * SIN(omT);
+        INT k_L = 0;
+        while (k_L < ths->N_total)
+        {
+          /* Accurate coarse seed exp(-i 2pi (k_L - N/2) x), then B/T coarse steps per block. */
+          const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
+          C W = COS(omega) - II * SIN(omega);
+          INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+          while (k_L < kend)
+          {
+            INT rend = k_L + T; if (rend > kend) rend = kend;
+            /* Fine loop: no loop-carried dependence -> vectorizable map/reduce over r. */
+            for (r = 0; k_L < rend; k_L++, r++)
+              v += f_hat[k_L] * (W * Fr[r]);
+            W *= dW;
+          }
+        }
+      }
+      else
+      {
+        const R dphi = K2PI * x;                 /* |dphi| <= pi: accurate without reduction */
+        const C dw = COS(dphi) - II * SIN(dphi); /* per-step phase factor exp(-i 2pi x)      */
+        INT k_L = 0;
+        while (k_L < ths->N_total)
+        {
+          /* Accurate seed exp(-i 2pi (k_L - N/2) x), then recur within the block. */
+          const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
+          C w = COS(omega) - II * SIN(omega);
+          INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+          for (; k_L < kend; k_L++)
+          {
+            v += f_hat[k_L] * w;
+            w *= dw;
+          }
         }
       }
 
@@ -398,21 +451,56 @@ void X(adjoint_direct)(const X(plan) *ths)
     }
 #else
       INT j;
-      for (j = 0; j < ths->M_total; j++)
+      if (ths->N_total >= NFFT_DIRECT_SPLIT_PHASE_MIN)
       {
-        const R x = ths->x[j];
-        const R dphi = K2PI * x;
-        const C dw = COS(dphi) + II * SIN(dphi);
-        INT k_L = 0;
-        while (k_L < ths->N_total)
+        const INT T = NFFT_DIRECT_SPLIT_PHASE;
+        for (j = 0; j < ths->M_total; j++)
         {
-          const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
-          C w = COS(omega) + II * SIN(omega);
-          INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
-          for (; k_L < kend; k_L++)
+          const R x = ths->x[j];
+          const C fj = f[j];
+          C Fr[NFFT_DIRECT_SPLIT_PHASE];
+          INT r;
+          for (r = 0; r < T; r++)
           {
-            f_hat[k_L] += f[j] * w;
-            w *= dw;
+            const R br = X(reduced_omega)((R)r, x);
+            Fr[r] = COS(br) + II * SIN(br);
+          }
+          const R omT = X(reduced_omega)((R)T, x);
+          const C dW = COS(omT) + II * SIN(omT);
+          INT k_L = 0;
+          while (k_L < ths->N_total)
+          {
+            const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
+            C W = COS(omega) + II * SIN(omega);
+            INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+            while (k_L < kend)
+            {
+              INT rend = k_L + T; if (rend > kend) rend = kend;
+              for (r = 0; k_L < rend; k_L++, r++)
+                f_hat[k_L] += fj * (W * Fr[r]);
+              W *= dW;
+            }
+          }
+        }
+      }
+      else
+      {
+        for (j = 0; j < ths->M_total; j++)
+        {
+          const R x = ths->x[j];
+          const R dphi = K2PI * x;
+          const C dw = COS(dphi) + II * SIN(dphi);
+          INT k_L = 0;
+          while (k_L < ths->N_total)
+          {
+            const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
+            C w = COS(omega) + II * SIN(omega);
+            INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
+            for (; k_L < kend; k_L++)
+            {
+              f_hat[k_L] += f[j] * w;
+              w *= dw;
+            }
           }
         }
       }
