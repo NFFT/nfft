@@ -145,12 +145,38 @@ static inline void sort(const X(plan) *ths)
 /* Block size for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
+/* Minimum innermost-dimension length for the multivariate recurrence to pay: along a row of
+ * length Nlast the recurrence replaces Nlast COS/SIN pairs with one accurate seed (2 trig) plus
+ * Nlast complex multiplies, so for very short rows the per-row seed is not amortised. Below this
+ * threshold the multivariate transforms evaluate per k_L from the reduced-fraction prefix sums
+ * (measured break-even is ~8 in double, where COS/SIN are comparatively cheap; long double/float
+ * profit at smaller Nlast, but a single precision-agnostic threshold is used). */
+#define NFFT_DIRECT_RECURRENCE_MIN_INNER 8
+
 /* Accurate phase for exp(+-i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
  * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
 static inline R X(reduced_omega)(const R k, const R x)
 {
   const R n = RINT(k * x);  // Nearest integer to k * x.
   return K2PI * FFMA(k, x, -n);  // Calculate k * x - n witha single rounding, then multiply 2 * pi.
+}
+
+/* One dimension's contribution to a multivariate phase: frac(k*x) in [-1/2,1/2). */
+static inline R X(reduced_frac)(const R k, const R x)
+{
+  return FFMA(k, x, -RINT(k * x));
+}
+
+/* Accurate phase for exp(+-i 2pi sum_t k[t] x[t]), using frac(sum) == frac(sum of fracs) (mod 1).
+ * Each x[t] is the raw node coordinate in [-1/2,1/2); accuracy ~d*u, independent of grid size.
+ * For d==1 identical to reduced_omega. */
+static inline R X(reduced_omega_multi)(const INT d, const INT *k, const R *x)
+{
+  R s = K(0.0);
+  INT t;
+  for (t = 0; t < d; t++)
+    s += X(reduced_frac)((R)k[t], x[t]);
+  return K2PI * (s - RINT(s));              /* reduce the sum mod 1, then scale by 2pi */
 }
 
 void X(trafo_direct)(const X(plan) *ths)
@@ -190,7 +216,13 @@ void X(trafo_direct)(const X(plan) *ths)
   }
   else
   {
-    /* multivariate case */
+    /* multivariate case: recur the kernel phase along the contiguous innermost dimension
+     * (length Nlast), re-seeded with an accurate phase at every row start and every B steps,
+     * so the per-k_L COS/SIN of the 1d case is replaced by one complex multiply. The j loop
+     * carries no dependency, so the same body serves serial and OpenMP (forward). */
+    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+    const INT Nlast = ths->N[ths->d - 1];
+    const int use_rec = (Nlast >= NFFT_DIRECT_RECURRENCE_MIN_INNER);
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
@@ -198,34 +230,108 @@ void X(trafo_direct)(const X(plan) *ths)
     for (j = 0; j < ths->M_total; j++)
     {
       C v = K(0.0);
-      R x[ths->d], omega, Omega[ths->d + 1];
-      INT t, t2, k_L, k[ths->d];
-      Omega[0] = K(0.0);
-      for (t = 0; t < ths->d; t++)
+      const R *xj = ths->x + (size_t)j * ths->d;          /* raw coordinates in [-1/2,1/2) */
+      if (use_rec)
       {
-        k[t] = -ths->N[t]/2;
-        x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = ((R)k[t]) * x[t] + Omega[t];
-      }
-      omega = Omega[ths->d];
-
-      for (k_L = 0; k_L < ths->N_total; k_L++)
-      {
-        v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
+        const R dphi = K2PI * xj[ths->d - 1];             /* innermost step, |dphi| <= pi  */
+        const C dw = COS(dphi) - II * SIN(dphi);
+        INT k[ths->d], t, k_L = 0;
+        for (t = 0; t < ths->d; t++) k[t] = -ths->N[t]/2; /* multi-index, odometer (no div) */
+        while (k_L < ths->N_total)                        /* one outer iteration per row    */
         {
-          for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--)
-            k[t]-= ths->N[t]-1;
-
+          INT i = 0;
+          while (i < Nlast)                               /* re-seed per row and per B steps */
+          {
+            k[ths->d - 1] = -Nlast/2 + i;
+            const R omega = X(reduced_omega_multi)(ths->d, k, xj);
+            C w = COS(omega) - II * SIN(omega);
+            INT blk = Nlast - i; if (blk > B) blk = B;
+            INT b;
+            for (b = 0; b < blk; b++, i++, k_L++)
+            {
+              v += f_hat[k_L] * w;
+              w *= dw;
+            }
+          }
+          /* advance the outer multi-index (dims 0..d-2); innermost reset at next row's seed */
+          for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
           k[t]++;
-
-          for (t2 = t; t2 < ths->d; t2++)
-            Omega[t2+1] = ((R)k[t2]) * x[t2] + Omega[t2];
-
-          omega = Omega[ths->d];
+        }
+      }
+      else
+      {
+        /* short innermost dimension: per-k_L evaluation from the reduced-fraction prefix sums */
+        R S[ths->d + 1];
+        INT t, t2, k_L, k[ths->d];
+        S[0] = K(0.0);
+        for (t = 0; t < ths->d; t++)
+        {
+          k[t] = -ths->N[t]/2;
+          S[t+1] = S[t] + X(reduced_frac)((R)k[t], xj[t]);
+        }
+        for (k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          const R omega = K2PI * (S[ths->d] - RINT(S[ths->d]));
+          v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
+          for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
+          k[t]++;
+          for (t2 = t; t2 < ths->d; t2++) S[t2+1] = S[t2] + X(reduced_frac)((R)k[t2], xj[t2]);
         }
       }
 
       f[j] = v;
+    }
+  }
+}
+
+/* Adjoint blocked recurrence over the row range [rlo,rhi); a row is the contiguous block of
+ * N[d-1] frequencies the recurrence runs along. Callers must pass disjoint ranges -- that is
+ * what keeps the f_hat accumulation race-free. */
+static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT rhi)
+{
+  C *f_hat = (C*)ths->f_hat, *f = (C*)ths->f;
+  const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+  const INT Nlast = ths->N[ths->d - 1];
+  INT k0[ths->d], t, j, r = rlo;
+
+  if (rlo >= rhi)
+    return;
+
+  /* Decode the outer multi-index once; the odometer carries it, keeping division out of the
+   * inner work. */
+  k0[ths->d - 1] = -Nlast/2;
+  for (t = ths->d - 2; t >= 0; t--)
+  {
+    k0[t] = r % ths->N[t] - ths->N[t]/2;
+    r /= ths->N[t];
+  }
+
+  for (j = 0; j < ths->M_total; j++)
+  {
+    const R *xj = ths->x + (size_t)j * ths->d;  /* raw coordinates in [-1/2,1/2) */
+    const R dphi = K2PI * xj[ths->d - 1];       /* innermost step, |dphi| <= pi */
+    const C dw = COS(dphi) + II * SIN(dphi);
+    INT k[ths->d], row, k_L = rlo * Nlast;
+    for (t = 0; t < ths->d; t++) k[t] = k0[t];
+    for (row = rlo; row < rhi; row++)
+    {
+      INT i = 0;
+      while (i < Nlast)                         /* re-seed per row and per B steps */
+      {
+        k[ths->d - 1] = -Nlast/2 + i;
+        const R omega = X(reduced_omega_multi)(ths->d, k, xj);
+        C w = COS(omega) + II * SIN(omega);
+        INT blk = Nlast - i; if (blk > B) blk = B;
+        INT b;
+        for (b = 0; b < blk; b++, i++, k_L++)
+        {
+          f_hat[k_L] += f[j] * w;
+          w *= dw;
+        }
+      }
+      /* advance the outer multi-index (dims 0..d-2); innermost reset at next row's seed */
+      for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
+      k[t]++;
     }
   }
 }
@@ -315,58 +421,74 @@ void X(adjoint_direct)(const X(plan) *ths)
   else
   {
     /* multivariate case */
-    INT j, k_L;
+    const INT Nlast = ths->N[ths->d - 1];
+    /* The recurrence spans a whole row, so the parallel unit is the row. Row count is not part
+     * of the choice: the recurrence beats the per-k_L arm so heavily per unit of work that even
+     * two rows across many threads stay ahead of an N_total-way naive split. */
+    const INT nrows = ths->N_total / Nlast;
+
+    if (Nlast >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
+    {
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(j, k_L)
-    for (k_L = 0; k_L < ths->N_total; k_L++)
-    {
-      INT k[ths->d], k_temp, t;
-
-      k_temp = k_L;
-
-      for (t = ths->d - 1; t >= 0; t--)
+      #pragma omp parallel default(shared)
       {
-        k[t] = k_temp % ths->N[t] - ths->N[t]/2;
-        k_temp /= ths->N[t];
+        const int nt = omp_get_num_threads();
+        const int tid = omp_get_thread_num();
+        X(adjoint_direct_rows)(ths, (INT)(((long long)nrows * tid) / nt),
+                                    (INT)(((long long)nrows * (tid + 1)) / nt));
       }
-
-      for (j = 0; j < ths->M_total; j++)
-      {
-        R omega = K(0.0);
-        for (t = 0; t < ths->d; t++)
-          omega += k[t] * K2PI * ths->x[j * ths->d + t];
-        f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
-      }
-    }
 #else
-    for (j = 0; j < ths->M_total; j++)
+      X(adjoint_direct_rows)(ths, 0, nrows);
+#endif
+    }
+    else
     {
-      R x[ths->d], omega, Omega[ths->d+1];
-      INT t, t2, k[ths->d];
-      Omega[0] = K(0.0);
-      for (t = 0; t < ths->d; t++)
-      {
-        k[t] = -ths->N[t]/2;
-        x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = ((R)k[t]) * x[t] + Omega[t];
-      }
-      omega = Omega[ths->d];
+      /* Short row: still reduced per dimension, so both arms carry the same error. */
+      INT j, k_L;
+#ifdef _OPENMP
+      #pragma omp parallel for default(shared) private(j, k_L)
       for (k_L = 0; k_L < ths->N_total; k_L++)
       {
-        f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
+        INT k[ths->d], k_temp, t;
 
-        for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t]/2-1); t--)
-          k[t]-= ths->N[t]-1;
+        k_temp = k_L;
 
-        k[t]++;
+        for (t = ths->d - 1; t >= 0; t--)
+        {
+          k[t] = k_temp % ths->N[t] - ths->N[t]/2;
+          k_temp /= ths->N[t];
+        }
 
-        for (t2 = t; t2 < ths->d; t2++)
-          Omega[t2+1] = ((R)k[t2]) * x[t2] + Omega[t2];
-
-        omega = Omega[ths->d];
+        for (j = 0; j < ths->M_total; j++)
+        {
+          const R *xj = ths->x + (size_t)j * ths->d;
+          const R omega = X(reduced_omega_multi)(ths->d, k, xj);
+          f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
+        }
       }
-    }
+#else
+      for (j = 0; j < ths->M_total; j++)
+      {
+        const R *xj = ths->x + (size_t)j * ths->d;
+        R S[ths->d + 1];    /* prefix sums of the per-dimension reduced fractions */
+        INT t, t2, k[ths->d];
+        S[0] = K(0.0);
+        for (t = 0; t < ths->d; t++)
+        {
+          k[t] = -ths->N[t]/2;
+          S[t+1] = S[t] + X(reduced_frac)((R)k[t], xj[t]);
+        }
+        for (k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          const R omega = K2PI * (S[ths->d] - RINT(S[ths->d]));
+          f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
+          for (t = ths->d - 1; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
+          k[t]++;
+          for (t2 = t; t2 < ths->d; t2++) S[t2+1] = S[t2] + X(reduced_frac)((R)k[t2], xj[t2]);
+        }
+      }
 #endif
+    }
   }
 }
 
