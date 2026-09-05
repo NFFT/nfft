@@ -36,8 +36,7 @@
  * the A()-gated restore guard Y(nfft_x_verify) must fire. */
 int Y(nfft_perm_break_restore) = 0;
 
-typedef struct
-{
+typedef struct {
   plan super;
   const problem_nfft *pn;
   INT M, d;
@@ -45,7 +44,8 @@ typedef struct
 } perm_plan;
 
 /* Its own inverse: reversing twice restores the original order. */
-static void reverse(R *x, INT d, INT M) {
+static void reverse(R *x, INT d, INT M)
+{
   INT i, t;
   for (i = 0; i < M / 2; i++)
     for (t = 0; t < d; t++) {
@@ -55,7 +55,8 @@ static void reverse(R *x, INT d, INT M) {
     }
 }
 
-static void awake(plan *ego, int w) {
+static void awake(plan *ego, int w)
+{
   perm_plan *q = (perm_plan *)ego;
   R *x = (R *)q->pn->x;
   if (w >= PLNR_AWAKE_ZERO && ego->awake_state == PLNR_SLEEPY) {
@@ -68,12 +69,14 @@ static void awake(plan *ego, int w) {
   }
 }
 
-static void apply(const plan *e, const problem *p) {
+static void apply(const plan *e, const problem *p)
+{
   (void)e;
   (void)p;
 }
 
-static void print(const plan *e, printer *pr) {
+static void print(const plan *e, printer *pr)
+{
   (void)e;
   pr->print(pr, "(nfft_solver_perm_test pcost=0)");
 }
@@ -81,9 +84,11 @@ static void print(const plan *e, printer *pr) {
 static const plan_adt perm_plan_adt = {apply, awake, print, 0, apply};
 
 /* Non-static: direct-drive tests build the plan without a planner. */
-plan *Y(nfft_perm_test_mkplan)(const problem *p) {
+plan *Y(nfft_perm_test_mkplan)(const problem *p)
+{
   const problem_nfft *pn = (const problem_nfft *)p;
-  perm_plan *q = (perm_plan *)Y(plan_create)(sizeof(perm_plan), &perm_plan_adt);
+  perm_plan *q = (perm_plan *)Y(
+       plan_create)(sizeof(perm_plan), &perm_plan_adt);
   q->super.pcost = 1.0;
   q->pn = pn;
   q->M = pn->M;
@@ -92,7 +97,8 @@ plan *Y(nfft_perm_test_mkplan)(const problem *p) {
   return &q->super;
 }
 
-static plan *solver_mkplan(const solver *s, const problem *p, planner *pl) {
+static plan *solver_mkplan(const solver *s, const problem *p, planner *pl)
+{
   (void)s;
   (void)pl;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
@@ -100,9 +106,11 @@ static plan *solver_mkplan(const solver *s, const problem *p, planner *pl) {
   return Y(nfft_perm_test_mkplan)(p);
 }
 
-static const solver_adt perm_solver_adt = {NFFT_PROBLEM_NFFT, 0, solver_mkplan};
+static const solver_adt perm_solver_adt = {NFFT_PROBLEM_NFFT, 0,
+                                           solver_mkplan};
 
-void Y(nfft_solver_perm_test_register)(planner *pl) {
+void Y(nfft_solver_perm_test_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &perm_solver_adt));
 }
 
@@ -110,20 +118,24 @@ void Y(nfft_solver_perm_test_register)(planner *pl) {
  * The measured race must prune it by estimate and never time it. */
 INT Y(nfft_slow_test_applies) = 0;
 
-static void slow_apply(const plan *e, const problem *p) {
+static void slow_apply(const plan *e, const problem *p)
+{
   (void)e;
   (void)p;
   Y(nfft_slow_test_applies)++;
 }
 
-static void slow_print(const plan *e, printer *pr) {
+static void slow_print(const plan *e, printer *pr)
+{
   (void)e;
   pr->print(pr, "(nfft_solver_slow_test)");
 }
 
-static const plan_adt slow_plan_adt = {slow_apply, 0, slow_print, 0, slow_apply};
+static const plan_adt slow_plan_adt = {slow_apply, 0, slow_print, 0,
+                                       slow_apply};
 
-static plan *slow_mkplan(const solver *s, const problem *p, planner *pl) {
+static plan *slow_mkplan(const solver *s, const problem *p, planner *pl)
+{
   plan *q;
   (void)s;
   (void)pl;
@@ -136,6 +148,7 @@ static plan *slow_mkplan(const solver *s, const problem *p, planner *pl) {
 
 static const solver_adt slow_solver_adt = {NFFT_PROBLEM_NFFT, 0, slow_mkplan};
 
-void Y(nfft_solver_slow_test_register)(planner *pl) {
+void Y(nfft_solver_slow_test_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &slow_solver_adt));
 }

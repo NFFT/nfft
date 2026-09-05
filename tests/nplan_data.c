@@ -36,30 +36,28 @@
 
 /* Drive one testcase (forward or adjoint, per tc->kind) against the native
  * solver, forced via NFFT_NO_FAST_NATIVE | steer. */
-static void run_native(const native_testcase_t *tc, unsigned steer) {
+static void run_native(const native_testcase_t *tc, unsigned steer)
+{
   int d, t;
   INT *N, NN, M, *n;
   R *x;
   C *f_hat, *f;
-  Y(plan_ng) * p;
+  Y(plan_ng) *p;
   R tol = (R)1.0e-9;
   if ((R)1.0e5 * EPSILON > tol)
     tol = (R)1.0e5 * EPSILON;
   if (!Y(test_read_case)(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
     CU_FAIL("test_read_case failed");
-    Y(free)
-    (N);
-    Y(free)
-    (x);
-    Y(free)
-    (f_hat);
-    Y(free)
-    (f);
+    Y(free)(N);
+    Y(free)(x);
+    Y(free)(f_hat);
+    Y(free)(f);
     return;
   }
   n = (INT *)Y(malloc)((size_t)d * sizeof(INT));
   for (t = 0; t < d; t++)
-    n[t] = 2 * N[t] < 2 ? 2 : 2 * N[t]; /* any n >= N; direct native ignores it */
+    n[t] = 2 * N[t] < 2 ? 2 :
+                          2 * N[t]; /* any n >= N; direct native ignores it */
 
   if (tc->kind == 0) /* trafo: input f_hat, expected f */
   {
@@ -68,23 +66,19 @@ static void run_native(const native_testcase_t *tc, unsigned steer) {
     INT j;
     for (j = 0; j < NN; j++)
       save_fhat[j] = f_hat[j];
-    p = Y(plan_ng_guru)(d, N, tc->variant, n, M, 6, NFFT_WINDOW_KAISER_BESSEL,
-                        x, f_hat, got, 0u,
-                        NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | steer);
+    p = Y(
+         plan_ng_guru)(d, N, tc->variant, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x,
+                     f_hat, got, 0u,
+                     NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | steer);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-    Y(precompute)
-    (p);
+    Y(precompute)(p);
     for (j = 0; j < NN; j++)
       f_hat[j] = save_fhat[j];
-    Y(execute)
-    (p);
+    Y(execute)(p);
     CU_ASSERT(Y(test_rel_max_err)(got, f, M) < tol);
-    Y(plan_ng_destroy)
-    (p);
-    Y(free)
-    (save_fhat);
-    Y(free)
-    (got);
+    Y(plan_ng_destroy)(p);
+    Y(free)(save_fhat);
+    Y(free)(got);
   } else /* adjoint: input f, expected f_hat */
   {
     C *save_f = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -92,34 +86,24 @@ static void run_native(const native_testcase_t *tc, unsigned steer) {
     INT j;
     for (j = 0; j < M; j++)
       save_f[j] = f[j];
-    p = Y(plan_ng_guru)(d, N, tc->variant, n, M, 6, NFFT_WINDOW_KAISER_BESSEL,
-                        x, got, f, 0u,
-                        NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | steer);
+    p = Y(
+         plan_ng_guru)(d, N, tc->variant, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x,
+                     got, f, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE | steer);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-    Y(precompute)
-    (p);
+    Y(precompute)(p);
     for (j = 0; j < M; j++)
       f[j] = save_f[j];
-    Y(execute_adjoint)
-    (p);
+    Y(execute_adjoint)(p);
     CU_ASSERT(Y(test_rel_max_err)(got, f_hat, NN) < tol);
-    Y(plan_ng_destroy)
-    (p);
-    Y(free)
-    (save_f);
-    Y(free)
-    (got);
+    Y(plan_ng_destroy)(p);
+    Y(free)(save_f);
+    Y(free)(got);
   }
-  Y(free)
-  (N);
-  Y(free)
-  (n);
-  Y(free)
-  (x);
-  Y(free)
-  (f_hat);
-  Y(free)
-  (f);
+  Y(free)(N);
+  Y(free)(n);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
 }
 
 /* The same reference cases through the composed fast solver, forced with
@@ -134,20 +118,16 @@ static int run_native_fast(const native_testcase_t *tc)
   INT *N, NN, M, *n;
   R *x;
   C *f_hat, *f;
-  Y(plan_ng) * p;
+  Y(plan_ng) *p;
   R tol = (R)1.0e-6;
   if ((R)1.0e4 * EPSILON > tol)
     tol = (R)1.0e4 * EPSILON;
   if (!Y(test_read_case)(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
     CU_FAIL("test_read_case failed");
-    Y(free)
-    (N);
-    Y(free)
-    (x);
-    Y(free)
-    (f_hat);
-    Y(free)
-    (f);
+    Y(free)(N);
+    Y(free)(x);
+    Y(free)(f_hat);
+    Y(free)(f);
     return 0;
   }
   n = (INT *)Y(malloc)((size_t)d * sizeof(INT));
@@ -164,23 +144,18 @@ static int run_native_fast(const native_testcase_t *tc)
       INT j;
       for (j = 0; j < NN; j++)
         save_fhat[j] = f_hat[j];
-      p = Y(plan_ng_guru)(d, N, tc->variant, n, M, m,
-                          NFFT_WINDOW_KAISER_BESSEL, x, f_hat, got, 0u,
-                          NFFT_ESTIMATE | NFFT_NO_DIRECT);
+      p = Y(
+           plan_ng_guru)(d, N, tc->variant, n, M, m, NFFT_WINDOW_KAISER_BESSEL,
+                       x, f_hat, got, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
       CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-      Y(precompute)
-      (p);
+      Y(precompute)(p);
       for (j = 0; j < NN; j++)
         f_hat[j] = save_fhat[j];
-      Y(execute)
-      (p);
+      Y(execute)(p);
       CU_ASSERT(Y(test_rel_max_err)(got, f, M) < tol);
-      Y(plan_ng_destroy)
-      (p);
-      Y(free)
-      (save_fhat);
-      Y(free)
-      (got);
+      Y(plan_ng_destroy)(p);
+      Y(free)(save_fhat);
+      Y(free)(got);
     } else /* adjoint: input f, expected f_hat */
     {
       C *save_f = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -188,44 +163,36 @@ static int run_native_fast(const native_testcase_t *tc)
       INT j;
       for (j = 0; j < M; j++)
         save_f[j] = f[j];
-      p = Y(plan_ng_guru)(d, N, tc->variant, n, M, m,
-                          NFFT_WINDOW_KAISER_BESSEL, x, got, f, 0u,
-                          NFFT_ESTIMATE | NFFT_NO_DIRECT);
+      p = Y(
+           plan_ng_guru)(d, N, tc->variant, n, M, m, NFFT_WINDOW_KAISER_BESSEL,
+                       x, got, f, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
       CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-      Y(precompute)
-      (p);
+      Y(precompute)(p);
       for (j = 0; j < M; j++)
         f[j] = save_f[j];
-      Y(execute_adjoint)
-      (p);
+      Y(execute_adjoint)(p);
       CU_ASSERT(Y(test_rel_max_err)(got, f_hat, NN) < tol);
-      Y(plan_ng_destroy)
-      (p);
-      Y(free)
-      (save_f);
-      Y(free)
-      (got);
+      Y(plan_ng_destroy)(p);
+      Y(free)(save_f);
+      Y(free)(got);
     }
   }
-  Y(free)
-  (N);
-  Y(free)
-  (n);
-  Y(free)
-  (x);
-  Y(free)
-  (f_hat);
-  Y(free)
-  (f);
+  Y(free)(N);
+  Y(free)(n);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
   return ok;
 }
 
-void Y(check_nplan_data)(void) {
+void Y(check_nplan_data)(void)
+{
   int i, ran_fast = 0;
   for (i = 0; i < native_testcases_count; i++) {
     const native_testcase_t *tc = &native_testcases[i];
     run_native(tc, 0u);
-    ran_fast += run_native_fast(tc); /* the composed fast, where the guard admits it */
+    ran_fast += run_native_fast(
+         tc); /* the composed fast, where the guard admits it */
   }
   /* A guard regression that rejects every case would leave this suite
    * silently short of fast-path coverage; the reference grid clears the
@@ -233,6 +200,5 @@ void Y(check_nplan_data)(void) {
    * is a deliberate margin below that, not a near-binding bound. */
   CU_ASSERT(ran_fast >= 20);
   /* Reset the process-global planner so later suites see a fresh generation. */
-  Y(the_planner_destroy)
-  ();
+  Y(the_planner_destroy)();
 }
