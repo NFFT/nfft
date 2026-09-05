@@ -41,26 +41,6 @@ static inline void Y(conv_runs)(INT u, INT n, INT len, INT *tof, INT *gof,
   rl[1] = len - head;
 }
 
-/* Placeholder window starts for PLNR_AWAKE_ZERO, u[j*d+t]. All-zero starts
- * would make every node read the same grid cells, so a raced candidate would
- * time an access pattern far more cache-friendly than the real scattered one.
- * Walking each axis by a stride keeps the timing honest and still evaluates no
- * window. */
-static inline void Y(conv_spread_u)(INT *u, INT M, int d, const INT *n)
-{
-  int t;
-  for (t = 0; t < d; t++) {
-    INT nt = n[t], step = (nt > 1) ? (nt / 2 + 1) : 0;
-    INT c = 0, j;
-    for (j = 0; j < M; j++) {
-      u[j * d + t] = c;
-      c += step;
-      if (c >= nt)
-        c -= nt;
-    }
-  }
-}
-
 /* CONV solvers. */
 void Y(conv_solver_1d_register)(planner *pl);
 void Y(conv_solver_2d_register)(planner *pl);

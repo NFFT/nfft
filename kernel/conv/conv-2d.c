@@ -37,22 +37,32 @@ typedef struct {
   int level; /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_2d_plan;
 
-static void fill(conv_2d_plan *pln)
+/* Window starts are indices: they steer which grid cells apply touches, so the
+ * true values are built for AWAKE_ZERO as well. Only the psi weights, which
+ * cost a window evaluation each and change no address, get placeholders. */
+static void fill_u(conv_2d_plan *pln)
 {
   const INT nn[2] = {pln->n0, pln->n1};
-  const INT NN[2] = {pln->N0, pln->N1};
   const INT M = pln->M;
   const int m = pln->m;
   INT j;
   int t;
-  for (t = 0; t < 2; t++) {
-    Y(window_phi_precompute)(pln->window, nn[t], NN[t], m, pln->x + t, 2, M,
-                          pln->psi + t * (2 * m + 2), 2 * (2 * m + 2));
+  for (t = 0; t < 2; t++)
     for (j = 0; j < M; j++) {
       INT c = LRINT(FLOOR(pln->x[j * 2 + t] * (R)nn[t]));
       pln->u[j * 2 + t] = (((c - m) % nn[t]) + nn[t]) % nn[t];
     }
-  }
+}
+
+static void fill_psi(conv_2d_plan *pln)
+{
+  const INT nn[2] = {pln->n0, pln->n1};
+  const INT NN[2] = {pln->N0, pln->N1};
+  const int m = pln->m;
+  int t;
+  for (t = 0; t < 2; t++)
+    Y(window_phi_precompute)(pln->window, nn[t], NN[t], m, pln->x + t, 2, pln->M,
+                          pln->psi + t * (2 * m + 2), 2 * (2 * m + 2));
 }
 
 /* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
@@ -62,16 +72,14 @@ static void fill(conv_2d_plan *pln)
 static void awake(plan *ego_, int wakefulness)
 {
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
+  if (wakefulness >= PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
+    fill_u(pln);
   if (wakefulness == PLNR_AWAKE) {
     if (pln->level != PLNR_AWAKE)
-      fill(pln);
+      fill_psi(pln);
   } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
     memset(pln->psi, 0,
            (size_t)pln->M * 2 * (size_t)(2 * pln->m + 2) * sizeof(R));
-    {
-      const INT nn[2] = {pln->n0, pln->n1};
-      Y(conv_spread_u)(pln->u, pln->M, 2, nn);
-    }
   }
   pln->level = wakefulness;
 }
