@@ -27,18 +27,18 @@
 #include "iplanner.h"
 #include "conv.h"
 
-typedef struct
-{
+typedef struct {
   plan super;
   INT n0, n1, N0, N1, M; /* geometry captured at mkplan */
   int m, window;
   const R *x; /* borrowed alias of the problem's nodes */
-  R *psi;     /* length M*2*(2m+2): psi[(j*2+t)*(2m+2)+lj] */
-  INT *u;     /* length M*2: wrapped window start, u[j*2+t] */
-  int level;  /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
+  R *psi; /* length M*2*(2m+2): psi[(j*2+t)*(2m+2)+lj] */
+  INT *u; /* length M*2: wrapped window start, u[j*2+t] */
+  int level; /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_2d_plan;
 
-static void fill(conv_2d_plan *pln) {
+static void fill(conv_2d_plan *pln)
+{
   const INT nn[2] = {pln->n0, pln->n1};
   const INT NN[2] = {pln->N0, pln->N1};
   const INT M = pln->M;
@@ -46,9 +46,8 @@ static void fill(conv_2d_plan *pln) {
   INT j;
   int t;
   for (t = 0; t < 2; t++) {
-    Y(window_phi_precompute)
-    (pln->window, nn[t], NN[t], m, pln->x + t, 2, M,
-     pln->psi + t * (2 * m + 2), 2 * (2 * m + 2));
+    Y(window_phi_precompute)(pln->window, nn[t], NN[t], m, pln->x + t, 2, M,
+                          pln->psi + t * (2 * m + 2), 2 * (2 * m + 2));
     for (j = 0; j < M; j++) {
       INT c = LRINT(FLOOR(pln->x[j * 2 + t] * (R)nn[t]));
       pln->u[j * 2 + t] = (((c - m) % nn[t]) + nn[t]) % nn[t];
@@ -60,7 +59,8 @@ static void fill(conv_2d_plan *pln) {
  * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
  * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
  * a later upgrade refills. */
-static void awake(plan *ego_, int wakefulness) {
+static void awake(plan *ego_, int wakefulness)
+{
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
   if (wakefulness == PLNR_AWAKE) {
     if (pln->level != PLNR_AWAKE)
@@ -78,7 +78,8 @@ static void awake(plan *ego_, int wakefulness) {
 
 /* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). Each axis splits into
  * at most two contiguous runs, so the tap nest is rectangular. */
-static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward) {
+static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward)
+{
   const INT n0 = pln->n0, n1 = pln->n1, M = pln->M;
   const INT len = 2 * (INT)pln->m + 2;
   C *g = pc->g;
@@ -126,31 +127,34 @@ static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward) {
   }
 }
 
-static void apply(const plan *ego_, const problem *p) {
+static void apply(const plan *ego_, const problem *p)
+{
   run((const conv_2d_plan *)ego_, (const problem_conv *)p, 1);
 }
 
-static void apply_adjoint(const plan *ego_, const problem *p) {
+static void apply_adjoint(const plan *ego_, const problem *p)
+{
   run((const conv_2d_plan *)ego_, (const problem_conv *)p, 0);
 }
 
-static void print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr)
+{
   const conv_2d_plan *pln = (const conv_2d_plan *)ego_;
   pr->print(pr, "(conv_solver_2d pcost=%D)", (INT)pln->super.pcost);
 }
-static void destroy(plan *ego_) {
+static void destroy(plan *ego_)
+{
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
-  Y(free)
-  (pln->psi);
-  Y(free)
-  (pln->u);
+  Y(free)(pln->psi);
+  Y(free)(pln->u);
   /* x/g/f are borrowed caller arrays. */
 }
 static const plan_adt conv_2d_plan_adt = {apply, awake, print, destroy,
                                           apply_adjoint};
 
 /* d == 2 only */
-static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
+static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl)
+{
   const problem_conv *pc = (const problem_conv *)p;
   conv_2d_plan *pln;
   (void)ego;
@@ -159,11 +163,12 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
     return 0;
   if (pc->sz->rnk != 2)
     return 0;
-  if (pc->window < NFFT_WINDOW_KAISER_BESSEL ||
-      pc->window > NFFT_WINDOW_SINC_POWER)
+  if (pc->window < NFFT_WINDOW_KAISER_BESSEL
+      || pc->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* reject Dirac or other invalid ordinals */
 
-  pln = (conv_2d_plan *)Y(plan_create)(sizeof(conv_2d_plan), &conv_2d_plan_adt);
+  pln = (conv_2d_plan *)Y(
+       plan_create)(sizeof(conv_2d_plan), &conv_2d_plan_adt);
   pln->n0 = Y(problem_conv_n)(p, 0);
   pln->n1 = Y(problem_conv_n)(p, 1);
   pln->N0 = Y(problem_conv_N)(p, 0);
@@ -172,7 +177,9 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
   pln->m = pc->m;
   pln->window = pc->window;
   pln->x = pc->x; /* borrowed */
-  pln->psi = (R *)Y(malloc)((size_t)pln->M * 2 * (size_t)(2 * pln->m + 2) * sizeof(R));
+  pln->psi =
+       (R *)Y(
+            malloc)((size_t)pln->M * 2 * (size_t)(2 * pln->m + 2) * sizeof(R));
   pln->u = (INT *)Y(malloc)((size_t)pln->M * 2 * sizeof(INT));
   pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(conv_b_pcost)(p);
@@ -180,6 +187,7 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
 }
 
 static const solver_adt conv_2d_adt = {NFFT_PROBLEM_CONV, 0, mkplan_conv_2d};
-void Y(conv_solver_2d_register)(planner *pl) {
+void Y(conv_solver_2d_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &conv_2d_adt));
 }

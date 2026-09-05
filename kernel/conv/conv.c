@@ -26,60 +26,52 @@
 
 #include <math.h> /* pow */
 
-static void hash(const problem *p, md5 *ctx) {
+static void hash(const problem *p, md5 *ctx)
+{
   const problem_conv *ego = (const problem_conv *)p;
   int t;
-  Y(md5_put_str)
-  (ctx, "conv");
-  Y(md5_put_int)
-  (ctx, ego->sign);
-  Y(tensor_md5)
-  (ctx, ego->sz);
-  Y(tensor_md5)
-  (ctx, ego->vecsz);
-  Y(md5_put_int)
-  (ctx, (int)Y(log2i)(ego->M));
-  Y(md5_put_int)
-  (ctx, ego->m);
+  Y(md5_put_str)(ctx, "conv");
+  Y(md5_put_int)(ctx, ego->sign);
+  Y(tensor_md5)(ctx, ego->sz);
+  Y(tensor_md5)(ctx, ego->vecsz);
+  Y(md5_put_int)(ctx, (int)Y(log2i)(ego->M));
+  Y(md5_put_int)(ctx, ego->m);
   for (t = 0; t < ego->sz->rnk; t++)
-    Y(md5_put_INT)
-  (ctx, ego->N[t]);
-  Y(md5_put_int)
-  (ctx, ego->window);
+    Y(md5_put_INT)(ctx, ego->N[t]);
+  Y(md5_put_int)(ctx, ego->window);
   /* x is not hashed: the key is a size class, not the node data. */
 }
 
 /* Analytical cost: 2 flops per tap, (2m+2)^d taps per node. */
-double Y(conv_b_pcost)(const problem *p) {
+double Y(conv_b_pcost)(const problem *p)
+{
   const problem_conv *pc = (const problem_conv *)p;
   return 2.0 * (double)pc->M
          * pow((double)(2 * pc->m + 2), (double)pc->sz->rnk);
 }
 
-static void print(const problem *p, printer *pr) {
+static void print(const problem *p, printer *pr)
+{
   const problem_conv *ego = (const problem_conv *)p;
   pr->print(pr, "(conv sign=%d m=%d M=%D ", ego->sign, ego->m, ego->M);
-  Y(tensor_print)
-  (ego->sz, pr);
+  Y(tensor_print)(ego->sz, pr);
   pr->putchr(pr, ')');
 }
 
-static void destroy(problem *p) {
+static void destroy(problem *p)
+{
   problem_conv *ego = (problem_conv *)p;
-  Y(tensor_destroy)
-  (ego->sz);
-  Y(tensor_destroy)
-  (ego->vecsz);
-  Y(free)
-  (ego->N);
+  Y(tensor_destroy)(ego->sz);
+  Y(tensor_destroy)(ego->vecsz);
+  Y(free)(ego->N);
   /* x is a borrowed caller array */
 }
 
-static const problem_adt conv_adt = {
-    NFFT_PROBLEM_CONV, hash, print, destroy};
+static const problem_adt conv_adt = {NFFT_PROBLEM_CONV, hash, print, destroy};
 
 problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
-                           int window, int sign, R *x, C *g, C *f) {
+                        int window, int sign, R *x, C *g, C *f)
+{
   problem_conv *ego;
   tensor *grid;
   int t;
@@ -117,19 +109,22 @@ problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
   return (problem *)ego;
 }
 
-INT Y(problem_conv_n)(const problem *p, int t) {
+INT Y(problem_conv_n)(const problem *p, int t)
+{
   const problem_conv *ego = (const problem_conv *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->sz->dims[t].n_in; /* square: n_in == n_out == n_t */
 }
 
-INT Y(problem_conv_N)(const problem *p, int t) {
+INT Y(problem_conv_N)(const problem *p, int t)
+{
   const problem_conv *ego = (const problem_conv *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->N[t];
 }
 
-INT Y(problem_conv_ntot)(const problem *p) {
+INT Y(problem_conv_ntot)(const problem *p)
+{
   const problem_conv *ego = (const problem_conv *)p;
   return Y(tensor_sz_in)(ego->sz);
 }

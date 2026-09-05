@@ -23,7 +23,8 @@
 /* Refcounted solver base type: a stateless recipe. Callers embed it as the
  * first member of a larger struct and pass the total size here. */
 
-solver *Y(solver_create)(size_t size, const solver_adt *adt) {
+solver *Y(solver_create)(size_t size, const solver_adt *adt)
+{
   solver *ego = (solver *)Y(malloc)(size); /* Y(malloc) dies on OOM */
   A(size >= sizeof(solver));
   ego->adt = adt;
@@ -31,19 +32,20 @@ solver *Y(solver_create)(size_t size, const solver_adt *adt) {
   return ego;
 }
 
-void Y(solver_use)(solver *ego) {
+void Y(solver_use)(solver *ego)
+{
   A(ego != 0);
   ego->refcnt++;
 }
 
-void Y(solver_destroy)(solver *ego) {
+void Y(solver_destroy)(solver *ego)
+{
   if (ego == 0)
     return;
   A(ego->refcnt > 0);
   if (--ego->refcnt == 0) {
     if (ego->adt->destroy != 0)
       ego->adt->destroy(ego);
-    Y(free)
-    (ego);
+    Y(free)(ego);
   }
 }

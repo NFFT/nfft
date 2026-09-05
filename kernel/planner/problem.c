@@ -24,7 +24,8 @@
  * problems embed this struct as their first member and pass the total size
  * here; the adt supplies the hash/print/destroy hooks. */
 
-problem *Y(problem_create)(size_t size, const problem_adt *adt) {
+problem *Y(problem_create)(size_t size, const problem_adt *adt)
+{
   problem *p = (problem *)Y(malloc)(size);
   A(size >= sizeof(problem));
   p->adt = adt;
@@ -33,10 +34,10 @@ problem *Y(problem_create)(size_t size, const problem_adt *adt) {
 
 /* adt->destroy frees the problem's owned members, then the base is freed here.
  * It may be NULL for a problem that owns nothing beyond the base. */
-void Y(problem_destroy)(problem *p) {
+void Y(problem_destroy)(problem *p)
+{
   A(p != 0);
   if (p->adt->destroy != 0)
     p->adt->destroy(p);
-  Y(free)
-  (p);
+  Y(free)(p);
 }

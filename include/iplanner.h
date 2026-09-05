@@ -36,11 +36,10 @@ typedef unsigned long md5uint; /* >= 32 value bits per the C standard */
 
 typedef md5uint md5sig[4];
 
-typedef struct
-{
-  md5sig s;              /* running state; after md5_end: the digest words */
+typedef struct {
+  md5sig s; /* running state; after md5_end: the digest words */
   unsigned char buf[64]; /* private: bytes not yet processed */
-  unsigned len;          /* private: total bytes fed so far */
+  unsigned len; /* private: total bytes fed so far */
 } md5;
 
 void Y(md5_begin)(md5 *ctx);
@@ -64,8 +63,8 @@ struct printer_s {
   int indent_step;
 };
 
-printer *Y(printer_create)(size_t size,
-                           void (*putchr)(printer *p, char c), void (*cleanup)(printer *p));
+printer *Y(printer_create)(size_t size, void (*putchr)(printer *p, char c),
+                        void (*cleanup)(printer *p));
 void Y(printer_destroy)(printer *p);
 printer *Y(printer_create_file)(FILE *f);
 printer *Y(printer_create_str)(char *buf);
@@ -104,8 +103,7 @@ typedef struct problem_s problem;
 typedef struct plan_s plan;
 
 /* problem: hashable description of work ("what") */
-typedef struct
-{
+typedef struct {
   int kind; // problem kind
   void (*hash)(const problem *p, md5 *ctx);
   void (*print)(const problem *p, printer *pr);
@@ -131,13 +129,14 @@ enum {
   PLNR_AWAKE = 2 // may execute, results correct
 };
 
-typedef struct
-{
+typedef struct {
   void (*apply)(const plan *ego, const problem *p); // forward transform
   void (*awake)(plan *ego, int wakefulness); // may be null
   void (*print)(const plan *ego, printer *pr);
   void (*destroy)(plan *ego); // may be null
-  void (*apply_adjoint)(const plan *ego, const problem *p);  // may be null (unsupported direction)
+  void (*apply_adjoint)(
+       const plan *ego,
+       const problem *p); // may be null (unsupported direction)
 } plan_adt;
 
 struct plan_s {
@@ -154,9 +153,11 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
 /* timer.c */
 
 /* Timing-loop constants; the tick-mode floor is cycle.h's TIME_MIN (timer.c). */
-#define PLNR_TIME_MIN_SLOW_SECONDS 1.0e-3 /* accept floor in the slow-timer fallback */
-#define PLNR_TIME_REPEAT 8                /* best-of batches per doubling level */
-#define PLNR_TIME_LIMIT_SECONDS 2.0       /* per-candidate wall budget (budget clock) */
+#define PLNR_TIME_MIN_SLOW_SECONDS                                            \
+  1.0e-3 /* accept floor in the slow-timer fallback */
+#define PLNR_TIME_REPEAT 8 /* best-of batches per doubling level */
+#define PLNR_TIME_LIMIT_SECONDS                                               \
+  2.0 /* per-candidate wall budget (budget clock) */
 
 /* Estimate gate of the measured race: a candidate whose analytic pcost exceeds
  * PLNR_PRUNE_RATIO times the cheapest candidate's pcost is not timed. The NFFT
@@ -175,8 +176,7 @@ double Y(plan_measure_cost)(plan *pln, const problem *p);
 typedef struct solver_s solver;
 typedef struct planner_s planner;
 
-typedef struct
-{
+typedef struct {
   int problem_kind;
   void (*destroy)(solver *ego); /* may be NULL */
   /* return a plan with pcost set, or NULL when not applicable;
@@ -190,8 +190,8 @@ struct solver_s {
 };
 
 solver *Y(solver_create)(size_t size, const solver_adt *adt); /* refcnt = 0 */
-void Y(solver_use)(solver *ego);                              /* ++refcnt */
-void Y(solver_destroy)(solver *ego);                          /* --refcnt; at 0: adt->destroy, free */
+void Y(solver_use)(solver *ego); /* ++refcnt */
+void Y(solver_destroy)(solver *ego); /* --refcnt; at 0: adt->destroy, free */
 
 #define REGISTER_SOLVER(pl, s) Y(planner_register_solver)(pl, s)
 
@@ -202,37 +202,35 @@ struct solvtab_s {
 };
 typedef struct solvtab_s solvtab[];
 void Y(solvtab_exec)(const solvtab tbl, planner *pl);
-#define SOLVTAB(s)  \
-  {                 \
-    s, STRINGIZE(s) \
+#define SOLVTAB(s)                                                            \
+  {                                                                           \
+    s, STRINGIZE(s)                                                           \
   }
-#define SOLVTAB_END \
-  {                 \
-    0, 0            \
+#define SOLVTAB_END                                                           \
+  {                                                                           \
+    0, 0                                                                      \
   }
 
 /* planner.c */
-typedef struct
-{
+typedef struct {
   solver *slv;
   const char *reg_nam; /* registrar name */
-  unsigned nam_hash;   /* reg_nam_hash(reg_nam), avoids strcmp on import */
-  int reg_id;          /* ordinal within one registrar, 0-based */
-  int next_same_kind;  /* per-kind chain, -1 terminates */
+  unsigned nam_hash; /* reg_nam_hash(reg_nam), avoids strcmp on import */
+  int reg_id; /* ordinal within one registrar, 0-based */
+  int next_same_kind; /* per-kind chain, -1 terminates */
 } slvdesc;
 
 /* Impatience bounds (l, u) over the flags below; lattice order LEQ.
  * A solution with bounds (l, u) asserts: every component of the winning
  * plan is at least as impatient as l, and the search tried every solver
  * at least as impatient as u.  Solutions maintain LEQ(l, u). */
-typedef struct
-{
-  unsigned l : 16;             /* lower impatience bound */
-  unsigned info : 3;           /* PLNR_BLESSING | PLNR_H_VALID | PLNR_H_LIVE */
+typedef struct {
+  unsigned l : 16; /* lower impatience bound */
+  unsigned info : 3; /* PLNR_BLESSING | PLNR_H_VALID | PLNR_H_LIVE */
   unsigned timelimit_imp : 12; /* time-limit impatience */
-  unsigned u : 16;             /* upper impatience bound */
-  unsigned slvndx : 16;        /* winning solver index, or INFEASIBLE_SLVNDX */
-} flags_t;                     /* packs into 64 bits */
+  unsigned u : 16; /* upper impatience bound */
+  unsigned slvndx : 16; /* winning solver index, or INFEASIBLE_SLVNDX */
+} flags_t; /* packs into 64 bits */
 
 /* NFFT impatience bits. Bounds convention: PLNR_ESTIMATE rides in u ONLY —
  * estimate query/memo {l = F, u = PLNR_ESTIMATE | F}, measured
@@ -251,31 +249,26 @@ enum {
 /* hashtable slot information */
 enum {
   PLNR_BLESSING = 0x1u, /* persist this entry */
-  PLNR_H_VALID = 0x2u,  /* slot has been used */
-  PLNR_H_LIVE = 0x4u    /* slot holds a live entry (implies PLNR_H_VALID) */
+  PLNR_H_VALID = 0x2u, /* slot has been used */
+  PLNR_H_LIVE = 0x4u /* slot holds a live entry (implies PLNR_H_VALID) */
 };
 
 /* x <= y in the impatience lattice */
 #define LEQ(x, y) (((x) & (y)) == (x))
 #define INFEASIBLE_SLVNDX 0xFFFFu
 
-typedef enum {
-  PLNR_FORGET_UNBLESSED,
-  PLNR_FORGET_ALL
-} amnesia;
+typedef enum { PLNR_FORGET_UNBLESSED, PLNR_FORGET_ALL } amnesia;
 
-typedef struct
-{
-  md5sig s;      /* the problem key */
+typedef struct {
+  md5sig s; /* the problem key */
   flags_t flags; /* bounds + info + winning solver */
 } solution;
 
-typedef struct
-{
+typedef struct {
   solution *entries;
-  unsigned size;  /* table capacity; always a prime >= 2 */
+  unsigned size; /* table capacity; always a prime >= 2 */
   unsigned nelem; /* live entries */
-  int nrehash;    /* growth counter (observability/tests) */
+  int nrehash; /* growth counter (observability/tests) */
 } hashtab;
 
 struct planner_s {
@@ -298,7 +291,7 @@ void Y(planner_export)(planner *pl, printer *p);
 int Y(planner_import)(planner *pl, scanner *sc);
 solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q);
 void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
-                        unsigned slvndx);
+                     unsigned slvndx);
 
 /* the planner's current impatience bounds */
 #define PLNR_L(pl) ((pl)->flags.l)
@@ -325,7 +318,7 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p);
  * bounds: store up to cap (plan, descriptor-index) pairs; return the count.
  * No wisdom lookup, no memoisation, no store mutation. */
 int Y(planner_candidates)(planner *pl, const problem *p, plan **plans,
-                          unsigned *slvndx, int cap);
+                       unsigned *slvndx, int cap);
 
 /* Bless a winning solver for p under the planner's current bounds. */
 void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx);
@@ -336,25 +329,25 @@ void Y(the_planner_destroy)(void); /* safe when absent; next call recreates */
 /* creation generation of the global planner. */
 unsigned Y(the_planner_generation)(void);
 
-#define FORALL_SOLVERS(pl, s, d, what)              \
-  {                                                 \
-    unsigned _cnt;                                  \
-    for (_cnt = 0; _cnt < (pl)->nslvdesc; ++_cnt) { \
-      slvdesc *d = (pl)->slvdescs + _cnt;           \
-      solver *s = d->slv;                           \
-      what;                                         \
-    }                                               \
+#define FORALL_SOLVERS(pl, s, d, what)                                        \
+  {                                                                           \
+    unsigned _cnt;                                                            \
+    for (_cnt = 0; _cnt < (pl)->nslvdesc; ++_cnt) {                           \
+      slvdesc *d = (pl)->slvdescs + _cnt;                                     \
+      solver *s = d->slv;                                                     \
+      what;                                                                   \
+    }                                                                         \
   }
 
-#define FORALL_SOLVERS_OF_KIND(kind, pl, s, d, what) \
-  {                                                  \
-    int _cnt = (pl)->kind_head[kind];                \
-    while (_cnt >= 0) {                              \
-      slvdesc *d = (pl)->slvdescs + _cnt;            \
-      solver *s = d->slv;                            \
-      what;                                          \
-      _cnt = d->next_same_kind;                      \
-    }                                                \
+#define FORALL_SOLVERS_OF_KIND(kind, pl, s, d, what)                          \
+  {                                                                           \
+    int _cnt = (pl)->kind_head[kind];                                         \
+    while (_cnt >= 0) {                                                       \
+      slvdesc *d = (pl)->slvdescs + _cnt;                                     \
+      solver *s = d->slv;                                                     \
+      what;                                                                   \
+      _cnt = d->next_same_kind;                                               \
+    }                                                                         \
   }
 
 /* tensor.c */
@@ -364,20 +357,18 @@ unsigned Y(the_planner_generation)(void);
  * strided output vector (stride os). Input and output lengths differ in
  * general; the square case n_in == n_out is a state, not a separate type
  * (mvdim_square, tensor_squarep). */
-typedef struct
-{
-  INT n_in;  /* input length  (matrix columns), >= 1 */
-  INT is;    /* input stride */
+typedef struct {
+  INT n_in; /* input length  (matrix columns), >= 1 */
+  INT is; /* input stride */
   INT n_out; /* output length (matrix rows), >= 1 */
-  INT os;    /* output stride */
+  INT os; /* output stride */
 } mvdim;
 
 /* rnk factors denote A_0 (x) ... (x) A_{rnk-1} (Kronecker product);
  * rnk == 0 is the scalar identity. Factor order is not semantically
  * significant (strides carry the layout); tensor_compress canonicalises. */
-typedef struct
-{
-  int rnk;     /* number of factors, >= 0 */
+typedef struct {
+  int rnk; /* number of factors, >= 0 */
   mvdim *dims; /* rnk entries; not used when rnk == 0 */
 } tensor;
 
@@ -399,31 +390,31 @@ void Y(tensor_print)(const tensor *t, printer *p);
 
 /* NFFT kind */
 
-typedef struct
-{
-  problem super;       /* kind NFFT_PROBLEM_NFFT */
-  tensor *sz;          /* size of frequency tensor in caller axis order, oriented in
+typedef struct {
+  problem super; /* kind NFFT_PROBLEM_NFFT */
+  tensor *sz; /* size of frequency tensor in caller axis order, oriented in
                           the direction of dataflow: forward N_t -> n_t; adjoint
                           is tensor_adjoint of that. */
-  tensor *vecsz;       /* batching loops */
-  INT M;               /* node count in time/space domain */
-  int m;               /* window cutoff */
-  int window;          /* NFFT_WINDOW_* ordinal */
-  int sign;            /* +1 = forward, -1 = adjoint */
+  tensor *vecsz; /* batching loops */
+  INT M; /* node count in time/space domain */
+  int m; /* window cutoff */
+  int window; /* NFFT_WINDOW_* ordinal */
+  int sign; /* +1 = forward, -1 = adjoint */
   unsigned fftw_flags; /* child FFTW planner flags; 0 = derive */
-  R *x;                /* nodes in time/space domain. */
-  C *f_hat;            /* Fourier coefficients (caller-owned) */
-  C *f;                /* function values at the nodes (caller-owned) */
-  int *variant;        /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
+  R *x; /* nodes in time/space domain. */
+  C *f_hat; /* Fourier coefficients (caller-owned) */
+  C *f; /* function values at the nodes (caller-owned) */
+  int *variant; /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
                           axis order; odd axes only have one variant by definition,
                           so normalized to TYPE_I. */
-  int x_owned;         /* 1: x is this problem's private copy;
+  int x_owned; /* 1: x is this problem's private copy;
                           0: x is borrowed from a parent problem. */
 } problem_nfft;
 
-problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
-                           const INT *n, INT M, int m, int window, int sign,
-                           unsigned fftw_flags, R *x, int copy_x, C *f_hat, C *f);
+problem *
+     Y(mkproblem_nfft)(int d, const INT *N, const int *variant, const INT *n,
+                        INT M, int m, int window, int sign,
+                        unsigned fftw_flags, R *x, int copy_x, C *f_hat, C *f);
 
 /* direction-aware accessors */
 INT Y(problem_nfft_N)(const problem *p, int t);
@@ -467,7 +458,7 @@ int Y(nfft_fast_guards_ok)(const problem *p, int m);
 
 /* Solver plans. */
 struct Y(plan_ng_s);
-void Y(plan_ng_print)(struct Y(plan_ng_s) * p, printer *pr);
+void Y(plan_ng_print)(struct Y(plan_ng_s) *p, printer *pr);
 
 /* The compile-time-selected window. */
 int Y(get_window_id)(void);
@@ -479,34 +470,34 @@ R Y(window_phi)(int window, INT n, INT N, int m, R x);
 /* Bulk window evaluation: phi_hut_apply fills the frequency band
  * k0..k0+count-1 (DECONV); phi_precompute writes the strided per-node psi
  * table, owning the c = floor(n*x) centering and the 2m+2 tap loop (CONV). */
-void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
-                             R *out, INT count);
-void Y(window_phi_precompute)(int window, INT n, INT N, int m,
-                              const R *x, INT x_stride, INT num_nodes,
-                              R *out, INT out_stride);
+void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0, R *out,
+                          INT count);
+void Y(window_phi_precompute)(int window, INT n, INT N, int m, const R *x,
+                           INT x_stride, INT num_nodes, R *out,
+                           INT out_stride);
 
 /* NFFT deconvolution. Maps the input frequency tensor onto the oversampled grid,
  * dividing by the window's Fourier coefficients. Step is node-independent. */
-typedef struct
-{
+typedef struct {
   problem super; /* kind NFFT_PROBLEM_DECONV */
-  tensor *sz;    /* size of frequency tensor in caller axis order, oriented in
+  tensor *sz; /* size of frequency tensor in caller axis order, oriented in
                           the direction of dataflow: forward N_t -> n_t; adjoint
                           is tensor_adjoint of that. */
   tensor *vecsz; /* batching loops */
-  int m;         /* window cutoff */
-  int window;    /* NFFT_WINDOW_* ordinal */
-  int sign;      /* +1 = deconvolve+zero-pad f_hat->g, -1 = adjoint g->f_hat */
-  int *variant;  /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
+  int m; /* window cutoff */
+  int window; /* NFFT_WINDOW_* ordinal */
+  int sign; /* +1 = deconvolve+zero-pad f_hat->g, -1 = adjoint g->f_hat */
+  int *variant; /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
                     axis order; odd axes only have one variant by definition,
                     so normalized to TYPE_I. */
-  C *f_hat;      /* borrowed in (parent's f_hat) */
-  C *g;          /* borrowed out */
+  C *f_hat; /* borrowed in (parent's f_hat) */
+  C *g; /* borrowed out */
 } problem_deconv;
 
-problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
-                             const INT *n, int m, int window, int sign,
-                             C *f_hat, C *g);
+problem *
+     Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
+                          const INT *n, int m, int window, int sign, C *f_hat,
+                          C *g);
 INT Y(problem_deconv_N)(const problem *p, int t);
 INT Y(problem_deconv_n)(const problem *p, int t);
 INT Y(problem_deconv_Ntot)(const problem *p);
@@ -519,24 +510,23 @@ void Y(deconv_ensure_registered)(void);
 
 /* NFFT convolution. Maps the oversampled grid to the nonequispaced node samples
  * via the window convolution. */
-typedef struct
-{
+typedef struct {
   problem super; /* kind NFFT_PROBLEM_CONV */
-  tensor *sz;    /* square grid n_t -> n_t */
+  tensor *sz; /* square grid n_t -> n_t */
   tensor *vecsz; /* batching loops */
-  INT *N;        /* per-axis bandwidth; geometry, needed for the KB shape
+  INT *N; /* per-axis bandwidth; geometry, needed for the KB shape
                   * parameter b_t = pi(2 - N_t/n_t) */
-  INT M;         /* node count */
-  int m;         /* window cutoff */
-  int window;    /* NFFT_WINDOW_* ordinal */
-  int sign;      /* +1 = g->f, -1 = adjoint f->g */
-  R *x;          /* caller-owned nodes */
-  C *g;          /* borrowed in */
-  C *f;          /* borrowed out */
+  INT M; /* node count */
+  int m; /* window cutoff */
+  int window; /* NFFT_WINDOW_* ordinal */
+  int sign; /* +1 = g->f, -1 = adjoint f->g */
+  R *x; /* caller-owned nodes */
+  C *g; /* borrowed in */
+  C *f; /* borrowed out */
 } problem_conv;
 
 problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
-                           int window, int sign, R *x, C *g, C *f);
+                        int window, int sign, R *x, C *g, C *f);
 INT Y(problem_conv_n)(const problem *p, int t);
 INT Y(problem_conv_N)(const problem *p, int t);
 INT Y(problem_conv_ntot)(const problem *p);

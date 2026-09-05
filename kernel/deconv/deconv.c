@@ -24,60 +24,55 @@
 #include "deconv.h"
 
 /* Analytical cost: 2 flops per frequency, over all d axes. */
-double Y(deconv_d_pcost)(const problem *p) {
+double Y(deconv_d_pcost)(const problem *p)
+{
   INT Ntot = Y(problem_deconv_Ntot)(p);
   return 2.0 * (double)Ntot;
 }
 
-static void hash(const problem *p, md5 *ctx) {
+static void hash(const problem *p, md5 *ctx)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   int t;
-  Y(md5_put_str)
-  (ctx, "deconv");
-  Y(md5_put_int)
-  (ctx, ego->sign);
-  Y(tensor_md5)
-  (ctx, ego->sz);
-  Y(tensor_md5)
-  (ctx, ego->vecsz);
+  Y(md5_put_str)(ctx, "deconv");
+  Y(md5_put_int)(ctx, ego->sign);
+  Y(tensor_md5)(ctx, ego->sz);
+  Y(tensor_md5)(ctx, ego->vecsz);
   for (t = 0; t < ego->sz->rnk; t++)
-    Y(md5_put_int)
-  (ctx, ego->variant[t]);
-  Y(md5_put_int)
-  (ctx, ego->m);
-  Y(md5_put_int)
-  (ctx, ego->window);
+    Y(md5_put_int)(ctx, ego->variant[t]);
+  Y(md5_put_int)(ctx, ego->m);
+  Y(md5_put_int)(ctx, ego->window);
   /* No M, no x, no fftw_flags: Step A is node- and FFT-independent. */
 }
 
-static void print(const problem *p, printer *pr) {
+static void print(const problem *p, printer *pr)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   int t;
   pr->print(pr, "(deconv sign=%d m=%d ", ego->sign, ego->m);
-  Y(tensor_print)
-  (ego->sz, pr);
+  Y(tensor_print)(ego->sz, pr);
   pr->print(pr, " variant=");
   for (t = 0; t < ego->sz->rnk; t++)
     pr->print(pr, "%d", ego->variant[t]);
   pr->putchr(pr, ')');
 }
 
-static void destroy(problem *p) {
+static void destroy(problem *p)
+{
   problem_deconv *ego = (problem_deconv *)p;
-  Y(tensor_destroy)
-  (ego->sz);
-  Y(tensor_destroy)
-  (ego->vecsz);
-  Y(free)
-  (ego->variant);
+  Y(tensor_destroy)(ego->sz);
+  Y(tensor_destroy)(ego->vecsz);
+  Y(free)(ego->variant);
 }
 
-static const problem_adt deconv_adt = {
-    NFFT_PROBLEM_DECONV, hash, print, destroy};
+static const problem_adt deconv_adt = {NFFT_PROBLEM_DECONV, hash, print,
+                                       destroy};
 
-problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
-                             const INT *n, int m, int window, int sign,
-                             C *f_hat, C *g) {
+problem *
+Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
+                          const INT *n, int m, int window, int sign, C *f_hat,
+                          C *g)
+{
   problem_deconv *ego;
   tensor *fwd;
   int t;
@@ -102,12 +97,12 @@ problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
     }
   }
 
-  ego = (problem_deconv *)Y(problem_create)(sizeof(problem_deconv), &deconv_adt);
+  ego = (problem_deconv *)Y(
+       problem_create)(sizeof(problem_deconv), &deconv_adt);
 
   if (sign == -1) {
     tensor *adj = Y(tensor_adjoint)(fwd);
-    Y(tensor_destroy)
-    (fwd);
+    Y(tensor_destroy)(fwd);
     ego->sz = adj;
   } else
     ego->sz = fwd;
@@ -127,35 +122,40 @@ problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
   }
 
   ego->f_hat = f_hat; /* borrowed alias */
-  ego->g = g;         /* borrowed alias */
+  ego->g = g; /* borrowed alias */
 
   return (problem *)ego;
 }
 
 /* direction-aware accessors: N_t = n_in when forward, n_out when adjoint. */
-INT Y(problem_deconv_N)(const problem *p, int t) {
+INT Y(problem_deconv_N)(const problem *p, int t)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->sign == 1 ? ego->sz->dims[t].n_in : ego->sz->dims[t].n_out;
 }
 
-INT Y(problem_deconv_n)(const problem *p, int t) {
+INT Y(problem_deconv_n)(const problem *p, int t)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->sign == 1 ? ego->sz->dims[t].n_out : ego->sz->dims[t].n_in;
 }
 
-INT Y(problem_deconv_Ntot)(const problem *p) {
+INT Y(problem_deconv_Ntot)(const problem *p)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   return ego->sign == 1 ? Y(tensor_sz_in)(ego->sz) : Y(tensor_sz_out)(ego->sz);
 }
 
-INT Y(problem_deconv_ntot)(const problem *p) {
+INT Y(problem_deconv_ntot)(const problem *p)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   return ego->sign == 1 ? Y(tensor_sz_out)(ego->sz) : Y(tensor_sz_in)(ego->sz);
 }
 
-int Y(problem_deconv_variant)(const problem *p, int t) {
+int Y(problem_deconv_variant)(const problem *p, int t)
+{
   const problem_deconv *ego = (const problem_deconv *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->variant[t];

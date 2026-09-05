@@ -27,18 +27,18 @@ static const solvtab deconv_roster = {SOLVTAB(Y(deconv_solver_1d_register)),
                                       SOLVTAB(Y(deconv_solver_nd_register)),
                                       SOLVTAB_END};
 
-void Y(deconv_solvers_register)(planner *pl) {
-  Y(solvtab_exec)
-  (deconv_roster, pl);
+void Y(deconv_solvers_register)(planner *pl)
+{
+  Y(solvtab_exec)(deconv_roster, pl);
 }
 
-void Y(deconv_ensure_registered)(void) {
+void Y(deconv_ensure_registered)(void)
+{
   static unsigned gen = 0;
   planner *pl = Y(the_planner)();
   unsigned g = Y(the_planner_generation)();
   if (g != gen) {
-    Y(deconv_solvers_register)
-    (pl);
+    Y(deconv_solvers_register)(pl);
     gen = g;
   }
 }

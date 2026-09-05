@@ -34,7 +34,8 @@
  * iff
  *   a feasible:   LEQ(a.u, q.u) && LEQ(q.l, a.l)
  *   a infeasible: LEQ(a.l, q.l) && a.timelimit_imp <= q.timelimit_imp */
-static int subsumes(const flags_t *a, const flags_t *q) {
+static int subsumes(const flags_t *a, const flags_t *q)
+{
   if (a->slvndx != INFEASIBLE_SLVNDX) {
     /* Feasible solutions always have timelimit_imp == 0. */
     A(a->timelimit_imp == 0);
@@ -43,12 +44,14 @@ static int subsumes(const flags_t *a, const flags_t *q) {
   return LEQ(a->l, q->l) && a->timelimit_imp <= q->timelimit_imp;
 }
 
-static int sig_eq(const md5sig a, const md5sig b) {
+static int sig_eq(const md5sig a, const md5sig b)
+{
   return a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3];
 }
 
 /* A prime capacity >= 2, every slot invalid. */
-static void fresh_table(hashtab *t, unsigned size) {
+static void fresh_table(hashtab *t, unsigned size)
+{
   A(size >= 2);
   t->size = size;
   t->nelem = 0;
@@ -58,9 +61,9 @@ static void fresh_table(hashtab *t, unsigned size) {
   memset(t->entries, 0, (size_t)size * sizeof(solution));
 }
 
-static void free_table(hashtab *t) {
-  Y(free)
-  (t->entries);
+static void free_table(hashtab *t)
+{
+  Y(free)(t->entries);
   t->entries = 0;
   t->size = 0;
   t->nelem = 0;
@@ -68,17 +71,20 @@ static void free_table(hashtab *t) {
 
 /* Double hashing. A kill marks a slot dead but still valid, so a probe chain
  * ends at the first slot that was never written. */
-static unsigned probe_start(const md5sig s, unsigned size) {
+static unsigned probe_start(const md5sig s, unsigned size)
+{
   return (unsigned)(s[0] % size);
 }
 
-static unsigned probe_step(const md5sig s, unsigned size) {
+static unsigned probe_step(const md5sig s, unsigned size)
+{
   return 1u + (unsigned)(s[1] % (size - 1u));
 }
 
 /* Place sol at the first non-live slot on its probe chain, no subsumption
  * check. Caller must guarantee room (rehash, post-growth insert). */
-static void raw_place(hashtab *t, const solution *sol) {
+static void raw_place(hashtab *t, const solution *sol)
+{
   unsigned h = probe_start(sol->s, t->size);
   unsigned step = probe_step(sol->s, t->size);
   unsigned k;
@@ -96,7 +102,8 @@ static void raw_place(hashtab *t, const solution *sol) {
 }
 
 /* Grow to newsize, re-inserting the live entries only. */
-static void rehash(hashtab *t, unsigned newsize) {
+static void rehash(hashtab *t, unsigned newsize)
+{
   solution *old = t->entries;
   unsigned oldsize = t->size;
   unsigned live = t->nelem;
@@ -113,13 +120,13 @@ static void rehash(hashtab *t, unsigned newsize) {
 
   t->nelem = live;
   t->nrehash++;
-  Y(free)
-  (old);
+  Y(free)(old);
 }
 
 /* Keep size > nelem + nelem/8 (load factor below ~8/9) after the pending
  * insert, so at least one non-live slot remains and probe loops terminate. */
-static void maybe_grow(hashtab *t) {
+static void maybe_grow(hashtab *t)
+{
   unsigned need = t->nelem + 1u; /* live count after the pending insert */
   if (t->size > need + need / 8u)
     return;
@@ -134,7 +141,8 @@ static void maybe_grow(hashtab *t) {
 
 /* Search one table for a live matching-key entry subsuming q; among those,
  * return one minimal in u under the LEQ order. NULL if none. */
-static solution *table_lookup(hashtab *t, const md5sig s, const flags_t *q) {
+static solution *table_lookup(hashtab *t, const md5sig s, const flags_t *q)
+{
   unsigned h = probe_start(s, t->size);
   unsigned step = probe_step(s, t->size);
   unsigned k;
@@ -143,7 +151,8 @@ static solution *table_lookup(hashtab *t, const md5sig s, const flags_t *q) {
     solution *slot = t->entries + h;
     if (!(slot->flags.info & PLNR_H_VALID))
       break;
-    if ((slot->flags.info & PLNR_H_LIVE) && sig_eq(slot->s, s) && subsumes(&slot->flags, q)) {
+    if ((slot->flags.info & PLNR_H_LIVE) && sig_eq(slot->s, s)
+        && subsumes(&slot->flags, q)) {
       if (best == 0 || LEQ(slot->flags.u, best->flags.u))
         best = slot;
     }
@@ -157,7 +166,8 @@ static solution *table_lookup(hashtab *t, const md5sig s, const flags_t *q) {
 /* The returned pointer aims into a table's entries array and dies at the next
  * insert (which may rehash) or forget. Consume it before mutating the store;
  * a search loop must copy what it needs, not hold the pointer. */
-solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q) {
+solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q)
+{
   solution *sol = table_lookup(&pl->htab_blessed, s, q);
   if (sol != 0)
     return sol;
@@ -165,9 +175,10 @@ solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q) {
 }
 
 void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
-                        unsigned slvndx) {
-  hashtab *t = (f->info & PLNR_BLESSING) ? &pl->htab_blessed
-                                         : &pl->htab_unblessed;
+                     unsigned slvndx)
+{
+  hashtab *t = (f->info & PLNR_BLESSING) ? &pl->htab_blessed :
+                                           &pl->htab_unblessed;
   solution newsol;
   unsigned h, step, k;
   int first_killed = -1;
@@ -220,12 +231,14 @@ void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
   }
 }
 
-static void reset_table(hashtab *t) {
+static void reset_table(hashtab *t)
+{
   free_table(t);
   fresh_table(t, PLNR_INITIAL_TABLE_SIZE);
 }
 
-void Y(planner_forget)(planner *pl, amnesia a) {
+void Y(planner_forget)(planner *pl, amnesia a)
+{
   reset_table(&pl->htab_unblessed);
   if (a == PLNR_FORGET_ALL)
     reset_table(&pl->htab_blessed);
@@ -240,23 +253,19 @@ void Y(planner_forget)(planner *pl, amnesia a) {
  * in registration order. A wisdom file is honoured only by a library whose
  * registry reproduces this signature; a mismatch rejects the import instead of
  * yielding a wrong plan. */
-static void config_signature(planner *pl, md5sig out) {
+static void config_signature(planner *pl, md5sig out)
+{
   md5 m;
   unsigned i;
 
-  Y(md5_begin)
-  (&m);
-  Y(md5_put_unsigned)
-  (&m, (unsigned)sizeof(R));
+  Y(md5_begin)(&m);
+  Y(md5_put_unsigned)(&m, (unsigned)sizeof(R));
   for (i = 0; i < pl->nslvdesc; i++) {
     slvdesc *d = pl->slvdescs + i;
-    Y(md5_put_int)
-    (&m, d->reg_id);
-    Y(md5_put_str)
-    (&m, d->reg_nam ? d->reg_nam : "");
+    Y(md5_put_int)(&m, d->reg_id);
+    Y(md5_put_str)(&m, d->reg_nam ? d->reg_nam : "");
   }
-  Y(md5_end)
-  (&m);
+  Y(md5_end)(&m);
   out[0] = m.s[0];
   out[1] = m.s[1];
   out[2] = m.s[2];
@@ -266,7 +275,8 @@ static void config_signature(planner *pl, md5sig out) {
 /* Deterministic string hash pre-filtering registrar-name comparisons on wisdom
  * import. Depends on every character of s; no length cap. Quality is
  * uncritical -- it only avoids a strcmp, never decides correctness. */
-static unsigned reg_nam_hash(const char *s) {
+static unsigned reg_nam_hash(const char *s)
+{
   unsigned h = 5381u;
   const unsigned char *p = (const unsigned char *)s;
   while (*p != '\0') {
@@ -280,26 +290,29 @@ static unsigned reg_nam_hash(const char *s) {
  * Returns INFEASIBLE_SLVNDX on a miss; a real index is always strictly below
  * it (asserted at registration), so the importer reads that as "unknown
  * solver" unambiguously. */
-static unsigned resolve_slvndx(planner *pl, const char *name, int id) {
+static unsigned resolve_slvndx(planner *pl, const char *name, int id)
+{
   unsigned h = reg_nam_hash(name);
   unsigned i;
 
   for (i = 0; i < pl->nslvdesc; i++) {
     slvdesc *d = pl->slvdescs + i;
-    if (d->nam_hash == h && d->reg_nam != 0 && strcmp(d->reg_nam, name) == 0 && d->reg_id == id)
+    if (d->nam_hash == h && d->reg_nam != 0 && strcmp(d->reg_nam, name) == 0
+        && d->reg_id == id)
       return i;
   }
   return INFEASIBLE_SLVNDX;
 }
 
-void Y(planner_export)(planner *pl, printer *p) {
+void Y(planner_export)(planner *pl, printer *p)
+{
   hashtab *t = &pl->htab_blessed;
   md5sig cfg;
   unsigned i;
 
   config_signature(pl, cfg);
-  p->print(p, "(%s #x%w #x%w #x%w #x%w", WISDOM_PREAMBLE, cfg[0], cfg[1], cfg[2],
-           cfg[3]);
+  p->print(p, "(%s #x%w #x%w #x%w #x%w", WISDOM_PREAMBLE, cfg[0], cfg[1],
+           cfg[2], cfg[3]);
 
   /* One line per live blessed entry, in table-slot order. */
   for (i = 0; i < t->size; i++) {
@@ -327,7 +340,8 @@ void Y(planner_export)(planner *pl, printer *p) {
   p->print(p, "\n)");
 }
 
-int Y(planner_import)(planner *pl, scanner *sc) {
+int Y(planner_import)(planner *pl, scanner *sc)
+{
   hashtab *t = &pl->htab_blessed;
   hashtab snap;
   char token[64];
@@ -367,8 +381,8 @@ int Y(planner_import)(planner *pl, scanner *sc) {
       goto malformed;
 
     if (!sc->scan(sc, "%*s %d #x%x #x%x #x%x #x%w #x%w #x%w #x%w)",
-                  (int)sizeof(name) - 1, name, &id, &l, &u, &tli, &s0, &s1, &s2,
-                  &s3))
+                  (int)sizeof(name) - 1, name, &id, &l, &u, &tli, &s0, &s1,
+                  &s2, &s3))
       goto malformed;
 
     if (strcmp(name, "!") == 0) {
@@ -401,23 +415,21 @@ int Y(planner_import)(planner *pl, scanner *sc) {
      * entry never suppresses a persisted blessed insert. */
     q = f;
     if (table_lookup(&pl->htab_blessed, s, &q) == 0)
-      Y(planner_hinsert)
-    (pl, s, &f, slvndx);
+      Y(planner_hinsert)(pl, s, &f, slvndx);
   }
 
-  Y(free)
-  (snap.entries); /* commit */
+  Y(free)(snap.entries); /* commit */
   return 1;
 
 malformed:
   /* Roll back to the snapshot. */
-  Y(free)
-  (t->entries);
+  Y(free)(t->entries);
   *t = snap;
   return 0;
 }
 
-planner *Y(planner_create)(void) {
+planner *Y(planner_create)(void)
+{
   planner *pl = (planner *)Y(malloc)(sizeof(planner));
   int i;
 
@@ -438,23 +450,22 @@ planner *Y(planner_create)(void) {
   return pl;
 }
 
-void Y(planner_register_solver)(planner *pl, solver *s) {
+void Y(planner_register_solver)(planner *pl, solver *s)
+{
   slvdesc *d;
   int kind;
 
   if (s == 0)
     return;
 
-  Y(solver_use)
-  (s);
+  Y(solver_use)(s);
 
   if (pl->nslvdesc == pl->slvdescsiz) {
     unsigned newsiz = pl->slvdescsiz ? 2u * pl->slvdescsiz : 8u;
     slvdesc *nd = (slvdesc *)Y(malloc)((size_t)newsiz * sizeof(slvdesc));
     if (pl->slvdescs != 0) {
       memcpy(nd, pl->slvdescs, (size_t)pl->nslvdesc * sizeof(slvdesc));
-      Y(free)
-      (pl->slvdescs);
+      Y(free)(pl->slvdescs);
     }
     pl->slvdescs = nd;
     pl->slvdescsiz = newsiz;
@@ -474,46 +485,43 @@ void Y(planner_register_solver)(planner *pl, solver *s) {
   A(pl->nslvdesc < INFEASIBLE_SLVNDX);
 }
 
-void Y(planner_destroy)(planner *pl) {
+void Y(planner_destroy)(planner *pl)
+{
   unsigned i;
 
   for (i = 0; i < pl->nslvdesc; i++)
-    Y(solver_destroy)
-  (pl->slvdescs[i].slv);
-  Y(free)
-  (pl->slvdescs);
+    Y(solver_destroy)(pl->slvdescs[i].slv);
+  Y(free)(pl->slvdescs);
 
   free_table(&pl->htab_blessed);
   free_table(&pl->htab_unblessed);
 
-  Y(free)
-  (pl);
+  Y(free)(pl);
 }
 
 /* -1.0 is the "unlimited" sentinel. */
-double Y(planner_timelimit)(const planner *pl) {
+double Y(planner_timelimit)(const planner *pl)
+{
   return pl->timelimit_seconds;
 }
 
-void Y(planner_set_timelimit)(planner *pl, double seconds) {
+void Y(planner_set_timelimit)(planner *pl, double seconds)
+{
   pl->timelimit_seconds = seconds < 0.0 ? -1.0 : seconds;
 }
 
 /* The wisdom key: one md5 context fed sizeof(R) and the thread count, then the
  * problem's own hash. This is the only place sizeof(R) and nthr enter a key,
  * so a concrete problem hash must not repeat them. */
-void Y(problem_md5)(planner *pl, const problem *p, md5sig out) {
+void Y(problem_md5)(planner *pl, const problem *p, md5sig out)
+{
   md5 m;
 
-  Y(md5_begin)
-  (&m);
-  Y(md5_put_unsigned)
-  (&m, (unsigned)sizeof(R));
-  Y(md5_put_int)
-  (&m, pl->nthr);
+  Y(md5_begin)(&m);
+  Y(md5_put_unsigned)(&m, (unsigned)sizeof(R));
+  Y(md5_put_int)(&m, pl->nthr);
   p->adt->hash(p, &m);
-  Y(md5_end)
-  (&m);
+  Y(md5_end)(&m);
   out[0] = m.s[0];
   out[1] = m.s[1];
   out[2] = m.s[2];
@@ -522,7 +530,8 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out) {
 
 /* Query flags from the planner's current impatience bounds; timelimit_imp and
  * info stay zero (unblessed session memo). */
-static flags_t search_flags(planner *pl) {
+static flags_t search_flags(planner *pl)
+{
   flags_t q;
   q.l = PLNR_L(pl);
   q.u = PLNR_U(pl);
@@ -535,15 +544,15 @@ static flags_t search_flags(planner *pl) {
 /* Consult wisdom, else try every registered solver of the problem's kind and
  * keep the cheapest by pcost, memoising the outcome unblessed. Estimate-only:
  * pcost is the solver's analytic number, set at mkplan time. */
-plan *Y(planner_mkplan)(planner *pl, const problem *p) {
+plan *Y(planner_mkplan)(planner *pl, const problem *p)
+{
   md5sig sig;
   flags_t q;
   solution *sol;
   plan *best = 0;
   slvdesc *best_desc = 0;
 
-  Y(problem_md5)
-  (pl, p, sig);
+  Y(problem_md5)(pl, p, sig);
   q = search_flags(pl);
 
   /* A memoised infeasibility short-circuits to NULL; a feasible hit reruns
@@ -569,13 +578,11 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p) {
     if (pln != 0) {
       if (best == 0 || pln->pcost < best->pcost) {
         if (best != 0)
-          Y(plan_destroy)
-        (best);
+          Y(plan_destroy)(best);
         best = pln;
         best_desc = d;
       } else {
-        Y(plan_destroy)
-        (pln);
+        Y(plan_destroy)(pln);
       }
     }
   });
@@ -583,10 +590,9 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p) {
   /* Memoise unblessed. Reached only when the lookup did not answer, so the
    * insert never duplicates a live hit. */
   {
-    unsigned slvndx = best_desc != 0 ? (unsigned)(best_desc - pl->slvdescs)
-                                     : INFEASIBLE_SLVNDX;
-    Y(planner_hinsert)
-    (pl, sig, &q, slvndx);
+    unsigned slvndx = best_desc != 0 ? (unsigned)(best_desc - pl->slvdescs) :
+                                       INFEASIBLE_SLVNDX;
+    Y(planner_hinsert)(pl, sig, &q, slvndx);
   }
 
   return best;
@@ -596,7 +602,8 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p) {
  * as planner_mkplan, storing each non-NULL plan and its descriptor index. No
  * wisdom lookup and no store mutation: the caller owns every returned plan. */
 int Y(planner_candidates)(planner *pl, const problem *p, plan **plans,
-                          unsigned *slvndx, int cap) {
+                       unsigned *slvndx, int cap)
+{
   int count = 0;
 
   FORALL_SOLVERS_OF_KIND(p->adt->kind, pl, s, d, {
@@ -604,8 +611,7 @@ int Y(planner_candidates)(planner *pl, const problem *p, plan **plans,
     if (pln != 0) {
       if (count >= cap) {
         A(0 /* more candidates than cap: caller must pass a larger array */);
-        Y(plan_destroy)
-        (pln);
+        Y(plan_destroy)(pln);
       } else {
         plans[count] = pln;
         slvndx[count] = (unsigned)(d - pl->slvdescs);
@@ -619,7 +625,8 @@ int Y(planner_candidates)(planner *pl, const problem *p, plan **plans,
 
 /* Bless the winner of a measured race. An equal-bounds entry with a different
  * winner is replaced by the mutual-subsumption kill in planner_hinsert. */
-void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx) {
+void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx)
+{
   md5sig sig;
   flags_t f;
   solution *existing;
@@ -628,8 +635,7 @@ void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx) {
   A(slvndx < pl->nslvdesc); /* wild index must not be persisted */
   A(!(PLNR_U(pl) & PLNR_ESTIMATE)); /* estimate-grade evidence never blessed */
 
-  Y(problem_md5)
-  (pl, p, sig);
+  Y(problem_md5)(pl, p, sig);
 
   f.l = PLNR_L(pl);
   f.u = PLNR_U(pl);
@@ -641,6 +647,5 @@ void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx) {
   if (existing != 0 && existing->flags.slvndx == slvndx)
     return;
 
-  Y(planner_hinsert)
-  (pl, sig, &f, slvndx);
+  Y(planner_hinsert)(pl, sig, &f, slvndx);
 }

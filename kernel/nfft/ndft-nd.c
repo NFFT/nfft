@@ -32,7 +32,8 @@
  * The carry bound is `(N[t]-1)/2`: the same as `N[t]/2 - 1` for even N, and
  * correct for odd N. */
 
-static void sum(const problem_nfft *pn) {
+static void sum(const problem_nfft *pn)
+{
   const problem *p = (const problem *)pn;
   const int d = pn->sz->rnk;
   const INT Ntot = Y(problem_nfft_Ntot)(p);
@@ -94,7 +95,8 @@ static void sum(const problem_nfft *pn) {
   }
 }
 
-static void sum_adjoint(const problem_nfft *pn) {
+static void sum_adjoint(const problem_nfft *pn)
+{
   const problem *p = (const problem *)pn;
   const int d = pn->sz->rnk;
   const INT Ntot = Y(problem_nfft_Ntot)(p);
@@ -157,7 +159,8 @@ static void sum_adjoint(const problem_nfft *pn) {
 }
 
 /* rnk >= 2 only */
-static plan *mkplan(const solver *ego, const problem *p, planner *pl) {
+static plan *mkplan(const solver *ego, const problem *p, planner *pl)
+{
   const problem_nfft *pn = (const problem_nfft *)p;
   (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
@@ -169,11 +172,12 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl) {
   if (PLNR_L(pl) & PLNR_NO_DIRECT)
     return 0;
   return Y(nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), sum, sum_adjoint,
-                                "nfft_solver_ndft_nd");
+                             "nfft_solver_ndft_nd");
 }
 
 static const solver_adt ndft_nd_adt = {NFFT_PROBLEM_NFFT, 0, mkplan};
 
-void Y(nfft_solver_ndft_nd_register)(planner *pl) {
+void Y(nfft_solver_ndft_nd_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &ndft_nd_adt));
 }

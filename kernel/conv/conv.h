@@ -28,7 +28,8 @@ double Y(conv_b_pcost)(const problem *p);
  * into two contiguous runs (the second is empty when the support does not wrap
  * past n). tof[r] indexes psi, gof[r] indexes the grid, rl[r] is the length. */
 static inline void Y(conv_runs)(INT u, INT n, INT len, INT *tof, INT *gof,
-                                INT *rl) {
+                             INT *rl)
+{
   INT head = n - u;
   if (head > len)
     head = len;
@@ -45,7 +46,8 @@ static inline void Y(conv_runs)(INT u, INT n, INT len, INT *tof, INT *gof,
  * time an access pattern far more cache-friendly than the real scattered one.
  * Walking each axis by a stride keeps the timing honest and still evaluates no
  * window. */
-static inline void Y(conv_spread_u)(INT *u, INT M, int d, const INT *n) {
+static inline void Y(conv_spread_u)(INT *u, INT M, int d, const INT *n)
+{
   int t;
   for (t = 0; t < d; t++) {
     INT nt = n[t], step = (nt > 1) ? (nt / 2 + 1) : 0;

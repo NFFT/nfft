@@ -25,39 +25,34 @@
 
 /* Print the plan tree to the given FILE stream. The file printer flushes its
  * internal buffer on Y(printer_destroy). */
-void Y(fprint_plan)(Y(plan_ng) * p, FILE *out) {
+void Y(fprint_plan)(Y(plan_ng) *p, FILE *out)
+{
   printer *pr;
   pr = Y(printer_create_file)(out);
-  Y(plan_ng_print)
-  (p, pr);
-  Y(printer_destroy)
-  (pr);
+  Y(plan_ng_print)(p, pr);
+  Y(printer_destroy)(pr);
 }
 
 /* Export wisdom to a caller-owned string; the caller frees it. */
-char *Y(export_wisdom_to_string)(void) {
+char *Y(export_wisdom_to_string)(void)
+{
   planner *pl;
   printer *pr;
   size_t cnt;
   char *s;
 
-  Y(nfft_ensure_registered)
-  ();
+  Y(nfft_ensure_registered)();
   pl = Y(the_planner)();
 
   pr = Y(printer_create_cnt)(&cnt);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
+  Y(planner_export)(pl, pr);
+  Y(printer_destroy)(pr);
 
   s = (char *)Y(malloc)(cnt + 1);
 
   pr = Y(printer_create_str)(s);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
+  Y(planner_export)(pl, pr);
+  Y(printer_destroy)(pr);
   /* printer_create_str NUL-terminates incrementally; enforce at end. */
   s[cnt] = '\0';
 
@@ -67,33 +62,32 @@ char *Y(export_wisdom_to_string)(void) {
 /* Import wisdom from a NUL-terminated string. Returns 1 on success,
  * 0 on failure (malformed input, signature mismatch, unknown solver).
  * Y(planner_import) restores its snapshot on failure. */
-int Y(import_wisdom_from_string)(const char *s) {
+int Y(import_wisdom_from_string)(const char *s)
+{
   planner *pl;
   scanner *sc;
   int ret;
 
-  Y(nfft_ensure_registered)
-  ();
+  Y(nfft_ensure_registered)();
   pl = Y(the_planner)();
 
   sc = Y(scanner_create_str)(s);
   ret = Y(planner_import)(pl, sc);
-  Y(scanner_destroy)
-  (sc);
+  Y(scanner_destroy)(sc);
 
   return ret;
 }
 
 /* Export wisdom to a named file. Returns 1 on success, 0 on any fopen or
  * write failure. The FILE* is always closed before returning. */
-int Y(export_wisdom_to_filename)(const char *filename) {
+int Y(export_wisdom_to_filename)(const char *filename)
+{
   planner *pl;
   printer *pr;
   FILE *f;
   int ok;
 
-  Y(nfft_ensure_registered)
-  ();
+  Y(nfft_ensure_registered)();
   pl = Y(the_planner)();
 
   f = fopen(filename, "wb");
@@ -101,10 +95,8 @@ int Y(export_wisdom_to_filename)(const char *filename) {
     return 0;
 
   pr = Y(printer_create_file)(f);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
+  Y(planner_export)(pl, pr);
+  Y(printer_destroy)(pr);
   ok = ferror(f) ? 0 : 1;
   if (fclose(f))
     ok = 0;
@@ -114,15 +106,15 @@ int Y(export_wisdom_to_filename)(const char *filename) {
 
 /* Import wisdom from a named file. Returns 1 on success, 0 on any
  * fopen/fread/parse failure. */
-int Y(import_wisdom_from_filename)(const char *filename) {
+int Y(import_wisdom_from_filename)(const char *filename)
+{
   FILE *f;
   long len;
   char *buf;
   size_t nread;
   int ret;
 
-  Y(nfft_ensure_registered)
-  ();
+  Y(nfft_ensure_registered)();
 
   f = fopen(filename, "rb");
   if (!f)
@@ -146,30 +138,27 @@ int Y(import_wisdom_from_filename)(const char *filename) {
   fclose(f);
 
   if ((long)nread != len) {
-    Y(free)
-    (buf);
+    Y(free)(buf);
     return 0;
   }
   buf[len] = '\0';
 
   ret = Y(import_wisdom_from_string)(buf);
-  Y(free)
-  (buf);
+  Y(free)(buf);
 
   return ret;
 }
 
 /* Erase all wisdom (blessed and unblessed) from the process-global
  * planner. */
-void Y(forget_wisdom)(void) {
-  Y(nfft_ensure_registered)
-  ();
-  Y(planner_forget)
-  (Y(the_planner)(), PLNR_FORGET_ALL);
+void Y(forget_wisdom)(void)
+{
+  Y(nfft_ensure_registered)();
+  Y(planner_forget)(Y(the_planner)(), PLNR_FORGET_ALL);
 }
 
 /* Public per-process planning timelimit. Negative = unlimited. */
-void Y(set_timelimit)(double seconds) {
-  Y(planner_set_timelimit)
-  (Y(the_planner)(), seconds);
+void Y(set_timelimit)(double seconds)
+{
+  Y(planner_set_timelimit)(Y(the_planner)(), seconds);
 }

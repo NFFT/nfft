@@ -30,24 +30,26 @@
  *
  * Holds the plan type both direct NDFT solvers share. */
 
-typedef struct
-{
+typedef struct {
   plan super;
   void (*fwd)(const problem_nfft *pn);
   void (*adj)(const problem_nfft *pn);
   const char *reg_nam;
 } ndft_plan;
 
-static void apply(const plan *ego, const problem *p) {
+static void apply(const plan *ego, const problem *p)
+{
   const ndft_plan *pln = (const ndft_plan *)ego;
   pln->fwd((const problem_nfft *)p);
 }
-static void apply_adjoint(const plan *ego, const problem *p) {
+static void apply_adjoint(const plan *ego, const problem *p)
+{
   const ndft_plan *pln = (const ndft_plan *)ego;
   pln->adj((const problem_nfft *)p);
 }
 
-static void print(const plan *ego, printer *pr) {
+static void print(const plan *ego, printer *pr)
+{
   const ndft_plan *pln = (const ndft_plan *)ego;
   pr->print(pr, "(%s pcost=%D)", pln->reg_nam, (INT)pln->super.pcost);
 }
@@ -55,7 +57,8 @@ static void print(const plan *ego, printer *pr) {
 /* Owns only the base allocation: no awake hook, no destroy. */
 static const plan_adt ndft_plan_adt = {apply, 0, print, 0, apply_adjoint};
 
-static void sum(const problem_nfft *pn) {
+static void sum(const problem_nfft *pn)
+{
   const INT Ntot = Y(problem_nfft_Ntot)((const problem *)pn);
   const INT M = pn->M;
   const R *x_arr = pn->x;
@@ -85,7 +88,8 @@ static void sum(const problem_nfft *pn) {
   }
 }
 
-static void sum_adjoint(const problem_nfft *pn) {
+static void sum_adjoint(const problem_nfft *pn)
+{
   const INT Ntot = Y(problem_nfft_Ntot)((const problem *)pn);
   const INT M = pn->M;
   const R *x_arr = pn->x;
@@ -119,20 +123,21 @@ static void sum_adjoint(const problem_nfft *pn) {
 #define NDFT_COST_TRIG 50
 #define NDFT_COST_MUL 6
 
-double Y(nfft_ndft_pcost)(const problem *p) {
+double Y(nfft_ndft_pcost)(const problem *p)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
   double Ntot = (double)Y(problem_nfft_Ntot)(p);
   double M = (double)ego->M;
-  return (NDFT_COST_TRIG / (double)NDFT_RECURRENCE_BLOCK + NDFT_COST_MUL) *
-         Ntot * M;
+  return (NDFT_COST_TRIG / (double)NDFT_RECURRENCE_BLOCK + NDFT_COST_MUL)
+         * Ntot * M;
 }
 
-plan *Y(nfft_ndft_make_plan)(double pcost,
-                             void (*fwd)(const problem_nfft *),
-                             void (*adj)(const problem_nfft *),
-                             const char *reg_nam) {
-  ndft_plan *pln =
-      (ndft_plan *)Y(plan_create)(sizeof(ndft_plan), &ndft_plan_adt);
+plan *Y(nfft_ndft_make_plan)(double pcost, void (*fwd)(const problem_nfft *),
+                          void (*adj)(const problem_nfft *),
+                          const char *reg_nam)
+{
+  ndft_plan *pln = (ndft_plan *)Y(
+       plan_create)(sizeof(ndft_plan), &ndft_plan_adt);
   pln->super.pcost = pcost;
   pln->fwd = fwd;
   pln->adj = adj;
@@ -141,7 +146,8 @@ plan *Y(nfft_ndft_make_plan)(double pcost,
 }
 
 /* rnk 1 only */
-static plan *mkplan(const solver *ego, const problem *p, planner *pl) {
+static plan *mkplan(const solver *ego, const problem *p, planner *pl)
+{
   const problem_nfft *pn = (const problem_nfft *)p;
   (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
@@ -153,11 +159,12 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl) {
   if (PLNR_L(pl) & PLNR_NO_DIRECT)
     return 0;
   return Y(nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), sum, sum_adjoint,
-                                "nfft_solver_ndft_1d");
+                             "nfft_solver_ndft_1d");
 }
 
 static const solver_adt ndft_1d_adt = {NFFT_PROBLEM_NFFT, 0, mkplan};
 
-void Y(nfft_solver_ndft_1d_register)(planner *pl) {
+void Y(nfft_solver_ndft_1d_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &ndft_1d_adt));
 }

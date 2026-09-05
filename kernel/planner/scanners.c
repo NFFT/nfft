@@ -20,32 +20,34 @@
 #include "infft.h"
 #include "iplanner.h"
 
-typedef struct
-{
+typedef struct {
   scanner base; /* must be first */
   FILE *f;
 } scanner_file_s;
 
-static int getchr_file(scanner *sc) {
+static int getchr_file(scanner *sc)
+{
   scanner_file_s *sf = (scanner_file_s *)sc;
   return fgetc(sf->f);
 }
 
-scanner *Y(scanner_create_file)(FILE *f) {
-  scanner_file_s *sf = (scanner_file_s *)Y(scanner_create)(
-      sizeof(scanner_file_s), getchr_file);
+scanner *Y(scanner_create_file)(FILE *f)
+{
+  scanner_file_s *sf =
+       (scanner_file_s *)Y(
+            scanner_create)(sizeof(scanner_file_s), getchr_file);
   sf->f = f;
   return (scanner *)sf;
 }
 
 /* String backend. s is borrowed and must outlive the scanner. */
-typedef struct
-{
+typedef struct {
   scanner base; /* must be first */
   const char *ptr; /* current read position */
 } scanner_str_s;
 
-static int getchr_str(scanner *sc) {
+static int getchr_str(scanner *sc)
+{
   scanner_str_s *ss = (scanner_str_s *)sc;
   unsigned char c = (unsigned char)*ss->ptr;
   if (c == '\0')
@@ -54,9 +56,10 @@ static int getchr_str(scanner *sc) {
   return (int)c;
 }
 
-scanner *Y(scanner_create_str)(const char *s) {
-  scanner_str_s *ss = (scanner_str_s *)Y(scanner_create)(
-      sizeof(scanner_str_s), getchr_str);
+scanner *Y(scanner_create_str)(const char *s)
+{
+  scanner_str_s *ss =
+       (scanner_str_s *)Y(scanner_create)(sizeof(scanner_str_s), getchr_str);
   ss->ptr = s;
   return (scanner *)ss;
 }

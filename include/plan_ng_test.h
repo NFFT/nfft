@@ -31,6 +31,6 @@ struct Y(plan_ng_s); /* opaque handle */
 
 /* The winning forward plan's wakefulness: SLEEPY right after construction,
  * AWAKE after precompute. */
-int Y(plan_ng_test_awake_state)(const struct Y(plan_ng_s) * p);
+int Y(plan_ng_test_awake_state)(const struct Y(plan_ng_s) *p);
 
 #endif

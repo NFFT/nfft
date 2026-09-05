@@ -28,16 +28,16 @@
  * Registration order matters for determinism: iteration is reverse
  * registration order, and on exact pcost ties the earlier-encountered plan is
  * kept. */
-static const solvtab the_roster = {
-    SOLVTAB(Y(nfft_solver_fast_native_register)),
-    SOLVTAB(Y(nfft_solver_ndft_1d_register)),
-    SOLVTAB(Y(nfft_solver_ndft_nd_register)),
-    SOLVTAB(Y(nfft_solver_rnk0_register)),
-    SOLVTAB_END};
+static const solvtab the_roster = {SOLVTAB(
+                                        Y(nfft_solver_fast_native_register)),
+                                   SOLVTAB(Y(nfft_solver_ndft_1d_register)),
+                                   SOLVTAB(Y(nfft_solver_ndft_nd_register)),
+                                   SOLVTAB(Y(nfft_solver_rnk0_register)),
+                                   SOLVTAB_END};
 
-void Y(nfft_solvers_register)(planner *pl) {
-  Y(solvtab_exec)
-  (the_roster, pl);
+void Y(nfft_solvers_register)(planner *pl)
+{
+  Y(solvtab_exec)(the_roster, pl);
 }
 
 /* Lazy, idempotent registration into the process-global planner, once per
@@ -48,17 +48,15 @@ void Y(nfft_solvers_register)(planner *pl) {
  * mkplan_native_fast (nfft-nd.c) plans its children from inside a
  * FORALL_SOLVERS_OF_KIND walk: registering during that recursion would realloc
  * pl->slvdescs under the walk's raw pointer. */
-void Y(nfft_ensure_registered)(void) {
+void Y(nfft_ensure_registered)(void)
+{
   static unsigned registered_gen = 0;
   planner *pl = Y(the_planner)();
   unsigned gen = Y(the_planner_generation)();
   if (gen != registered_gen) {
-    Y(deconv_ensure_registered)
-    ();
-    Y(conv_ensure_registered)
-    ();
-    Y(nfft_solvers_register)
-    (pl);
+    Y(deconv_ensure_registered)();
+    Y(conv_ensure_registered)();
+    Y(nfft_solvers_register)(pl);
     registered_gen = gen;
   }
 }

@@ -33,15 +33,15 @@
 /* Phase 2pi(base + k x) reduced to ~[-1/2,1/2) with a single-rounding FMA.
  * base is what the outer axes contribute (0 in one dimension) and must itself
  * already be reduced. */
-static inline R Y(nfft_ndft_reduced_omega)(const R k, const R x, const R base) {
+static inline R Y(nfft_ndft_reduced_omega)(const R k, const R x, const R base)
+{
   const R s = FFMA(k, x, base);
   return K2PI * FFMA(k, x, base - RINT(s));
 }
 
-plan *Y(nfft_ndft_make_plan)(double pcost,
-                             void (*fwd)(const problem_nfft *),
-                             void (*adj)(const problem_nfft *),
-                             const char *reg_nam);
+plan *Y(nfft_ndft_make_plan)(double pcost, void (*fwd)(const problem_nfft *),
+                          void (*adj)(const problem_nfft *),
+                          const char *reg_nam);
 
 /* Direct NDFT cost estimate, both ranks. */
 double Y(nfft_ndft_pcost)(const problem *p);

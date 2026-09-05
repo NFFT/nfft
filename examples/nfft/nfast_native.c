@@ -40,44 +40,45 @@
 #include <time.h>
 
 #if defined(NFFT_SINGLE)
-#define NFFT_PRECISION_SINGLE
+# define NFFT_PRECISION_SINGLE
 #elif defined(NFFT_LDOUBLE)
-#define NFFT_PRECISION_LONG_DOUBLE
+# define NFFT_PRECISION_LONG_DOUBLE
 #else
-#define NFFT_PRECISION_DOUBLE
+# define NFFT_PRECISION_DOUBLE
 #endif
 
 #include "nfft3mp.h"
 #include "ticks.h"
 
 #if defined(NFFT_SINGLE)
-#define NFAST_CABS cabsf
+# define NFAST_CABS cabsf
 #elif defined(NFFT_LDOUBLE)
-#define NFAST_CABS cabsl
+# define NFAST_CABS cabsl
 #else
-#define NFAST_CABS cabs
+# define NFAST_CABS cabs
 #endif
 
 #ifndef NFAST_NATIVE_DATA
-#define NFAST_NATIVE_DATA "../../tests/data/nfft_1d_8192_128.txt"
+# define NFAST_NATIVE_DATA "../../tests/data/nfft_1d_8192_128.txt"
 #endif
 
 /* Loose PASS/FAIL gate, scaled by build precision: at N=8192 the legacy
  * per-term direct accumulates ~N*eps, ~1e-3 in float but ~1e-12/~1e-15 in
  * double/long-double, so one bound cannot fit all three. */
 #if defined(NFFT_SINGLE)
-#define NFAST_NATIVE_BOUND NFFT_K(1e-2)
+# define NFAST_NATIVE_BOUND NFFT_K(1e-2)
 #else
-#define NFAST_NATIVE_BOUND NFFT_K(1e-5)
+# define NFAST_NATIVE_BOUND NFFT_K(1e-5)
 #endif
-
 
 #define WINDOW_M 12
 
 /* Reads d, N[0], M, x[d*M], f_hat[NN], f[M] (same token layout as
  * tests/nplan_data.c:read_case); d is expected to be 1. */
 static int read_reference(const char *path, int *d_out, NFFT_INT *N_out,
-                          NFFT_INT *M_out, NFFT_R **x_out, NFFT_C **f_hat_out, NFFT_C **f_out) {
+                          NFFT_INT *M_out, NFFT_R **x_out, NFFT_C **f_hat_out,
+                          NFFT_C **f_out)
+{
   FILE *fp;
   int d, t;
   long v;
@@ -87,7 +88,8 @@ static int read_reference(const char *path, int *d_out, NFFT_INT *N_out,
 
   fp = fopen(path, "r");
   if (!fp) {
-    fprintf(stderr, "nfast_native: could not open reference file '%s'\n", path);
+    fprintf(stderr, "nfast_native: could not open reference file '%s'\n",
+            path);
     return 0;
   }
 
@@ -161,7 +163,8 @@ static int read_reference(const char *path, int *d_out, NFFT_INT *N_out,
 }
 
 /* max|a-b| / max|b| over a length-len complex vector pair. */
-static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len) {
+static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len)
+{
   NFFT_R num = NFFT_K(0.0), den = NFFT_K(0.0);
   NFFT_INT j;
   for (j = 0; j < len; j++) {
@@ -183,8 +186,7 @@ static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len) {
 
 /* Mean and population standard deviation of the per-run wall seconds and CPU
  * ticks, plus the run count that fit in the budget. */
-typedef struct
-{
+typedef struct {
   double secs_mean, secs_std;
   double tks_mean, tks_std;
   long runs;
@@ -192,61 +194,61 @@ typedef struct
 
 /* Legacy (NFFT(plan)) and planner (NFFT(plan_ng)) transforms/precompute
  * steps behind one void* signature, so time_run() can measure all of them. */
-static void run_legacy_precompute(void *ctx) {
-  NFFT(precompute_one_psi)
-  ((NFFT(plan) *)ctx);
+static void run_legacy_precompute(void *ctx)
+{
+  NFFT(precompute_one_psi)((NFFT(plan) *)ctx);
 }
 
-static void run_legacy_direct(void *ctx) {
-  NFFT(trafo_direct)
-  ((NFFT(plan) *)ctx);
+static void run_legacy_direct(void *ctx)
+{
+  NFFT(trafo_direct)((NFFT(plan) *)ctx);
 }
 
-static void run_legacy_fast(void *ctx) {
-  NFFT(trafo)
-  ((NFFT(plan) *)ctx);
+static void run_legacy_fast(void *ctx)
+{
+  NFFT(trafo)((NFFT(plan) *)ctx);
 }
 
-static void run_legacy_adjoint_direct(void *ctx) {
-  NFFT(adjoint_direct)
-  ((NFFT(plan) *)ctx);
+static void run_legacy_adjoint_direct(void *ctx)
+{
+  NFFT(adjoint_direct)((NFFT(plan) *)ctx);
 }
 
-static void run_legacy_adjoint_fast(void *ctx) {
-  NFFT(adjoint)
-  ((NFFT(plan) *)ctx);
+static void run_legacy_adjoint_fast(void *ctx)
+{
+  NFFT(adjoint)((NFFT(plan) *)ctx);
 }
 
-static void run_precompute(void *ctx) {
-  NFFT(precompute)
-  ((NFFT(plan_ng) *)ctx);
+static void run_precompute(void *ctx)
+{
+  NFFT(precompute)((NFFT(plan_ng) *)ctx);
 }
 
-static void run_plan_ng(void *ctx) {
-  NFFT(execute)
-  ((NFFT(plan_ng) *)ctx);
+static void run_plan_ng(void *ctx)
+{
+  NFFT(execute)((NFFT(plan_ng) *)ctx);
 }
 
 /* execute_adjoint_on takes explicit f_hat/f buffers rather than the plan's
  * own bound arrays, so a context struct carries them through time_run(). */
-typedef struct
-{
-  NFFT(plan_ng) * p;
+typedef struct {
+  NFFT(plan_ng) *p;
   NFFT_C *f_hat;
   NFFT_C *f;
 } plan_ng_adjoint_ctx;
 
-static void run_plan_ng_adjoint(void *ctx) {
+static void run_plan_ng_adjoint(void *ctx)
+{
   plan_ng_adjoint_ctx *c = (plan_ng_adjoint_ctx *)ctx;
-  NFFT(execute_adjoint_on)
-  (c->p, c->f_hat, c->f);
+  NFFT(execute_adjoint_on)(c->p, c->f_hat, c->f);
 }
 
 /* Wall-clock seconds as a double, independent of the build precision. The
  * public NFFT(clock_gettime_seconds)() returns the precision real R, which in
  * the float build cannot resolve sub-second intervals (the epoch ~1.7e9 has
  * only ~200 s resolution in float), so read CLOCK_MONOTONIC directly. */
-static double wall_seconds(void) {
+static double wall_seconds(void)
+{
 #if defined(HAVE_CLOCK_GETTIME)
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
@@ -255,7 +257,8 @@ static double wall_seconds(void) {
   return 0.0;
 }
 
-static nfast_timing time_run(void (*fn)(void *), void *ctx) {
+static nfast_timing time_run(void (*fn)(void *), void *ctx)
+{
   /* Welford online mean/variance for wall-seconds and CPU ticks. */
   double s_mean = 0.0, s_m2 = 0.0, t_mean = 0.0, t_m2 = 0.0;
   long n = 0;
@@ -314,23 +317,26 @@ static nfast_timing time_run(void (*fn)(void *), void *ctx) {
 /* One timing row. has_err=1 appends the forward accuracy figure on the same
  * line (used only on the "fwd" row, so accuracy sits beside its own timing). */
 static void print_timing_row(const char *label, const char *op, nfast_timing s,
-                             int has_err, NFFT_R err, int ok) {
+                             int has_err, NFFT_R err, int ok)
+{
   printf("  %-26s %-4s %12.6e +/- %10.4e s   %14.0f +/- %12.4e tk   n=%ld",
          label, op, s.secs_mean, s.secs_std, s.tks_mean, s.tks_std, s.runs);
   if (has_err)
-    printf("   err %12.4e bound %g %s", (double)err, (double)NFAST_NATIVE_BOUND,
-           ok ? "PASS" : "FAIL");
+    printf("   err %12.4e bound %g %s", (double)err,
+           (double)NFAST_NATIVE_BOUND, ok ? "PASS" : "FAIL");
   printf("\n");
 }
 
 static void print_timing(const char *label, nfast_timing pre, nfast_timing fwd,
-                         nfast_timing adj, NFFT_R err, int ok) {
+                         nfast_timing adj, NFFT_R err, int ok)
+{
   print_timing_row(label, "pre", pre, 0, NFFT_K(0.0), 0);
   print_timing_row("", "fwd", fwd, 1, err, ok);
   print_timing_row("", "adj", adj, 0, NFFT_K(0.0), 0);
 }
 
-int main(void) {
+int main(void)
+{
   int d;
   NFFT_INT N, M, j;
   NFFT_R *x;
@@ -342,10 +348,9 @@ int main(void) {
   int m = WINDOW_M;
   int window;
 
-  NFFT(plan)
-  lp, lp_m;
+  NFFT(plan) lp, lp_m;
 
-  NFFT(plan_ng) * p_dir, *p_native, *p_native_m;
+  NFFT(plan_ng) *p_dir, *p_native, *p_native_m;
   NFFT_C *f_dir, *f_native, *f_native_m, *f_hat_adj;
 
   nfast_timing t_pre_legacy, t_pre_none, t_ld, t_lf, t_adj_ld, t_adj_lf;
@@ -354,10 +359,10 @@ int main(void) {
   /* FFTW_MEASURE variants of the two fast NFFTs (legacy + native). */
   nfast_timing t_pre_legacy_m, t_lf_m, t_adj_lf_m;
   nfast_timing t_pre_native_m, t_native_m, t_adj_native_m;
-  NFFT_R err_legacy_direct_file, err_legacy_file, err_native_file, err_dir_file,
-      err_legacy_meas, err_native_meas;
+  NFFT_R err_legacy_direct_file, err_legacy_file, err_native_file,
+       err_dir_file, err_legacy_meas, err_native_meas;
   int ok_legacy_direct_file, ok_legacy_file, ok_native_file, ok_dir_file,
-      ok_legacy_meas, ok_native_meas, all_ok;
+       ok_legacy_meas, ok_native_meas, all_ok;
   plan_ng_adjoint_ctx adj_ctx;
 
   if (!read_reference(NFAST_NATIVE_DATA, &d, &N, &M, &x, &f_hat, &f_ref)) {
@@ -379,15 +384,15 @@ int main(void) {
   window = NFFT(get_window_id)();
 
   printf("nfast_native: d=%d N=%td M=%td m=%d n=%td window=%s\n", d,
-         (ptrdiff_t)N, (ptrdiff_t)M, m, (ptrdiff_t)n[0], NFFT(get_window_name)());
+         (ptrdiff_t)N, (ptrdiff_t)M, m, (ptrdiff_t)n[0],
+         NFFT(get_window_name)());
 
   /* --- legacy NFFT: one plan shared by the direct and fast runs, both
    * directions -------------------------------------------------------- */
-  NFFT(init_guru)
-  (&lp, 1, Narr, (int)M, narr, m,
-   PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F |
-       FFTW_INIT | FFT_OUT_OF_PLACE,
-   FFTW_ESTIMATE);
+  NFFT(init_guru)(&lp, 1, Narr, (int)M, narr, m,
+            PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F
+                 | FFTW_INIT | FFT_OUT_OF_PLACE,
+            FFTW_ESTIMATE);
   for (j = 0; j < (NFFT_INT)d * M; j++)
     lp.x[j] = x[j];
   for (j = 0; j < N; j++)
@@ -418,31 +423,32 @@ int main(void) {
   /* --- planner-native direct NDFT ------------------------------------- */
   f_dir = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
   p_dir = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_dir, 0u,
-                             NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
+                       NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
   if (!p_dir) {
-    fprintf(stderr, "nfast_native: planner direct guru rejected the arguments\n");
+    fprintf(stderr, "nfast_native: planner direct guru rejected the "
+                    "arguments\n");
     return EXIT_FAILURE;
   }
   /* "(adj (null))" is expected here: the adjoint direction reuses the
    * forward winner rather than racing its own plan (Y(plan_ng_print)). */
   printf("\nplan: planner direct\n");
-  NFFT(fprint_plan)
-  (p_dir, stdout);
+  NFFT(fprint_plan)(p_dir, stdout);
   printf("\n");
   t_pre_dir = time_run(run_precompute, p_dir);
   t_dir = time_run(run_plan_ng, p_dir);
 
   /* --- composed planner-native fast NFFT solver ----------------------- */
   f_native = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
-  p_native = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat,
-                                f_native, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
+  p_native =
+       NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_native, 0u,
+                          NFFT_ESTIMATE | NFFT_NO_DIRECT);
   if (!p_native) {
-    fprintf(stderr, "nfast_native: planner native fast guru rejected the arguments\n");
+    fprintf(stderr, "nfast_native: planner native fast guru rejected the "
+                    "arguments\n");
     return EXIT_FAILURE;
   }
   printf("\nplan: planner native fast\n");
-  NFFT(fprint_plan)
-  (p_native, stdout);
+  NFFT(fprint_plan)(p_native, stdout);
   printf("\n");
   t_pre_native = time_run(run_precompute, p_native);
   t_native = time_run(run_plan_ng, p_native);
@@ -453,11 +459,10 @@ int main(void) {
 
   /* FFTW_MEASURE clobbers the internal g1/g2 during planning, so fill f_hat
    * after init_guru. */
-  NFFT(init_guru)
-  (&lp_m, 1, Narr, (int)M, narr, m,
-   PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F |
-       FFTW_INIT | FFT_OUT_OF_PLACE,
-   FFTW_MEASURE);
+  NFFT(init_guru)(&lp_m, 1, Narr, (int)M, narr, m,
+            PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F
+                 | FFTW_INIT | FFT_OUT_OF_PLACE,
+            FFTW_MEASURE);
   for (j = 0; j < (NFFT_INT)d * M; j++)
     lp_m.x[j] = x[j];
   for (j = 0; j < N; j++)
@@ -472,11 +477,13 @@ int main(void) {
   /* native fast, FFTW_MEASURE (nfft-nd.c turns FFTW_MEASURE into
    * FFTW_MEASURE | FFTW_DESTROY_INPUT, mirroring the estimate path). */
   f_native_m = (NFFT_C *)malloc((size_t)M * sizeof(NFFT_C));
-  p_native_m = NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat,
-                                  f_native_m, (unsigned)FFTW_MEASURE,
-                                  NFFT_ESTIMATE | NFFT_NO_DIRECT);
+  p_native_m =
+       NFFT(plan_ng_guru)(1, &N, NULL, n, M, m, window, x, f_hat, f_native_m,
+                            (unsigned)FFTW_MEASURE,
+                            NFFT_ESTIMATE | NFFT_NO_DIRECT);
   if (!p_native_m) {
-    fprintf(stderr, "nfast_native: planner native fast (FFTW_MEASURE) guru rejected the arguments\n");
+    fprintf(stderr, "nfast_native: planner native fast (FFTW_MEASURE) guru "
+                    "rejected the arguments\n");
     return EXIT_FAILURE;
   }
   t_pre_native_m = time_run(run_precompute, p_native_m);
@@ -505,22 +512,23 @@ int main(void) {
   ok_dir_file = err_dir_file <= NFAST_NATIVE_BOUND;
   ok_native_file = err_native_file <= NFAST_NATIVE_BOUND;
   ok_native_meas = err_native_meas <= NFAST_NATIVE_BOUND;
-  all_ok = ok_legacy_direct_file && ok_legacy_file && ok_legacy_meas &&
-           ok_dir_file && ok_native_file && ok_native_meas;
+  all_ok = ok_legacy_direct_file && ok_legacy_file && ok_legacy_meas
+           && ok_dir_file && ok_native_file && ok_native_meas;
 
   /* Timing and accuracy on the same rows (fwd row carries the forward error).
    * Ordered so the two directs sit together (legacy, planner) and the two fast
    * NFFTs are adjacent (legacy, planner native), each fast NFFT showing its
    * FFTW_ESTIMATE row immediately above its FFTW_MEASURE row. */
-  printf("\ntiming (mean +/- std over ~%g s per step; wall seconds / CPU ticks)"
+  printf("\ntiming (mean +/- std over ~%g s per step; wall seconds / CPU "
+         "ticks)"
          " with forward accuracy vs reference (max|got-ref|/max|ref|):\n",
          NFAST_MEASURE_SECONDS);
   print_timing("legacy direct", t_pre_none, t_ld, t_adj_ld,
                err_legacy_direct_file, ok_legacy_direct_file);
   print_timing("planner direct", t_pre_dir, t_dir, t_adj_dir, err_dir_file,
                ok_dir_file);
-  print_timing("legacy fast est", t_pre_legacy, t_lf, t_adj_lf, err_legacy_file,
-               ok_legacy_file);
+  print_timing("legacy fast est", t_pre_legacy, t_lf, t_adj_lf,
+               err_legacy_file, ok_legacy_file);
   print_timing("legacy fast meas", t_pre_legacy_m, t_lf_m, t_adj_lf_m,
                err_legacy_meas, ok_legacy_meas);
   print_timing("planner native fast est", t_pre_native, t_native, t_adj_native,
@@ -532,16 +540,11 @@ int main(void) {
 
   /* lp.f/lp.f_hat are plan-owned (MALLOC_F/MALLOC_F_HAT above), freed by
    * NFFT(finalize). */
-  NFFT(finalize)
-  (&lp);
-  NFFT(finalize)
-  (&lp_m);
-  NFFT(plan_ng_destroy)
-  (p_dir);
-  NFFT(plan_ng_destroy)
-  (p_native);
-  NFFT(plan_ng_destroy)
-  (p_native_m);
+  NFFT(finalize)(&lp);
+  NFFT(finalize)(&lp_m);
+  NFFT(plan_ng_destroy)(p_dir);
+  NFFT(plan_ng_destroy)(p_native);
+  NFFT(plan_ng_destroy)(p_native_m);
 
   free(f_dir);
   free(f_native);

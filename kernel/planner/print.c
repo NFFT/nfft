@@ -22,7 +22,8 @@
 
 static const char hex_digits[] = "0123456789abcdef";
 
-static void print_udec(printer *p, unsigned long v) {
+static void print_udec(printer *p, unsigned long v)
+{
   char d[24];
   int n = 0, i;
   if (v == 0ul) {
@@ -37,7 +38,8 @@ static void print_udec(printer *p, unsigned long v) {
     p->putchr(p, d[i]);
 }
 
-static void print_dec(printer *p, long v) {
+static void print_dec(printer *p, long v)
+{
   unsigned long uv;
   if (v < 0L) {
     p->putchr(p, '-');
@@ -49,7 +51,8 @@ static void print_dec(printer *p, long v) {
 
 /* size_t is the unsigned type of ptrdiff_t's width under C99, so it holds the
  * negation of any INT. */
-static void print_INT_dec(printer *p, INT v) {
+static void print_INT_dec(printer *p, INT v)
+{
   size_t uv;
   char d[24];
   int n = 0, i;
@@ -72,7 +75,8 @@ static void print_INT_dec(printer *p, INT v) {
 
 /* Zero-padded on the left to min_digits. min_digits == 0 with v == 0 emits
  * exactly one '0'. */
-static void print_uhex(printer *p, unsigned long v, int min_digits) {
+static void print_uhex(printer *p, unsigned long v, int min_digits)
+{
   char d[16];
   int n = 0, i;
   if (v == 0ul && min_digits == 0) {
@@ -91,7 +95,8 @@ static void print_uhex(printer *p, unsigned long v, int min_digits) {
 
 /* Directives: %c %s %d (int) %D (INT) %u %x %w (md5uint, 8 hex digits) %p
  * (plan) %P (problem); %( opens an indented line and %) closes it. */
-static void vprint(printer *p, const char *fmt, va_list ap) {
+static void vprint(printer *p, const char *fmt, va_list ap)
+{
   char c;
   int i;
   while ((c = *fmt++) != '\0') {
@@ -101,79 +106,81 @@ static void vprint(printer *p, const char *fmt, va_list ap) {
     }
     c = *fmt++;
     switch (c) {
-    case 'c':
-      p->putchr(p, (char)va_arg(ap, int));
-      break;
-    case 's': {
-      const char *s = va_arg(ap, const char *);
-      if (!s)
-        s = "(null)";
-      while (*s)
-        p->putchr(p, *s++);
-      break;
-    }
-    case 'd':
-      print_dec(p, (long)va_arg(ap, int));
-      break;
-    case 'D':
-      print_INT_dec(p, va_arg(ap, INT));
-      break;
-    case 'u':
-      print_udec(p, (unsigned long)va_arg(ap, unsigned));
-      break;
-    case 'x':
-      print_uhex(p, (unsigned long)va_arg(ap, unsigned), 0);
-      break;
-    case 'w': {
-      md5uint w = va_arg(ap, md5uint);
-      print_uhex(p, (unsigned long)(w & (md5uint)0xffffffffUL), 8);
-      break;
-    }
-    case 'p': {
-      plan *pln = va_arg(ap, plan *);
-      if (!pln) {
-        const char *s = "(null)";
+      case 'c':
+        p->putchr(p, (char)va_arg(ap, int));
+        break;
+      case 's': {
+        const char *s = va_arg(ap, const char *);
+        if (!s)
+          s = "(null)";
         while (*s)
           p->putchr(p, *s++);
-      } else
-        pln->adt->print(pln, p);
-      break;
-    }
-    case 'P': {
-      problem *prb = va_arg(ap, problem *);
-      if (!prb) {
-        const char *s = "(null)";
-        while (*s)
-          p->putchr(p, *s++);
-      } else
-        prb->adt->print(prb, p);
-      break;
-    }
-    case '(':
-      p->putchr(p, '\n');
-      p->indent += p->indent_step;
-      for (i = 0; i < p->indent; i++)
-        p->putchr(p, ' ');
-      break;
-    case ')':
-      p->indent -= p->indent_step;
-      break;
-    default:
-      A(0); /* unknown directive: programming error */
-      break;
+        break;
+      }
+      case 'd':
+        print_dec(p, (long)va_arg(ap, int));
+        break;
+      case 'D':
+        print_INT_dec(p, va_arg(ap, INT));
+        break;
+      case 'u':
+        print_udec(p, (unsigned long)va_arg(ap, unsigned));
+        break;
+      case 'x':
+        print_uhex(p, (unsigned long)va_arg(ap, unsigned), 0);
+        break;
+      case 'w': {
+        md5uint w = va_arg(ap, md5uint);
+        print_uhex(p, (unsigned long)(w & (md5uint)0xffffffffUL), 8);
+        break;
+      }
+      case 'p': {
+        plan *pln = va_arg(ap, plan *);
+        if (!pln) {
+          const char *s = "(null)";
+          while (*s)
+            p->putchr(p, *s++);
+        } else
+          pln->adt->print(pln, p);
+        break;
+      }
+      case 'P': {
+        problem *prb = va_arg(ap, problem *);
+        if (!prb) {
+          const char *s = "(null)";
+          while (*s)
+            p->putchr(p, *s++);
+        } else
+          prb->adt->print(prb, p);
+        break;
+      }
+      case '(':
+        p->putchr(p, '\n');
+        p->indent += p->indent_step;
+        for (i = 0; i < p->indent; i++)
+          p->putchr(p, ' ');
+        break;
+      case ')':
+        p->indent -= p->indent_step;
+        break;
+      default:
+        A(0); /* unknown directive: programming error */
+        break;
     }
   }
 }
 
-static void print(printer *p, const char *fmt, ...) {
+static void print(printer *p, const char *fmt, ...)
+{
   va_list ap;
   va_start(ap, fmt);
   p->vprint(p, fmt, ap);
   va_end(ap);
 }
 
-printer *Y(printer_create)(size_t size,
-                           void (*putchr)(printer *p, char c), void (*cleanup)(printer *p)) {
+printer *Y(printer_create)(size_t size, void (*putchr)(printer *p, char c),
+                        void (*cleanup)(printer *p))
+{
   printer *p = (printer *)Y(malloc)(size);
   p->print = print;
   p->vprint = vprint;
@@ -184,9 +191,9 @@ printer *Y(printer_create)(size_t size,
   return p;
 }
 
-void Y(printer_destroy)(printer *p) {
+void Y(printer_destroy)(printer *p)
+{
   if (p->cleanup)
     p->cleanup(p);
-  Y(free)
-  (p);
+  Y(free)(p);
 }
