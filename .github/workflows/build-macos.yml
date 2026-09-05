@@ -72,6 +72,46 @@ jobs:
             openmp: 0
             build_octave: 0
             build_julia: 1
+          # GCC 16
+          - os: "macos-26"
+            compiler: "gcc-16"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 0
+            build_octave: 0
+            build_julia: 1
+          # GCC 13, OpenMP
+          - os: "macos-26"
+            compiler: "gcc-13"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          # GCC 14, OpenMP
+          - os: "macos-26"
+            compiler: "gcc-14"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          # GCC 15, OpenMP
+          - os: "macos-26"
+            compiler: "gcc-15"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
+          # GCC 16, OpenMP
+          - os: "macos-26"
+            compiler: "gcc-16"
+            window: "kaiserbessel"
+            precision_opt: ""
+            openmp: 1
+            build_octave: 0
+            build_julia: 1
     steps:    
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
@@ -89,6 +129,7 @@ jobs:
           cunit
           octave
           llvm
+          gcc
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
