@@ -48,7 +48,6 @@ static int live_axes(int d, const INT *N, int *live) {
   return k;
 }
 
-/* problem hash */
 static void hash(const problem *p, md5 *ctx) {
   const problem_nfft *ego = (const problem_nfft *)p;
 
@@ -113,7 +112,6 @@ static void destroy(problem *p) {
     Y(free)
     (ego->x);
   }
-  /* The base allocation is freed by problem_destroy. */
 }
 
 static const problem_adt nfft_problem_adt = {
@@ -122,7 +120,6 @@ static const problem_adt nfft_problem_adt = {
     print,
     destroy};
 
-/* constructor */
 problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
                            const INT *n, INT M, int m, int window, int sign,
                            unsigned fftw_flags, R *x, int copy_x, C *f_hat, C *f) {

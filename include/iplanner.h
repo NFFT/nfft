@@ -457,6 +457,9 @@ void Y(nfft_solver_ndft_nd_register)(planner *pl);
 /* NFFT, decomposes problem into DECONV, FFTW, and CONV children. */
 void Y(nfft_solver_fast_native_register)(planner *pl);
 
+/* The fast solver's geometry predicate (nfft-nd.c). */
+int Y(nfft_fast_guards_ok)(const problem *p, int m);
+
 /* Solver plans. */
 struct Y(plan_ng_s);
 void Y(plan_ng_print)(struct Y(plan_ng_s) * p, printer *pr);

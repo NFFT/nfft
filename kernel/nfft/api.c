@@ -20,20 +20,13 @@
 #include "infft.h"
 #include "iplanner.h"
 
-#include <stdio.h>  /* FILE, fopen, fclose, fread, fwrite, fseek, ftell, rewind */
-#include <stdlib.h> /* accessed via Y(malloc)/Y(free) */
+#include <stdio.h>
+#include <stdlib.h>
 
-/* In the NFFT module, X() names the legacy public API. */
-#undef X
-#define X(name) NFFT(name)
-
-/* Print the plan tree to the given FILE stream. Uses the file-backend
- * printer (Y(printer_create_file)) which flushes its internal buffer on
- * Y(printer_destroy). */
+/* Print the plan tree to the given FILE stream. The file printer flushes its
+ * internal buffer on Y(printer_destroy). */
 void Y(fprint_plan)(Y(plan_ng) * p, FILE *out) {
   printer *pr;
-  Y(nfft_ensure_registered)
-  ();
   pr = Y(printer_create_file)(out);
   Y(plan_ng_print)
   (p, pr);
@@ -41,9 +34,7 @@ void Y(fprint_plan)(Y(plan_ng) * p, FILE *out) {
   (pr);
 }
 
-/* Export wisdom to string: first count bytes with the counter printer, then
- * Y(malloc) count+1 bytes, fill with the string printer, NUL-terminate,
- * and return the caller-owned string. */
+/* Export wisdom to a caller-owned string; the caller frees it. */
 char *Y(export_wisdom_to_string)(void) {
   planner *pl;
   printer *pr;
@@ -54,19 +45,14 @@ char *Y(export_wisdom_to_string)(void) {
   ();
   pl = Y(the_planner)();
 
-  /* Pass 1: count characters. */
   pr = Y(printer_create_cnt)(&cnt);
   Y(planner_export)
   (pl, pr);
   Y(printer_destroy)
   (pr);
 
-  /* Allocate: cnt characters + NUL. */
   s = (char *)Y(malloc)(cnt + 1);
-  if (!s)
-    return 0;
 
-  /* Pass 2: fill the buffer. */
   pr = Y(printer_create_str)(s);
   Y(planner_export)
   (pl, pr);
@@ -98,16 +84,12 @@ int Y(import_wisdom_from_string)(const char *s) {
   return ret;
 }
 
-/* Export wisdom to a named file. Returns 1 on success, 0 on any fopen
- * or fwrite failure. The FILE* is always closed before returning.
- * Two-pass (count then write via string buffer) so no file printer
- * failure handling is needed beyond fwrite. */
+/* Export wisdom to a named file. Returns 1 on success, 0 on any fopen or
+ * write failure. The FILE* is always closed before returning. */
 int Y(export_wisdom_to_filename)(const char *filename) {
   planner *pl;
   printer *pr;
   FILE *f;
-  size_t cnt;
-  char *s;
   int ok;
 
   Y(nfft_ensure_registered)
@@ -118,38 +100,19 @@ int Y(export_wisdom_to_filename)(const char *filename) {
   if (!f)
     return 0;
 
-  /* Pass 1: count characters. */
-  pr = Y(printer_create_cnt)(&cnt);
+  pr = Y(printer_create_file)(f);
   Y(planner_export)
   (pl, pr);
   Y(printer_destroy)
   (pr);
-
-  s = (char *)Y(malloc)(cnt + 1);
-  if (!s) {
-    fclose(f);
-    return 0;
-  }
-
-  /* Pass 2: fill the string buffer. */
-  pr = Y(printer_create_str)(s);
-  Y(planner_export)
-  (pl, pr);
-  Y(printer_destroy)
-  (pr);
-  s[cnt] = '\0';
-
-  ok = (fwrite(s, 1, cnt, f) == cnt) ? 1 : 0;
-  Y(free)
-  (s);
-  fclose(f);
+  ok = ferror(f) ? 0 : 1;
+  if (fclose(f))
+    ok = 0;
 
   return ok;
 }
 
-/* Import wisdom from a named file. Reads the file into a malloc'd buffer
- * and delegates to the string-scanner path (consistent with the string
- * variant's atomicity semantics). Returns 1 on success, 0 on any
+/* Import wisdom from a named file. Returns 1 on success, 0 on any
  * fopen/fread/parse failure. */
 int Y(import_wisdom_from_filename)(const char *filename) {
   FILE *f;
@@ -178,10 +141,6 @@ int Y(import_wisdom_from_filename)(const char *filename) {
   rewind(f);
 
   buf = (char *)Y(malloc)((size_t)len + 1);
-  if (!buf) {
-    fclose(f);
-    return 0;
-  }
 
   nread = fread(buf, 1, (size_t)len, f);
   fclose(f);

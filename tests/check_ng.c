@@ -94,6 +94,8 @@ int main(void) {
   CU_add_test(nplan_suite, "timelimit_tight_degrades_to_estimate", Y(check_nplan_timelimit_tight_degrades_to_estimate));
   CU_add_test(nplan_suite, "timelimit_unset_measures_and_blesses", Y(check_nplan_timelimit_unset_measures_and_blesses));
   CU_add_test(nplan_suite, "set_timelimit_roundtrip", Y(check_nplan_set_timelimit_roundtrip));
+  CU_add_test(nplan_suite, "timelimit_partial_race_does_not_bless", Y(check_nplan_timelimit_partial_race_does_not_bless));
+  CU_add_test(nplan_suite, "fftw_wisdom_only_declines", Y(check_nplan_fftw_wisdom_only_declines));
   CU_add_test(nplan_suite, "public_api", Y(check_nplan_public_api));
   CU_add_test(nplan_suite, "print_includes_registrar_names", Y(check_nplan_print_includes_registrar_names));
   CU_add_test(nplan_suite, "forward_only_race", Y(check_nplan_forward_only_race));

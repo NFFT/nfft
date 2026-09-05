@@ -33,12 +33,10 @@
 /* Applicability guard: every axis of sz must satisfy N_t > m, n_t > 2m + 2 and
  * n_t > N_t. The last is oversampling sigma = n/N strictly above 1; at
  * sigma == 1 there is no zero-pad to deconvolve into, and for even N
- * sinc-power's phi_hut is exactly zero at the band edge.
- *
- * plan_ng_guru enforces the same sigma > 1 up front, so on the guru path this
- * check fires only for a caller who passed NFFT_NO_FAST_NATIVE. Change one and
- * look at the other. Unit axes are declined at the mkplan gate below. */
-static int guards_ok(const problem *p, int m) {
+ * sinc-power's phi_hut is exactly zero at the band edge. Y(plan_ng_guru)
+ * applies the same predicate up front unless the caller passed
+ * NFFT_NO_FAST_NATIVE. Unit axes are declined at the mkplan gate below. */
+int Y(nfft_fast_guards_ok)(const problem *p, int m) {
   const problem_nfft *ego = (const problem_nfft *)p;
   int t;
   for (t = 0; t < ego->sz->rnk; ++t) {
@@ -139,8 +137,7 @@ static void destroy(plan *ego_) {
 }
 static void print(const plan *ego_, printer *pr) {
   const native_fast_plan *pln = (const native_fast_plan *)ego_;
-  /* The FFTW plan is an FFTW handle, so we can't use %p for it. 
-   * Splice in FFTW's own FFTW(sprint_plan) description. */
+  /* %p prints a plan of this planner, so splice in FFTW's own description. */
   char *fftw_desc = pln->pfwd ? FFTW(sprint_plan)(pln->pfwd) : 0;
   pr->print(pr,
             "(nfft_solver_fast_native pcost=%D"
@@ -169,7 +166,7 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
     return 0; /* rnk >= 1 */
   if (Y(problem_nfft_has_unit_axis)(p))
     return 0;
-  if (!guards_ok(p, pn->m))
+  if (!Y(nfft_fast_guards_ok)(p, pn->m))
     return 0;
   if (pn->window < NFFT_WINDOW_KAISER_BESSEL ||
       pn->window > NFFT_WINDOW_SINC_POWER)
@@ -209,15 +206,12 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
   pln->ntot = ntot;
   pln->g1 = (C *)Y(malloc)((size_t)ntot * sizeof(C));
   pln->g2 = (C *)Y(malloc)((size_t)ntot * sizeof(C));
-  /* Internal FFTW plans. Use FFTW_ESTIMATE | FFTW_DESTROY_INPUT when the user
-   * passed no fftw_flags (the FFTs touch only owned g1/g2, so destroying
-   * input is always safe). Otherwise, normalize user's flags: strip FFTW_PRESERVE_INPUT
-   * and force FFTW_DESTROY_INPUT. */
+  /* Internal FFTW plans. The user's flags follow FFTW's own vocabulary (0 is
+   * FFTW_MEASURE); the FFTs touch only the owned g1/g2, so input preservation
+   * is stripped and destruction forced. */
   {
-    unsigned ff = pn->fftw_flags
-                      ? ((pn->fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT) |
-                         (unsigned)FFTW_DESTROY_INPUT)
-                      : (FFTW_ESTIMATE | (unsigned)FFTW_DESTROY_INPUT);
+    unsigned ff = (pn->fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT) |
+                  (unsigned)FFTW_DESTROY_INPUT;
     pln->pfwd = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g1, (FC *)pln->g2, FFTW_FORWARD, ff);
     pln->pback = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g2, (FC *)pln->g1, FFTW_BACKWARD, ff);
   }
@@ -227,13 +221,14 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
     /* DECONV child: f_hat (parent) -> g1; sign +1 (forward orientation). */
     pln->deconv_prob = Y(mkproblem_deconv)(d, pln->Nc, pn->variant, pln->nc, m,
                                            window, +1, pn->f_hat, pln->g1);
-    pln->deconv_child = Y(planner_mkplan)(Y(the_planner)(), pln->deconv_prob);
+    pln->deconv_child = Y(planner_mkplan)(pl, pln->deconv_prob);
     /* CONV child: g2 -> f (parent); x borrowed from parent's owned copy. */
     pln->conv_prob = Y(mkproblem_conv)(d, pln->nc, pln->Nc, M, m, window, +1,
                                        pn->x, pln->g2, pn->f);
-    pln->conv_child = Y(planner_mkplan)(Y(the_planner)(), pln->conv_prob);
+    pln->conv_child = Y(planner_mkplan)(pl, pln->conv_prob);
   }
-  if (!pln->deconv_child || !pln->conv_child) { /* a child declined, so we must decline as well */
+  /* FFTW_WISDOM_ONLY can leave an FFTW plan NULL; a child solver can decline. */
+  if (!pln->pfwd || !pln->pback || !pln->deconv_child || !pln->conv_child) {
     destroy(&pln->super);
     Y(free)
     (pln);
