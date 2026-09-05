@@ -37,16 +37,23 @@ typedef struct {
   int level; /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_plan;
 
-static void fill(conv_plan *pln)
+/* Window starts are indices: they steer which grid cells apply touches, so the
+ * true values are built for AWAKE_ZERO as well. Only the psi weights, which
+ * cost a window evaluation each and change no address, get placeholders. */
+static void fill_u(conv_plan *pln)
 {
   INT n = pln->n, M = pln->M, j;
   int m = pln->m;
-  Y(window_phi_precompute)(pln->window, n, pln->N, m, pln->x, 1, M, pln->psi,
-                        2 * m + 2);
   for (j = 0; j < M; j++) {
     INT c = LRINT(FLOOR((R)n * pln->x[j]));
     pln->u[j] = (((c - m) % n) + n) % n;
   }
+}
+
+static void fill_psi(conv_plan *pln)
+{
+  Y(window_phi_precompute)(pln->window, pln->n, pln->N, pln->m, pln->x, 1, pln->M,
+                        pln->psi, 2 * pln->m + 2);
 }
 
 /* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
@@ -56,12 +63,13 @@ static void fill(conv_plan *pln)
 static void awake(plan *ego_, int wakefulness)
 {
   conv_plan *pln = (conv_plan *)ego_;
+  if (wakefulness >= PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
+    fill_u(pln);
   if (wakefulness == PLNR_AWAKE) {
     if (pln->level != PLNR_AWAKE)
-      fill(pln);
+      fill_psi(pln);
   } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
     memset(pln->psi, 0, (size_t)pln->M * (size_t)(2 * pln->m + 2) * sizeof(R));
-    Y(conv_spread_u)(pln->u, pln->M, 1, &pln->n);
   }
   pln->level = wakefulness;
 }

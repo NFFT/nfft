@@ -120,11 +120,14 @@ void Y(problem_destroy)(problem *p);
 /* Readiness of a plan */
 enum {
   PLNR_SLEEPY = 0, // not ready
-  /* Every buffer a transform needs is allocated and filled with cheap
-   * placeholder values, so apply runs at the true cost and reads no
-   * uninitialised memory. Only the results are meaningless. The measured race
-   * times candidates in this state; awake() must upgrade to PLNR_AWAKE
-   * in place, without reallocating. */
+  /* Every buffer a transform needs is allocated and filled, so apply runs at
+   * the true cost and reads no uninitialised memory. Only the results are
+   * meaningless. A placeholder value is allowed only where the value cannot
+   * change what the algorithm does: an arithmetic weight may be zero, but an
+   * index, offset or count still gets its true value, because it decides which
+   * addresses apply touches and therefore what the race measures. The measured
+   * race times candidates in this state; awake() must upgrade to PLNR_AWAKE in
+   * place, without reallocating. */
   PLNR_AWAKE_ZERO = 1,
   PLNR_AWAKE = 2 // may execute, results correct
 };
