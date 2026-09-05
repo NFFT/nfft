@@ -30,125 +30,9 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "nplan.h"
+#include "util.h"
 
 #include "data/generated/nfft_native_testcases.h"
-
-/* Read one whitespace-delimited case file: d, N[d], M, x[M*d], f_hat[NN] as
- * "re im" pairs, f[M] as "re im" pairs. The token format is produced by
- * tests/refgen/io_format.py. */
-static int read_case(const char *rel, int *d, INT **N, INT *NN, INT *M, R **x,
-                     C **f_hat, C **f) {
-  char path[4096];
-  FILE *fp;
-  int t;
-  INT j, nn = 1;
-  *N = NULL;
-  *x = NULL;
-  *f_hat = NULL;
-  *f = NULL;
-  snprintf(path, sizeof path, "%s/tests/%s", ABS_SRCDIR, rel);
-  fp = fopen(path, "r");
-  if (!fp)
-    return 0;
-  if (fscanf(fp, "%d", d) != 1) {
-    fclose(fp);
-    return 0;
-  }
-  *N = (INT *)Y(malloc)((size_t)*d * sizeof(INT));
-  for (t = 0; t < *d; t++) {
-    long v;
-    if (fscanf(fp, "%ld", &v) != 1) {
-      fclose(fp);
-      Y(free)
-      (*N);
-      *N = NULL;
-      return 0;
-    }
-    (*N)[t] = (INT)v;
-    nn *= (INT)v;
-  }
-  {
-    long v;
-    if (fscanf(fp, "%ld", &v) != 1) {
-      fclose(fp);
-      Y(free)
-      (*N);
-      *N = NULL;
-      return 0;
-    }
-    *M = (INT)v;
-  }
-  *NN = nn;
-  *x = (R *)Y(malloc)((size_t)(*d * *M) * sizeof(R));
-  for (j = 0; j < *d * *M; j++) {
-    double v;
-    if (fscanf(fp, "%lf", &v) != 1) {
-      fclose(fp);
-      Y(free)
-      (*N);
-      *N = NULL;
-      Y(free)
-      (*x);
-      *x = NULL;
-      return 0;
-    }
-    (*x)[j] = (R)v;
-  }
-  *f_hat = (C *)Y(malloc)((size_t)nn * sizeof(C));
-  for (j = 0; j < nn; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      Y(free)
-      (*N);
-      *N = NULL;
-      Y(free)
-      (*x);
-      *x = NULL;
-      Y(free)
-      (*f_hat);
-      *f_hat = NULL;
-      return 0;
-    }
-    (*f_hat)[j] = (R)re + II * (R)im;
-  }
-  *f = (C *)Y(malloc)((size_t)*M * sizeof(C));
-  for (j = 0; j < *M; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      Y(free)
-      (*N);
-      *N = NULL;
-      Y(free)
-      (*x);
-      *x = NULL;
-      Y(free)
-      (*f_hat);
-      *f_hat = NULL;
-      Y(free)
-      (*f);
-      *f = NULL;
-      return 0;
-    }
-    (*f)[j] = (R)re + II * (R)im;
-  }
-  fclose(fp);
-  return 1;
-}
-
-static R rel_max_errC(const C *a, const C *b, INT len) {
-  R num = (R)0, den = (R)0;
-  INT j;
-  for (j = 0; j < len; j++) {
-    R e = CABS(a[j] - b[j]);
-    if (e > num)
-      num = e;
-    if (CABS(b[j]) > den)
-      den = CABS(b[j]);
-  }
-  return den > (R)0 ? num / den : num;
-}
 
 /* Drive one testcase (forward or adjoint, per tc->kind) against the native
  * solver, forced via NFFT_NO_FAST_NATIVE | steer. */
@@ -161,8 +45,8 @@ static void run_native(const native_testcase_t *tc, unsigned steer) {
   R tol = (R)1.0e-9;
   if ((R)1.0e5 * EPSILON > tol)
     tol = (R)1.0e5 * EPSILON;
-  if (!read_case(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
-    CU_FAIL("read_case failed");
+  if (!Y(test_read_case)(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
+    CU_FAIL("test_read_case failed");
     Y(free)
     (N);
     Y(free)
@@ -194,7 +78,7 @@ static void run_native(const native_testcase_t *tc, unsigned steer) {
       f_hat[j] = save_fhat[j];
     Y(execute)
     (p);
-    CU_ASSERT(rel_max_errC(got, f, M) < tol);
+    CU_ASSERT(Y(test_rel_max_err)(got, f, M) < tol);
     Y(plan_ng_destroy)
     (p);
     Y(free)
@@ -218,7 +102,7 @@ static void run_native(const native_testcase_t *tc, unsigned steer) {
       f[j] = save_f[j];
     Y(execute_adjoint)
     (p);
-    CU_ASSERT(rel_max_errC(got, f_hat, NN) < tol);
+    CU_ASSERT(Y(test_rel_max_err)(got, f_hat, NN) < tol);
     Y(plan_ng_destroy)
     (p);
     Y(free)
@@ -254,8 +138,8 @@ static int run_native_fast(const native_testcase_t *tc)
   R tol = (R)1.0e-6;
   if ((R)1.0e4 * EPSILON > tol)
     tol = (R)1.0e4 * EPSILON;
-  if (!read_case(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
-    CU_FAIL("read_case failed");
+  if (!Y(test_read_case)(tc->filename, &d, &N, &NN, &M, &x, &f_hat, &f)) {
+    CU_FAIL("test_read_case failed");
     Y(free)
     (N);
     Y(free)
@@ -290,7 +174,7 @@ static int run_native_fast(const native_testcase_t *tc)
         f_hat[j] = save_fhat[j];
       Y(execute)
       (p);
-      CU_ASSERT(rel_max_errC(got, f, M) < tol);
+      CU_ASSERT(Y(test_rel_max_err)(got, f, M) < tol);
       Y(plan_ng_destroy)
       (p);
       Y(free)
@@ -314,7 +198,7 @@ static int run_native_fast(const native_testcase_t *tc)
         f[j] = save_f[j];
       Y(execute_adjoint)
       (p);
-      CU_ASSERT(rel_max_errC(got, f_hat, NN) < tol);
+      CU_ASSERT(Y(test_rel_max_err)(got, f_hat, NN) < tol);
       Y(plan_ng_destroy)
       (p);
       Y(free)

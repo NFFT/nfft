@@ -27,6 +27,7 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "nfast.h"
+#include "util.h"
 
 /* Native-fast and legacy-fast are the same algorithm, so they agree to
  * round-off: ~1e-12 in double/long-double, but only ~1e-4 in float, where
@@ -36,73 +37,6 @@
 #else
 #define NFAST_LEGACY_REL_BOUND ((R)1e-12)
 #endif
-
-/* Runtime per-window NFFT accuracy bound, one case per window; the a/b
- * calibration follows err_trafo in tests/nfft.c. m/sigma are runtime, a/b are
- * precision-fixed. The 56*eps floor covers the fast pipeline's DECONV+CONV
- * round-off accumulation. */
-static R err_bound(int window, R m, R s) {
-  R eps = Y(float_property)(NFFT_EPSILON), a, b, err;
-  switch (window) {
-  case NFFT_WINDOW_GAUSSIAN:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    /* Gaussian only: err_trafo's a=0.41 is too tight for the composed
-     * pipeline at m=7/sigma=2 (measured ~3.09e-7 against a ~1.76e-7 bound).
-     * a=1.0 gives ~1.4x headroom. */
-    a = K(1.0);
-    b = K(50.0);
-#else
-    a = K(0.95);
-    b = K(50.0);
-#endif
-    err = EXP(-m * KPI * (K(1.0) - K(1.0) / (K(2.0) * K(2.0) - K(1.0))));
-    break;
-  case NFFT_WINDOW_B_SPLINE:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(1.0);
-    b = K(2000.0);
-#else
-    a = K(0.3);
-    b = K(50.0);
-#endif
-    err = K(3000.0) * K(4.0) * POW(K(1.0) / (K(2.0) * s - K(1.0)), K(2.0) * m);
-    break;
-  case NFFT_WINDOW_SINC_POWER:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(1.0);
-    b = K(2000.0);
-#else
-    a = K(0.3);
-    b = K(50.0);
-#endif
-    err = (K(1.0) / (m - K(1.0))) * ((K(2.0) / POW(s, K(2.0) * m)) + POW(s / (K(2.0) * s - K(1.0)), K(2.0) * m));
-    break;
-  case NFFT_WINDOW_KAISER_BESSEL:
-  default:
-#if MANT_DIG == 24
-    a = K(0.4);
-    b = K(2000.0);
-#elif MANT_DIG == 53
-    a = K(0.3);
-    b = K(3000.0);
-#else
-    a = K(1.5);
-    b = K(50.0);
-#endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0) / K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
-    break;
-  }
-  return FMAX(FMAX(a * err, b * eps), K(56.0) * eps);
-}
 
 /* Select which implemented windows the runtime accuracy loop runs.
  * NFAST_WINDOWS = comma list of kb|kaiserbessel,gaussian,bspline,sinc (case-
@@ -324,8 +258,7 @@ void Y(check_nfast_conv_problem)(void) {
 }
 
 /* The KB vtable is peak-normalized, so these assertions check only positivity
- * and monotone decay, which a uniform positive scale preserves. Exact
- * normalization is checked in check_nfast_window_normalized. */
+ * and monotone decay, which a uniform positive scale preserves. */
 void Y(check_nfast_window_vtable)(void) {
   INT N = 16, n = 32;
   int m = 6, k;
@@ -343,8 +276,8 @@ void Y(check_nfast_window_vtable)(void) {
   CU_ASSERT_EQUAL(Y(window_phi_hut)(99, n, N, m, 0), K(0.0));
 }
 
-/* phi_hut(0) = 1, decay is monotone, and ratios equal the legacy-shape
- * ratios because the scale is uniform. */
+/* phi_hut(0) = 1 and the decay is monotone. The scale is uniform, so the
+ * ratio between two values equals the ratio of the unscaled I0 values. */
 void Y(check_nfast_window_normalized)(void) {
   const int w = NFFT_WINDOW_KAISER_BESSEL;
   INT n = 32, N = 16;
@@ -366,7 +299,7 @@ void Y(check_nfast_window_normalized)(void) {
     CU_ASSERT(FABS(got - ref) <= K(1e-4) * (K(1.0) + FABS(ref)));
   }
   CU_ASSERT(Y(window_phi)(w, n, N, m, K(0.0)) > Y(window_phi)(w, n, N, m, K(0.3)));
-  /* Gaussian is raw (not peak-normalized): phi_hut(0) == 1 exactly. */
+  /* The raw Gaussian also has phi_hut(0) == 1, exactly. */
   CU_ASSERT(FABS(Y(window_phi_hut)(NFFT_WINDOW_GAUSSIAN, n, N, m, 0) - K(1.0)) <= K(1e-5));
 }
 
@@ -789,7 +722,6 @@ void Y(check_nfast_deconv_1d_general)(void)
     (g);
   }
 
-  /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)
   ();
 }
@@ -861,7 +793,6 @@ void Y(check_nfast_deconv_2d_general)(void) {
   (f_hat);
   Y(free)
   (g);
-  /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)
   ();
 }
@@ -933,12 +864,12 @@ void Y(check_nfast_deconv_3d_general)(void) {
   (f_hat);
   Y(free)
   (g);
-  /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)
   ();
 }
 
-/* Rank-4 DECONV with mixed type-II and odd axes, driving the carry odometer. */
+/* Rank-4 DECONV with mixed type-II and odd axes, driving the generic carry
+ * loop. */
 void Y(check_nfast_deconv_nd_general)(void) {
   const int m = 3, w = Y(get_window_id)();
   INT N[4] = {8, 7, 6, 5}, n[4] = {16, 16, 16, 16};
@@ -1014,7 +945,6 @@ void Y(check_nfast_deconv_nd_general)(void) {
   (f_hat);
   Y(free)
   (g);
-  /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)
   ();
 }
@@ -1224,139 +1154,27 @@ void Y(check_nfast_conv_solver)(void) {
   Y(free)
   (f);
 
-  /* Reset the process-global planner so later suites see a fresh generation. */
   Y(the_planner_destroy)
   ();
 }
 
-/* Read a d == 1 case file: d, N, M, x[M], f_hat[N] as "re im" pairs, f[M] as
- * "re im" pairs. */
+/* d == 1 reference case; N is a scalar. */
 static int read_1d_case(const char *rel, INT *N, INT *M, R **x, C **f_hat,
                         C **f) {
-  char path[4096];
-  FILE *fp;
   int d;
-  long v;
-  INT j;
-  snprintf(path, sizeof path, "%s/tests/%s", ABS_SRCDIR, rel);
-  fp = fopen(path, "r");
-  if (!fp) return 0;
-  if (fscanf(fp, "%d", &d) != 1 || d != 1) {
-    fclose(fp);
+  INT *Nv, NN;
+  if (!Y(test_read_case)(rel, &d, &Nv, &NN, M, x, f_hat, f))
     return 0;
-  }
-  if (fscanf(fp, "%ld", &v) != 1) {
-    fclose(fp);
-    return 0;
-  }
-  *N = (INT)v;
-  if (fscanf(fp, "%ld", &v) != 1) {
-    fclose(fp);
-    return 0;
-  }
-  *M = (INT)v;
-  *x = (R *)Y(malloc)((size_t)*M * sizeof(R));
-  for (j = 0; j < *M; j++) {
-    double dv;
-    if (fscanf(fp, "%lf", &dv) != 1) {
-      fclose(fp);
-      return 0;
-    }
-    (*x)[j] = (R)dv;
-  }
-  *f_hat = (C *)Y(malloc)((size_t)*N * sizeof(C));
-  for (j = 0; j < *N; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      return 0;
-    }
-    (*f_hat)[j] = (R)re + II * (R)im;
-  }
-  *f = (C *)Y(malloc)((size_t)*M * sizeof(C));
-  for (j = 0; j < *M; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      return 0;
-    }
-    (*f)[j] = (R)re + II * (R)im;
-  }
-  fclose(fp);
-  return 1;
+  *N = Nv[0];
+  Y(free)
+  (Nv);
+  return d == 1;
 }
 
-/* Read a case file of any rank: d, N[0..d-1], M, x[d*M] flat node-major
- * (x[j*d+t]), f_hat[prod N] as "re im" pairs, f[M] as "re im" pairs. */
 static int read_nd_case(const char *rel, int *d, INT **N, INT *M, R **x,
                         C **f_hat, C **f) {
-  char path[4096];
-  FILE *fp;
-  int t;
-  long v;
-  INT j, Ntot;
-  snprintf(path, sizeof path, "%s/tests/%s", ABS_SRCDIR, rel);
-  fp = fopen(path, "r");
-  if (!fp) return 0;
-  if (fscanf(fp, "%d", d) != 1 || *d < 1) {
-    fclose(fp);
-    return 0;
-  }
-  *N = (INT *)Y(malloc)((size_t)*d * sizeof(INT));
-  for (t = 0; t < *d; t++) {
-    if (fscanf(fp, "%ld", &v) != 1) {
-      fclose(fp);
-      return 0;
-    }
-    (*N)[t] = (INT)v;
-  }
-  if (fscanf(fp, "%ld", &v) != 1) {
-    fclose(fp);
-    return 0;
-  }
-  *M = (INT)v;
-  *x = (R *)Y(malloc)((size_t)(*M) * (size_t)(*d) * sizeof(R));
-  for (j = 0; j < (*M) * (*d); j++) {
-    double dv;
-    if (fscanf(fp, "%lf", &dv) != 1) {
-      fclose(fp);
-      return 0;
-    }
-    (*x)[j] = (R)dv;
-  }
-  for (t = 0, Ntot = 1; t < *d; t++)
-    Ntot *= (*N)[t];
-  *f_hat = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
-  for (j = 0; j < Ntot; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      return 0;
-    }
-    (*f_hat)[j] = (R)re + II * (R)im;
-  }
-  *f = (C *)Y(malloc)((size_t)(*M) * sizeof(C));
-  for (j = 0; j < *M; j++) {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2) {
-      fclose(fp);
-      return 0;
-    }
-    (*f)[j] = (R)re + II * (R)im;
-  }
-  fclose(fp);
-  return 1;
-}
-
-static R rel_max_errC(const C *a, const C *b, INT len) {
-  R num = (R)0, den = (R)0;
-  INT j;
-  for (j = 0; j < len; j++) {
-    R e = CABS(a[j] - b[j]);
-    if (e > num) num = e;
-    if (CABS(b[j]) > den) den = CABS(b[j]);
-  }
-  return den > (R)0 ? num / den : num;
+  INT NN;
+  return Y(test_read_case)(rel, d, N, &NN, M, x, f_hat, f);
 }
 
 /* The composed native fast NFFT on the 1D even-N reference case, planned
@@ -1390,33 +1208,15 @@ void Y(check_nfast_native_fast_accuracy)(void) {
     (p);
     Y(execute)
     (p);
-    err = rel_max_errC(got, f, M);
+    err = Y(test_rel_max_err)(got, f, M);
     CU_ASSERT(err < (R)1e-5);
 
-    {
-      FILE *tf = tmpfile();
-      CU_ASSERT_PTR_NOT_NULL_FATAL(tf);
-      Y(fprint_plan)
-      (p, tf);
-      {
-        long len;
-        char *buf;
-        rewind(tf);
-        fseek(tf, 0, SEEK_END);
-        len = ftell(tf);
-        rewind(tf);
-        buf = (char *)Y(malloc)((size_t)len + 1);
-        if (len > 0)
-          CU_ASSERT_EQUAL(fread(buf, 1, (size_t)len, tf), (size_t)len);
-        buf[len] = '\0';
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_fast_native"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "deconv"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "conv"));
-        Y(free)
-        (buf);
-      }
-      fclose(tf);
-    }
+    Y(test_assert_plan_names)
+    (p, "nfft_solver_fast_native");
+    Y(test_assert_plan_names)
+    (p, "deconv");
+    Y(test_assert_plan_names)
+    (p, "conv");
 
     Y(plan_ng_destroy)
     (p);
@@ -1440,7 +1240,7 @@ void Y(check_nfast_native_fast_accuracy)(void) {
     (pa);
     Y(execute_adjoint)
     (pa);
-    err = rel_max_errC(got_fhat, f_hat_ref, Na);
+    err = Y(test_rel_max_err)(got_fhat, f_hat_ref, Na);
     CU_ASSERT(err < (R)1e-5);
     Y(plan_ng_destroy)
     (pa);
@@ -1490,30 +1290,12 @@ void Y(check_nfast_native_tree)(void) {
                         NFFT_ESTIMATE | NFFT_NO_DIRECT);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p);
 
-    {
-      FILE *tf = tmpfile();
-      CU_ASSERT_PTR_NOT_NULL_FATAL(tf);
-      Y(fprint_plan)
-      (p, tf);
-      {
-        long len;
-        char *buf;
-        rewind(tf);
-        fseek(tf, 0, SEEK_END);
-        len = ftell(tf);
-        rewind(tf);
-        buf = (char *)Y(malloc)((size_t)len + 1);
-        if (len > 0)
-          CU_ASSERT_EQUAL(fread(buf, 1, (size_t)len, tf), (size_t)len);
-        buf[len] = '\0';
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_fast_native"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "deconv"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "conv"));
-        Y(free)
-        (buf);
-      }
-      fclose(tf);
-    }
+    Y(test_assert_plan_names)
+    (p, "nfft_solver_fast_native");
+    Y(test_assert_plan_names)
+    (p, "deconv");
+    Y(test_assert_plan_names)
+    (p, "conv");
 
     Y(plan_ng_destroy)
     (p);
@@ -1674,33 +1456,15 @@ void Y(check_nfast_native_fast_2d)(void) {
       (p);
       Y(execute)
       (p);
-      err = rel_max_errC(got, f, M);
+      err = Y(test_rel_max_err)(got, f, M);
       CU_ASSERT(err < (R)1e-5);
 
-      {
-        FILE *tf = tmpfile();
-        CU_ASSERT_PTR_NOT_NULL_FATAL(tf);
-        Y(fprint_plan)
-        (p, tf);
-        {
-          long len;
-          char *buf;
-          rewind(tf);
-          fseek(tf, 0, SEEK_END);
-          len = ftell(tf);
-          rewind(tf);
-          buf = (char *)Y(malloc)((size_t)len + 1);
-          if (len > 0)
-            CU_ASSERT_EQUAL(fread(buf, 1, (size_t)len, tf), (size_t)len);
-          buf[len] = '\0';
-          CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_fast_native"));
-          CU_ASSERT_PTR_NOT_NULL(strstr(buf, "deconv"));
-          CU_ASSERT_PTR_NOT_NULL(strstr(buf, "conv"));
-          Y(free)
-          (buf);
-        }
-        fclose(tf);
-      }
+      Y(test_assert_plan_names)
+      (p, "nfft_solver_fast_native");
+      Y(test_assert_plan_names)
+      (p, "deconv");
+      Y(test_assert_plan_names)
+      (p, "conv");
 
       /* in-test legacy reference: the same fast algorithm through the old
        * X(plan) API, which has no type-II concept -- type-I cases only. */
@@ -1727,7 +1491,7 @@ void Y(check_nfast_native_fast_2d)(void) {
         NFFT(trafo)
         (&lp);
         {
-          R errl = rel_max_errC(got, lp.f, M);
+          R errl = Y(test_rel_max_err)(got, lp.f, M);
           CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
         }
         NFFT(finalize)
@@ -1784,7 +1548,7 @@ void Y(check_nfast_native_fast_2d_adjoint)(void) {
       (p);
       Y(execute_adjoint)
       (p);
-      err = rel_max_errC(got_fhat, f_hat_ref, N[0] * N[1]);
+      err = Y(test_rel_max_err)(got_fhat, f_hat_ref, N[0] * N[1]);
       CU_ASSERT(err < (R)1e-5);
 
       if (!adjoint_files_2d[fi].variant) {
@@ -1810,7 +1574,7 @@ void Y(check_nfast_native_fast_2d_adjoint)(void) {
         NFFT(adjoint)
         (&lp);
         {
-          R errl = rel_max_errC(got_fhat, lp.f_hat, N[0] * N[1]);
+          R errl = Y(test_rel_max_err)(got_fhat, lp.f_hat, N[0] * N[1]);
           CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
         }
         NFFT(finalize)
@@ -1867,7 +1631,7 @@ void Y(check_nfast_native_fast_3d)(void) {
     (p);
     Y(execute)
     (p);
-    err = rel_max_errC(got, f, M);
+    err = Y(test_rel_max_err)(got, f, M);
     /* The double-generated 3D reference is float-ill-conditioned: heavy
      * cancellation in the output, so no fast NFFT (legacy included) reproduces
      * it to 1e-5 in float. Float correctness rests on the native-vs-legacy
@@ -1878,30 +1642,12 @@ void Y(check_nfast_native_fast_3d)(void) {
     (void)err;
 #endif
 
-    {
-      FILE *tf = tmpfile();
-      CU_ASSERT_PTR_NOT_NULL_FATAL(tf);
-      Y(fprint_plan)
-      (p, tf);
-      {
-        long len;
-        char *buf;
-        rewind(tf);
-        fseek(tf, 0, SEEK_END);
-        len = ftell(tf);
-        rewind(tf);
-        buf = (char *)Y(malloc)((size_t)len + 1);
-        if (len > 0)
-          CU_ASSERT_EQUAL(fread(buf, 1, (size_t)len, tf), (size_t)len);
-        buf[len] = '\0';
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_fast_native"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "deconv"));
-        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "conv"));
-        Y(free)
-        (buf);
-      }
-      fclose(tf);
-    }
+    Y(test_assert_plan_names)
+    (p, "nfft_solver_fast_native");
+    Y(test_assert_plan_names)
+    (p, "deconv");
+    Y(test_assert_plan_names)
+    (p, "conv");
 
     /* in-test legacy reference: the same fast algorithm through the old
      * X(plan) API. */
@@ -1930,7 +1676,7 @@ void Y(check_nfast_native_fast_3d)(void) {
       NFFT(trafo)
       (&lp);
       {
-        R errl = rel_max_errC(got, lp.f, M);
+        R errl = Y(test_rel_max_err)(got, lp.f, M);
 #ifndef NFFT_SINGLE
         CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
 #else
@@ -1991,7 +1737,7 @@ void Y(check_nfast_native_fast_3d_adjoint)(void) {
     (p);
     Y(execute_adjoint)
     (p);
-    err = rel_max_errC(got_fhat, f_hat_ref, N[0] * N[1] * N[2]);
+    err = Y(test_rel_max_err)(got_fhat, f_hat_ref, N[0] * N[1] * N[2]);
     /* Same float-conditioning caveat as the 3D forward case. */
 #ifndef NFFT_SINGLE
     CU_ASSERT(err < (R)1e-5);
@@ -2024,7 +1770,7 @@ void Y(check_nfast_native_fast_3d_adjoint)(void) {
       NFFT(adjoint)
       (&lp);
       {
-        R errl = rel_max_errC(got_fhat, lp.f_hat, N[0] * N[1] * N[2]);
+        R errl = Y(test_rel_max_err)(got_fhat, lp.f_hat, N[0] * N[1] * N[2]);
 #ifndef NFFT_SINGLE
         CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
 #else
@@ -2054,11 +1800,10 @@ void Y(check_nfast_native_fast_3d_adjoint)(void) {
   ();
 }
 
-/* The generic rnk >= 4 slice, served by the deconv-nd/conv-nd carry-odometer
- * leaves. tests/refgen generates no d >= 4 reference file, so the case is
- * built in-test from a deterministic sequence. Two oracles: an in-test legacy
- * X(plan), whose d==4 hand-unrolled branch is mathematically the generic
- * odometer, to NFAST_LEGACY_REL_BOUND; and the direct NDFT native, forced via
+/* The generic rnk >= 4 slice, served by the deconv-nd/conv-nd leaves.
+ * tests/refgen generates no d >= 4 reference file, so the case is built
+ * in-test from a deterministic sequence. Two oracles: an in-test legacy
+ * X(plan) to NFAST_LEGACY_REL_BOUND, and the direct NDFT native, forced via
  * NFFT_NO_FAST_NATIVE, to the coarser 1e-5 fast-NFFT bound. */
 static R seq_4d(INT k) {
   /* Deterministic stand-in for a PRNG, so results do not depend on the
@@ -2104,30 +1849,12 @@ void Y(check_nfast_native_fast_4d)(void) {
   Y(execute)
   (p);
 
-  {
-    FILE *tf = tmpfile();
-    CU_ASSERT_PTR_NOT_NULL_FATAL(tf);
-    Y(fprint_plan)
-    (p, tf);
-    {
-      long len;
-      char *buf;
-      rewind(tf);
-      fseek(tf, 0, SEEK_END);
-      len = ftell(tf);
-      rewind(tf);
-      buf = (char *)Y(malloc)((size_t)len + 1);
-      if (len > 0)
-        CU_ASSERT_EQUAL(fread(buf, 1, (size_t)len, tf), (size_t)len);
-      buf[len] = '\0';
-      CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_fast_native"));
-      CU_ASSERT_PTR_NOT_NULL(strstr(buf, "deconv"));
-      CU_ASSERT_PTR_NOT_NULL(strstr(buf, "conv"));
-      Y(free)
-      (buf);
-    }
-    fclose(tf);
-  }
+  Y(test_assert_plan_names)
+  (p, "nfft_solver_fast_native");
+  Y(test_assert_plan_names)
+  (p, "deconv");
+  Y(test_assert_plan_names)
+  (p, "conv");
 
   /* in-test legacy reference: the same fast algorithm through the old
    * X(plan) API. */
@@ -2154,7 +1881,7 @@ void Y(check_nfast_native_fast_4d)(void) {
     NFFT(trafo)
     (&lp);
     {
-      R errl = rel_max_errC(got, lp.f, M);
+      R errl = Y(test_rel_max_err)(got, lp.f, M);
       CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
     }
     NFFT(finalize)
@@ -2172,7 +1899,7 @@ void Y(check_nfast_native_fast_4d)(void) {
     (pdirect);
     Y(execute)
     (pdirect);
-    err = rel_max_errC(got, got_direct, M);
+    err = Y(test_rel_max_err)(got, got_direct, M);
     CU_ASSERT(err < (R)1e-5);
     Y(plan_ng_destroy)
     (pdirect);
@@ -2253,7 +1980,7 @@ void Y(check_nfast_native_fast_4d_adjoint)(void) {
     NFFT(adjoint)
     (&lp);
     {
-      R errl = rel_max_errC(got_fhat, lp.f_hat, Ntot);
+      R errl = Y(test_rel_max_err)(got_fhat, lp.f_hat, Ntot);
       CU_ASSERT(errl < NFAST_LEGACY_REL_BOUND);
     }
     NFFT(finalize)
@@ -2272,16 +1999,14 @@ void Y(check_nfast_native_fast_4d_adjoint)(void) {
   ();
 }
 
-/* The single-precision regression gate for the self-normalizing KB window.
- * check_nfast_native_fast_3d(_adjoint) gate their native-vs-file check to
- * double; this runs the same comparison on the same reference files in
- * whatever precision is compiled, against the precision-aware err_bound
- * instead of a fixed 1e-5. The error was ~1.0 in float before the window
- * self-normalized, ~2-3e-6 after. The plans are pinned to KAISER_BESSEL with
- * n = 2*N, so the bound is queried at that window and sigma = 2. */
+/* check_nfast_native_fast_3d(_adjoint) gate their native-vs-file check to
+ * double. This runs the same comparison on the same reference files in
+ * whatever precision is compiled, against Y(test_err_bound). The plans are
+ * pinned to KAISER_BESSEL with n = 2*N, so the bound is queried at that
+ * window and sigma = 2. */
 void Y(check_nfast_float_accuracy)(void) {
   int m = 7;
-  R bound = err_bound(NFFT_WINDOW_KAISER_BESSEL, (R)m, K(2.0));
+  R bound = Y(test_err_bound)(NFFT_WINDOW_KAISER_BESSEL, (R)m, K(2.0));
 
   /* forward: nfft_3d_10_10_10_10 (true/direct transform, double-generated). */
   {
@@ -2311,7 +2036,7 @@ void Y(check_nfast_float_accuracy)(void) {
       (p);
       Y(execute)
       (p);
-      err = rel_max_errC(got, f, M);
+      err = Y(test_rel_max_err)(got, f, M);
       CU_ASSERT(err < bound);
 
       Y(plan_ng_destroy)
@@ -2361,7 +2086,7 @@ void Y(check_nfast_float_accuracy)(void) {
       (p);
       Y(execute_adjoint)
       (p);
-      err = rel_max_errC(got_fhat, f_hat_ref, N[0] * N[1] * N[2]);
+      err = Y(test_rel_max_err)(got_fhat, f_hat_ref, N[0] * N[1] * N[2]);
       CU_ASSERT(err < bound);
 
       Y(plan_ng_destroy)
@@ -2383,9 +2108,8 @@ void Y(check_nfast_float_accuracy)(void) {
   }
 }
 
-/* Near the peak, where cancellation bites hardest, the rationalized KB
- * evaluator beats a naive exp(a - lg_peak) fold. Checked against a
- * log-domain reference in the working precision. */
+/* Near the peak, where cancellation bites hardest, window_phi_hut against a
+ * stable log-domain reference in the working precision. */
 void Y(check_nfast_window_cancellation)(void) {
   const int w = NFFT_WINDOW_KAISER_BESSEL;
   INT n = 512, N = 256;
@@ -2468,9 +2192,6 @@ void Y(check_nfast_window_apply)(void) {
   }
 }
 
-/* The composed native fast and its DECONV/CONV children accept KB, Gaussian,
- * B-spline and sinc at runtime; Dirac and out-of-range ordinals are declined
- * with a NULL plan. */
 void Y(check_nfast_native_window_select)(void) {
   INT N, M, n;
   R *x;
@@ -2515,9 +2236,6 @@ void Y(check_nfast_native_window_select)(void) {
   ();
 }
 
-/* Each runtime-selected window's native fast NFFT against the direct NDFT
- * native, which is window-independent, so one build covers all four windows.
- * Selected via NFAST_WINDOWS. */
 void Y(check_nfast_window_accuracy)(void) {
   INT N, M, n;
   int m = 7, wins[4], nw, i;
@@ -2530,7 +2248,7 @@ void Y(check_nfast_window_accuracy)(void) {
   nw = windows_from_env(wins);
   for (i = 0; i < nw; i++) {
     int w = wins[i];
-    R bound = err_bound(w, (R)m, sigma);
+    R bound = Y(test_err_bound)(w, (R)m, sigma);
     /* forward */
     {
       C *got = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -2551,7 +2269,7 @@ void Y(check_nfast_window_accuracy)(void) {
       (pd);
       Y(execute)
       (pd);
-      CU_ASSERT(rel_max_errC(got, ref, M) < bound);
+      CU_ASSERT(Y(test_rel_max_err)(got, ref, M) < bound);
       Y(plan_ng_destroy)
       (pn);
       Y(plan_ng_destroy)
@@ -2581,7 +2299,7 @@ void Y(check_nfast_window_accuracy)(void) {
       (pd);
       Y(execute_adjoint)
       (pd);
-      CU_ASSERT(rel_max_errC(got, ref, N) < bound);
+      CU_ASSERT(Y(test_rel_max_err)(got, ref, N) < bound);
       Y(plan_ng_destroy)
       (pn);
       Y(plan_ng_destroy)

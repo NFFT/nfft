@@ -25,6 +25,7 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "planner.h"
+#include "util.h"
 
 /* Convert an RFC-1321 digest (16 bytes, as printed by md5sum) into the four
  * little-endian words of md5.s (word convention). */
@@ -556,32 +557,6 @@ void Y(check_planner_forget)(void) {
   (pl);
 }
 
-/* export current blessed wisdom into a fresh malloc'd string */
-static char *export_to_string(planner *pl) {
-  size_t cnt;
-  char *s;
-  printer *p = Y(printer_create_cnt)(&cnt);
-  Y(planner_export)
-  (pl, p);
-  Y(printer_destroy)
-  (p);
-  s = (char *)Y(malloc)(cnt + 1);
-  p = Y(printer_create_str)(s);
-  Y(planner_export)
-  (pl, p);
-  Y(printer_destroy)
-  (p);
-  return s;
-}
-
-static int import_from_string(planner *pl, const char *s) {
-  scanner *sc = Y(scanner_create_str)(s);
-  int ret = Y(planner_import)(pl, sc);
-  Y(scanner_destroy)
-  (sc);
-  return ret;
-}
-
 void Y(check_planner_wisdom_roundtrip)(void) {
   planner *p1 = mk_test_planner();
   planner *p2 = mk_test_planner();
@@ -591,8 +566,8 @@ void Y(check_planner_wisdom_roundtrip)(void) {
   char *wis;
 
   /* empty round trip */
-  wis = export_to_string(p1);
-  CU_ASSERT(import_from_string(p2, wis));
+  wis = Y(test_wisdom_export)(p1);
+  CU_ASSERT(Y(test_wisdom_import)(p2, wis));
   Y(free)
   (wis);
 
@@ -618,10 +593,10 @@ void Y(check_planner_wisdom_roundtrip)(void) {
     (p1, s4, &fl, 1u);
   }
 
-  wis = export_to_string(p1);
+  wis = Y(test_wisdom_export)(p1);
   CU_ASSERT(strstr(wis, "(! 0 ") != NULL); /* infeasible sentinel */
 
-  CU_ASSERT(import_from_string(p2, wis));
+  CU_ASSERT(Y(test_wisdom_import)(p2, wis));
   q = mkflags(0, 0, 0);
   sol = Y(planner_hlookup)(p2, s1, &q);
   CU_ASSERT_PTR_NOT_NULL_FATAL(sol);
@@ -643,7 +618,7 @@ void Y(check_planner_wisdom_roundtrip)(void) {
   /* importing the same wisdom twice is idempotent */
   {
     unsigned nelem = p2->htab_blessed.nelem;
-    CU_ASSERT(import_from_string(p2, wis));
+    CU_ASSERT(Y(test_wisdom_import)(p2, wis));
     CU_ASSERT_EQUAL(p2->htab_blessed.nelem, nelem);
   }
 
@@ -654,7 +629,7 @@ void Y(check_planner_wisdom_roundtrip)(void) {
     flags_t uf = mkflags(0, 0, 0); /* unblessed, same key as s1 */
     Y(planner_hinsert)
     (p5, s1, &uf, 3u);
-    CU_ASSERT(import_from_string(p5, wis));
+    CU_ASSERT(Y(test_wisdom_import)(p5, wis));
     Y(planner_forget)
     (p5, PLNR_FORGET_UNBLESSED);
     q = mkflags(0, 0, 0);
@@ -709,7 +684,7 @@ void Y(check_planner_wisdom_rejects)(void) {
   fl = mkflags(0, 0, PLNR_BLESSING);
   Y(planner_hinsert)
   (p1, s1, &fl, 1u);
-  wis = export_to_string(p1);
+  wis = Y(test_wisdom_export)(p1);
 
   /* (a) truncated input: import fails and pre-existing wisdom survives */
   mksig(41, spre);
@@ -721,7 +696,7 @@ void Y(check_planner_wisdom_rejects)(void) {
     char *bad = (char *)Y(malloc)(len + 1);
     strcpy(bad, wis);
     bad[len - 5] = '\0'; /* cut inside the last entry */
-    CU_ASSERT_FALSE(import_from_string(p2, bad));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, bad));
     Y(free)
     (bad);
   }
@@ -736,7 +711,7 @@ void Y(check_planner_wisdom_rejects)(void) {
     at = strstr(bad, "reg_mock_nfft_b");
     CU_ASSERT_PTR_NOT_NULL_FATAL(at);
     at[strlen("reg_mock_nfft_")] = 'z'; /* b -> z */
-    CU_ASSERT_FALSE(import_from_string(p2, bad));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, bad));
     Y(free)
     (bad);
   }
@@ -747,13 +722,13 @@ void Y(check_planner_wisdom_rejects)(void) {
     static struct solvtab_s small_tab[] = {SOLVTAB(reg_mock_nfft_a), SOLVTAB_END};
     Y(solvtab_exec)
     (small_tab, p4);
-    CU_ASSERT_FALSE(import_from_string(p4, wis));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p4, wis));
     Y(planner_destroy)
     (p4);
   }
 
   /* (d) garbage preamble */
-  CU_ASSERT_FALSE(import_from_string(p2, "(bogus-1.0 junk)"));
+  CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, "(bogus-1.0 junk)"));
 
   /* (g) preamble naming a different-precision store: rejected, and existing
    * wisdom survives. The precision prefix precedes the "_wisdom" token, so
@@ -765,7 +740,7 @@ void Y(check_planner_wisdom_rejects)(void) {
     w = strstr(bad, "_wisdom");
     CU_ASSERT_PTR_NOT_NULL_FATAL(w);
     w[-1] = (w[-1] == 'f') ? 'l' : 'f';
-    CU_ASSERT_FALSE(import_from_string(p2, bad));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, bad));
     Y(free)
     (bad);
     q = mkflags(0, 0, 0);
@@ -787,7 +762,7 @@ void Y(check_planner_wisdom_rejects)(void) {
     longname[70] = '\0';
     memcpy(bad, wis, plen);
     sprintf(bad + plen, "\n  (%s 0 #x0 #x0 #x0 #x0 #x0 #x0 #x0)\n)", longname);
-    CU_ASSERT_FALSE(import_from_string(p2, bad));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, bad));
     Y(free)
     (bad);
   }
@@ -805,7 +780,7 @@ void Y(check_planner_wisdom_rejects)(void) {
     /* l = 0x10, u = 0x0: LEQ(0x10, 0x0) is false */
     sprintf(bad + plen,
             "\n  (reg_mock_nfft_b 0 #x10 #x0 #x0 #x1 #x2 #x3 #x4)\n)");
-    CU_ASSERT_FALSE(import_from_string(p2, bad));
+    CU_ASSERT_FALSE(Y(test_wisdom_import)(p2, bad));
     q = mkflags(0, 0, 0);
     CU_ASSERT_PTR_NOT_NULL(Y(planner_hlookup)(p2, spre, &q)); /* restored */
     Y(free)
