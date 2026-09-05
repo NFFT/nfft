@@ -69,8 +69,13 @@ typedef double fine_t;
  * every budget check. */
 double Y(planner_clock_now)(void) {
 #if defined(HAVE_CLOCK_GETTIME)
+#ifdef CLOCK_MONOTONIC
+#define PLNR_CLOCK_ID CLOCK_MONOTONIC
+#else
+#define PLNR_CLOCK_ID CLOCK_REALTIME
+#endif
   struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+  if (clock_gettime(PLNR_CLOCK_ID, &ts) == 0)
     return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
 #endif
   return 0.0;
