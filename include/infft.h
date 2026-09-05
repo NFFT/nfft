@@ -22,7 +22,7 @@
 #ifndef __INFFT_H__
 #define __INFFT_H__
 
-#include "config.h"
+#include <config.h>
 
 #include <math.h>
 #include <float.h>
