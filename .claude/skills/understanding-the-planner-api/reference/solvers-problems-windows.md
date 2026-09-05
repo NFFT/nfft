@@ -1,7 +1,7 @@
 # Solvers, problems, windows — and how to extend them
 
 Ground truth: `include/iplanner.h` (problem structs + register prototypes),
-`kernel/nfft/{conf,nfast,ndft,ndft-nd,nconst}.c`, `kernel/deconv/*`,
+`kernel/nfft/{conf,nfft-nd,ndft-1d,ndft-nd,rnk0}.c`, `kernel/deconv/*`,
 `kernel/conv/*`, `kernel/util/window.c`.
 
 ## The three problem kinds
@@ -76,16 +76,11 @@ adjoint  apply:  CONV^H(f -> g2)    -> FFTW backward (g2 -> g1) -> DECONV^H(g1 -
 **Applicability guard** (`guards_ok` in `kernel/nfft/nfft-nd.c`): per axis,
 requires `N_t > m`, `n_t > 2m + 2`, and oversampling `sigma = n_t/N_t > 1`
 strictly. Odd `N` and per-axis type-I/type-II (mixed across axes) are both
-served — the DECONV children carry the per-axis slot split for this. A
-geometry that fails the guard for a size reason (returns `NULL`) falls back to
-the direct NDFT. **`sigma <= 1` normally never reaches the guard through the
-public API**: `plan_ng_guru` rejects it up front and returns `NULL` for the
-whole plan, rather than quietly serving a direct transform the caller did not
-ask for and cannot see. That rejection is lifted by `NFFT_NO_FAST_NATIVE`,
-which takes the fast path out of the running so nothing is lost
-unintentionally. The guard keeps its own `sigma > 1` check for callers who
-build a problem through `mkproblem_nfft` directly. It is currently serial +
-all four real windows (below).
+served — the DECONV children carry the per-axis slot split for this. The guard
+is rarely reached through the public API: `plan_ng_guru` applies the same
+conditions up front and returns `NULL` (see SKILL.md). It stays here for
+callers who build a problem through `mkproblem_nfft` directly. Serial, all
+four real windows (below).
 
 Every rank >= 1 solver additionally declines any axis with `N_t == 1`
 (`Y(problem_nfft_has_unit_axis)`). Unit axes are elided at construction, so one
@@ -102,9 +97,7 @@ Per-axis, via the guru's `variant` array (`NULL` = all type-I):
   the constructor normalizes odd axes to type-I.
 
 Type-II and odd `N` are supported by both the **direct NDFT** solvers and the
-**fast** path, subject to the applicability guard above (the size guards; on
-the guru path `sigma > 1` has already been enforced on every non-unit axis
-unless `NFFT_NO_FAST_NATIVE` lifted it).
+**fast** path, subject to the applicability guard above.
 
 ## Unit-axis elision
 

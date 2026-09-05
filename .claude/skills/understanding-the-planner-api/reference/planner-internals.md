@@ -143,8 +143,8 @@ typedef struct { int rnk; mvdim *dims; } tensor;     /* Kronecker product of rnk
   sizing).
 - **timer** (`timer.c`) — `Y(plan_measure_cost)`; see
   [planning-modes-and-flags.md](planning-modes-and-flags.md#the-timer-kernelplannertimerc).
-- **hash / primes** (`hash.c`, `primes.c`) — string hash for solver-name
-  resolution; `Y(is_prime)`/`Y(next_prime)` for table sizing.
+- **primes** (`primes.c`) — `Y(is_prime)`/`Y(next_prime)` for table sizing.
+  The solver-name hash used by wisdom import is `reg_nam_hash` in `planner.c`.
 
 ## Iteration macros
 
