@@ -36,7 +36,8 @@
  * sinc-power's phi_hut is exactly zero at the band edge. Y(plan_ng_guru)
  * applies the same predicate up front unless the caller passed
  * NFFT_NO_FAST_NATIVE. Unit axes are declined at the mkplan gate below. */
-int Y(nfft_fast_guards_ok)(const problem *p, int m) {
+int Y(nfft_fast_guards_ok)(const problem *p, int m)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
   int t;
   for (t = 0; t < ego->sz->rnk; ++t) {
@@ -53,7 +54,8 @@ int Y(nfft_fast_guards_ok)(const problem *p, int m) {
 }
 
 /* Cost estimate. */
-static double pcost(const problem *p) {
+static double pcost(const problem *p)
+{
   // TODO: Defer to cost estimates for DECONV and CONV, and only use an explicit term for the DFT.
   const problem_nfft *ego = (const problem_nfft *)p;
   int d = ego->sz->rnk;
@@ -64,78 +66,72 @@ static double pcost(const problem *p) {
   return 2.0 * Ntot + 5.0 * ntot * log2(ntot) + 2.0 * M * W;
 }
 
-typedef struct
-{
+typedef struct {
   plan super;
-  int d;        /* rank (>=1) */
+  int d; /* rank (>=1) */
   INT *Nc, *nc; /* per-axis bandwidth / oversampled size (len d) */
-  int *narr;    /* per-axis nc as int, for FFTW (len d) */
-  INT ntot;     /* product of nc[t]; size of g1/g2 */
-  C *g1, *g2;   /* scratch, size ntot each (FFTW out-of-place) */
+  int *narr; /* per-axis nc as int, for FFTW (len d) */
+  INT ntot; /* product of nc[t]; size of g1/g2 */
+  C *g1, *g2; /* scratch, size ntot each (FFTW out-of-place) */
   FFTW(plan) pfwd, pback; /* child FFTW plans */
   plan *deconv_child, *conv_child; /* child DECONV and CONV plans. */
   problem *deconv_prob, *conv_prob; /* child problems (borrow parent data) */
 } native_fast_plan;
 
-static void apply(const plan *ego_, const problem *p) {
+static void apply(const plan *ego_, const problem *p)
+{
   native_fast_plan *pln = (native_fast_plan *)ego_;
   const problem_nfft *pn = (const problem_nfft *)p;
-  ((problem_deconv *)pln->deconv_prob)->f_hat = pn->f_hat;            /* DECONV reads f_hat */
-  ((problem_conv *)pln->conv_prob)->f = pn->f;                        /* CONV writes f */
-  pln->deconv_child->adt->apply(pln->deconv_child, pln->deconv_prob); /* f_hat -> g1 */
-  FFTW(execute)
-  (pln->pfwd);                                                  /* g1 -> g2 */
+  ((problem_deconv *)pln->deconv_prob)->f_hat =
+       pn->f_hat; /* DECONV reads f_hat */
+  ((problem_conv *)pln->conv_prob)->f = pn->f; /* CONV writes f */
+  pln->deconv_child->adt->apply(pln->deconv_child,
+                                pln->deconv_prob); /* f_hat -> g1 */
+  FFTW(execute)(pln->pfwd); /* g1 -> g2 */
   pln->conv_child->adt->apply(pln->conv_child, pln->conv_prob); /* g2 -> f */
 }
-static void apply_adjoint(const plan *ego_, const problem *p) {
+static void apply_adjoint(const plan *ego_, const problem *p)
+{
   native_fast_plan *pln = (native_fast_plan *)ego_;
   const problem_nfft *pn = (const problem_nfft *)p;
-  ((problem_conv *)pln->conv_prob)->f = pn->f;                          /* CONV^H reads f */
-  ((problem_deconv *)pln->deconv_prob)->f_hat = pn->f_hat;              /* DECONV^H writes f_hat */
-  pln->conv_child->adt->apply_adjoint(pln->conv_child, pln->conv_prob); /* f -> g2 */
-  FFTW(execute)
-  (pln->pback);                                                               /* g2 -> g1 */
-  pln->deconv_child->adt->apply_adjoint(pln->deconv_child, pln->deconv_prob); /* g1 -> f_hat */
+  ((problem_conv *)pln->conv_prob)->f = pn->f; /* CONV^H reads f */
+  ((problem_deconv *)pln->deconv_prob)->f_hat =
+       pn->f_hat; /* DECONV^H writes f_hat */
+  pln->conv_child->adt->apply_adjoint(pln->conv_child,
+                                      pln->conv_prob); /* f -> g2 */
+  FFTW(execute)(pln->pback); /* g2 -> g1 */
+  pln->deconv_child->adt->apply_adjoint(pln->deconv_child,
+                                        pln->deconv_prob); /* g1 -> f_hat */
 }
-static void awake(plan *ego_, int wakefulness) {
+static void awake(plan *ego_, int wakefulness)
+{
   native_fast_plan *pln = (native_fast_plan *)ego_;
-  Y(plan_awake)
-  (pln->deconv_child, wakefulness); /* builds phi_hut; idempotent */
-  Y(plan_awake)
-  (pln->conv_child, wakefulness); /* builds psi from owned x */
+  Y(plan_awake)(pln->deconv_child, wakefulness); /* builds phi_hut; idempotent */
+  Y(plan_awake)(pln->conv_child, wakefulness); /* builds psi from owned x */
 }
-static void destroy(plan *ego_) {
+static void destroy(plan *ego_)
+{
   native_fast_plan *pln = (native_fast_plan *)ego_;
   if (pln->deconv_child)
-    Y(plan_destroy)
-  (pln->deconv_child);
+    Y(plan_destroy)(pln->deconv_child);
   if (pln->conv_child)
-    Y(plan_destroy)
-  (pln->conv_child);
+    Y(plan_destroy)(pln->conv_child);
   if (pln->deconv_prob)
-    Y(problem_destroy)
-  (pln->deconv_prob);
+    Y(problem_destroy)(pln->deconv_prob);
   if (pln->conv_prob)
-    Y(problem_destroy)
-  (pln->conv_prob);
+    Y(problem_destroy)(pln->conv_prob);
   if (pln->pback)
-    FFTW(destroy_plan)
-  (pln->pback);
+    FFTW(destroy_plan)(pln->pback);
   if (pln->pfwd)
-    FFTW(destroy_plan)
-  (pln->pfwd);
-  Y(free)
-  (pln->g2);
-  Y(free)
-  (pln->g1);
-  Y(free)
-  (pln->narr);
-  Y(free)
-  (pln->nc);
-  Y(free)
-  (pln->Nc);
+    FFTW(destroy_plan)(pln->pfwd);
+  Y(free)(pln->g2);
+  Y(free)(pln->g1);
+  Y(free)(pln->narr);
+  Y(free)(pln->nc);
+  Y(free)(pln->Nc);
 }
-static void print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr)
+{
   const native_fast_plan *pln = (const native_fast_plan *)ego_;
   /* %p prints a plan of this planner, so splice in FFTW's own description. */
   char *fftw_desc = pln->pfwd ? FFTW(sprint_plan)(pln->pfwd) : 0;
@@ -147,14 +143,15 @@ static void print(const plan *ego_, printer *pr) {
             (INT)pln->super.pcost, (void *)pln->deconv_child, fftw_desc,
             (void *)pln->conv_child);
   if (fftw_desc)
-    FFTW(free)
-    (fftw_desc);
+    FFTW(free)(fftw_desc);
 }
-static const plan_adt native_fast_adt =
-    {apply, awake, print, destroy, apply_adjoint};
+static const plan_adt native_fast_adt = {apply, awake, print, destroy,
+                                         apply_adjoint};
 
 /* only (rnk >= 1) */
-static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl) {
+static plan *mkplan_native_fast(const solver *ego, const problem *p,
+                                planner *pl)
+{
   const problem_nfft *pn = (const problem_nfft *)p;
   INT M, ntot;
   int d, t, m, window;
@@ -168,8 +165,8 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
     return 0;
   if (!Y(nfft_fast_guards_ok)(p, pn->m))
     return 0;
-  if (pn->window < NFFT_WINDOW_KAISER_BESSEL ||
-      pn->window > NFFT_WINDOW_SINC_POWER)
+  if (pn->window < NFFT_WINDOW_KAISER_BESSEL
+      || pn->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* Kaiser-Bessel/Gaussian/B-spline/sinc only; */
   if (PLNR_L(pl) & PLNR_NO_FAST_NATIVE)
     return 0;
@@ -180,7 +177,7 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
   window = pn->window;
 
   pln = (native_fast_plan *)Y(plan_create)(sizeof(native_fast_plan),
-                                           &native_fast_adt);
+                                        &native_fast_adt);
   pln->d = d;
   pln->Nc = 0;
   pln->nc = 0;
@@ -210,28 +207,30 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
    * FFTW_MEASURE); the FFTs touch only the owned g1/g2, so input preservation
    * is stripped and destruction forced. */
   {
-    unsigned ff = (pn->fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT) |
-                  (unsigned)FFTW_DESTROY_INPUT;
-    pln->pfwd = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g1, (FC *)pln->g2, FFTW_FORWARD, ff);
-    pln->pback = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g2, (FC *)pln->g1, FFTW_BACKWARD, ff);
+    unsigned ff = (pn->fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT)
+                  | (unsigned)FFTW_DESTROY_INPUT;
+    pln->pfwd = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g1, (FC *)pln->g2,
+                         FFTW_FORWARD, ff);
+    pln->pback =
+         FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g2, (FC *)pln->g1,
+                          FFTW_BACKWARD, ff);
   }
 
   /* Recurse into the planner for the children. */
   {
     /* DECONV child: f_hat (parent) -> g1; sign +1 (forward orientation). */
     pln->deconv_prob = Y(mkproblem_deconv)(d, pln->Nc, pn->variant, pln->nc, m,
-                                           window, +1, pn->f_hat, pln->g1);
+                                        window, +1, pn->f_hat, pln->g1);
     pln->deconv_child = Y(planner_mkplan)(pl, pln->deconv_prob);
     /* CONV child: g2 -> f (parent); x borrowed from parent's owned copy. */
     pln->conv_prob = Y(mkproblem_conv)(d, pln->nc, pln->Nc, M, m, window, +1,
-                                       pn->x, pln->g2, pn->f);
+                                    pn->x, pln->g2, pn->f);
     pln->conv_child = Y(planner_mkplan)(pl, pln->conv_prob);
   }
   /* FFTW_WISDOM_ONLY can leave an FFTW plan NULL; a child solver can decline. */
   if (!pln->pfwd || !pln->pback || !pln->deconv_child || !pln->conv_child) {
     destroy(&pln->super);
-    Y(free)
-    (pln);
+    Y(free)(pln);
     return 0;
   }
   pln->super.pcost = pcost(p); /* cost model */
@@ -240,6 +239,8 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p, planner *pl
 }
 static const solver_adt native_fast_solver_adt = {NFFT_PROBLEM_NFFT, 0,
                                                   mkplan_native_fast};
-void Y(nfft_solver_fast_native_register)(planner *pl) {
-  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &native_fast_solver_adt));
+void Y(nfft_solver_fast_native_register)(planner *pl)
+{
+  REGISTER_SOLVER(pl,
+                  Y(solver_create)(sizeof(solver), &native_fast_solver_adt));
 }

@@ -25,7 +25,8 @@
  * Wakefulness is SLEEPY (no tables) or AWAKE (precomputed); the
  * adt awake hook builds and releases those tables. */
 
-plan *Y(plan_create)(size_t size, const plan_adt *adt) {
+plan *Y(plan_create)(size_t size, const plan_adt *adt)
+{
   plan *ego = (plan *)Y(malloc)(size);
   A(size >= sizeof(plan));
   ego->adt = adt;
@@ -36,7 +37,8 @@ plan *Y(plan_create)(size_t size, const plan_adt *adt) {
 }
 
 /* Idempotent awake hook */
-void Y(plan_awake)(plan *ego, int wakefulness) {
+void Y(plan_awake)(plan *ego, int wakefulness)
+{
   A(ego != 0);
   if (ego->awake_state == wakefulness)
     return;
@@ -47,12 +49,11 @@ void Y(plan_awake)(plan *ego, int wakefulness) {
 
 /* Sleep first so the awake hook releases tables exactly once,
  * then adt->destroy frees the solver-specific state, then the base. */
-void Y(plan_destroy)(plan *ego) {
+void Y(plan_destroy)(plan *ego)
+{
   A(ego != 0);
-  Y(plan_awake)
-  (ego, PLNR_SLEEPY);
+  Y(plan_awake)(ego, PLNR_SLEEPY);
   if (ego->adt->destroy != 0)
     ego->adt->destroy(ego);
-  Y(free)
-  (ego);
+  Y(free)(ego);
 }

@@ -33,7 +33,8 @@
 static planner *the_planner_global = 0;
 static unsigned the_planner_gen = 0; /* 0 = never created */
 
-planner *Y(the_planner)(void) {
+planner *Y(the_planner)(void)
+{
   if (the_planner_global == 0) {
     the_planner_global = Y(planner_create)();
     ++the_planner_gen;
@@ -41,16 +42,17 @@ planner *Y(the_planner)(void) {
   return the_planner_global;
 }
 
-unsigned Y(the_planner_generation)(void) {
+unsigned Y(the_planner_generation)(void)
+{
   return the_planner_gen;
 }
 
 /* Safe to call when absent. The next the_planner() call recreates and bumps
  * the generation. */
-void Y(the_planner_destroy)(void) {
+void Y(the_planner_destroy)(void)
+{
   if (the_planner_global != 0) {
-    Y(planner_destroy)
-    (the_planner_global);
+    Y(planner_destroy)(the_planner_global);
     the_planner_global = 0;
   }
 }

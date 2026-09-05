@@ -28,26 +28,26 @@
 #include "iplanner.h"
 #include "deconv.h"
 
-typedef struct
-{
+typedef struct {
   plan super;
   INT n, N; /* geometry captured at mkplan */
   INT Nneg, Npos; /* slot split: k(ks) = ks - Nneg, Npos = N - Nneg */
   int m, window;
   R *phi_hut_inv; /* length N: 1/phi_hut(ks - Nneg) */
-  int level;      /* content of phi_hut_inv: SLEEPY (stale), AWAKE_ZERO or AWAKE */
+  int level; /* content of phi_hut_inv: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } deconv_plan;
 
 /* AWAKE_ZERO must cost no window evaluation, so the table gets placeholder
  * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
  * upgrade refills. */
-static void awake(plan *ego_, int wakefulness) {
+static void awake(plan *ego_, int wakefulness)
+{
   deconv_plan *pln = (deconv_plan *)ego_;
   INT N = pln->N, ks;
   if (wakefulness == PLNR_AWAKE) {
     if (pln->level != PLNR_AWAKE) {
-      Y(window_phi_hut_apply)
-      (pln->window, pln->n, N, pln->m, -pln->Nneg, pln->phi_hut_inv, N);
+      Y(window_phi_hut_apply)(pln->window, pln->n, N, pln->m, -pln->Nneg,
+                           pln->phi_hut_inv, N);
       for (ks = 0; ks < N; ks++)
         pln->phi_hut_inv[ks] = K(1.0) / pln->phi_hut_inv[ks];
     }
@@ -56,7 +56,8 @@ static void awake(plan *ego_, int wakefulness) {
   pln->level = wakefulness;
 }
 
-static void apply(const plan *ego_, const problem *p) {
+static void apply(const plan *ego_, const problem *p)
+{
   const deconv_plan *pln = (const deconv_plan *)ego_;
   const problem_deconv *pd = (const problem_deconv *)p;
   INT N = pln->N, n = pln->n, Nneg = pln->Nneg, Npos = pln->Npos;
@@ -73,7 +74,8 @@ static void apply(const plan *ego_, const problem *p) {
   }
 }
 
-static void apply_adjoint(const plan *ego_, const problem *p) {
+static void apply_adjoint(const plan *ego_, const problem *p)
+{
   const deconv_plan *pln = (const deconv_plan *)ego_;
   const problem_deconv *pd = (const problem_deconv *)p;
   INT N = pln->N, n = pln->n, Nneg = pln->Nneg;
@@ -86,21 +88,23 @@ static void apply_adjoint(const plan *ego_, const problem *p) {
   }
 }
 
-static void print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr)
+{
   const deconv_plan *pln = (const deconv_plan *)ego_;
   pr->print(pr, "(deconv_solver_1d pcost=%D)", (INT)pln->super.pcost);
 }
 
-static void destroy(plan *ego_) {
+static void destroy(plan *ego_)
+{
   deconv_plan *pln = (deconv_plan *)ego_;
-  Y(free)
-  (pln->phi_hut_inv);
+  Y(free)(pln->phi_hut_inv);
 }
-static const plan_adt deconv_plan_adt = {apply, awake, print,
-                                         destroy, apply_adjoint};
+static const plan_adt deconv_plan_adt = {apply, awake, print, destroy,
+                                         apply_adjoint};
 
 /* d == 1 only */
-static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) {
+static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl)
+{
   const problem_deconv *pd = (const problem_deconv *)p;
   deconv_plan *pln;
   (void)ego;
@@ -109,8 +113,8 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) 
     return 0;
   if (pd->sz->rnk != 1)
     return 0;
-  if (pd->window < NFFT_WINDOW_KAISER_BESSEL ||
-      pd->window > NFFT_WINDOW_SINC_POWER)
+  if (pd->window < NFFT_WINDOW_KAISER_BESSEL
+      || pd->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* reject Dirac or other invalid ordinals */
   if (Y(problem_deconv_n)(p, 0) < Y(problem_deconv_N)(p, 0))
     return 0; /* n < N aliases grid cells */
@@ -120,10 +124,9 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) 
   pln->N = Y(problem_deconv_Ntot)(p);
   pln->m = pd->m;
   pln->window = pd->window;
-  pln->Nneg = pln->N / 2
-              - (Y(problem_deconv_variant)(p, 0) == NFFT_NDFT_TYPE_II ?
-                      (INT)1 :
-                      (INT)0);
+  pln->Nneg =
+       pln->N / 2
+       - (Y(problem_deconv_variant)(p, 0) == NFFT_NDFT_TYPE_II ? (INT)1 : (INT)0);
   pln->Npos = pln->N - pln->Nneg;
   pln->phi_hut_inv = (R *)Y(malloc)((size_t)pln->N * sizeof(R));
   pln->level = PLNR_SLEEPY;
@@ -131,7 +134,9 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) 
   return &pln->super;
 }
 
-static const solver_adt deconv_1d_adt = {NFFT_PROBLEM_DECONV, 0, mkplan_deconv_1d};
-void Y(deconv_solver_1d_register)(planner *pl) {
+static const solver_adt deconv_1d_adt = {NFFT_PROBLEM_DECONV, 0,
+                                         mkplan_deconv_1d};
+void Y(deconv_solver_1d_register)(planner *pl)
+{
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &deconv_1d_adt));
 }

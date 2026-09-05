@@ -31,18 +31,18 @@ static const solvtab conv_roster = {SOLVTAB(Y(conv_solver_1d_register)),
                                     SOLVTAB(Y(conv_solver_nd_register)),
                                     SOLVTAB_END};
 
-void Y(conv_solvers_register)(planner *pl) {
-  Y(solvtab_exec)
-  (conv_roster, pl);
+void Y(conv_solvers_register)(planner *pl)
+{
+  Y(solvtab_exec)(conv_roster, pl);
 }
 
-void Y(conv_ensure_registered)(void) {
+void Y(conv_ensure_registered)(void)
+{
   static unsigned gen = 0;
   planner *pl = Y(the_planner)();
   unsigned g = Y(the_planner_generation)();
   if (g != gen) {
-    Y(conv_solvers_register)
-    (pl);
+    Y(conv_solvers_register)(pl);
     gen = g;
   }
 }

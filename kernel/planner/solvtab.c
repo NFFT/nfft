@@ -24,7 +24,8 @@
  * function registering one or more solvers, which receive reg_ids 0, 1, ...
  * under that registrar name. Those two identifiers are what wisdom files
  * persist, so renaming a registrar invalidates existing wisdom. */
-void Y(solvtab_exec)(const solvtab tbl, planner *pl) {
+void Y(solvtab_exec)(const solvtab tbl, planner *pl)
+{
   int i;
   for (i = 0; tbl[i].reg != 0; i++) {
     pl->cur_reg_nam = tbl[i].reg_nam;

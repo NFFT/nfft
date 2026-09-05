@@ -26,7 +26,8 @@
  * The direction-aware accessors below are the only sanctioned view of sz. */
 
 /* floor(log2(v)) for v >= 1, without libm. */
-static int floor_log2_int(INT v) {
+static int floor_log2_int(INT v)
+{
   int r = 0;
   A(v >= (INT)1);
   while (v > (INT)1) {
@@ -40,7 +41,8 @@ static int floor_log2_int(INT v) {
  * (N_t != 1) in caller order.  Drop-only, no canonical stride sort (unlike
  * FFTW's X(tensor_compress)): x columns pair positionally with axes. Returns
  * their count, which may be 0 (rank-0 problem). */
-static int live_axes(int d, const INT *N, int *live) {
+static int live_axes(int d, const INT *N, int *live)
+{
   int t, k = 0;
   for (t = 0; t < d; t++)
     if (N[t] != (INT)1)
@@ -48,33 +50,25 @@ static int live_axes(int d, const INT *N, int *live) {
   return k;
 }
 
-static void hash(const problem *p, md5 *ctx) {
+static void hash(const problem *p, md5 *ctx)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
-  Y(md5_put_str)
-  (ctx, "nfft");
-  Y(md5_put_int)
-  (ctx, ego->sign);
-  Y(tensor_md5)
-  (ctx, ego->sz);
-  Y(tensor_md5)
-  (ctx, ego->vecsz);
+  Y(md5_put_str)(ctx, "nfft");
+  Y(md5_put_int)(ctx, ego->sign);
+  Y(tensor_md5)(ctx, ego->sz);
+  Y(tensor_md5)(ctx, ego->vecsz);
   /* variant[] is canonicalized in mkproblem_nfft (odd-N axes forced to
    * type-I), and its run length equals sz->rnk, hashed above -- no marker. */
   {
     int t;
     for (t = 0; t < ego->sz->rnk; t++)
-      Y(md5_put_int)
-    (ctx, ego->variant[t]);
+      Y(md5_put_int)(ctx, ego->variant[t]);
   }
-  Y(md5_put_int)
-  (ctx, floor_log2_int(ego->M));
-  Y(md5_put_int)
-  (ctx, ego->m);
-  Y(md5_put_int)
-  (ctx, ego->window);
-  Y(md5_put_unsigned)
-  (ctx, ego->fftw_flags);
+  Y(md5_put_int)(ctx, floor_log2_int(ego->M));
+  Y(md5_put_int)(ctx, ego->m);
+  Y(md5_put_int)(ctx, ego->window);
+  Y(md5_put_unsigned)(ctx, ego->fftw_flags);
 
   /* x/f_hat/f are not hashed: the wisdom key stays data-blind, so any
    * correctly-shaped arrays reuse the same cached decision.
@@ -82,12 +76,12 @@ static void hash(const problem *p, md5 *ctx) {
    * new-array execute must then respect the blessed alignment. */
 }
 
-static void print(const problem *p, printer *pr) {
+static void print(const problem *p, printer *pr)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
   pr->print(pr, "(nfft sign=%d m=%d M=%D ", ego->sign, ego->m, ego->M);
-  Y(tensor_print)
-  (ego->sz, pr);
+  Y(tensor_print)(ego->sz, pr);
   {
     int t;
     pr->print(pr, " variant=");
@@ -97,32 +91,28 @@ static void print(const problem *p, printer *pr) {
   pr->putchr(pr, ')');
 }
 
-static void destroy(problem *p) {
+static void destroy(problem *p)
+{
   problem_nfft *ego = (problem_nfft *)p;
 
-  Y(tensor_destroy)
-  (ego->sz);
-  Y(tensor_destroy)
-  (ego->vecsz);
-  Y(free)
-  (ego->variant);
+  Y(tensor_destroy)(ego->sz);
+  Y(tensor_destroy)(ego->vecsz);
+  Y(free)(ego->variant);
   /* Free x iff this problem owns its copy (top-level).  f_hat/f are borrowed
    * caller arrays. */
   if (ego->x_owned) {
-    Y(free)
-    (ego->x);
+    Y(free)(ego->x);
   }
 }
 
-static const problem_adt nfft_problem_adt = {
-    NFFT_PROBLEM_NFFT,
-    hash,
-    print,
-    destroy};
+static const problem_adt nfft_problem_adt = {NFFT_PROBLEM_NFFT, hash, print,
+                                             destroy};
 
-problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
-                           const INT *n, INT M, int m, int window, int sign,
-                           unsigned fftw_flags, R *x, int copy_x, C *f_hat, C *f) {
+problem *
+Y(mkproblem_nfft)(int d, const INT *N, const int *variant, const INT *n,
+                        INT M, int m, int window, int sign,
+                        unsigned fftw_flags, R *x, int copy_x, C *f_hat, C *f)
+{
   problem_nfft *ego;
   tensor *fwd;
   int t;
@@ -166,12 +156,13 @@ problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
     }
   }
 
-  ego = (problem_nfft *)Y(problem_create)(sizeof(problem_nfft), &nfft_problem_adt);
+  ego =
+       (problem_nfft *)Y(
+            problem_create)(sizeof(problem_nfft), &nfft_problem_adt);
 
   if (sign == -1) {
     tensor *adj = Y(tensor_adjoint)(fwd);
-    Y(tensor_destroy)
-    (fwd);
+    Y(tensor_destroy)(fwd);
     ego->sz = adj;
   } else
     ego->sz = fwd;
@@ -212,8 +203,7 @@ problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
     ego->variant[t] = (N[c] % 2 == 1) ? NFFT_NDFT_TYPE_I : vt;
   }
 
-  Y(free)
-  (live);
+  Y(free)(live);
   return (problem *)ego;
 }
 
@@ -222,7 +212,8 @@ problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
  * the axis list in caller order, range [0, sz->rnk) -- the unit-elided live
  * axes on the copy_x=1 path, all d axes on the borrowed path. */
 
-INT Y(problem_nfft_N)(const problem *p, int t) {
+INT Y(problem_nfft_N)(const problem *p, int t)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
   A(t >= 0 && t < ego->sz->rnk);
@@ -232,7 +223,8 @@ INT Y(problem_nfft_N)(const problem *p, int t) {
     return ego->sz->dims[t].n_out;
 }
 
-INT Y(problem_nfft_n)(const problem *p, int t) {
+INT Y(problem_nfft_n)(const problem *p, int t)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
   A(t >= 0 && t < ego->sz->rnk);
@@ -242,7 +234,8 @@ INT Y(problem_nfft_n)(const problem *p, int t) {
     return ego->sz->dims[t].n_in;
 }
 
-INT Y(problem_nfft_Ntot)(const problem *p) {
+INT Y(problem_nfft_Ntot)(const problem *p)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
   if (ego->sign == 1)
@@ -251,7 +244,8 @@ INT Y(problem_nfft_Ntot)(const problem *p) {
     return Y(tensor_sz_out)(ego->sz);
 }
 
-INT Y(problem_nfft_ntot)(const problem *p) {
+INT Y(problem_nfft_ntot)(const problem *p)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
 
   if (ego->sign == 1)
@@ -260,13 +254,15 @@ INT Y(problem_nfft_ntot)(const problem *p) {
     return Y(tensor_sz_in)(ego->sz);
 }
 
-int Y(problem_nfft_variant)(const problem *p, int t) {
+int Y(problem_nfft_variant)(const problem *p, int t)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
   A(t >= 0 && t < ego->sz->rnk);
   return ego->variant[t];
 }
 
-int Y(problem_nfft_has_unit_axis)(const problem *p) {
+int Y(problem_nfft_has_unit_axis)(const problem *p)
+{
   const problem_nfft *ego = (const problem_nfft *)p;
   int t;
   for (t = 0; t < ego->sz->rnk; t++)

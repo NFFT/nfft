@@ -23,7 +23,8 @@
 /* Table-sizing helpers for the wisdom store. Sizes are small, so trial
  * division is plenty. */
 
-int Y(is_prime)(INT n) {
+int Y(is_prime)(INT n)
+{
   INT d;
   if (n < 2)
     return 0;
@@ -38,7 +39,8 @@ int Y(is_prime)(INT n) {
 }
 
 /* Smallest prime >= n. */
-INT Y(next_prime)(INT n) {
+INT Y(next_prime)(INT n)
+{
   INT c;
   if (n <= 2)
     return 2;

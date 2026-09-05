@@ -23,24 +23,22 @@
 /* md5 checksum over a node array.  dM is the element count of that very array
  * (rnk*M for a compressed x), never a recomputed d*M. */
 
-void Y(nfft_x_md5)(const R *x, INT dM, md5sig out) {
+void Y(nfft_x_md5)(const R *x, INT dM, md5sig out)
+{
   md5 ctx;
-  Y(md5_begin)
-  (&ctx);
-  Y(md5_put_bytes)
-  (&ctx, x, (size_t)dM * sizeof(R));
-  Y(md5_end)
-  (&ctx);
+  Y(md5_begin)(&ctx);
+  Y(md5_put_bytes)(&ctx, x, (size_t)dM * sizeof(R));
+  Y(md5_end)(&ctx);
   out[0] = ctx.s[0];
   out[1] = ctx.s[1];
   out[2] = ctx.s[2];
   out[3] = ctx.s[3];
 }
 
-int Y(nfft_x_verify)(const R *x, INT dM, const md5sig ref) {
+int Y(nfft_x_verify)(const R *x, INT dM, const md5sig ref)
+{
   md5sig now;
-  Y(nfft_x_md5)
-  (x, dM, now);
-  return now[0] == ref[0] && now[1] == ref[1] && now[2] == ref[2] &&
-         now[3] == ref[3];
+  Y(nfft_x_md5)(x, dM, now);
+  return now[0] == ref[0] && now[1] == ref[1] && now[2] == ref[2]
+         && now[3] == ref[3];
 }
