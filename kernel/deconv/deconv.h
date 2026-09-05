@@ -22,7 +22,6 @@
 #ifndef NFFT_DECONV_H
 #define NFFT_DECONV_H
 
-/* Analytical cost of DECONV problem. */
 double Y(deconv_d_pcost)(const problem *p);
 
 /* DECONV solvers */

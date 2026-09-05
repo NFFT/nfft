@@ -16,13 +16,12 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* 3D DECONV solver: Step A of the fast NFFT decomposition -- deconvolve f_hat by
- * the window's phi_hut factors and zero-pad onto the oversampled grid g (forward),
- * or the adjoint gather (g -> f_hat, multiplying by the same 1/phi_hut. phi_hut
- * depends only on (n, N, m, window), so it is precomputed once at awake,
- * node-independent. Slot ks carries frequency k = ks - Nneg, with Nneg = N/2
- * for type-I and N/2 - 1 for type-II; odd N normalizes to type-I in
- * mkproblem_deconv, so type-II implies even N. */
+/* 3D DECONV solver: step A of the fast NFFT decomposition. Forward divides f_hat
+ * by the window's phi_hut factors and zero-pads onto the oversampled grid g;
+ * the adjoint gathers g -> f_hat through the same 1/phi_hut. phi_hut is
+ * node-independent, so it is built at awake. Slot ks carries frequency
+ * k = ks - Nneg, with Nneg = N/2 for type-I and N/2 - 1 for type-II; odd N
+ * normalizes to type-I in mkproblem_deconv, so type-II implies even N. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -35,18 +34,20 @@ typedef struct
   INT N0, N1, N2, n0, n1, n2; /* geometry captured at mkplan */
   INT Nneg0, Npos0, Nneg1, Npos1, Nneg2, Npos2; /* per-axis slot split */
   int m, window;
-  R *phi_hut_inv0; /* length N0: 1/phi_hut(n0,N0,m, ks0 - Nneg0), at awake */
-  R *phi_hut_inv1; /* length N1: 1/phi_hut(n1,N1,m, ks1 - Nneg1), at awake */
-  R *phi_hut_inv2; /* length N2: 1/phi_hut(n2,N2,m, ks2 - Nneg2), at awake */
-  int precomputed;
+  R *phi_hut_inv0; /* length N0: 1/phi_hut(n0,N0,m, ks0 - Nneg0) */
+  R *phi_hut_inv1; /* length N1: 1/phi_hut(n1,N1,m, ks1 - Nneg1) */
+  R *phi_hut_inv2; /* length N2: 1/phi_hut(n2,N2,m, ks2 - Nneg2) */
+  int level;       /* content of the tables: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } deconv_3d_plan;
 
-/* precompute 1/phi_hut */
-static void deconv_3d_awake(plan *ego_, int wakefulness) {
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
+ * upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
   deconv_3d_plan *pln = (deconv_3d_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      INT ks;
+  INT ks;
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE) {
       Y(window_phi_hut_apply)
       (pln->window, pln->n0, pln->N0, pln->m, -pln->Nneg0, pln->phi_hut_inv0,
        pln->N0);
@@ -62,16 +63,19 @@ static void deconv_3d_awake(plan *ego_, int wakefulness) {
        pln->N2);
       for (ks = 0; ks < pln->N2; ks++)
         pln->phi_hut_inv2[ks] = K(1.0) / pln->phi_hut_inv2[ks];
-      pln->precomputed = 1;
     }
-  } else
-    pln->precomputed = 0;
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    memset(pln->phi_hut_inv0, 0, (size_t)pln->N0 * sizeof(R));
+    memset(pln->phi_hut_inv1, 0, (size_t)pln->N1 * sizeof(R));
+    memset(pln->phi_hut_inv2, 0, (size_t)pln->N2 * sizeof(R));
+  }
+  pln->level = wakefulness;
 }
 
 /* Each axis splits into two contiguous runs of slots: the negative half maps to
  * the grid tail, the non-negative half to the grid head. Even type-I makes the
  * two runs equal (Nneg == Npos == N/2). */
-static void deconv_3d_run(const deconv_3d_plan *pln, const problem_deconv *pd,
+static void run(const deconv_3d_plan *pln, const problem_deconv *pd,
                           int forward) {
   const INT N1 = pln->N1, N2 = pln->N2;
   const INT n0 = pln->n0, n1 = pln->n1, n2 = pln->n2;
@@ -101,6 +105,9 @@ static void deconv_3d_run(const deconv_3d_plan *pln, const problem_deconv *pd,
   sof2[1] = pln->Nneg2;
   gof2[1] = 0;
 
+  /* In nD the touched frequencies form a box per grid corner, so the zero-pad is
+   * fragmented; clearing the whole grid is typically more efficient. The adjoint
+   * writes every f_hat slot, so it needs no clear. */
   if (forward)
     memset(g_hat, 0, (size_t)(n0 * n1 * n2) * sizeof(C));
 
@@ -129,21 +136,19 @@ static void deconv_3d_run(const deconv_3d_plan *pln, const problem_deconv *pd,
       }
 }
 
-/* apply the real diagonal scale-and-pad map (f_hat -> g). */
-static void deconv_3d_apply(const plan *ego_, const problem *p) {
-  deconv_3d_run((const deconv_3d_plan *)ego_, (const problem_deconv *)p, 1);
+static void apply(const plan *ego_, const problem *p) {
+  run((const deconv_3d_plan *)ego_, (const problem_deconv *)p, 1);
 }
 
-/* apply the adjoint real diagonal scale-and-pad map (g -> f_hat). The adjoint only swaps scatter->gather. */
-static void deconv_3d_apply_adjoint(const plan *ego_, const problem *p) {
-  deconv_3d_run((const deconv_3d_plan *)ego_, (const problem_deconv *)p, 0);
+static void apply_adjoint(const plan *ego_, const problem *p) {
+  run((const deconv_3d_plan *)ego_, (const problem_deconv *)p, 0);
 }
 
-static void deconv_3d_print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr) {
   const deconv_3d_plan *pln = (const deconv_3d_plan *)ego_;
   pr->print(pr, "(deconv_solver_3d pcost=%D)", (INT)pln->super.pcost);
 }
-static void deconv_3d_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   deconv_3d_plan *pln = (deconv_3d_plan *)ego_;
   Y(free)
   (pln->phi_hut_inv2);
@@ -152,9 +157,9 @@ static void deconv_3d_destroy(plan *ego_) {
   Y(free)
   (pln->phi_hut_inv0);
 }
-static const plan_adt deconv_3d_plan_adt = {deconv_3d_apply, deconv_3d_awake,
-                                            deconv_3d_print, deconv_3d_destroy,
-                                            deconv_3d_apply_adjoint};
+static const plan_adt deconv_3d_plan_adt = {apply, awake,
+                                            print, destroy,
+                                            apply_adjoint};
 
 /* d == 3 only */
 static plan *mkplan_deconv_3d(const solver *ego, const problem *p, planner *pl) {
@@ -203,7 +208,7 @@ static plan *mkplan_deconv_3d(const solver *ego, const problem *p, planner *pl) 
   pln->phi_hut_inv0 = (R *)Y(malloc)((size_t)pln->N0 * sizeof(R));
   pln->phi_hut_inv1 = (R *)Y(malloc)((size_t)pln->N1 * sizeof(R));
   pln->phi_hut_inv2 = (R *)Y(malloc)((size_t)pln->N2 * sizeof(R));
-  pln->precomputed = 0;
+  pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }

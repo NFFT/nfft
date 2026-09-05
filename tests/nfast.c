@@ -582,6 +582,46 @@ void Y(check_nfast_deconv_solver)(void) {
     (p2);
   }
 
+  /* AWAKE_ZERO holds placeholder values, so the upgrade to AWAKE must refill
+   * the table: SLEEPY -> AWAKE_ZERO -> AWAKE must match SLEEPY -> AWAKE. */
+  {
+    C *gz = (C *)Y(malloc)((size_t)n * sizeof(C));
+    problem *pz, *pd;
+    plan *plz, *pld;
+    for (ks = 0; ks < N; ks++)
+      f_hat[ks] = (R)(ks + 1);
+    pz = Y(mkproblem_deconv)(1, &N, 0, &n, m, w, 1, f_hat, gz);
+    plz = Y(planner_mkplan)(Y(the_planner)(), pz);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(plz);
+    Y(plan_awake)
+    (plz, PLNR_AWAKE_ZERO);
+    plz->adt->apply(plz, pz); /* placeholder tables: runnable, meaningless */
+    Y(plan_awake)
+    (plz, PLNR_AWAKE);
+    plz->adt->apply(plz, pz);
+
+    pd = Y(mkproblem_deconv)(1, &N, 0, &n, m, w, 1, f_hat, g);
+    pld = Y(planner_mkplan)(Y(the_planner)(), pd);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pld);
+    Y(plan_awake)
+    (pld, PLNR_AWAKE);
+    pld->adt->apply(pld, pd);
+
+    for (ks = 0; ks < n; ks++)
+      CU_ASSERT(gz[ks] == g[ks]);
+
+    Y(plan_destroy)
+    (plz);
+    Y(problem_destroy)
+    (pz);
+    Y(plan_destroy)
+    (pld);
+    Y(problem_destroy)
+    (pd);
+    Y(free)
+    (gz);
+  }
+
   Y(free)
   (f_hat);
   Y(free)
@@ -1135,6 +1175,48 @@ void Y(check_nfast_conv_solver)(void) {
     (pa2);
     Y(free)
     (g2);
+  }
+
+  /* AWAKE_ZERO holds placeholder psi and window starts, so the upgrade to AWAKE
+   * must refill both: SLEEPY -> AWAKE_ZERO -> AWAKE must match SLEEPY ->
+   * AWAKE. */
+  {
+    INT ks;
+    C *fz = (C *)Y(malloc)((size_t)M * sizeof(C));
+    problem *pz, *pd;
+    plan *plz, *pld;
+    for (ks = 0; ks < n; ks++)
+      g[ks] = (R)(ks + 1);
+    pz = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, x, g, fz);
+    plz = Y(planner_mkplan)(Y(the_planner)(), pz);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(plz);
+    Y(plan_awake)
+    (plz, PLNR_AWAKE_ZERO);
+    plz->adt->apply(plz, pz); /* placeholder tables: runnable, meaningless */
+    Y(plan_awake)
+    (plz, PLNR_AWAKE);
+    plz->adt->apply(plz, pz);
+
+    pd = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, x, g, f);
+    pld = Y(planner_mkplan)(Y(the_planner)(), pd);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pld);
+    Y(plan_awake)
+    (pld, PLNR_AWAKE);
+    pld->adt->apply(pld, pd);
+
+    for (ks = 0; ks < M; ks++)
+      CU_ASSERT(fz[ks] == f[ks]);
+
+    Y(plan_destroy)
+    (plz);
+    Y(problem_destroy)
+    (pz);
+    Y(plan_destroy)
+    (pld);
+    Y(problem_destroy)
+    (pd);
+    Y(free)
+    (fz);
   }
 
   Y(free)

@@ -22,8 +22,23 @@
 #ifndef NFFT_CONV_H
 #define NFFT_CONV_H
 
-/* Analytical cost of CONV problem. */
 double Y(conv_b_pcost)(const problem *p);
+
+/* Split one axis' window support -- len taps starting at wrapped grid cell u --
+ * into two contiguous runs (the second is empty when the support does not wrap
+ * past n). tof[r] indexes psi, gof[r] indexes the grid, rl[r] is the length. */
+static inline void Y(conv_runs)(INT u, INT n, INT len, INT *tof, INT *gof,
+                                INT *rl) {
+  INT head = n - u;
+  if (head > len)
+    head = len;
+  tof[0] = 0;
+  gof[0] = u;
+  rl[0] = head;
+  tof[1] = head;
+  gof[1] = 0;
+  rl[1] = len - head;
+}
 
 /* CONV solvers. */
 void Y(conv_solver_1d_register)(planner *pl);

@@ -16,13 +16,12 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* nD, n>=4, DECONV solver: Step A of the fast NFFT decomposition -- deconvolve f_hat by
- * the window's phi_hut factors and zero-pad onto the oversampled grid g (forward),
- * or the adjoint gather (g -> f_hat, multiplying by the same 1/phi_hut. phi_hut
- * depends only on (n, N, m, window), so it is precomputed once at awake,
- * node-independent. Slot ks carries frequency k = ks - Nneg, with Nneg = N/2
- * for type-I and N/2 - 1 for type-II; odd N normalizes to type-I in
- * mkproblem_deconv, so type-II implies even N. */
+/* nD DECONV solver: step A of the fast NFFT decomposition. Forward divides f_hat
+ * by the window's phi_hut factors and zero-pads onto the oversampled grid g;
+ * the adjoint gathers g -> f_hat through the same 1/phi_hut. phi_hut is
+ * node-independent, so it is built at awake. Slot ks carries frequency
+ * k = ks - Nneg, with Nneg = N/2 for type-I and N/2 - 1 for type-II; odd N
+ * normalizes to type-I in mkproblem_deconv, so type-II implies even N. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -38,16 +37,18 @@ typedef struct
   INT Ntot, ntot; /* owned products, captured at mkplan */
   int m, window;
   R **phi_hut_inv; /* owned array of d owned tables; phi_hut_inv[t] has
-                    * length N[t]: 1/phi_hut(n[t],N[t],m,ks-Nneg[t]), at awake */
-  int precomputed;
+                    * length N[t]: 1/phi_hut(n[t],N[t],m,ks-Nneg[t]) */
+  int level; /* content of the tables: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } deconv_nd_plan;
 
-/* precompute 1/phi_hut */
-static void deconv_nd_awake(plan *ego_, int wakefulness) {
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
+ * upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
   deconv_nd_plan *pln = (deconv_nd_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      int t;
+  int t;
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE)
       for (t = 0; t < pln->d; t++) {
         INT Nt = pln->N[t], ks;
         Y(window_phi_hut_apply)
@@ -56,14 +57,13 @@ static void deconv_nd_awake(plan *ego_, int wakefulness) {
         for (ks = 0; ks < Nt; ks++)
           pln->phi_hut_inv[t][ks] = K(1.0) / pln->phi_hut_inv[t][ks];
       }
-      pln->precomputed = 1;
-    }
-  } else
-    pln->precomputed = 0;
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
+    for (t = 0; t < pln->d; t++)
+      memset(pln->phi_hut_inv[t], 0, (size_t)pln->N[t] * sizeof(R));
+  pln->level = wakefulness;
 }
 
-/* apply the forward oradjoint real diagonal scale-and-pad map (f_hat -> g or g -> f_hat, respectively). */
-static void deconv_nd_run(const deconv_nd_plan *pln, const problem_deconv *pd,
+static void run(const deconv_nd_plan *pln, const problem_deconv *pd,
                           int forward) {
   const int d = pln->d;
   const INT *N = pln->N;
@@ -83,18 +83,17 @@ static void deconv_nd_run(const deconv_nd_plan *pln, const problem_deconv *pd,
   if (forward) {
     f_hat = (C *)pd->f_hat;
     g_hat = pd->g;
-    memset(g_hat, 0, (size_t)pln->ntot * sizeof(C)); /* MACRO_D_init_result_A */
+    memset(g_hat, 0, (size_t)pln->ntot * sizeof(C));
   } else {
     f_hat = pd->f_hat;
     g_hat = (C *)pd->g;
-    memset(f_hat, 0, (size_t)pln->Ntot * sizeof(C)); /* MACRO_D_init_result_T */
+    memset(f_hat, 0, (size_t)pln->Ntot * sizeof(C));
   }
 
   c_phi_inv_k[0] = K(1.0);
   k_plain[0] = 0;
   ks_plain[0] = 0;
 
-  /* MACRO_init_k_ks */
   for (t = d - 1; 0 <= t; t--) {
     kp[t] = k[t] = 0;
     ks[t] = Nneg[t];
@@ -102,20 +101,17 @@ static void deconv_nd_run(const deconv_nd_plan *pln, const problem_deconv *pd,
   t++;
 
   for (k_L = 0; k_L < pln->Ntot; k_L++) {
-    /* MACRO_update_c_phi_inv_k(with_PRE_PHI_HUT) */
     for (t2 = t; t2 < d; t2++) {
       c_phi_inv_k[t2 + 1] = c_phi_inv_k[t2] * phi_hut_inv[t2][ks[t2]];
       ks_plain[t2 + 1] = ks_plain[t2] * N[t2] + ks[t2];
       k_plain[t2 + 1] = k_plain[t2] * n[t2] + k[t2];
     }
 
-    /* MACRO_D_compute_A / MACRO_D_compute_T */
     if (forward)
       g_hat[k_plain[d]] = f_hat[ks_plain[d]] * c_phi_inv_k[d];
     else
       f_hat[ks_plain[d]] = g_hat[k_plain[d]] * c_phi_inv_k[d];
 
-    /* MACRO_count_k_ks */
     for (t = d - 1; (t > 0) && (kp[t] == N[t] - 1); t--) {
       kp[t] = k[t] = 0;
       ks[t] = Nneg[t];
@@ -132,21 +128,19 @@ static void deconv_nd_run(const deconv_nd_plan *pln, const problem_deconv *pd,
   }
 }
 
-/* apply the real diagonal scale-and-pad map (f_hat -> g). */
-static void deconv_nd_apply(const plan *ego_, const problem *p) {
-  deconv_nd_run((const deconv_nd_plan *)ego_, (const problem_deconv *)p, 1);
+static void apply(const plan *ego_, const problem *p) {
+  run((const deconv_nd_plan *)ego_, (const problem_deconv *)p, 1);
 }
 
-/* apply the adjoint real diagonal scale-and-pad map (g -> f_hat). The adjoint only swaps scatter->gather. */
-static void deconv_nd_apply_adjoint(const plan *ego_, const problem *p) {
-  deconv_nd_run((const deconv_nd_plan *)ego_, (const problem_deconv *)p, 0);
+static void apply_adjoint(const plan *ego_, const problem *p) {
+  run((const deconv_nd_plan *)ego_, (const problem_deconv *)p, 0);
 }
 
-static void deconv_nd_print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr) {
   const deconv_nd_plan *pln = (const deconv_nd_plan *)ego_;
   pr->print(pr, "(deconv_solver_nd pcost=%D)", (INT)pln->super.pcost);
 }
-static void deconv_nd_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   deconv_nd_plan *pln = (deconv_nd_plan *)ego_;
   int t;
   for (t = 0; t < pln->d; t++)
@@ -161,9 +155,9 @@ static void deconv_nd_destroy(plan *ego_) {
   Y(free)
   (pln->N);
 }
-static const plan_adt deconv_nd_plan_adt = {deconv_nd_apply, deconv_nd_awake,
-                                            deconv_nd_print, deconv_nd_destroy,
-                                            deconv_nd_apply_adjoint};
+static const plan_adt deconv_nd_plan_adt = {apply, awake,
+                                            print, destroy,
+                                            apply_adjoint};
 
 /* d >= 4 only */
 static plan *mkplan_deconv_nd(const solver *ego, const problem *p, planner *pl) {
@@ -204,7 +198,7 @@ static plan *mkplan_deconv_nd(const solver *ego, const problem *p, planner *pl) 
   }
   pln->m = pd->m;
   pln->window = pd->window;
-  pln->precomputed = 0;
+  pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }

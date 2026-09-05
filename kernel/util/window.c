@@ -127,8 +127,8 @@ R Y(window_phi_hut)(int window, INT n, INT N, int m, INT k)
     return Y(bspline_phi_hut)((R)m, (R)n, (R)k);
   case NFFT_WINDOW_SINC_POWER:
   {
-    /* Deconvolution divides by this, so it takes de Boor rather than the
-     * Chebyshev evaluator the macro reaches for. */
+    /* de Boor rather than the macro's Chebyshev evaluator: deconvolution
+     * divides by this. */
     const R w = sincpow_w(n, N, m);
     return Y(bsplines)((INT)(2 * m), (R)k / (w * (R)n) + (R)m);
   }

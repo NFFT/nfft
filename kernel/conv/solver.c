@@ -16,11 +16,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* CONV solver registry: the roster tying together the rank-gated leaf solvers
- * (kernel/conv/conv-1d.c for d==1, conv-2d.c for d==2, conv-3d.c for d==3,
- * conv-nd.c for the generic d>=4) and the generation-guarded one-shot
- * registration entry point, mirroring kernel/deconv/solver.c's deconv_roster.
- * The leaf register functions are all declared in kernel/conv/conv.h. */
+/* CONV solver roster: conv-1d.c for d==1, conv-2d.c for d==2, conv-3d.c for
+ * d==3, conv-nd.c for d>=4. The leaf register functions are declared in
+ * conv.h. */
 
 #include "nfft3.h"
 #include "infft.h"

@@ -22,8 +22,11 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
+#include "conv.h"
 
-static void cv_hash(const problem *p, md5 *ctx) {
+#include <math.h> /* pow */
+
+static void hash(const problem *p, md5 *ctx) {
   const problem_conv *ego = (const problem_conv *)p;
   int t;
   Y(md5_put_str)
@@ -39,14 +42,21 @@ static void cv_hash(const problem *p, md5 *ctx) {
   Y(md5_put_int)
   (ctx, ego->m);
   for (t = 0; t < ego->sz->rnk; t++)
-    Y(md5_put_int)
+    Y(md5_put_INT)
   (ctx, ego->N[t]);
   Y(md5_put_int)
   (ctx, ego->window);
-  /* x is deliberately not hashed. */
+  /* x is not hashed: the key is a size class, not the node data. */
 }
 
-static void cv_print(const problem *p, printer *pr) {
+/* Analytical cost: 2 flops per tap, (2m+2)^d taps per node. */
+double Y(conv_b_pcost)(const problem *p) {
+  const problem_conv *pc = (const problem_conv *)p;
+  return 2.0 * (double)pc->M
+         * pow((double)(2 * pc->m + 2), (double)pc->sz->rnk);
+}
+
+static void print(const problem *p, printer *pr) {
   const problem_conv *ego = (const problem_conv *)p;
   pr->print(pr, "(conv sign=%d m=%d M=%D ", ego->sign, ego->m, ego->M);
   Y(tensor_print)
@@ -54,7 +64,7 @@ static void cv_print(const problem *p, printer *pr) {
   pr->putchr(pr, ')');
 }
 
-static void cv_destroy(problem *p) {
+static void destroy(problem *p) {
   problem_conv *ego = (problem_conv *)p;
   Y(tensor_destroy)
   (ego->sz);
@@ -66,7 +76,7 @@ static void cv_destroy(problem *p) {
 }
 
 static const problem_adt conv_adt = {
-    NFFT_PROBLEM_CONV, cv_hash, cv_print, cv_destroy};
+    NFFT_PROBLEM_CONV, hash, print, destroy};
 
 problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
                            int window, int sign, R *x, C *g, C *f) {
