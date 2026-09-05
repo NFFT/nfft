@@ -122,7 +122,12 @@ void Y(problem_destroy)(problem *p);
 /* Readiness of a plan */
 enum {
   PLNR_SLEEPY = 0, // not ready
-  PLNR_AWAKE_ZERO = 1, // may execute, results may be incorrect
+  /* Every buffer a transform needs is allocated and filled with cheap
+   * placeholder values, so apply runs at the true cost and reads no
+   * uninitialised memory. Only the results are meaningless. The measured race
+   * times candidates in this state; awake() must upgrade to PLNR_AWAKE
+   * in place, without reallocating. */
+  PLNR_AWAKE_ZERO = 1,
   PLNR_AWAKE = 2 // may execute, results correct
 };
 

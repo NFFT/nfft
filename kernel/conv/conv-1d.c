@@ -60,7 +60,7 @@ static void awake(plan *ego_, int wakefulness) {
       fill(pln);
   } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
     memset(pln->psi, 0, (size_t)pln->M * (size_t)(2 * pln->m + 2) * sizeof(R));
-    memset(pln->u, 0, (size_t)pln->M * sizeof(INT));
+    Y(conv_spread_u)(pln->u, pln->M, 1, &pln->n);
   }
   pln->level = wakefulness;
 }
