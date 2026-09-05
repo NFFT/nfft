@@ -16,11 +16,11 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* 3D CONV solver: Step C of the fast NFFT decomposition -- the node convolution 
- * (matrix B). Sums the oversampled grid g against the window psi at each 
- * nonequispaced node x_j (forward), or scatter-adds f onto g with the same psi 
- * weights (adjoint). psi depends on x/window/n/N/m), precomputed once at awake
- * (sparse PRE_PSI strategy in legacy code). */
+/* 3D CONV solver: step C of the fast NFFT decomposition, the node convolution
+ * (matrix B). Forward sums the oversampled grid g against the window psi at
+ * each nonequispaced node x_j; the adjoint scatter-adds f onto g with the same
+ * psi weights. psi and the wrapped window start u depend on x/window/n/N/m and
+ * are built at awake, so apply does no window evaluation and no FLOOR/LRINT. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -33,528 +33,128 @@ typedef struct
   INT n0, n1, n2, N0, N1, N2, M; /* geometry captured at mkplan */
   int m, window;
   const R *x; /* borrowed alias of the problem's nodes */
-  R *psi;     /* length M*3*(2m+2): psi[(j*3+t)*(2m+2)+lj], built at awake */
-  int precomputed;
+  R *psi;     /* length M*3*(2m+2): psi[(j*3+t)*(2m+2)+lj] */
+  INT *u;     /* length M*3: wrapped window start, u[j*3+t] */
+  int level;  /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_3d_plan;
 
-/* uo2: neighbor window start/end on axis of size n, wrapped mod n. */
-static void uo2(INT *u, INT *o, const R x, const INT n, const INT m) {
-  INT c = LRINT(FLOOR(x * (R)n));
-  *u = (c - m + n) % n;
-  *o = (c + 1 + m + n) % n;
-}
-
-/* precompute the psi table from ego->x. */
-static void conv_3d_awake(plan *ego_, int wakefulness) {
-  conv_3d_plan *pln = (conv_3d_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      int t;
-      INT nn[3];
-      nn[0] = pln->n0;
-      nn[1] = pln->n1;
-      nn[2] = pln->n2;
-      INT NN[3];
-      NN[0] = pln->N0;
-      NN[1] = pln->N1;
-      NN[2] = pln->N2;
-      for (t = 0; t < 3; t++)
-        Y(window_phi_precompute)
-      (pln->window, nn[t], NN[t], pln->m,
-       pln->x + t, 3, pln->M,
-       pln->psi + t * (2 * pln->m + 2), 3 * (2 * pln->m + 2));
-      pln->precomputed = 1;
+static void fill(conv_3d_plan *pln) {
+  const INT nn[3] = {pln->n0, pln->n1, pln->n2};
+  const INT NN[3] = {pln->N0, pln->N1, pln->N2};
+  const INT M = pln->M;
+  const int m = pln->m;
+  INT j;
+  int t;
+  for (t = 0; t < 3; t++) {
+    Y(window_phi_precompute)
+    (pln->window, nn[t], NN[t], m, pln->x + t, 3, M,
+     pln->psi + t * (2 * m + 2), 3 * (2 * m + 2));
+    for (j = 0; j < M; j++) {
+      INT c = LRINT(FLOOR(pln->x[j * 3 + t] * (R)nn[t]));
+      pln->u[j * 3 + t] = (((c - m) % nn[t]) + nn[t]) % nn[t];
     }
-  } else
-    pln->precomputed = 0; /* -> SLEEPY: psi values now stale */
+  }
 }
 
-/* Forward B (g -> f[j]). */
-static void conv_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
-                                  const R *psij_const1, const R *psij_const2, const R *xj0, const R *xj1,
-                                  const R *xj2, const INT n0, const INT n1, const INT n2, const int m) {
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
-  const C *gj;
-  const R *psij0, *psij1, *psij2;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
-
-  *fj = K(0.0);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2) {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2) {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
+ * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
+ * a later upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
+  conv_3d_plan *pln = (conv_3d_plan *)ego_;
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE)
+      fill(pln);
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    memset(pln->psi, 0,
+           (size_t)pln->M * 3 * (size_t)(2 * pln->m + 2) * sizeof(R));
+    memset(pln->u, 0, (size_t)pln->M * 3 * sizeof(INT));
+  }
+  pln->level = wakefulness;
 }
 
-/* Adjoint B^H (f[j] -> g, scatter-add). */
-static void conv_adjoint_3d_compute_serial(const C *fj, C *g,
-                                           const R *psij_const0, const R *psij_const1, const R *psij_const2,
-                                           const R *xj0, const R *xj1, const R *xj2, const INT n0, const INT n1,
-                                           const INT n2, const int m) {
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
-  C *gj;
-  const R *psij0, *psij1, *psij2;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2) {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2) {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else /* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++) {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++) {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-}
-
-static void conv_3d_apply(const plan *ego_, const problem *p) {
-  const conv_3d_plan *pln = (const conv_3d_plan *)ego_;
-  const problem_conv *pc = (const problem_conv *)p;
-  INT n0 = pln->n0, n1 = pln->n1, n2 = pln->n2, M = pln->M;
-  int m = pln->m;
-  const C *g = pc->g;
+/* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). Each axis splits into
+ * at most two contiguous runs, so the tap nest is rectangular. */
+static void run(const conv_3d_plan *pln, const problem_conv *pc, int forward) {
+  const INT n0 = pln->n0, n1 = pln->n1, n2 = pln->n2, M = pln->M;
+  const INT len = 2 * (INT)pln->m + 2;
+  C *g = pc->g;
   C *f = pc->f;
   INT j;
+  if (!forward)
+    /* The scatter accumulates (+=) into an overlapping, node-dependent set that
+     * does not cover the grid, so the whole grid must start zeroed. */
+    memset(g, 0, (size_t)(n0 * n1 * n2) * sizeof(C));
   for (j = 0; j < M; j++) {
-    const R *psij0 = &pln->psi[(j * 3 + 0) * (2 * m + 2)];
-    const R *psij1 = &pln->psi[(j * 3 + 1) * (2 * m + 2)];
-    const R *psij2 = &pln->psi[(j * 3 + 2) * (2 * m + 2)];
-    const R *xj0 = &pln->x[j * 3 + 0];
-    const R *xj1 = &pln->x[j * 3 + 1];
-    const R *xj2 = &pln->x[j * 3 + 2];
-    conv_trafo_3d_compute(&f[j], g, psij0, psij1, psij2, xj0, xj1, xj2, n0,
-                          n1, n2, m);
+    const R *psi0 = pln->psi + (j * 3 + 0) * len;
+    const R *psi1 = pln->psi + (j * 3 + 1) * len;
+    const R *psi2 = pln->psi + (j * 3 + 2) * len;
+    INT tof0[2], gof0[2], rl0[2], tof1[2], gof1[2], rl1[2];
+    INT tof2[2], gof2[2], rl2[2], i, k, l;
+    C acc = K(0.0);
+    C fj = forward ? K(0.0) : f[j];
+    int a, b;
+    Y(conv_runs)(pln->u[j * 3 + 0], n0, len, tof0, gof0, rl0);
+    Y(conv_runs)(pln->u[j * 3 + 1], n1, len, tof1, gof1, rl1);
+    Y(conv_runs)(pln->u[j * 3 + 2], n2, len, tof2, gof2, rl2);
+    { /* the inner axis' runs do not vary over the outer axes; hoist them */
+      const INT la = rl2[0], lb = rl2[1], goa = gof2[0], gob = gof2[1];
+      const R *p2a = psi2 + tof2[0], *p2b = psi2 + tof2[1];
+      for (a = 0; a < 2; a++)
+        for (i = 0; i < rl0[a]; i++) {
+          const R p0 = psi0[tof0[a] + i];
+          C *gplane = g + (gof0[a] + i) * n1 * n2;
+          for (b = 0; b < 2; b++) {
+            const INT nk = rl1[b], to1 = tof1[b], go1 = gof1[b];
+            for (k = 0; k < nk; k++) {
+              const R p01 = p0 * psi1[to1 + k];
+              C *grow = gplane + (go1 + k) * n2;
+              C *ga = grow + goa, *gb = grow + gob;
+              if (forward) {
+                C sub = K(0.0);
+                for (l = 0; l < la; l++)
+                  sub += ga[l] * p2a[l];
+                for (l = 0; l < lb; l++)
+                  sub += gb[l] * p2b[l];
+                acc += sub * p01;
+              } else {
+                const C fp = fj * p01;
+                for (l = 0; l < la; l++)
+                  ga[l] += fp * p2a[l];
+                for (l = 0; l < lb; l++)
+                  gb[l] += fp * p2b[l];
+              }
+            }
+          }
+        }
+    }
+    if (forward)
+      f[j] = acc;
   }
 }
 
-static void conv_3d_apply_adjoint(const plan *ego_, const problem *p) {
-  const conv_3d_plan *pln = (const conv_3d_plan *)ego_;
-  const problem_conv *pc = (const problem_conv *)p;
-  INT n0 = pln->n0, n1 = pln->n1, n2 = pln->n2, M = pln->M;
-  INT ntot = n0 * n1 * n2;
-  int m = pln->m;
-  const C *f = pc->f;
-  C *g = pc->g;
-  INT j;
-  /* The scatter accumulates (+=) into an overlapping, node-dependent set that
-   * does not cover the grid, so the whole grid must start zeroed. */
-  memset(g, 0, (size_t)ntot * sizeof(C)); /* zero the oversampled grid */
-  for (j = 0; j < M; j++) {
-    const R *psij0 = &pln->psi[(j * 3 + 0) * (2 * m + 2)];
-    const R *psij1 = &pln->psi[(j * 3 + 1) * (2 * m + 2)];
-    const R *psij2 = &pln->psi[(j * 3 + 2) * (2 * m + 2)];
-    const R *xj0 = &pln->x[j * 3 + 0];
-    const R *xj1 = &pln->x[j * 3 + 1];
-    const R *xj2 = &pln->x[j * 3 + 2];
-    conv_adjoint_3d_compute_serial(&f[j], g, psij0, psij1, psij2, xj0, xj1,
-                                   xj2, n0, n1, n2, m);
-  }
+static void apply(const plan *ego_, const problem *p) {
+  run((const conv_3d_plan *)ego_, (const problem_conv *)p, 1);
 }
 
-static void conv_3d_print(const plan *ego_, printer *pr) {
+static void apply_adjoint(const plan *ego_, const problem *p) {
+  run((const conv_3d_plan *)ego_, (const problem_conv *)p, 0);
+}
+
+static void print(const plan *ego_, printer *pr) {
   const conv_3d_plan *pln = (const conv_3d_plan *)ego_;
   pr->print(pr, "(conv_solver_3d pcost=%D)", (INT)pln->super.pcost);
 }
-static void conv_3d_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   conv_3d_plan *pln = (conv_3d_plan *)ego_;
   Y(free)
   (pln->psi);
+  Y(free)
+  (pln->u);
   /* x/g/f are borrowed caller arrays. */
 }
-static const plan_adt conv_3d_plan_adt = {conv_3d_apply, conv_3d_awake,
-                                          conv_3d_print, conv_3d_destroy,
-                                          conv_3d_apply_adjoint};
+static const plan_adt conv_3d_plan_adt = {apply, awake, print, destroy,
+                                          apply_adjoint};
 
 /* d == 3 only */
 static plan *mkplan_conv_3d(const solver *ego, const problem *p, planner *pl) {
@@ -580,9 +180,10 @@ static plan *mkplan_conv_3d(const solver *ego, const problem *p, planner *pl) {
   pln->M = pc->M;
   pln->m = pc->m;
   pln->window = pc->window;
-  pln->x = pc->x; /* borrowed alias */
+  pln->x = pc->x; /* borrowed */
   pln->psi = (R *)Y(malloc)((size_t)pln->M * 3 * (size_t)(2 * pln->m + 2) * sizeof(R));
-  pln->precomputed = 0;
+  pln->u = (INT *)Y(malloc)((size_t)pln->M * 3 * sizeof(INT));
+  pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }

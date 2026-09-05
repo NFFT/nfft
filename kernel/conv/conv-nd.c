@@ -16,13 +16,11 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* nD (n>=4) CONV solver: Step C of the fast NFFT decomposition -- the node convolution 
- * (matrix B). Sums the oversampled grid g against the window psi at each 
- * nonequispaced node x_j (forward), or scatter-adds f onto g with the same psi 
- * weights (adjoint). psi depends on x/window/n/N/m), precomputed once at awake
- * (sparse PRE_PSI strategy in legacy code). */
-
-/* not ported: the d==4 and d==5 hand-unrolled branches of MACRO_B_COMPUTE_ONE_NODE */
+/* nD CONV solver: step C of the fast NFFT decomposition, the node convolution
+ * (matrix B). Forward sums the oversampled grid g against the window psi at
+ * each nonequispaced node x_j; the adjoint scatter-adds f onto g with the same
+ * psi weights. psi and the wrapped window start u depend on x/window/n/N/m and
+ * are built at awake, so apply does no window evaluation and no FLOOR/LRINT. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -37,50 +35,56 @@ typedef struct
   INT M;      /* node count */
   INT ntot;   /* owned product of n[], captured at mkplan */
   int m, window;
-  const R *x; /* borrowed alias of the problem's nodes (length d*M), never freed */
-  R *psi;     /* length M*d*(2m+2): psi[(j*d+t)*(2m+2)+lj], built at awake */
-  int precomputed;
+  const R *x; /* borrowed alias of the problem's nodes, length d*M */
+  R *psi;     /* length M*d*(2m+2): psi[(j*d+t)*(2m+2)+lj] */
+  INT *u;     /* length M*d: wrapped window start, u[j*d+t] */
+  int level;  /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_nd_plan;
 
-/* uo: unwrapped neighbor window start/end for axis t at node j. */
-static void uo(const R *x, int d, INT j, const INT *n, int m, int t, INT *up,
-               INT *op) {
-  const R xj = x[j * d + t];
-  INT c = LRINT(FLOOR(xj * (R)n[t]));
-  *up = c - m;
-  *op = c + 1 + m;
-}
-
-/* precompute the psi table from ego->x. */
-static void conv_nd_awake(plan *ego_, int wakefulness) {
-  conv_nd_plan *pln = (conv_nd_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      int t;
-      for (t = 0; t < pln->d; t++)
-        Y(window_phi_precompute)
-      (pln->window, pln->n[t], pln->N[t], pln->m,
-       pln->x + t, pln->d, pln->M,
-       pln->psi + t * (2 * pln->m + 2), pln->d * (2 * pln->m + 2));
-      pln->precomputed = 1;
+static void fill(conv_nd_plan *pln) {
+  const int d = pln->d, m = pln->m;
+  const INT M = pln->M;
+  INT j;
+  int t;
+  for (t = 0; t < d; t++) {
+    const INT nt = pln->n[t];
+    Y(window_phi_precompute)
+    (pln->window, nt, pln->N[t], m, pln->x + t, d, M,
+     pln->psi + t * (2 * m + 2), d * (2 * m + 2));
+    for (j = 0; j < M; j++) {
+      INT c = LRINT(FLOOR(pln->x[j * d + t] * (R)nt));
+      pln->u[j * d + t] = (((c - m) % nt) + nt) % nt;
     }
-  } else
-    pln->precomputed = 0; /* -> SLEEPY: psi values now stale */
+  }
 }
 
-/* Forward B (g -> f[j]) / adjoint B^H (f[j] -> g, scatter-add). */
-static void conv_nd_run(const conv_nd_plan *pln, const problem_conv *pc,
-                        int forward) {
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
+ * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
+ * a later upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
+  conv_nd_plan *pln = (conv_nd_plan *)ego_;
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE)
+      fill(pln);
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    memset(pln->psi, 0, (size_t)pln->M * (size_t)pln->d *
+                            (size_t)(2 * pln->m + 2) * sizeof(R));
+    memset(pln->u, 0, (size_t)pln->M * (size_t)pln->d * sizeof(INT));
+  }
+  pln->level = wakefulness;
+}
+
+/* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). */
+static void run(const conv_nd_plan *pln, const problem_conv *pc, int forward) {
   const int d = pln->d;
   const INT *n = pln->n;
   const INT M = pln->M;
   const int m = pln->m;
-  const R *x = pln->x;
   const R *psi = pln->psi;
   C *f, *g;
   INT lprod;
-  INT u[d], o[d];             /* unwrapped multi band w.r.t. x_j */
-  INT lj[d];                  /* multi index 0 <= lj <= o-u */
+  INT lj[d];                  /* multi index over the taps, 0 <= lj <= 2m+1 */
   INT ll_plain[d + 1];        /* postfix plain index in g */
   R phi_prod[d + 1];          /* postfix product of psi */
   INT l_all[d * (2 * m + 2)]; /* wrapped grid indices per axis/tap */
@@ -89,23 +93,23 @@ static void conv_nd_run(const conv_nd_plan *pln, const problem_conv *pc,
   if (forward) {
     f = pc->f;
     g = (C *)pc->g;
-    memset(f, 0, (size_t)M * sizeof(C)); /* MACRO_B_init_result_A */
+    memset(f, 0, (size_t)M * sizeof(C));
   } else {
     f = (C *)pc->f;
     g = pc->g;
-    memset(g, 0, (size_t)pln->ntot * sizeof(C)); /* MACRO_B_init_result_T */
+    /* The scatter accumulates (+=) into an overlapping, node-dependent set that
+     * does not cover the grid, so the whole grid must start zeroed. */
+    memset(g, 0, (size_t)pln->ntot * sizeof(C));
   }
 
   for (t = 0, lprod = 1; t < d; t++)
     lprod *= (2 * m + 2);
 
   for (j = 0; j < M; j++) {
-    /* MACRO_init_uo_l_lj_t */
     for (t = d - 1; t >= 0; t--) {
       INT lj_t;
-      uo(x, d, j, n, m, t, &u[t], &o[t]);
       for (lj_t = 0; lj_t < 2 * m + 2; lj_t++)
-        l_all[t * (2 * m + 2) + lj_t] = (u[t] + lj_t + n[t]) % n[t];
+        l_all[t * (2 * m + 2) + lj_t] = (pln->u[j * d + t] + lj_t) % n[t];
       lj[t] = 0;
     }
     t++;
@@ -114,51 +118,49 @@ static void conv_nd_run(const conv_nd_plan *pln, const problem_conv *pc,
     ll_plain[0] = 0;
 
     for (l_L = 0; l_L < lprod; l_L++) {
-      /* MACRO_update_phi_prod_ll_plain(with_PRE_PSI) */
       for (t2 = t; t2 < d; t2++) {
         phi_prod[t2 + 1] = phi_prod[t2] * psi[(j * d + t2) * (2 * m + 2) + lj[t2]];
         ll_plain[t2 + 1] = ll_plain[t2] * n[t2] + l_all[t2 * (2 * m + 2) + lj[t2]];
       }
 
-      /* MACRO_B_compute_A / MACRO_B_compute_T */
       if (forward)
         f[j] += phi_prod[d] * g[ll_plain[d]];
       else
         g[ll_plain[d]] += phi_prod[d] * f[j];
 
-      /* MACRO_count_uo_l_lj_t */
-      for (t = d - 1; (t > 0) && (lj[t] == o[t] - u[t]); t--)
+      for (t = d - 1; (t > 0) && (lj[t] == 2 * m + 1); t--)
         lj[t] = 0;
       lj[t]++;
     }
   }
 }
 
-static void conv_nd_apply(const plan *ego_, const problem *p) {
-  conv_nd_run((const conv_nd_plan *)ego_, (const problem_conv *)p, 1);
+static void apply(const plan *ego_, const problem *p) {
+  run((const conv_nd_plan *)ego_, (const problem_conv *)p, 1);
 }
 
-static void conv_nd_apply_adjoint(const plan *ego_, const problem *p) {
-  conv_nd_run((const conv_nd_plan *)ego_, (const problem_conv *)p, 0);
+static void apply_adjoint(const plan *ego_, const problem *p) {
+  run((const conv_nd_plan *)ego_, (const problem_conv *)p, 0);
 }
 
-static void conv_nd_print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr) {
   const conv_nd_plan *pln = (const conv_nd_plan *)ego_;
   pr->print(pr, "(conv_solver_nd pcost=%D)", (INT)pln->super.pcost);
 }
-static void conv_nd_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   conv_nd_plan *pln = (conv_nd_plan *)ego_;
   Y(free)
   (pln->psi);
+  Y(free)
+  (pln->u);
   Y(free)
   (pln->N);
   Y(free)
   (pln->n);
   /* x/g/f are borrowed caller arrays. */
 }
-static const plan_adt conv_nd_plan_adt = {conv_nd_apply, conv_nd_awake,
-                                          conv_nd_print, conv_nd_destroy,
-                                          conv_nd_apply_adjoint};
+static const plan_adt conv_nd_plan_adt = {apply, awake, print, destroy,
+                                          apply_adjoint};
 
 /* d >= 4 only. */
 static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl) {
@@ -187,16 +189,15 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl) {
   }
   pln->M = pc->M;
   pln->m = pc->m;
-  /* conv_nd_run holds a per-run stack VLA l_all[d*(2m+2)] plus
-   * sibling VLAs.  The composed solver never presents a pathological rank/m,
-   * but bound the stack budget so a future direct problem_conv cannot overflow
-   * the stack. */
+  /* run holds stack VLAs sized d*(2m+2); bound the budget so a pathological
+   * rank/m cannot overflow the stack. */
   A((size_t)d * (size_t)(2 * pln->m + 2) * sizeof(INT) <= (size_t)(64 * 1024));
   pln->window = pc->window;
-  pln->x = pc->x; /* borrowed alias; never freed here */
+  pln->x = pc->x; /* borrowed */
   pln->psi = (R *)Y(malloc)(
       (size_t)pln->M * (size_t)d * (size_t)(2 * pln->m + 2) * sizeof(R));
-  pln->precomputed = 0;
+  pln->u = (INT *)Y(malloc)((size_t)pln->M * (size_t)d * sizeof(INT));
+  pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }

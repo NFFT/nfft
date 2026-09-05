@@ -21,8 +21,15 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
+#include "deconv.h"
 
-static void dv_hash(const problem *p, md5 *ctx) {
+/* Analytical cost: 2 flops per frequency, over all d axes. */
+double Y(deconv_d_pcost)(const problem *p) {
+  INT Ntot = Y(problem_deconv_Ntot)(p);
+  return 2.0 * (double)Ntot;
+}
+
+static void hash(const problem *p, md5 *ctx) {
   const problem_deconv *ego = (const problem_deconv *)p;
   int t;
   Y(md5_put_str)
@@ -43,7 +50,7 @@ static void dv_hash(const problem *p, md5 *ctx) {
   /* No M, no x, no fftw_flags: Step A is node- and FFT-independent. */
 }
 
-static void dv_print(const problem *p, printer *pr) {
+static void print(const problem *p, printer *pr) {
   const problem_deconv *ego = (const problem_deconv *)p;
   int t;
   pr->print(pr, "(deconv sign=%d m=%d ", ego->sign, ego->m);
@@ -55,7 +62,7 @@ static void dv_print(const problem *p, printer *pr) {
   pr->putchr(pr, ')');
 }
 
-static void dv_destroy(problem *p) {
+static void destroy(problem *p) {
   problem_deconv *ego = (problem_deconv *)p;
   Y(tensor_destroy)
   (ego->sz);
@@ -66,7 +73,7 @@ static void dv_destroy(problem *p) {
 }
 
 static const problem_adt deconv_adt = {
-    NFFT_PROBLEM_DECONV, dv_hash, dv_print, dv_destroy};
+    NFFT_PROBLEM_DECONV, hash, print, destroy};
 
 problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
                              const INT *n, int m, int window, int sign,
@@ -112,7 +119,7 @@ problem *Y(mkproblem_deconv)(int d, const INT *N, const int *variant,
 
   ego->variant = (int *)Y(malloc)((size_t)d * sizeof(int));
   for (t = 0; t < d; t++) {
-    /* variant == NULL means "all type-I" (mirrors mkproblem_nfft). */
+    /* variant == NULL means "all type-I". */
     int vt = variant ? variant[t] : NFFT_NDFT_TYPE_I;
     A(vt == NFFT_NDFT_TYPE_I || vt == NFFT_NDFT_TYPE_II);
     /* type-I and type-II coincide for odd N: normalize so they share a key. */

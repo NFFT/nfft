@@ -16,13 +16,12 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* 1D DECONV solver: Step A of the fast NFFT decomposition -- deconvolve f_hat by
- * the window's phi_hut factors and zero-pad onto the oversampled grid g (forward),
- * or the adjoint gather (g -> f_hat, multiplying by the same 1/phi_hut. phi_hut
- * depends only on (n, N, m, window), so it is precomputed once at awake,
- * node-independent. Slot ks carries frequency k = ks - Nneg, with Nneg = N/2
- * for type-I and N/2 - 1 for type-II; odd N normalizes to type-I in
- * mkproblem_deconv, so type-II implies even N. */
+/* 1D DECONV solver: step A of the fast NFFT decomposition. Forward divides f_hat
+ * by the window's phi_hut factors and zero-pads onto the oversampled grid g;
+ * the adjoint gathers g -> f_hat through the same 1/phi_hut. phi_hut is
+ * node-independent, so it is built at awake. Slot ks carries frequency
+ * k = ks - Nneg, with Nneg = N/2 for type-I and N/2 - 1 for type-II; odd N
+ * normalizes to type-I in mkproblem_deconv, so type-II implies even N. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -35,28 +34,29 @@ typedef struct
   INT n, N; /* geometry captured at mkplan */
   INT Nneg, Npos; /* slot split: k(ks) = ks - Nneg, Npos = N - Nneg */
   int m, window;
-  R *phi_hut_inv; /* length N: 1/phi_hut(ks - Nneg); at awake */
-  int precomputed;
+  R *phi_hut_inv; /* length N: 1/phi_hut(ks - Nneg) */
+  int level;      /* content of phi_hut_inv: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } deconv_plan;
 
-/* precompute 1/phi_hut */
-static void deconv_awake(plan *ego_, int wakefulness) {
+/* AWAKE_ZERO must cost no window evaluation, so the table gets placeholder
+ * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
+ * upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
   deconv_plan *pln = (deconv_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      INT N = pln->N, ks;
+  INT N = pln->N, ks;
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE) {
       Y(window_phi_hut_apply)
       (pln->window, pln->n, N, pln->m, -pln->Nneg, pln->phi_hut_inv, N);
-      for (ks = 0; ks < N; ks++) /* in-place invert */
+      for (ks = 0; ks < N; ks++)
         pln->phi_hut_inv[ks] = K(1.0) / pln->phi_hut_inv[ks];
-      pln->precomputed = 1;
     }
-  } else
-    pln->precomputed = 0;
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
+    memset(pln->phi_hut_inv, 0, (size_t)N * sizeof(R));
+  pln->level = wakefulness;
 }
 
-/* apply the real diagonal scale-and-pad map (f_hat -> g). */
-static void deconv_apply(const plan *ego_, const problem *p) {
+static void apply(const plan *ego_, const problem *p) {
   const deconv_plan *pln = (const deconv_plan *)ego_;
   const problem_deconv *pd = (const problem_deconv *)p;
   INT N = pln->N, n = pln->n, Nneg = pln->Nneg, Npos = pln->Npos;
@@ -69,12 +69,11 @@ static void deconv_apply(const plan *ego_, const problem *p) {
   memset(g + Npos, 0, (size_t)(n - N) * sizeof(C));
   for (ks = 0; ks < N; ks++) {
     INT pos = (ks < Nneg) ? n - Nneg + ks : ks - Nneg;
-    g[pos] = f_hat[ks] * pln->phi_hut_inv[ks]; /* / phi_hut(ks - Nneg) */
+    g[pos] = f_hat[ks] * pln->phi_hut_inv[ks];
   }
 }
 
-/* apply the adjoint real diagonal scale-and-pad map (g -> f_hat). The adjoint only swaps scatter->gather. */
-static void deconv_apply_adjoint(const plan *ego_, const problem *p) {
+static void apply_adjoint(const plan *ego_, const problem *p) {
   const deconv_plan *pln = (const deconv_plan *)ego_;
   const problem_deconv *pd = (const problem_deconv *)p;
   INT N = pln->N, n = pln->n, Nneg = pln->Nneg;
@@ -83,22 +82,22 @@ static void deconv_apply_adjoint(const plan *ego_, const problem *p) {
   INT ks;
   for (ks = 0; ks < N; ks++) {
     INT pos = (ks < Nneg) ? n - Nneg + ks : ks - Nneg;
-    f_hat[ks] = g[pos] * pln->phi_hut_inv[ks]; /* D^H: same 1/phi_hut as forward */
+    f_hat[ks] = g[pos] * pln->phi_hut_inv[ks];
   }
 }
 
-static void deconv_print(const plan *ego_, printer *pr) {
+static void print(const plan *ego_, printer *pr) {
   const deconv_plan *pln = (const deconv_plan *)ego_;
   pr->print(pr, "(deconv_solver_1d pcost=%D)", (INT)pln->super.pcost);
 }
 
-static void deconv_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   deconv_plan *pln = (deconv_plan *)ego_;
   Y(free)
   (pln->phi_hut_inv);
 }
-static const plan_adt deconv_plan_adt = {deconv_apply, deconv_awake, deconv_print,
-                                         deconv_destroy, deconv_apply_adjoint};
+static const plan_adt deconv_plan_adt = {apply, awake, print,
+                                         destroy, apply_adjoint};
 
 /* d == 1 only */
 static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) {
@@ -127,8 +126,8 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl) 
                       (INT)0);
   pln->Npos = pln->N - pln->Nneg;
   pln->phi_hut_inv = (R *)Y(malloc)((size_t)pln->N * sizeof(R));
-  pln->precomputed = 0;
-  pln->super.pcost = 2.0 * (double)pln->N;
+  pln->level = PLNR_SLEEPY;
+  pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }
 

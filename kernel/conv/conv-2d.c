@@ -16,22 +16,16 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* 2D CONV solver: Step C of the fast NFFT decomposition -- the node convolution 
- * (matrix B). Sums the oversampled grid g against the window psi at each 
- * nonequispaced node x_j (forward), or scatter-adds f onto g with the same psi 
- * weights (adjoint). psi depends on x/window/n/N/m), precomputed once at awake
- * (sparse PRE_PSI strategy in legacy code). */
+/* 2D CONV solver: step C of the fast NFFT decomposition, the node convolution
+ * (matrix B). Forward sums the oversampled grid g against the window psi at
+ * each nonequispaced node x_j; the adjoint scatter-adds f onto g with the same
+ * psi weights. psi and the wrapped window start u depend on x/window/n/N/m and
+ * are built at awake, so apply does no window evaluation and no FLOOR/LRINT. */
 
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
 #include "conv.h"
-
-double Y(conv_b_pcost)(const problem *p) {
-  const problem_conv *pc = (const problem_conv *)p;
-  double s = (double)(2 * pc->m + 2);
-  return 2.0 * (double)pc->M * s * s;
-}
 
 typedef struct
 {
@@ -39,226 +33,118 @@ typedef struct
   INT n0, n1, N0, N1, M; /* geometry captured at mkplan */
   int m, window;
   const R *x; /* borrowed alias of the problem's nodes */
-  R *psi;     /* length M*2*(2m+2): psi[(j*2+t)*(2m+2)+lj], built at awake */
-  int precomputed;
+  R *psi;     /* length M*2*(2m+2): psi[(j*2+t)*(2m+2)+lj] */
+  INT *u;     /* length M*2: wrapped window start, u[j*2+t] */
+  int level;  /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } conv_2d_plan;
 
-/* uo2: neighbor window start/end on axis of size n, wrapped mod n. */
-static void uo2(INT *u, INT *o, const R x, const INT n, const INT m) {
-  INT c = LRINT(FLOOR(x * (R)n));
-  *u = (c - m + n) % n;
-  *o = (c + 1 + m + n) % n;
+static void fill(conv_2d_plan *pln) {
+  const INT nn[2] = {pln->n0, pln->n1};
+  const INT NN[2] = {pln->N0, pln->N1};
+  const INT M = pln->M;
+  const int m = pln->m;
+  INT j;
+  int t;
+  for (t = 0; t < 2; t++) {
+    Y(window_phi_precompute)
+    (pln->window, nn[t], NN[t], m, pln->x + t, 2, M,
+     pln->psi + t * (2 * m + 2), 2 * (2 * m + 2));
+    for (j = 0; j < M; j++) {
+      INT c = LRINT(FLOOR(pln->x[j * 2 + t] * (R)nn[t]));
+      pln->u[j * 2 + t] = (((c - m) % nn[t]) + nn[t]) % nn[t];
+    }
+  }
 }
 
-/* precompute the psi table from ego->x. */
-static void conv_2d_awake(plan *ego_, int wakefulness) {
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
+ * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
+ * a later upgrade refills. */
+static void awake(plan *ego_, int wakefulness) {
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO) {
-    if (!pln->precomputed) {
-      int t;
-      INT nn[2];
-      nn[0] = pln->n0;
-      nn[1] = pln->n1;
-      INT NN[2];
-      NN[0] = pln->N0;
-      NN[1] = pln->N1;
-      for (t = 0; t < 2; t++)
-        Y(window_phi_precompute)
-      (pln->window, nn[t], NN[t], pln->m,
-       pln->x + t, 2, pln->M,
-       pln->psi + t * (2 * pln->m + 2), 2 * (2 * pln->m + 2));
-      pln->precomputed = 1;
-    }
-  } else
-    pln->precomputed = 0; /* -> SLEEPY: psi values now stale */
-}
-
-/* Forward B (g -> f[j]) */
-static void conv_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
-                                  const R *psij_const1, const R *xj0, const R *xj1, const INT n0,
-                                  const INT n1, const int m) {
-  INT u0, o0, l0, u1, o1, l1;
-  const C *gj;
-  const R *psij0, *psij1;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-
-  *fj = K(0.0);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-        psij1 = psij_const1;
-        gj = g + (u0 + l0) * n1 + u1;
-        for (l1 = 0; l1 <= 2 * m + 1; l1++)
-          (*fj) += (*psij0) * (*psij1++) * (*gj++);
-      }
-    else
-      for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-        psij1 = psij_const1;
-        gj = g + (u0 + l0) * n1 + u1;
-        for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-          (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj = g + (u0 + l0) * n1;
-        for (l1 = 0; l1 <= o1; l1++)
-          (*fj) += (*psij0) * (*psij1++) * (*gj++);
-      }
-  else if (u1 < o1) {
-    for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + (u0 + l0) * n1 + u1;
-      for (l1 = 0; l1 <= 2 * m + 1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for (l0 = 0; l0 <= o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + l0 * n1 + u1;
-      for (l1 = 0; l1 <= 2 * m + 1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-  } else {
-    for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + (u0 + l0) * n1 + u1;
-      for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-      gj = g + (u0 + l0) * n1;
-      for (l1 = 0; l1 <= o1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for (l0 = 0; l0 <= o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + l0 * n1 + u1;
-      for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-      gj = g + l0 * n1;
-      for (l1 = 0; l1 <= o1; l1++)
-        (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE)
+      fill(pln);
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    memset(pln->psi, 0,
+           (size_t)pln->M * 2 * (size_t)(2 * pln->m + 2) * sizeof(R));
+    memset(pln->u, 0, (size_t)pln->M * 2 * sizeof(INT));
   }
+  pln->level = wakefulness;
 }
 
-/* Adjoint B^H (f[j] -> g, scatter-add) */
-static void conv_adjoint_2d_compute_serial(const C *fj, C *g,
-                                           const R *psij_const0, const R *psij_const1, const R *xj0, const R *xj1,
-                                           const INT n0, const INT n1, const int m) {
-  INT u0, o0, l0, u1, o1, l1;
-  C *gj;
-  const R *psij0, *psij1;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-        psij1 = psij_const1;
-        gj = g + (u0 + l0) * n1 + u1;
-        for (l1 = 0; l1 <= 2 * m + 1; l1++)
-          (*gj++) += (*psij0) * (*psij1++) * (*fj);
-      }
-    else
-      for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++) {
-        psij1 = psij_const1;
-        gj = g + (u0 + l0) * n1 + u1;
-        for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-          (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj = g + (u0 + l0) * n1;
-        for (l1 = 0; l1 <= o1; l1++)
-          (*gj++) += (*psij0) * (*psij1++) * (*fj);
-      }
-  else if (u1 < o1) {
-    for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + (u0 + l0) * n1 + u1;
-      for (l1 = 0; l1 <= 2 * m + 1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for (l0 = 0; l0 <= o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + l0 * n1 + u1;
-      for (l1 = 0; l1 <= 2 * m + 1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-  } else {
-    for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + (u0 + l0) * n1 + u1;
-      for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-      gj = g + (u0 + l0) * n1;
-      for (l1 = 0; l1 <= o1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for (l0 = 0; l0 <= o0; l0++, psij0++) {
-      psij1 = psij_const1;
-      gj = g + l0 * n1 + u1;
-      for (l1 = 0; l1 < 2 * m + 1 - o1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-      gj = g + l0 * n1;
-      for (l1 = 0; l1 <= o1; l1++)
-        (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-  }
-}
-
-static void conv_2d_apply(const plan *ego_, const problem *p) {
-  const conv_2d_plan *pln = (const conv_2d_plan *)ego_;
-  const problem_conv *pc = (const problem_conv *)p;
-  INT n0 = pln->n0, n1 = pln->n1, M = pln->M;
-  int m = pln->m;
-  const C *g = pc->g;
+/* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). Each axis splits into
+ * at most two contiguous runs, so the tap nest is rectangular. */
+static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward) {
+  const INT n0 = pln->n0, n1 = pln->n1, M = pln->M;
+  const INT len = 2 * (INT)pln->m + 2;
+  C *g = pc->g;
   C *f = pc->f;
   INT j;
+  if (!forward)
+    /* The scatter accumulates (+=) into an overlapping, node-dependent set that
+     * does not cover the grid, so the whole grid must start zeroed. */
+    memset(g, 0, (size_t)(n0 * n1) * sizeof(C));
   for (j = 0; j < M; j++) {
-    const R *psij0 = &pln->psi[(j * 2 + 0) * (2 * m + 2)];
-    const R *psij1 = &pln->psi[(j * 2 + 1) * (2 * m + 2)];
-    const R *xj0 = &pln->x[j * 2 + 0];
-    const R *xj1 = &pln->x[j * 2 + 1];
-    conv_trafo_2d_compute(&f[j], g, psij0, psij1, xj0, xj1, n0, n1, m);
+    const R *psi0 = pln->psi + (j * 2 + 0) * len;
+    const R *psi1 = pln->psi + (j * 2 + 1) * len;
+    INT tof0[2], gof0[2], rl0[2], tof1[2], gof1[2], rl1[2], i, k;
+    C acc = K(0.0);
+    C fj = forward ? K(0.0) : f[j];
+    int a;
+    Y(conv_runs)(pln->u[j * 2 + 0], n0, len, tof0, gof0, rl0);
+    Y(conv_runs)(pln->u[j * 2 + 1], n1, len, tof1, gof1, rl1);
+    { /* the inner axis' runs do not vary over the outer axes; hoist them */
+      const INT ka = rl1[0], kb = rl1[1], goa = gof1[0], gob = gof1[1];
+      const R *p1a = psi1 + tof1[0], *p1b = psi1 + tof1[1];
+      for (a = 0; a < 2; a++)
+        for (i = 0; i < rl0[a]; i++) {
+          const R p0 = psi0[tof0[a] + i];
+          C *grow = g + (gof0[a] + i) * n1;
+          C *ga = grow + goa, *gb = grow + gob;
+          if (forward) {
+            C sub = K(0.0);
+            for (k = 0; k < ka; k++)
+              sub += ga[k] * p1a[k];
+            for (k = 0; k < kb; k++)
+              sub += gb[k] * p1b[k];
+            acc += sub * p0;
+          } else {
+            const C fp = fj * p0;
+            for (k = 0; k < ka; k++)
+              ga[k] += fp * p1a[k];
+            for (k = 0; k < kb; k++)
+              gb[k] += fp * p1b[k];
+          }
+        }
+    }
+    if (forward)
+      f[j] = acc;
   }
 }
 
-static void conv_2d_apply_adjoint(const plan *ego_, const problem *p) {
-  const conv_2d_plan *pln = (const conv_2d_plan *)ego_;
-  const problem_conv *pc = (const problem_conv *)p;
-  INT n0 = pln->n0, n1 = pln->n1, M = pln->M, ntot = n0 * n1;
-  int m = pln->m;
-  const C *f = pc->f;
-  C *g = pc->g;
-  INT j;
-  /* The scatter accumulates (+=) into an overlapping, node-dependent set that
-   * does not cover the grid, so the whole grid must start zeroed. */
-  memset(g, 0, (size_t)ntot * sizeof(C)); /* zero the oversampled grid */
-  for (j = 0; j < M; j++) {
-    const R *psij0 = &pln->psi[(j * 2 + 0) * (2 * m + 2)];
-    const R *psij1 = &pln->psi[(j * 2 + 1) * (2 * m + 2)];
-    const R *xj0 = &pln->x[j * 2 + 0];
-    const R *xj1 = &pln->x[j * 2 + 1];
-    conv_adjoint_2d_compute_serial(&f[j], g, psij0, psij1, xj0, xj1, n0, n1, m);
-  }
+static void apply(const plan *ego_, const problem *p) {
+  run((const conv_2d_plan *)ego_, (const problem_conv *)p, 1);
 }
 
-static void conv_2d_print(const plan *ego_, printer *pr) {
+static void apply_adjoint(const plan *ego_, const problem *p) {
+  run((const conv_2d_plan *)ego_, (const problem_conv *)p, 0);
+}
+
+static void print(const plan *ego_, printer *pr) {
   const conv_2d_plan *pln = (const conv_2d_plan *)ego_;
   pr->print(pr, "(conv_solver_2d pcost=%D)", (INT)pln->super.pcost);
 }
-static void conv_2d_destroy(plan *ego_) {
+static void destroy(plan *ego_) {
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
   Y(free)
   (pln->psi);
+  Y(free)
+  (pln->u);
   /* x/g/f are borrowed caller arrays. */
 }
-static const plan_adt conv_2d_plan_adt = {conv_2d_apply, conv_2d_awake,
-                                          conv_2d_print, conv_2d_destroy,
-                                          conv_2d_apply_adjoint};
+static const plan_adt conv_2d_plan_adt = {apply, awake, print, destroy,
+                                          apply_adjoint};
 
 /* d == 2 only */
 static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
@@ -274,7 +160,6 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
       pc->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* reject Dirac or other invalid ordinals */
 
-
   pln = (conv_2d_plan *)Y(plan_create)(sizeof(conv_2d_plan), &conv_2d_plan_adt);
   pln->n0 = Y(problem_conv_n)(p, 0);
   pln->n1 = Y(problem_conv_n)(p, 1);
@@ -285,7 +170,8 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl) {
   pln->window = pc->window;
   pln->x = pc->x; /* borrowed */
   pln->psi = (R *)Y(malloc)((size_t)pln->M * 2 * (size_t)(2 * pln->m + 2) * sizeof(R));
-  pln->precomputed = 0;
+  pln->u = (INT *)Y(malloc)((size_t)pln->M * 2 * sizeof(INT));
+  pln->level = PLNR_SLEEPY;
   pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }
