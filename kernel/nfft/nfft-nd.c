@@ -21,7 +21,7 @@
  * apply_fwd:    DECONV(f_hat -> g1) -> FFTW forward (g1 -> g2) -> CONV(g2 -> f)
  * apply_adjoint: CONV^H(f -> g2) -> FFTW backward (g2 -> g1) -> DECONV^H(g1 -> f_hat)
  *
- * Ownership: the DECONV/CONV child problems borrow the parent's f_hat/f/x. This 
+ * Ownership: the DECONV/CONV child problems borrow the parent's f_hat/f/x. This
  * plan owns and frees g1, g2, the two FFTW plans, and the two child plans/problems. */
 
 #include "nfft3.h"
