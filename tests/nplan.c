@@ -951,9 +951,7 @@ void Y(check_nplan_correct)(void) {
   /* lone-direct measured race (N <= m, so fast declines) */
   check_case_against_direct(1, 4, 16, 8, 46u,
                             NFFT_MEASURE | NFFT_NO_FAST_NATIVE);
-  /* d=2 fast measured race: the union core carries NFFT_SORT_NODES, so the
-   * value-blind race reads index_x as a gather permutation and must zero it,
-   * or the SLEEPY race reads out of bounds */
+  /* d=2 fast measured race */
   check_case_against_direct(2, 32, 64, 512, 48u, NFFT_MEASURE);
 
   /* NO_DIRECT + degenerate: both directions absent, so the guru returns NULL.
@@ -1233,9 +1231,9 @@ void Y(check_nplan_measured)(void) {
   Y(plan_ng_destroy)
   (p);
 
-  /* (b) a tiny-M measured race on a fast-capable union core: both candidates
-   * genuinely run and the planner blesses whichever measured fastest, so
-   * assert only that a valid bundle came out */
+  /* (b) a tiny-M measured race where both candidates genuinely run: the
+   * planner blesses whichever measured fastest, so assert only that a valid
+   * bundle came out */
   {
     INT Nd = 16, nd = 1024, Md = 1;
     R xd[1];
@@ -1895,9 +1893,8 @@ void Y(check_nplan_x_copied_not_aliased)(void) {
   ();
 }
 
-/* A wrapper plan's core carries PRE_PSI and builds psi once per awake period;
- * a native winner stays coreless. */
-void Y(check_nplan_per_plan_core)(void) {
+/* guru, precompute and execute on a 1D fast plan. */
+void Y(check_nplan_precompute_execute)(void) {
   INT N = 256, n = 512, M = 4096;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
@@ -1920,13 +1917,10 @@ void Y(check_nplan_per_plan_core)(void) {
   (f);
 }
 
-/* No plan allocates its own data arrays: f_hat/f are caller-owned and aliased,
- * and x is aliased to the problem's own copy, so build_core
- * (kernel/nfft/nsolver.c) must never request MALLOC_X | MALLOC_F_HAT |
- * MALLOC_F. The winner here is coreless, so there are no core flags left to
- * inspect and this only covers planning such a problem.
- * TODO: assert the core flags on a plan that builds a core. */
-void Y(check_nplan_core_owns_no_data_arrays)(void) {
+/* No plan allocates or frees the caller's data arrays: f_hat and f are
+ * aliased, x is copied into the problem. Destroying the plan must leave the
+ * caller's static arrays intact, which ASan checks in the debug build. */
+void Y(check_nplan_destroy_keeps_caller_arrays)(void) {
   INT N = 64, n = 128, M = 512;
   static R x[512];
   static C f_hat[64], f[512];
@@ -2031,13 +2025,13 @@ void Y(check_nplan_ndft_accuracy)(void) {
   ();
 }
 
-/* Core elision: an NDFT-only bundle needs no legacy core, so it builds none
- * -- no FFTW planning, no phi_hut, no g1/g2 -- and still executes. */
-void Y(check_nplan_core_elision)(void) {
+/* An NDFT-only bundle plans no FFTW, no phi_hut and no g1/g2, and still
+ * executes correctly. */
+void Y(check_nplan_direct_only_bundle)(void) {
   Y(the_planner_destroy)
   ();
 
-  /* (a) tiny M -> direct NDFT beats fast; coreless; still executes. */
+  /* (a) tiny M -> direct NDFT beats fast; still executes. */
   {
     INT N = 256, n = 1024, M = 1;
     static R x[1];
@@ -2081,7 +2075,7 @@ void Y(check_nplan_core_elision)(void) {
     (p);
   }
 
-  /* (c) a pure multivariate NDFT-only bundle is coreless too. */
+  /* (c) a pure multivariate NDFT-only bundle. */
   {
     INT N[2] = {32, 32}, n[2] = {64, 64};
     INT M = 4;
@@ -2562,7 +2556,7 @@ void Y(check_nplan_awake_zero_restore)(void) {
 }
 
 /* The restore guard Y(nfft_x_verify), the same one wrapping the measured race
- * in plan_ng.c, detects a broken restore. Gated on NFFT_DEBUG because the
+ * in plan.c, detects a broken restore. Gated on NFFT_DEBUG because the
  * guard is an A() and exists only in debug builds. */
 void Y(check_nplan_restore_guard_fires)(void) {
 #ifdef NFFT_DEBUG
