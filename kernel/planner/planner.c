@@ -196,9 +196,9 @@ void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
         if (first_killed < 0)
           first_killed = (int)h;
       } else {
-        /* The slot already answers every query the newcomer would, so the
-         * insert is redundant. Drop it: release builds must keep the
-         * one-live-entry-per-key invariant rather than duplicate the key. */
+        /* Inserting an entry a live one subsumes violates the caller
+         * contract; asserted in debug, dropped in release so the key keeps
+         * exactly one live entry. */
         if (subsumes(&slot->flags, &newsol.flags)) {
           A(0);
           return;

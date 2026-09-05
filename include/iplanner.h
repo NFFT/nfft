@@ -148,8 +148,7 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
 
 /* timer.c */
 
-/* Timing-loop constants */
-#define PLNR_TIME_MIN_TICKS 100.0         /* accept a batch at/above this (tick mode) */
+/* Timing-loop constants; the tick-mode floor is cycle.h's TIME_MIN (timer.c). */
 #define PLNR_TIME_MIN_SLOW_SECONDS 1.0e-3 /* accept floor in the slow-timer fallback */
 #define PLNR_TIME_REPEAT 8                /* best-of batches per doubling level */
 #define PLNR_TIME_LIMIT_SECONDS 2.0       /* per-candidate wall budget (budget clock) */
@@ -357,10 +356,9 @@ unsigned Y(the_planner_generation)(void);
 
 /* One Kronecker factor of a structured linear operator: an n_out x n_in
  * matrix acting on a strided input vector (stride is) and producing a
- * strided output vector (stride os). Note for FFTW-trained readers:
- * unlike FFTW's iodim, the input and output lengths differ in general;
- * the square case n_in == n_out recovers the iodim concept as a state,
- * not a separate type (mvdim_square, tensor_squarep). */
+ * strided output vector (stride os). Input and output lengths differ in
+ * general; the square case n_in == n_out is a state, not a separate type
+ * (mvdim_square, tensor_squarep). */
 typedef struct
 {
   INT n_in;  /* input length  (matrix columns), >= 1 */
@@ -412,7 +410,7 @@ typedef struct
   C *f_hat;            /* Fourier coefficients (caller-owned) */
   C *f;                /* function values at the nodes (caller-owned) */
   int *variant;        /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
-                          axis order; odd axes only have one variant by definition, 
+                          axis order; odd axes only have one variant by definition,
                           so normalized to TYPE_I. */
   int x_owned;         /* 1: x is this problem's private copy;
                           0: x is borrowed from a parent problem. */
@@ -470,16 +468,16 @@ int Y(get_window_id)(void);
 R Y(window_phi_hut)(int window, INT n, INT N, int m, INT k);
 R Y(window_phi)(int window, INT n, INT N, int m, R x);
 
-/*   - phi_hut_apply: DECONV Step A, regular frequency band k0..k0+count-1.
- *   - phi_precompute: CONV Step C, per-axis PRE_PSI psi -- owns c=floor(n*x)
- *     centering + the 2m+2 tap loop, writing the strided psi layout directly. */
+/* Bulk window evaluation: phi_hut_apply fills the frequency band
+ * k0..k0+count-1 (DECONV); phi_precompute writes the strided per-node psi
+ * table, owning the c = floor(n*x) centering and the 2m+2 tap loop (CONV). */
 void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
                              R *out, INT count);
 void Y(window_phi_precompute)(int window, INT n, INT N, int m,
                               const R *x, INT x_stride, INT num_nodes,
                               R *out, INT out_stride);
 
-/* NFFT deconvolution.  Maps the input frequency tensor onto the oversampled grid, 
+/* NFFT deconvolution. Maps the input frequency tensor onto the oversampled grid,
  * dividing by the window's Fourier coefficients. Step is node-independent. */
 typedef struct
 {
@@ -492,7 +490,7 @@ typedef struct
   int window;    /* NFFT_WINDOW_* ordinal */
   int sign;      /* +1 = deconvolve+zero-pad f_hat->g, -1 = adjoint g->f_hat */
   int *variant;  /* per-axis NFFT_NDFT_TYPE_{I,II}; length sz->rnk, caller
-                    axis order; odd axes only have one variant by definition, 
+                    axis order; odd axes only have one variant by definition,
                     so normalized to TYPE_I. */
   C *f_hat;      /* borrowed in (parent's f_hat) */
   C *g;          /* borrowed out */
@@ -511,7 +509,7 @@ int Y(problem_deconv_variant)(const problem *p, int t);
 void Y(deconv_solvers_register)(planner *pl);
 void Y(deconv_ensure_registered)(void);
 
-/* NFFT convolution Maps the oversampled grid to the nonequispaced node samples 
+/* NFFT convolution. Maps the oversampled grid to the nonequispaced node samples
  * via the window convolution. */
 typedef struct
 {
