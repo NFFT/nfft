@@ -38,21 +38,20 @@ void Y(check_nplan_elides_unit_axes_geometry)(void);
  * (even N only; odd N normalizes to type-I). */
 void Y(check_nplan_variant_key)(void);
 
-/* The fast (legacy) solvers assume even N and the type-I range;
- * odd N or a type-II axis must decline so a direct native wins instead. */
+/* The fast native serves odd N and type-II axes. At sigma == 1 it declines
+ * and the direct NDFT wins; with NFFT_NO_DIRECT and no applicable fast plan
+ * the guru returns NULL. */
 void Y(check_nplan_guard_declines)(void);
 void Y(check_nplan_solvers)(void);
 
-/* For d == 1 the planner-native NDFT solver wins instead of the legacy
- * direct wrapper. */
+/* For d == 1 the planner-native 1D NDFT solver wins. */
 void Y(check_nplan_ndft_dispatch)(void);
 
-/* For d >= 2 the single generic native multivariate NDFT solver wins
- * (the legacy direct wrapper is retired). */
+/* For d >= 2 the single generic native multivariate NDFT solver wins. */
 void Y(check_nplan_ndft_multivariate_dispatch)(void);
 
-/* Accuracy: the native NDFT beats the legacy direct against a long-double,
- * argument-reduced reference (large N, nodes near +-1/2). */
+/* Accuracy of the native NDFT against a long-double, argument-reduced
+ * reference (large N, nodes near +-1/2). */
 void Y(check_nplan_ndft_accuracy)(void);
 void Y(check_nplan_correct)(void);
 void Y(check_nplan_wisdom_memo)(void);
@@ -83,21 +82,19 @@ void Y(check_nplan_apply_adjoint)(void);
  * a post-guru mutation of the caller's array must not be visible to the plan. */
 void Y(check_nplan_x_copied_not_aliased)(void);
 
-/* Each wrapper plan owns its legacy core; precompute builds psi once
- * per awake period (idempotent), and a native winner stays coreless. */
-void Y(check_nplan_per_plan_core)(void);
-void Y(check_nplan_core_owns_no_data_arrays)(void);
+/* guru, precompute and execute on a 1D fast plan. */
+void Y(check_nplan_precompute_execute)(void);
+void Y(check_nplan_destroy_keeps_caller_arrays)(void);
 
-/* Core elision: a pure-1D NDFT-only bundle needs no legacy core, so
- * the bundle builds none and still precomputes/executes correctly; a bundle
- * whose winner is a wrapper (fast 1D) still builds one. */
-void Y(check_nplan_core_elision)(void);
+/* A bundle whose winner is the direct NDFT precomputes and executes
+ * correctly, checked against trafo_direct. */
+void Y(check_nplan_direct_only_bundle)(void);
 
 /* plan_ng_guru accepts a per-axis NDFT variant array (NULL = all
  * type-I) and builds an executable plan from it. */
 void Y(check_nplan_variant_guru)(void);
 
-/* Odd per-axis N for the nD native (kernel/nfft/ndft-nd.c odometer),
+/* Odd per-axis N for the nD native (kernel/nfft/ndft-nd.c carry loop),
  * including non-outermost odd axes and odd+unit mixes. */
 void Y(check_nplan_odd_n)(void);
 
@@ -105,11 +102,11 @@ void Y(check_nplan_odd_n)(void);
  * uniform +1 shift of the type-I range. */
 void Y(check_nplan_type_ii_1d)(void);
 
-/* per-axis type-II in the nD native (kernel/nfft/ndft-nd.c odometer):
+/* per-axis type-II in the nD native (kernel/nfft/ndft-nd.c carry loop):
  * a mixed type-I/type-II axis problem, uniform +1 shift on type-II axes only. */
 void Y(check_nplan_type_ii_nd)(void);
 
-/* data-driven acceptance tests for the coreless native NDFT
+/* data-driven acceptance tests for the native NDFT
  * solvers against the tests/refgen-generated reference data (roster:
  * 66 reused type-I even cases + 34 new odd/type-II cases, both
  * trafo and adjoint). */
@@ -150,9 +147,8 @@ void Y(check_nplan_rank0_solver)(void);
  * only engages if the unit axis was elided). */
 void Y(check_nplan_unit_axis_correct)(void);
 
-/* Regression for native-fast new-array execute
- * (execute_on/execute_adjoint_on) -- the child problems cached f_hat/f at
- * construction; the fix forwards the swapped problem pointers at apply time. */
+/* New-array execute (execute_on/execute_adjoint_on) on a native-fast plan:
+ * the swapped problem pointers must reach the DECONV and CONV children. */
 void Y(check_nplan_newarray_native_fast)(void);
 
 /* New-array execute (execute_on) on a unit-axis plan -- a
@@ -164,8 +160,8 @@ void Y(check_nplan_unit_axis_execute_on)(void);
  * on NULL/zero required args in RELEASE builds, where A() is a no-op. */
 void Y(check_nplan_guru_rejects_null_args)(void);
 
-/* The guru returns NULL on non-positive per-axis geometry
- * (N[t]<=0 / n[t]<=0), completing the P1.3 NULL/d checks. */
+/* The guru returns NULL on non-positive per-axis geometry (N[t]<=0 /
+ * n[t]<=0) and on a bad M, m or window ordinal. */
 void Y(check_nplan_guru_rejects_bad_geometry)(void);
 
 #endif

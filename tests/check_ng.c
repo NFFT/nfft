@@ -101,9 +101,9 @@ int main(void) {
   CU_add_test(nplan_suite, "forward_only_race", Y(check_nplan_forward_only_race));
   CU_add_test(nplan_suite, "apply_adjoint", Y(check_nplan_apply_adjoint));
   CU_add_test(nplan_suite, "x_copied_not_aliased", Y(check_nplan_x_copied_not_aliased));
-  CU_add_test(nplan_suite, "per_plan_core", Y(check_nplan_per_plan_core));
-  CU_add_test(nplan_suite, "core_owns_no_data_arrays", Y(check_nplan_core_owns_no_data_arrays));
-  CU_add_test(nplan_suite, "core_elision", Y(check_nplan_core_elision));
+  CU_add_test(nplan_suite, "precompute_execute", Y(check_nplan_precompute_execute));
+  CU_add_test(nplan_suite, "destroy_keeps_caller_arrays", Y(check_nplan_destroy_keeps_caller_arrays));
+  CU_add_test(nplan_suite, "direct_only_bundle", Y(check_nplan_direct_only_bundle));
   CU_add_test(nplan_suite, "variant_guru", Y(check_nplan_variant_guru));
   CU_add_test(nplan_suite, "odd_n", Y(check_nplan_odd_n));
   CU_add_test(nplan_suite, "type_ii_1d", Y(check_nplan_type_ii_1d));

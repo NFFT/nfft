@@ -18,7 +18,7 @@
 
 /* Test-only introspection hooks for the opaque plan_ng handle.  Kept OUT of
  * iplanner.h so the internal planner header carries no test scaffolding; the
- * implementation lives in kernel/nfft/plan_ng.c (the only place with the
+ * implementation lives in kernel/nfft/plan.c (the only place with the
  * plan_ng_s struct body).  Included by both that definer and the acceptance
  * tests (tests/nplan.c) so the prototype has a single home. */
 
