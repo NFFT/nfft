@@ -64,4 +64,4 @@ checkall_ng_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_
 endif
 
 clean-local:
-		rm -f CUnitAutomated-Results.xml CUnitAutomated_threads-Results.xml checkall.log checkall.trs checkall_threads.log checkall_threads.trs CUnitAutomated_ng-Results.xml CUnitAutomated_ng_threads-Results.xml checkall_ng.log checkall_ng.trs checkall_ng_threads.log checkall_ng_threads.trs
+	rm -f CUnitAutomated-Results.xml CUnitAutomated_threads-Results.xml checkall.log checkall.trs checkall_threads.log checkall_threads.trs CUnitAutomated_ng-Results.xml CUnitAutomated_ng_threads-Results.xml checkall_ng.log checkall_ng.trs checkall_ng_threads.log checkall_ng_threads.trs
