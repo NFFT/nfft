@@ -21,7 +21,7 @@
 #include "iplanner.h"
 #include "ndft.h"
 
-#include <string.h> /* memset - adjoint zeroes f_hat before accumulating */
+#include <string.h>
 
 /* Direct NDFT, generic rank (d >= 2). An odometer over the leading d-1 axes
  * supplies each row's base phase; the innermost axis varies fastest and is
@@ -29,10 +29,8 @@
  * contributes k[t] + 1, the uniform shift that turns the type-I range into the
  * ascending type-II range.
  *
- * The carry differs from the legacy odometer in two places, both needed for
- * the geometries this API admits: `>=` rather than `==`, so a unit axis
- * (range [0, -1]) carries at all, and the upper bound `(N[t]-1)/2` rather than
- * `N[t]/2 - 1`, which is the same for even N and correct for odd N. */
+ * The carry bound is `(N[t]-1)/2`: the same as `N[t]/2 - 1` for even N, and
+ * correct for odd N. */
 
 static void sum(const problem_nfft *pn) {
   const problem *p = (const problem *)pn;

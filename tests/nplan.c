@@ -433,12 +433,12 @@ void Y(check_nplan_solvers)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
 
-  /* mkplan_native_fast builds its DECONV/CONV children through the
-   * process-global planner, not the local pl, so that instance must have them
-   * registered or the fast solver declines every problem below. */
-  Y(nfft_ensure_registered)
-  ();
-
+  /* mkplan_native_fast plans its DECONV/CONV children on the planner it is
+   * called with, so pl needs those rosters too (order as in conf.c). */
+  Y(deconv_solvers_register)
+  (pl);
+  Y(conv_solvers_register)
+  (pl);
   Y(nfft_solvers_register)
   (pl);
 
@@ -546,10 +546,12 @@ void Y(check_nplan_solvers)(void) {
 void Y(check_nplan_ndft_dispatch)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
-  /* See check_nplan_solvers: the fast solver's DECONV/CONV children recurse
-   * via the process-global planner, so it must be registered too. */
-  Y(nfft_ensure_registered)
-  ();
+  /* See check_nplan_solvers: the fast solver plans its DECONV/CONV children on
+   * pl, so pl needs those rosters too. */
+  Y(deconv_solvers_register)
+  (pl);
+  Y(conv_solvers_register)
+  (pl);
   Y(nfft_solvers_register)
   (pl);
 
@@ -588,10 +590,12 @@ void Y(check_nplan_ndft_dispatch)(void) {
 void Y(check_nplan_ndft_multivariate_dispatch)(void) {
   planner *pl = Y(planner_create)();
   problem *p;
-  /* See check_nplan_solvers: the fast solver's DECONV/CONV children recurse
-   * via the process-global planner, so it must be registered too. */
-  Y(nfft_ensure_registered)
-  ();
+  /* See check_nplan_solvers: the fast solver plans its DECONV/CONV children on
+   * pl, so pl needs those rosters too. */
+  Y(deconv_solvers_register)
+  (pl);
+  Y(conv_solvers_register)
+  (pl);
   Y(nfft_solvers_register)
   (pl);
 
@@ -938,14 +942,15 @@ static void check_case_against_direct_arr(int d, const INT *N, const INT *n,
 
 void Y(check_nplan_correct)(void) {
   check_case_against_direct(1, 256, 512, 4096, 42u, NFFT_ESTIMATE);
-  check_case_against_direct(1, 4, 16, 8, 43u, NFFT_ESTIMATE);
+  /* N <= m, so the fast solver is out and the caller must say so. */
+  check_case_against_direct(1, 4, 16, 8, 43u,
+                            NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
   check_case_against_direct(2, 32, 64, 512, 44u, NFFT_ESTIMATE);
   /* the measured bundle stays correct, whatever won the race */
   check_case_against_direct(1, 64, 128, 2048, 45u, NFFT_MEASURE);
-  /* lone-direct measured race (N<=m, so fast declines): the value-blind
-   * zeroing must not read the uninitialised psi pointer of a core with no psi
-   * allocated */
-  check_case_against_direct(1, 4, 16, 8, 46u, NFFT_MEASURE);
+  /* lone-direct measured race (N <= m, so fast declines) */
+  check_case_against_direct(1, 4, 16, 8, 46u,
+                            NFFT_MEASURE | NFFT_NO_FAST_NATIVE);
   /* d=2 fast measured race: the union core carries NFFT_SORT_NODES, so the
    * value-blind race reads index_x as a gather permutation and must zero it,
    * or the SLEEPY race reads out of bounds */
@@ -994,7 +999,9 @@ void Y(check_nplan_correct)(void) {
   check_case_against_direct(3, 10, 20, 128, 74u,
                             NFFT_MEASURE | NFFT_NO_FAST_NATIVE);
   check_case_against_direct(4, 8, 16, 4, 75u, NFFT_ESTIMATE);
-  check_case_against_direct(4, 6, 12, 4, 76u, NFFT_MEASURE);
+  /* N == m, so the fast solver is out and the caller must say so. */
+  check_case_against_direct(4, 6, 12, 4, 76u,
+                            NFFT_MEASURE | NFFT_NO_FAST_NATIVE);
 
   Y(the_planner_destroy)
   ();
@@ -1557,6 +1564,104 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void) {
   ();
 }
 
+/* A test-only NFFT solver whose apply burns BURN_SECONDS of wall clock. Its
+ * pcost of 1.0 prunes every real candidate, so registering it twice makes the
+ * race a two-way race between two known-slow candidates. */
+#define BURN_SECONDS 2.0e-3
+
+static void burn_apply(const plan *e, const problem *p) {
+  double t0 = Y(planner_clock_now)();
+  (void)e;
+  (void)p;
+  while (Y(planner_elapsed_seconds)(t0) < BURN_SECONDS)
+    ;
+}
+
+static void burn_print(const plan *e, printer *pr) {
+  (void)e;
+  pr->print(pr, "(nfft_solver_burn_test)");
+}
+
+static const plan_adt burn_plan_adt = {burn_apply, 0, burn_print, 0, burn_apply};
+
+static plan *burn_mkplan(const solver *s, const problem *p, planner *pl) {
+  plan *q;
+  (void)s;
+  (void)pl;
+  if (p->adt->kind != NFFT_PROBLEM_NFFT)
+    return 0;
+  q = Y(plan_create)(sizeof(plan), &burn_plan_adt);
+  q->pcost = 1.0;
+  return q;
+}
+
+static const solver_adt burn_solver_adt = {NFFT_PROBLEM_NFFT, 0, burn_mkplan};
+
+/* A timelimit that expires mid-race adopts the best candidate timed so far,
+ * but that evidence is partial -- an untimed survivor may be faster -- so the
+ * winner is memoised unblessed and never exported. */
+void Y(check_nplan_timelimit_partial_race_does_not_bless)(void) {
+  INT N = 64, n = 128, M = 64;
+  static R x[64];
+  static C f_hat[64], f[64];
+  Y(plan_ng) * p;
+
+  Y(the_planner_destroy)
+  (); /* fresh store: absolute counts below */
+  fill_nodes(x, 1, M, 83u);
+
+  Y(nfft_ensure_registered)
+  ();
+  REGISTER_SOLVER(Y(the_planner)(),
+                  Y(solver_create)(sizeof(solver), &burn_solver_adt));
+  REGISTER_SOLVER(Y(the_planner)(),
+                  Y(solver_create)(sizeof(solver), &burn_solver_adt));
+
+  /* Long enough to enter the race, far shorter than one measurement. */
+  Y(set_timelimit)
+  (BURN_SECONDS / 2.0);
+  p = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f, 0u, NFFT_MEASURE);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  /* The budget expired after the first candidate: a winner was adopted, but on
+   * partial evidence, so nothing is blessed. */
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
+  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
+  Y(precompute)
+  (p);
+  Y(execute)
+  (p);
+  Y(plan_ng_destroy)
+  (p);
+
+  Y(set_timelimit)
+  (-1.0); /* restore unlimited for the rest of the suite */
+  Y(the_planner_destroy)
+  (); /* drop the test-only solvers */
+}
+
+/* FFTW_WISDOM_ONLY without matching FFTW wisdom leaves the internal FFTW plans
+ * NULL, so the fast solver must decline instead of handing back a plan that
+ * would execute a NULL FFTW plan. NFFT_NO_DIRECT leaves nothing else. */
+void Y(check_nplan_fftw_wisdom_only_declines)(void) {
+  INT N = 62, n = 130, M = 32;
+  static R x[32];
+  static C f_hat[62], f[32];
+
+  Y(the_planner_destroy)
+  ();
+  fill_nodes(x, 1, M, 84u);
+  FFTW(forget_wisdom)
+  ();
+
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                     NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                                     FFTW_WISDOM_ONLY | FFTW_ESTIMATE,
+                                     NFFT_ESTIMATE | NFFT_NO_DIRECT));
+
+  Y(the_planner_destroy)
+  ();
+}
+
 /* The public nfft_set_timelimit symbol forwards to the internal global-planner
  * timelimit (one nfft_ symbol serves all three kinds). */
 void Y(check_nplan_set_timelimit_roundtrip)(void) {
@@ -1754,7 +1859,9 @@ void Y(check_nplan_x_copied_not_aliased)(void) {
   Y(the_planner_destroy)
   ();
   x[0] = (R)0.0; /* the value the plan copies */
-  p = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f, 0u, NFFT_ESTIMATE);
+  /* N <= m, so the fast solver is out and the caller must say so. */
+  p = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat,
+                      f, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
 
   /* Mutate x after guru, before precompute: the plan already has its copy,
@@ -2571,8 +2678,10 @@ void Y(check_nplan_in_race_guard_passes)(void) {
   (f);
 }
 
-/* AWAKE_ZERO is internal to planning: a fresh guru's winner is returned
- * SLEEPY, and precompute is what awakens it to AWAKE. */
+/* An estimate-mode guru runs no race, so its winner is returned SLEEPY. A
+ * measured race leaves its winner at AWAKE_ZERO, so precompute only upgrades
+ * the placeholder tables to true values instead of rebuilding them. Either
+ * way precompute leaves the plan AWAKE. */
 void Y(check_nplan_awake_zero_internal)(void) {
   INT N = 32, n = 64, M = 128;
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
@@ -2588,6 +2697,39 @@ void Y(check_nplan_awake_zero_internal)(void) {
   CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE);
   Y(plan_ng_destroy)
   (p);
+
+  /* Measured, with M small enough that the direct NDFT survives the estimate
+   * gate and two candidates actually race. */
+  {
+    INT Nm = 64, nm = 128, Mm = 64;
+    R *xm = (R *)Y(malloc)((size_t)Mm * sizeof(R));
+    C *fhm = (C *)Y(malloc)((size_t)Nm * sizeof(C));
+    C *fm = (C *)Y(malloc)((size_t)Mm * sizeof(C));
+    Y(the_planner_destroy)
+    ();
+    fill_nodes(xm, 1, Mm, 9u);
+    p = Y(plan_ng_guru)(1, &Nm, 0, &nm, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, xm,
+                        fhm, fm, 0u, NFFT_MEASURE);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    /* An empty blessed store means no usable clock: the race degraded to
+     * estimate-grade selection, which leaves the winner SLEEPY. */
+    if (Y(the_planner)()->htab_blessed.nelem != 0u)
+      CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE_ZERO);
+    Y(precompute)
+    (p);
+    CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE);
+    Y(plan_ng_destroy)
+    (p);
+    Y(the_planner_destroy)
+    ();
+    Y(free)
+    (xm);
+    Y(free)
+    (fhm);
+    Y(free)
+    (fm);
+  }
+
   Y(free)
   (x);
   Y(free)
@@ -2981,6 +3123,47 @@ void Y(check_nplan_guru_rejects_bad_geometry)(void) {
     /* Unit axes are elided, so n[t] == N[t] == 1 stays legal. */
     pu = Y(plan_ng_guru)(2, Nun, 0, nun, M, 2,
                          NFFT_WINDOW_KAISER_BESSEL, x, fh, f, 0u, NFFT_ESTIMATE);
+    CU_ASSERT_PTR_NOT_NULL(pu);
+    Y(plan_ng_destroy)
+    (pu);
+  }
+
+  /* M, m and the window ordinal are validated in both modes. */
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(2, Nok, 0, nok, (INT)0, 2,
+                                     NFFT_WINDOW_KAISER_BESSEL, x, fh, f, 0u,
+                                     NFFT_ESTIMATE)); /* M == 0 */
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(2, Nok, 0, nok, M, 0,
+                                     NFFT_WINDOW_KAISER_BESSEL, x, fh, f, 0u,
+                                     NFFT_ESTIMATE)); /* m == 0 */
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(2, Nok, 0, nok, M, 2, 42, x, fh, f, 0u,
+                                     NFFT_ESTIMATE)); /* unknown window */
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(2, Nok, 0, nok, M, 2, 42, x, fh, f, 0u,
+                                     NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE));
+
+  /* The fast solver's own guards, not just sigma > 1: n = 32 fails
+   * n > 2m + 2 at m = 15. NFFT_NO_FAST_NATIVE lifts it. */
+  {
+    INT N1 = 16, n1 = 32;
+    Y(plan_ng) * pu;
+    CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(1, &N1, 0, &n1, M, 15,
+                                       NFFT_WINDOW_KAISER_BESSEL, x, fh, f, 0u,
+                                       NFFT_ESTIMATE));
+    pu = Y(plan_ng_guru)(1, &N1, 0, &n1, M, 15, NFFT_WINDOW_KAISER_BESSEL, x,
+                         fh, f, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
+    CU_ASSERT_PTR_NOT_NULL(pu);
+    Y(plan_ng_destroy)
+    (pu);
+  }
+
+  /* NFFT_WINDOW_DIRAC_DELTA is a known ordinal, but no fast solver serves it. */
+  {
+    INT N1 = 16, n1 = 32;
+    Y(plan_ng) * pu;
+    CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(1, &N1, 0, &n1, M, 2,
+                                       NFFT_WINDOW_DIRAC_DELTA, x, fh, f, 0u,
+                                       NFFT_ESTIMATE));
+    pu = Y(plan_ng_guru)(1, &N1, 0, &n1, M, 2, NFFT_WINDOW_DIRAC_DELTA, x, fh,
+                         f, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
     CU_ASSERT_PTR_NOT_NULL(pu);
     Y(plan_ng_destroy)
     (pu);

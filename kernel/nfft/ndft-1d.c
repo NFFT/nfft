@@ -21,7 +21,7 @@
 #include "iplanner.h"
 #include "ndft.h"
 
-#include <string.h> /* memset - adjoint zeroes f_hat before accumulating */
+#include <string.h>
 
 /* Direct NDFT, rank 1. The Ntot frequencies run from k = -Ntot/2 upwards: the
  * symmetric range for odd Ntot, the type-I range for even Ntot. A type-II axis

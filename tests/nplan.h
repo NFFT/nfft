@@ -64,6 +64,11 @@ void Y(check_nplan_measured_wisdom)(void);
 void Y(check_nplan_measured_prunes_by_estimate)(void);
 void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void);
 void Y(check_nplan_timelimit_unset_measures_and_blesses)(void);
+void Y(check_nplan_timelimit_partial_race_does_not_bless)(void);
+
+/* An internal FFTW plan the caller's fftw_flags cannot produce makes the fast
+ * solver decline. */
+void Y(check_nplan_fftw_wisdom_only_declines)(void);
 void Y(check_nplan_set_timelimit_roundtrip)(void);
 void Y(check_nplan_public_api)(void);
 

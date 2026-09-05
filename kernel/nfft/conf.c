@@ -20,11 +20,10 @@
 #include "infft.h"
 #include "iplanner.h"
 
-/* NFFT solver roster (~ FFTW's dft/conf.c).  Y(nfft_solver_fast_native) is the
- * sole fast solver and claims every d, composed from independently-planned
- * DECONV/CONV sub-problems; the direct NDFT is one 1D solver plus one generic
- * solver for d >= 2.  Applicability is expressed by mkplan returning NULL.
- * PRE_PSI is the only fast psi strategy this planner offers.
+/* NFFT solver roster. Y(nfft_solver_fast_native) is the sole fast solver and
+ * claims every d, composed from independently-planned DECONV/CONV
+ * sub-problems; the direct NDFT is one 1D solver plus one generic solver for
+ * d >= 2. Applicability is expressed by mkplan returning NULL.
  *
  * Registration order matters for determinism: iteration is reverse
  * registration order, and on exact pcost ties the earlier-encountered plan is
@@ -42,15 +41,13 @@ void Y(nfft_solvers_register)(planner *pl) {
 }
 
 /* Lazy, idempotent registration into the process-global planner, once per
- * global-planner generation (Y(the_planner_generation), theplanner.c).  Not
+ * global-planner generation (Y(the_planner_generation), theplanner.c). Not
  * thread-safe by contract: planning is single-threaded.
  *
- * DECONV/CONV are ensured here, eagerly and before the NFFT roster, because
- * mkplan_native_fast (nfft-nd.c) plans its children by recursing into
- * Y(planner_mkplan)().  Registering them from inside that recursion would
- * realloc pl->slvdescs while FORALL_SOLVERS_OF_KIND still holds a raw pointer
- * into the old array -- a use-after-free that surfaces only on a later
- * planner call, once the freed block has been reused. */
+ * DECONV/CONV are registered eagerly, before the NFFT roster, because
+ * mkplan_native_fast (nfft-nd.c) plans its children from inside a
+ * FORALL_SOLVERS_OF_KIND walk: registering during that recursion would realloc
+ * pl->slvdescs under the walk's raw pointer. */
 void Y(nfft_ensure_registered)(void) {
   static unsigned registered_gen = 0;
   planner *pl = Y(the_planner)();

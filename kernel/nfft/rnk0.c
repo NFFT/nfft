@@ -31,8 +31,7 @@ typedef struct
   const char *reg_nam;
 } rnk0_plan;
 
-static void apply(const plan *ego, const problem *p) /* forward broadcast */
-{
+static void apply(const plan *ego, const problem *p) {
   const problem_nfft *pn = (const problem_nfft *)p;
   const C v = pn->f_hat[0];
   const INT M = pn->M;
@@ -42,8 +41,7 @@ static void apply(const plan *ego, const problem *p) /* forward broadcast */
     pn->f[j] = v;
 }
 
-static void apply_adjoint(const plan *ego, const problem *p) /* adjoint reduce */
-{
+static void apply_adjoint(const plan *ego, const problem *p) {
   const problem_nfft *pn = (const problem_nfft *)p;
   const INT M = pn->M;
   C acc = K(0.0);
