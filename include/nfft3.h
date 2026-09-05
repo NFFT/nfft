@@ -867,9 +867,10 @@ typedef struct X(plan_ng_s) X(plan_ng); \
 /** Create transform plan. `variant` NULL means all type-I. \
  * \
  *  The guru returns NULL on `M < 1`, on `m < 1`, on an unknown `window` \
- *  ordinal, and, unless NFFT_NO_FAST_NATIVE is set, on any axis that fails \
- *  the fast solver's geometry guard `N[t] > m`, `n[t] > 2m+2`, \
- *  `n[t] > N[t]`. \
+ *  ordinal, on a non-positive `N[t]` or `n[t]`, and, unless \
+ *  NFFT_NO_FAST_NATIVE is set, on DIRAC_DELTA and on any axis that fails the \
+ *  fast solver's geometry guard `N[t] > m`, `n[t] > 2m+2`, `n[t] > N[t]`. \
+ *  Unit axes (`N[t] == 1`) are elided and exempt from that guard. \
  * \
  *  `fftw_flags` goes to the internal FFTW plans with FFTW_PRESERVE_INPUT \
  *  stripped and FFTW_DESTROY_INPUT forced. It otherwise follows FFTW's own \
