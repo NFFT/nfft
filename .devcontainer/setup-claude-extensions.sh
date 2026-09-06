@@ -44,8 +44,8 @@ try() {
 }
 
 # --- Preflight -------------------------------------------------------------
-# Tooling is provided by the claude-code devcontainer feature. If it's absent,
-# the feature ordering is wrong; warn loudly but don't fail container creation.
+# `claude` is installed natively in the Dockerfile (~/.local/bin), `npx` by the
+# node feature. If either is absent, warn loudly but don't fail container creation.
 if ! command -v claude >/dev/null 2>&1; then
   warn "'claude' CLI not found on PATH — skipping plugin install."
   CLAUDE_OK=0

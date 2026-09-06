@@ -98,3 +98,7 @@ ENV PATH="/home/vscode/.cargo/bin:${PATH}"
 USER root
 RUN /home/vscode/.cargo/bin/codspeed setup --mode simulation
 USER vscode
+
+# Install Claude Code with the native installer, as the vscode user, into
+# ~/.local/bin so `claude update` and the auto-updater can write to it.
+RUN curl -fsSL https://claude.ai/install.sh | bash
