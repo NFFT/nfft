@@ -19,9 +19,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-
-#define @NFFT_PRECISION_MACRO@
-
 #include "nfft3mp.h"
 
 static void simple_test_nfft_1d(void)

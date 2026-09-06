@@ -26,9 +26,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-
-#define @NFFT_PRECISION_MACRO@
-
 #include "nfft3mp.h"
 
 /**

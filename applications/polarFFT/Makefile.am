@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -D@NFFT_PRECISION_MACRO@
 
 noinst_PROGRAMS = polar_fft_test mpolar_fft_test linogram_fft_test
 

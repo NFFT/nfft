@@ -21,9 +21,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <complex.h>
-
-#define @NFFT_PRECISION_MACRO@
-
 #include "nfft3mp.h"
 
 /* void simple_test_infft_1d(int N, int M, int iter) */
