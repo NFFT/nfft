@@ -1,23 +1,22 @@
 # Applications. All programs are noinst. Sources are qualified by their subdir; 
 # the helper's <subdir> arg routes each binary to build/applications/<subdir>/.
 # applications/iterS2 is currently omitted; the source is kept for later re-integration.
-set(B ${CMAKE_CURRENT_BINARY_DIR})
 
 # fastgauss / polarFFT / radon (all precisions)
-configure_file(fastgauss/fastgauss.c.in ${B}/fastgauss/fastgauss.c @ONLY)
-nfft_add_serial_program(app_fastgauss fastgauss fastgauss ${B}/fastgauss/fastgauss.c)
+nfft_add_serial_program(app_fastgauss fastgauss fastgauss fastgauss/fastgauss.c)
+target_compile_definitions(app_fastgauss PRIVATE ${NFFT_PRECISION_MACRO})
 
-configure_file(polarFFT/polar_fft_test.c.in    ${B}/polarFFT/polar_fft_test.c    @ONLY)
-configure_file(polarFFT/mpolar_fft_test.c.in   ${B}/polarFFT/mpolar_fft_test.c   @ONLY)
-configure_file(polarFFT/linogram_fft_test.c.in ${B}/polarFFT/linogram_fft_test.c @ONLY)
-nfft_add_serial_program(app_polar_fft_test    polarFFT polar_fft_test    ${B}/polarFFT/polar_fft_test.c)
-nfft_add_serial_program(app_mpolar_fft_test   polarFFT mpolar_fft_test   ${B}/polarFFT/mpolar_fft_test.c)
-nfft_add_serial_program(app_linogram_fft_test polarFFT linogram_fft_test ${B}/polarFFT/linogram_fft_test.c)
+nfft_add_serial_program(app_polar_fft_test    polarFFT polar_fft_test    polarFFT/polar_fft_test.c)
+nfft_add_serial_program(app_mpolar_fft_test   polarFFT mpolar_fft_test   polarFFT/mpolar_fft_test.c)
+nfft_add_serial_program(app_linogram_fft_test polarFFT linogram_fft_test polarFFT/linogram_fft_test.c)
+target_compile_definitions(app_polar_fft_test    PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(app_mpolar_fft_test   PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(app_linogram_fft_test PRIVATE ${NFFT_PRECISION_MACRO})
 
-configure_file(radon/radon.c.in         ${B}/radon/radon.c         @ONLY)
-configure_file(radon/inverse_radon.c.in ${B}/radon/inverse_radon.c @ONLY)
-nfft_add_serial_program(app_radon         radon radon         ${B}/radon/radon.c)
-nfft_add_serial_program(app_inverse_radon radon inverse_radon ${B}/radon/inverse_radon.c)
+nfft_add_serial_program(app_radon         radon radon         radon/radon.c)
+nfft_add_serial_program(app_inverse_radon radon inverse_radon radon/inverse_radon.c)
+target_compile_definitions(app_radon         PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(app_inverse_radon PRIVATE ${NFFT_PRECISION_MACRO})
 
 # fastsum (all precisions)
 # libfastsum.la (serial), libkernels.la, and under OpenMP libfastsum_threads.la 
