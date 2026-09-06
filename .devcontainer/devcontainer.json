@@ -45,7 +45,6 @@
         // preserve across container rebuilds.
         "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
     },
-    "postCreateCommand": "bash .devcontainer/setup-claude-extensions.sh",
     "remoteUser": "vscode",
     "containerUser": "vscode",
     "mounts": [
