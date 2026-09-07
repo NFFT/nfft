@@ -20,7 +20,10 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 static void simple_test_nfct_1d(void)
 {

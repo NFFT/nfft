@@ -19,4 +19,7 @@ if(NFFT_ENABLE_APPLICATIONS)
       EXTRA_INC ${PROJECT_SOURCE_DIR}/applications/fastsum
       EXTRA_LINK fastsum_lib fastsum_kernels)
   endif()
+  # fastsum.h uses NFFT_R/NFFT_C from nfft3mp.h. The Julia interface is
+  # double-only, so the macro can only ever resolve to double here.
+  target_compile_definitions(julia_fastsum PRIVATE ${NFFT_PRECISION_MACRO})
 endif()

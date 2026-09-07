@@ -29,7 +29,8 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -41,24 +42,24 @@ extern "C"
  * \{
  */
 
-C gaussian(R x, int der, const R *param);              /**< K(x)=exp(-x^2/c^2) */
-C multiquadric(R x, int der, const R *param);          /**< K(x)=sqrt(x^2+c^2) */
-C inverse_multiquadric(R x, int der, const R *param);  /**< K(x)=1/sqrt(x^2+c^2) */
-C logarithm(R x, int der, const R *param);             /**< K(x)=log |x| */
-C thinplate_spline(R x, int der, const R *param);      /**< K(x) = x^2 log |x| */
-C one_over_square(R x, int der, const R *param);       /**< K(x) = 1/x^2 */
-C one_over_modulus(R x, int der, const R *param);      /**< K(x) = 1/|x| */
-C one_over_x(R x, int der, const R *param);            /**< K(x) = 1/x */
-C inverse_multiquadric3(R x, int der, const R *param); /**< K(x) = 1/sqrt(x^2+c^2)^3 */
-C sinc_kernel(R x, int der, const R *param);           /**< K(x) = sin(cx)/x */
-C cosc(R x, int der, const R *param);                  /**< K(x) = cos(cx)/x */
-C kcot(R x, int der, const R *param);                  /**< K(x) = cot(cx) */
-C one_over_cube(R x, int der, const R *param);         /**< K(x) = 1/x^3 */
-C log_sin(R x, int der, const R *param);               /**< K(x) = log(|sin(cx)|) */
-C laplacian_rbf(R x, int der, const R *param);         /**< K(x) = exp(-|x|/c) */
-C der_laplacian_rbf(R x, int der, const R *param);     /**< K(x) = |x|/c exp(-|x|/c) */
-C xx_gaussian(R x, int der, const R *param);           /**< K(x) = x^2/c^2 exp(-x^2/c^2) */
-C absx(R x, int der, const R *param);                  /**< K(x) = |x| */
+NFFT_C gaussian(NFFT_R x, int der, const NFFT_R *param);              /**< K(x)=exp(-x^2/c^2) */
+NFFT_C multiquadric(NFFT_R x, int der, const NFFT_R *param);          /**< K(x)=sqrt(x^2+c^2) */
+NFFT_C inverse_multiquadric(NFFT_R x, int der, const NFFT_R *param);  /**< K(x)=1/sqrt(x^2+c^2) */
+NFFT_C logarithm(NFFT_R x, int der, const NFFT_R *param);             /**< K(x)=log |x| */
+NFFT_C thinplate_spline(NFFT_R x, int der, const NFFT_R *param);      /**< K(x) = x^2 log |x| */
+NFFT_C one_over_square(NFFT_R x, int der, const NFFT_R *param);       /**< K(x) = 1/x^2 */
+NFFT_C one_over_modulus(NFFT_R x, int der, const NFFT_R *param);      /**< K(x) = 1/|x| */
+NFFT_C one_over_x(NFFT_R x, int der, const NFFT_R *param);            /**< K(x) = 1/x */
+NFFT_C inverse_multiquadric3(NFFT_R x, int der, const NFFT_R *param); /**< K(x) = 1/sqrt(x^2+c^2)^3 */
+NFFT_C sinc_kernel(NFFT_R x, int der, const NFFT_R *param);           /**< K(x) = sin(cx)/x */
+NFFT_C cosc(NFFT_R x, int der, const NFFT_R *param);                  /**< K(x) = cos(cx)/x */
+NFFT_C kcot(NFFT_R x, int der, const NFFT_R *param);                  /**< K(x) = cot(cx) */
+NFFT_C one_over_cube(NFFT_R x, int der, const NFFT_R *param);         /**< K(x) = 1/x^3 */
+NFFT_C log_sin(NFFT_R x, int der, const NFFT_R *param);               /**< K(x) = log(|sin(cx)|) */
+NFFT_C laplacian_rbf(NFFT_R x, int der, const NFFT_R *param);         /**< K(x) = exp(-|x|/c) */
+NFFT_C der_laplacian_rbf(NFFT_R x, int der, const NFFT_R *param);     /**< K(x) = |x|/c exp(-|x|/c) */
+NFFT_C xx_gaussian(NFFT_R x, int der, const NFFT_R *param);           /**< K(x) = x^2/c^2 exp(-x^2/c^2) */
+NFFT_C absx(NFFT_R x, int der, const NFFT_R *param);                  /**< K(x) = |x| */
 /* \} */
 
 #ifdef __cplusplus

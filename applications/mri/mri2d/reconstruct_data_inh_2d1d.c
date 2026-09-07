@@ -21,6 +21,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 
 #ifndef MAX
 #define MAX(a,b) (((a)>(b))?(a):(b))

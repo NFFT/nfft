@@ -65,6 +65,7 @@
 #cmakedefine HAVE_TIME_BASE_TO_TIME 1
 #cmakedefine HAVE_CLOCK_GETTIME 1
 #cmakedefine HAVE_MACH_ABSOLUTE_TIME 1
+#cmakedefine HAVE_GETTIMEOFDAY 1
 #cmakedefine HAVE_MEMSET 1
 #cmakedefine HAVE_POSIX_MEMALIGN 1
 #cmakedefine HAVE_MEMALIGN 1

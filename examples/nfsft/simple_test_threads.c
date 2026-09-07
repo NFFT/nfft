@@ -17,6 +17,8 @@
  */
 
 /* standard headers */
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -26,6 +28,7 @@
 #include <omp.h>
 
 #include "nfft3.h" /* NFFT3 header */
+#include "nfft3util.h"
 
 #define __FES__ "E"
 #define K(x) ((double) x)
@@ -120,7 +123,7 @@ int main(void)
 
   /* init */
   #ifdef HAVE_FFTW_THREADS
-    FFTW(init_threads)();
+    fftw_init_threads();
   #endif
 
   printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"

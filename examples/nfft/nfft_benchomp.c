@@ -22,8 +22,10 @@
 
 #include "config.h"
 
+#include <complex.h>
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 #define NREPEAT 5
 

@@ -16,6 +16,8 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -23,7 +25,8 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -36,7 +39,7 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   int M, d, trafo_adjoint;
   int t, j;
   double re,im;
-  ticks t0, t1;
+  double t0, t1;
   double tt_total, tt_preonepsi;
 
   fscanf(infile, "%d %d", &d, &trafo_adjoint);
@@ -92,19 +95,19 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
     }
   }
 
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   /** precompute psi, the entries of the matrix B */
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
-  t1 = getticks();
-  tt_preonepsi = NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_preonepsi = t1 - t0;
 
   if (trafo_adjoint==0)
     NFFT(trafo)(&p);
   else
     NFFT(adjoint)(&p);
-  t1 = getticks();
-  tt_total = NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_total = t1 - t0;
 
 #ifndef MEASURE_TIME
   p.MEASURE_TIME_t[0] = 0.0;

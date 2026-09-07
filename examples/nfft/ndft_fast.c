@@ -33,61 +33,62 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 static void ndft_horner_trafo(NFFT(plan) *ths)
 {
-  INT j, k;
-  C *f_hat_k, *f_j;
-  C exp_omega_0;
+  NFFT_INT j, k;
+  NFFT_C *f_hat_k, *f_j;
+  NFFT_C exp_omega_0;
 
   for (j = 0, f_j = ths->f; j < ths->M_total; j++, f_j++)
-    (*f_j) = K(0.0);
+    (*f_j) = NFFT_K(0.0);
 
   for (j = 0, f_j = ths->f; j < ths->M_total; j++, f_j++)
   {
-    exp_omega_0 = CEXP(+K2PI * II * ths->x[j]);
+    exp_omega_0 = NFFT_CEXP(+NFFT_K2PI * NFFT_II * ths->x[j]);
     for (k = 0, f_hat_k = ths->f_hat; k < ths->N[0]; k++, f_hat_k++)
     {
       (*f_j) += (*f_hat_k);
       (*f_j) *= exp_omega_0;
     }
-    (*f_j) *= CEXP(-KPI * II * (R)(ths->N[0]) * ths->x[j]);
+    (*f_j) *= NFFT_CEXP(-NFFT_KPI * NFFT_II * (NFFT_R)(ths->N[0]) * ths->x[j]);
   }
 } /* ndft_horner_trafo */
 
-static void ndft_pre_full_trafo(NFFT(plan) *ths, C *A)
+static void ndft_pre_full_trafo(NFFT(plan) *ths, NFFT_C *A)
 {
-  INT j, k;
-  C *f_hat_k, *f_j;
-  C *A_local;
+  NFFT_INT j, k;
+  NFFT_C *f_hat_k, *f_j;
+  NFFT_C *A_local;
 
   for (j = 0, f_j = ths->f; j < ths->M_total; j++, f_j++)
-    (*f_j) = K(0.0);
+    (*f_j) = NFFT_K(0.0);
 
   for (j = 0, f_j = ths->f, A_local = A; j < ths->M_total; j++, f_j++)
     for (k = 0, f_hat_k = ths->f_hat; k < ths->N[0]; k++, f_hat_k++, A_local++)
       (*f_j) += (*f_hat_k) * (*A_local);
 } /* ndft_pre_full_trafo */
 
-static void ndft_pre_full_init(NFFT(plan) *ths, C *A)
+static void ndft_pre_full_init(NFFT(plan) *ths, NFFT_C *A)
 {
-  INT j, k;
-  C *f_hat_k, *f_j, *A_local;
+  NFFT_INT j, k;
+  NFFT_C *f_hat_k, *f_j, *A_local;
 
   for (j = 0, f_j = ths->f, A_local = A; j < ths->M_total; j++, f_j++)
     for (k = 0, f_hat_k = ths->f_hat; k < ths->N[0]; k++, f_hat_k++, A_local++)
-      (*A_local) = CEXP(
-          -K2PI * II * ((R) (k) - (R) (ths->N[0]) / K(2.0)) * ths->x[j]);
+      (*A_local) = NFFT_CEXP(
+          -NFFT_K2PI * NFFT_II * ((NFFT_R) (k) - (NFFT_R) (ths->N[0]) / NFFT_K(2.0)) * ths->x[j]);
 
 } /* ndft_pre_full_init */
 
 static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
   int r;
-  R t, t_ndft, t_horner, t_pre_full, t_nfft;
-  C *A = NULL;
-  ticks t0, t1;
+  NFFT_R t, t_ndft, t_horner, t_pre_full, t_nfft;
+  NFFT_C *A = NULL;
+  double t0, t1;
 
   NFFT(plan) np;
 
@@ -100,7 +101,7 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 
   if (test_pre_full)
   {
-    A = (C*) NFFT(malloc)((size_t)(N * M) * sizeof(R));
+    A = (NFFT_C*) NFFT(malloc)((size_t)(N * M) * sizeof(NFFT_R));
     ndft_pre_full_init(&np, A);
   }
 
@@ -110,75 +111,75 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   /* NDFT */
   if (test_ndft)
   {
-    t_ndft = K(0.0);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&np);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R) (r);
+    t_ndft /= (NFFT_R) (r);
 
-    printf("%.2" __FES__ "\t", t_ndft);
+    printf("%.2" NFFT__FES__ "\t", t_ndft);
   }
   else
     printf("N/A\t\t");
 
   /* Horner NDFT */
-  t_horner = K(0.0);
+  t_horner = NFFT_K(0.0);
   r = 0;
-  while (t_horner < K(0.1))
+  while (t_horner < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     ndft_horner_trafo(&np);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_horner += t;
   }
-  t_horner /= (R)(r);
+  t_horner /= (NFFT_R)(r);
 
-  printf("%.2" __FES__ "\t", t_horner);
+  printf("%.2" NFFT__FES__ "\t", t_horner);
 
   /* Fully precomputed NDFT */
   if (test_pre_full)
   {
-    t_pre_full = K(0.0);
+    t_pre_full = NFFT_K(0.0);
     r = 0;
-    while (t_pre_full < K(0.1))
+    while (t_pre_full < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       ndft_pre_full_trafo(&np, A);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_pre_full += t;
     }
-    t_pre_full /= (R)(r);
+    t_pre_full /= (NFFT_R)(r);
 
-    printf("%.2" __FES__ "\t", t_pre_full);
+    printf("%.2" NFFT__FES__ "\t", t_pre_full);
   }
   else
     printf("N/A\t\t");
 
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo)(&np);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
+  t_nfft /= (NFFT_R)(r);
 
-  printf("%.2" __FES__ "\n", t_nfft);
+  printf("%.2" NFFT__FES__ "\n", t_nfft);
 
   fflush(stdout);
 
