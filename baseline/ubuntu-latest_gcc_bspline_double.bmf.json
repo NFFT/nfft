@@ -2146,13 +2146,13 @@
   },
   "nfft/serial/online/fast/forward/3d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.034953378872732
+      "value": 16.038890567508847
     },
     "bound-digits": {
       "value": 9.448557506681336
     },
     "max-error": {
-      "value": 9.226704696948106e-17
+      "value": 9.143436065740263e-17
     }
   },
   "nfft/serial/online/fast/forward/3d/init_guru_PRE_PSI": {
