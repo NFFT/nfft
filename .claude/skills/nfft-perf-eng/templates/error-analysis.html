@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<!--
+  ROUNDING-ERROR ANALYSIS for one optimization target — the Phase-D deliverable.
+  Self-contained (inline CSS, MathJax from CDN), so it opens in any browser. Copy to the
+  task dir as `error-analysis.html` and fill it. Produced BEFORE any speed edit: it derives
+  the target's rounding error under the standard model, reconciles the derivation with the
+  Phase-A baseline test errors, and states a VERDICT that sets the inner loop's objective.
+
+  Fill the <…> placeholders (drop the brackets). Delete guidance comments as you go.
+  Set <body class> to the verdict: "clean" (error at the best achievable floor — optimize
+  for speed only, no accuracy regression) or "improve-first" (an avoidable error source the
+  optimization should remove first). The example math (standard model, NDFT) is illustrative
+  — replace with the actual derivation for THIS target. Keep equations in \( … \) / \[ … \].
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rounding-error analysis · <target></title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<style>
+  :root{ --ink:#1a1a1a; --bg:#fffefb; --muted:#6b6256; --rule:#e4ddcf;
+         --brown:#9a6b2f; --blue:#26506e; --green:#5f8a59; --red:#b4412f;
+         --clean:#e7f1e3; --cleanline:#5f8a59; --improve:#fbeecb; --improveline:#c79a3a;}
+  *{box-sizing:border-box}
+  body{ background:var(--bg); color:var(--ink); margin:0;
+        font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+        line-height:1.58; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:820px; margin:0 auto; padding:3rem 1.5rem 6rem;}
+  .kicker{font-size:.72rem; text-transform:uppercase; letter-spacing:.16em; color:var(--brown);}
+  h1{font-size:2rem; line-height:1.12; margin:.3rem 0 .4rem; letter-spacing:-.015em;}
+  .deck{font-size:1.12rem; color:var(--muted); font-style:italic; margin:0 0 1.4rem;}
+  .verdict{border-left:3px solid var(--brown); padding:.8rem 1.1rem; border-radius:0 4px 4px 0;
+           margin:1.4rem 0 2rem; font-size:1rem; background:#f6efe0;}
+  .verdict b{font-size:1.05rem}
+  body.clean        .verdict{background:var(--clean);   border-color:var(--cleanline)}
+  body.improve-first .verdict{background:var(--improve); border-color:var(--improveline)}
+  .meta{display:grid; grid-template-columns:auto 1fr; gap:.25rem 1rem; font-size:.9rem;
+        color:var(--muted); margin:.6rem 0 0;}
+  .meta b{color:var(--ink); font-weight:600}
+  h2{font-size:1.32rem; margin:2.6rem 0 .7rem; letter-spacing:-.01em;}
+  h3{font-size:1.02rem; margin:1.4rem 0 .3rem; color:var(--blue)}
+  p{margin:.8rem 0}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.85em;
+       background:#f3eede; padding:.05em .35em; border-radius:3px;}
+  pre{font-family:"SF Mono",Menlo,Consolas,monospace; font-size:.82rem; line-height:1.45;
+      background:#f3eede; border:1px solid var(--rule); border-radius:6px;
+      padding:.9rem 1.1rem; overflow:auto;}
+  pre code{background:none; padding:0; font-size:1em;}
+  .cap{font-size:.84rem; color:var(--muted); margin:.4rem 0 1.4rem;}
+  table{border-collapse:collapse; width:100%; font-size:.92rem; margin:1.1rem 0;}
+  th,td{border:1px solid var(--rule); padding:.4rem .6rem; text-align:left;}
+  th{background:#f6efe0; font-weight:600;}
+  td.num{text-align:right; font-family:"SF Mono",Menlo,Consolas,monospace;}
+  .good{color:var(--green); font-weight:600} .bad{color:var(--red); font-weight:600}
+  aside{font-size:.92rem; color:var(--muted); border-left:2px solid var(--rule);
+        padding-left:1rem; margin:1.4rem 0;}
+  a{color:var(--blue)}
+  footer{margin-top:3rem; padding-top:1rem; border-top:1px solid var(--rule);
+         color:var(--muted); font-size:.82rem;}
+  footer a{margin-right:1rem;}
+</style>
+</head>
+<!-- class = verdict: "clean" (best-achievable floor; optimize speed only) |
+                      "improve-first" (avoidable error to remove before tuning speed) -->
+<body class="clean">
+<div class="wrap">
+
+  <div class="kicker">Rounding-error analysis · NFFT3 · Phase D</div>
+  <h1><code>X(target)()</code> — error under the standard model</h1>
+  <p class="deck"><one sentence: what the target computes and the bottom-line error verdict.></p>
+
+  <div class="verdict">
+    <b><✅ clean — error at the best achievable floor | ⚠ improve-first — avoidable error source></b> —
+    <one line: e.g. "error sits on the expected √N·u floor (worst case N·u); optimize for
+    speed without regressing it" OR "the naive phase recurrence lets the per-term error grow
+    like k·u instead of u, pushing the sum toward the worst-case N·u; a renormalized
+    recurrence keeps u per term and is no slower — fix it first.">
+    <div class="meta">
+      <b>Target</b><span><code>X(target)()</code> — <file:line></span>
+      <b>Metric</b><span>\(E_\infty/\lVert \hat f\rVert_1\) — see <a href="phase-d-error-analysis.md">phase-d-error-analysis.md</a></span>
+      <b>Baseline commit</b><span><sha></span>
+      <b>Tracker</b><span><a href="README.md">README.md</a></span>
+    </div>
+  </div>
+
+  <h2>1 · The standard model</h2>
+  <p>All bounds use the standard model of floating-point arithmetic with unit roundoff
+     \(u\) (\(u=2^{-24}\) float, \(2^{-53}\) double, \(2^{-64}\) / \(2^{-113}\) long
+     double — the library's <code>MANT_DIG</code> branches):</p>
+  \[ \mathrm{fl}(a \circ b) = (a \circ b)(1+\delta), \qquad |\delta| \le u, \qquad \circ \in \{+,-,\times,\div\}. \]
+  <p>For a length-\(n\) accumulation the per-operation errors compose into the Higham
+     constant</p>
+  \[ \gamma_n = \frac{n\,u}{1 - n\,u}, \qquad \gamma_n \le 1.01\,n\,u \ \ (n u \le 0.01), \qquad \gamma_n \approx n\,u . \]
+
+  <h2>2 · The computation as floating-point operations</h2>
+  <p><Write the target as the sequence of float ops it actually performs. For the direct
+     NDFT this is the length-\(N\) sum of complex products.></p>
+  <pre><code>&lt;verbatim target code or the hot expression — kernel/.../file.c:NN&gt;</code></pre>
+  <!-- Example (direct NDFT f_j = Σ_k f̂_k e^{-2πi k x_j}); replace with THIS target's form. -->
+  \[ f_j = \sum_{k} \hat f_k \, e^{-2\pi i k x_j}, \qquad
+     \hat f_j := \mathrm{fl}\!\left(\sum_{k} \hat f_k\, \mathrm{fl}\!\big(e^{-2\pi i k x_j}\big)\right). \]
+  <p class="cap"><one line: which operations dominate the error — the transcendental, the
+     argument reduction \(k x_j\), the length-\(N\) accumulation.></p>
+
+  <h2>3 · Forward-error bound (keep \(N\), \(M\) explicit)</h2>
+  <p><Derive the bound term by term: the transcendental's relative error, the
+     argument-reduction error in \(k x_j\), the complex multiply, then the length-\(N\)
+     sequential summation \(\gamma_{N-1}\). State BOTH the guaranteed worst case and the
+     behaviour random-sign data actually shows — they differ sharply here.></p>
+  <!-- Example skeleton for the NDFT; replace with the real derivation. -->
+  \[ \underbrace{\frac{|\hat f_j - f_j|}{\lVert \hat f\rVert_1} \;\le\; \gamma_{N-1} + c\,u \;\approx\; (N + c)\,u}_{\text{worst case (guarantee)}},
+     \qquad
+     \underbrace{\mathbb{E}\!\left[\frac{|\hat f_j - f_j|}{\lVert \hat f\rVert_1}\right] \;\sim\; \sqrt{N}\,u}_{\text{expected, random signs}} . \]
+  <p>where \(c\) collects the per-summand transcendental and multiply terms (the
+     normalisation works because \(|e^{-2\pi i k x_j}| = 1\), so \(\sum|\hat f_k w_k| =
+     \lVert\hat f\rVert_1\)). The worst case is the deterministic envelope; with random-sign
+     coefficients the errors partly cancel and the expected error grows like \(\sqrt N\,u\).
+     <Separate the inherent floor from any AVOIDABLE excess — an unstable recurrence, a
+     cancelling reformulation, an un-reduced large argument.></p>
+  <aside><b>Suite bound vs derived.</b> The direct suites enforce a <em>flat</em> floor
+     \(\text{bound}=C\varepsilon\) (\(C=\) <48> NFFT / 120 NFCT / 130 NFST). Under the
+     \(\sqrt N\) regime the data exhibits, a flat \(C\) is <em>robust</em> across a wide size
+     range — not a fragile coincidence. Only the worst-case \(N u\) envelope would eventually
+     exceed \(C\varepsilon\) (at \(N\approx\) <…>) — a <em>worst-case-only</em>
+     size-dependent note, not an alarm, unless §4 finds the measured growth steeper than
+     \(\sqrt N\).</aside>
+
+  <h2>4 · Measured vs derived (baseline reconciliation)</h2>
+  <p><Does the Phase-A baseline error track the derived order of growth? Tabulate measured
+     error vs \(N\) (and \(M\)) from <code>artifacts/baseline-tests-{d,f,l}.log</code>. Expect
+     \(p\approx 0.5\) (\(\sqrt N\)) for random-sign data — \(p\to 1\) signals the worst case
+     is realised or an avoidable source. If a differential trend study was run, cite the
+     fitted exponent \(p\) in \(\text{error}\approx C N^{p}\) from
+     <code>scripts/perf-trend.py</code>.></p>
+  <table>
+    <tr><th>prec</th><th>\(N\) (\(M\))</th><th>measured error</th><th>bound</th><th>trend \(p\) (expect \(\approx 0.5\))</th></tr>
+    <tr><td>d</td><td><…></td><td class="num"><…></td><td class="num"><…></td><td class="good"><\(p\approx 0.5\) — \(\sqrt N\)></td></tr>
+    <tr><td>f</td><td><…></td><td class="num"><…></td><td class="num"><…></td><td><…></td></tr>
+    <tr><td>l</td><td><…></td><td class="num"><…></td><td class="num"><…></td><td><…></td></tr>
+  </table>
+  <p class="cap"><one line: derivation confirmed, or the measured trend is steeper ⇒ an
+     avoidable source the theory pinned.></p>
+
+  <h2>5 · Verdict &amp; objective for the inner loop</h2>
+  <p><b>Target role:</b> <downstream-limited | leveraged | terminal> — <how hard to push
+     accuracy, and why. Downstream-limited: a later approximation caps end-to-end accuracy →
+     don't over-invest (e.g. doubly-compensated summation buys nothing). Leveraged (e.g. a
+     precomputation feeding many transforms): a smaller error propagates to every consumer at
+     a one-off cost → worth pushing. Terminal: the derived bound IS the user's error.></p>
+  <p><State <b>clean</b> or <b>improve-first</b> and why, per precision. For <b>improve-first</b>,
+     NAME the avoidable source and how the optimization removes it — and note where both
+     accuracy and speed can improve together. For <b>clean</b>, say plainly that the current
+     behaviour is the best achievable for what the target computes, so Phase E optimizes for
+     speed alone without regressing the derived bound.></p>
+  <aside><b>Accuracy/speed trade-off (if any).</b> <If removing the avoidable error COSTS
+     speed with no joint win, this is a reviewer decision, not the agent's. State the
+     trade-off, the chosen default (the target-role argument above), and the alternative —
+     it forces a <code>partial</code> outcome at Phase F. Delete this box if both improve
+     together.></aside>
+
+  <h2>6 · Risks this analysis surfaces</h2>
+  <!-- The size/precision dependence the derivation exposes — the SEED of the risk table the
+       inner loop and exit gate carry forward. See ../details/risk-assessment.md. -->
+  <table>
+    <tr><th>Risk</th><th>Category</th><th>State</th><th>Evidence / disposition</th></tr>
+    <tr><td><worst-case \(Nu\) envelope exceeds \(C\varepsilon\) for \(N\) larger than tested></td><td><size-dependent (worst-case only)></td>
+        <td class="good"><accepted></td><td><measured \(p\approx 0.5\) (\(\sqrt N\)) stays well under \(C\varepsilon\); only the loose \(Nu\) envelope breaches, at \(N\approx\)… — not on the measured path></td></tr>
+  </table>
+
+  <footer>
+    Phase-D deliverables:
+    <a href="phase-d-error-analysis.md">verdict (markdown)</a>
+    · tracker <a href="README.md">README.md</a>
+    · derivation method <a href="https://nhigham.com/">standard model (Higham, ASNA)</a>
+  </footer>
+</div>
+</body>
+</html>
