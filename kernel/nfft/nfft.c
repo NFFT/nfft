@@ -2284,6 +2284,9 @@ static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
 }
 #endif
 
+/* Window buffers come from the heap, once per thread: GCC 13 and newer abort
+ * expanding this function's OpenMP regions on aarch64-apple-darwin when they
+ * hold a run-time sized stack array. */
 static void nfft_trafo_1d_B(X(plan) *ths)
 {
   const INT n = ths->n[0], M = ths->M_total, m = ths->m, m2p2 = 2*m+2;
@@ -2323,20 +2326,24 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
   if (ths->flags & PRE_FG_PSI)
   {
-    INT k;
-    R fg_exp_l[m2p2+1];
+    R *fg_exp_l = (R*)Y(malloc)((size_t)(m2p2+1) * sizeof(R));
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k)
+    #pragma omp parallel default(shared)
+#endif
+    {
+    INT k;
+    R *psij_const = (R*)Y(malloc)((size_t)(m2p2) * sizeof(R));
+#ifdef _OPENMP
+    #pragma omp for
 #endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
       const R fg_psij0 = ths->psi[2 * j], fg_psij1 = ths->psi[2 * j + 1];
       R fg_psij2 = K(1.0);
-      R psij_const[m2p2];
       INT l;
 
       psij_const[0] = fg_psij0;
@@ -2349,28 +2356,35 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
+    Y(free)(psij_const);
+    }
 
+    Y(free)(fg_exp_l);
     return;
   } /* if(PRE_FG_PSI) */
 
   if (ths->flags & FG_PSI)
   {
-    INT k;
-    R fg_exp_l[m2p2+1];
+    R *fg_exp_l = (R*)Y(malloc)((size_t)(m2p2+1) * sizeof(R));
 
     sort(ths);
 
     nfft_1d_init_fg_exp_l(fg_exp_l, m, ths->b[0]);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k)
+    #pragma omp parallel default(shared)
+#endif
+    {
+    INT k;
+    R *psij_const = (R*)Y(malloc)((size_t)(m2p2) * sizeof(R));
+#ifdef _OPENMP
+    #pragma omp for
 #endif
     for (k = 0; k < M; k++)
     {
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
       INT u, o, l;
       R fg_psij0, fg_psij1, fg_psij2;
-      R psij_const[m2p2];
 
       uo(ths, (INT)j, &u, &o, (INT)0);
       fg_psij0 = (PHI(ths->n[0], ths->x[j] - ((R)(u))/(R)(n), 0));
@@ -2387,25 +2401,33 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
+    Y(free)(psij_const);
+    }
+
+    Y(free)(fg_exp_l);
     return;
   } /* if(FG_PSI) */
 
   if (ths->flags & PRE_LIN_PSI)
   {
     const INT K = ths->K, ip_s = K / (m + 2);
-    INT k;
 
     sort(ths);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k)
+    #pragma omp parallel default(shared)
+#endif
+    {
+    INT k;
+    R *psij_const = (R*)Y(malloc)((size_t)(m2p2) * sizeof(R));
+#ifdef _OPENMP
+    #pragma omp for
 #endif
     for (k = 0; k < M; k++)
     {
       INT u, o, l;
       R ip_y, ip_w;
       INT ip_u;
-      R psij_const[m2p2];
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
       uo(ths, (INT)j, &u, &o, (INT)0);
@@ -2420,21 +2442,27 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
+    Y(free)(psij_const);
+    }
     return;
   } /* if(PRE_LIN_PSI) */
   else
   {
     /* no precomputed psi at all */
-    INT k;
 
     sort(ths);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(k)
+    #pragma omp parallel default(shared)
+#endif
+    {
+    INT k;
+    R *psij_const = (R*)Y(malloc)((size_t)(m2p2) * sizeof(R));
+#ifdef _OPENMP
+    #pragma omp for
 #endif
     for (k = 0; k < M; k++)
     {
-      R psij_const[m2p2];
       INT u, o, l;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
@@ -2444,6 +2472,8 @@ static void nfft_trafo_1d_B(X(plan) *ths)
         psij_const[l] = (PHI(ths->n[0], ths->x[j] - ((R)((u+l))) / (R)(n), 0));
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
+    }
+    Y(free)(psij_const);
     }
   }
 }
