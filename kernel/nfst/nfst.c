@@ -82,8 +82,8 @@ static inline R X(reduced_omega)(const R k, const R x)
 }
 
 /* uo() anchors the run at the grid point nearest the node, run index m,
- * which FG_RUN puts at buffer index m + 1 */
-#define MACRO_with_FG_PSI fg_psi[t][lj[t] + 1]
+ * which FG_RUN puts at buffer index m + 2 for a fill based at fg_psi[t] + 1 */
+#define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
 #define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + t]) \
@@ -583,7 +583,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R *f, *g; /* local copy */ \
   R *fj; /* local copy */ \
   R y[ths->d]; \
-  R fg_psi[ths->d][2*ths->m+3]; \
+  /* 2m+4, not the 2m+3 FG_RUN fills: an even row stride and an even offset \
+   * to the used run keep the read base of the l_L loop aligned as it was \
+   * before the run gained its extra point. */ \
+  R fg_psi[ths->d][2*ths->m+4]; \
   R fg_e[ths->d], fg_q[ths->d]; \
   INT l_fg,lj_fg; \
   R ip_w; \
@@ -646,7 +649,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
       for (t = 0; t < ths->d; t++) \
       { \
-        FG_RUN(fg_psi[t], ths->m, ths->psi[2 * (j * ths->d + t)], \
+        FG_RUN(fg_psi[t] + 1, ths->m, ths->psi[2 * (j * ths->d + t)], \
             ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t]); \
       } \
  \
@@ -677,7 +680,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
       for (t = 0; t < ths->d; t++) \
       { \
         const INT fg_c = u[t] + ths->m; \
-        FG_RUN(fg_psi[t], ths->m, \
+        FG_RUN(fg_psi[t] + 1, ths->m, \
             (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)fg_c)/(2 * NN(ths->n[t]))),(t))), \
             EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - fg_c) / ths->b[t]), \
             fg_e[t], fg_q[t]); \
