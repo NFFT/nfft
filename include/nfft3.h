@@ -708,8 +708,7 @@ NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_fl
 NFFT_EXTERN void X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
 NFFT_EXTERN void X(trafo)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
-NFFT_EXTERN void X(finalize)(X(plan) *plan); \
-NFFT_EXTERN int X(posN)(int n,int m, int B);
+NFFT_EXTERN void X(finalize)(X(plan) *plan);
 
 /* nfsoft api */
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,FPT_MANGLE_FLOAT,float,fftwf_complex)
@@ -828,70 +827,7 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 #define PRECOMPUTE_WEIGHT     (1U<< 5)
 #define PRECOMPUTE_DAMP       (1U<< 6)
 
-/* util */
-
-/* huge second-order macro that defines prototypes for all utility API functions.
- * We expand this macro for each supported precision.
- *   Y: nfft name-mangling macro
- *   R: real data type
- *   C: complex data type
- */
-#define NFFT_DEFINE_UTIL_API(Y,R,C) \
-/* rand.c */ \
-R Y(drand48)(void); \
-void Y(srand48)(long int seed); \
-\
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
- */ \
-void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
-\
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
- */ \
-void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
-\
-void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
-\
-/* print.c */ \
-/** Print real vector to standard output. */ \
-void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
-\
-/** Print complex vector to standard output. */ \
-void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
-/* thread.c */ \
-NFFT_INT Y(get_num_threads)(void); \
-void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_INT Y(has_threads_enabled)(void); \
-/* time.c */ \
-R Y(clock_gettime_seconds)(void); \
-/* error.c: */ \
-R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
-  const C *z, const NFFT_INT m); \
-/* int.c: */ \
-NFFT_INT Y(exp2i)(const NFFT_INT a); \
-NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
-/* vector1.c */ \
-/** Computes the inner/dot product \f$x^H x\f$. */ \
-R Y(dot_complex)(C *x, NFFT_INT n); \
-/* vector3.c */ \
-/** Updates \f$x \leftarrow a x + y\f$. */ \
-void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
-/** Swaps each half over N[d]/2. */ \
-void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-void Y(fftshift_complex_int)(C *x, int d, int* N); \
-/** Return library version. */ \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
-/** \
- * Return name of window function. \
- * \
- * The window function to be used is configured at compile time. \
- */ \
-const char *Y(get_window_name)(); \
-NFFT_INT Y(get_default_window_cut_off)();
-
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
+/* Utility helpers: see nfft3util.h */
 
 #ifdef __cplusplus
 }  /* extern "C" */

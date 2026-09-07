@@ -41,7 +41,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 /** define weights of kernel function for discrete Radon transform */
 /*#define KERNEL(r) 1.0 */

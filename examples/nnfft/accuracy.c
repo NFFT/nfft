@@ -21,6 +21,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 
 /** Swap two vectors. */
 #define CSWAP(x,y) {double _Complex * NFFT_SWAP_temp__; \

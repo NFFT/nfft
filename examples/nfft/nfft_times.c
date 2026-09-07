@@ -26,23 +26,24 @@
 #endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 int global_n;
 int global_d;
 
 static int comp1(const void *x, const void *y)
 {
-  return ((*(const R*) x) < (*(const R*) y) ? -1 : 1);
+  return ((*(const NFFT_R*) x) < (*(const NFFT_R*) y) ? -1 : 1);
 }
 
 static int comp2(const void *x, const void *y)
 {
   int nx0, nx1, ny0, ny1;
-  nx0 = global_n * (int)LRINT(*((const R*) x + 0));
-  nx1 = global_n * (int)LRINT(*((const R*) x + 1));
-  ny0 = global_n * (int)LRINT(*((const R*) y + 0));
-  ny1 = global_n * (int)LRINT(*((const R*) y + 1));
+  nx0 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) x + 0));
+  nx1 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) x + 1));
+  ny0 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) y + 0));
+  ny1 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) y + 1));
 
   if (nx0 < ny0)
     return -1;
@@ -58,12 +59,12 @@ static int comp2(const void *x, const void *y)
 static int comp3(const void *x, const void *y)
 {
   int nx0, nx1, nx2, ny0, ny1, ny2;
-  nx0 = global_n * (int)LRINT(*((const R*) x + 0));
-  nx1 = global_n * (int)LRINT(*((const R*) x + 1));
-  nx2 = global_n * (int)LRINT(*((const R*) x + 2));
-  ny0 = global_n * (int)LRINT(*((const R*) y + 0));
-  ny1 = global_n * (int)LRINT(*((const R*) y + 1));
-  ny2 = global_n * (int)LRINT(*((const R*) y + 2));
+  nx0 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) x + 0));
+  nx1 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) x + 1));
+  nx2 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) x + 2));
+  ny0 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) y + 0));
+  ny1 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) y + 1));
+  ny2 = global_n * (int)NFFT_LRINT(*((const NFFT_R*) y + 2));
 
   if (nx0 < ny0)
     return -1;
@@ -84,13 +85,13 @@ static int comp3(const void *x, const void *y)
 static void measure_time_nfft(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("\\verb+%ld+&\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("\\verb+%ld+&\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
 
   for (r = 0, M = 1; r < d; r++)
   {
@@ -117,17 +118,17 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   {
     case 1:
     {
-      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(R), comp1);
+      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp1);
       break;
     }
     case 2:
     {
-      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(R), comp2);
+      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp2);
       break;
     }
     case 3:
     {
-      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(R), comp3);
+      qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp3);
       break;
     }
   }
@@ -138,52 +139,52 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
 
-  while (t_fft < K(1.0))
+  while (t_fft < NFFT_K(1.0))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  //  printf("\\verb+%.1" __FES__ "+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
-  printf("\\verb+%.1" __FES__ "+ &\t", t_fft);
+  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  printf("\\verb+%.1" NFFT__FES__ "+ &\t", t_fft);
 
   /** NDFT */
   if (test_ndft)
   {
-    t_ndft = K(0.0);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(1.0))
+    while (t_ndft < NFFT_K(1.0))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    //printf("\\verb+%.1" __FES__ "+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
-    printf("\\verb+%.1" __FES__ "+ &\t", t_ndft);
+    t_ndft /= (NFFT_R)(r);
+    //printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
+    printf("\\verb+%.1" NFFT__FES__ "+ &\t", t_ndft);
   }
   else
     //    printf("\\verb+*+\t&\t&\t");
     printf("\\verb+*+\t&\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(1.0))
+  while (t_nfft < NFFT_K(1.0))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     switch (d)
     {
       case 1:
@@ -204,14 +205,14 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
       default:
         NFFT(trafo)(&p);
     }
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
+  t_nfft /= (NFFT_R)(r);
 
-  //  printf("\\verb+%.1" __FES__ "+ & \\verb+(%d)+ & \\verb+(%.1" __FES__ ")+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
-  printf("\\verb+%.1" __FES__ "+ & \\verb+(%3.1" __FIS__ ")+\\\\\n", t_nfft, t_nfft / t_fft);
+  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+ & \\verb+(%.1" NFFT__FES__ ")+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
+  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%3.1" NFFT__FIS__ ")+\\\\\n", t_nfft, t_nfft / t_fft);
 
   FFTW(destroy_plan)(p_fft);
   NFFT(finalize)(&p);
@@ -220,13 +221,13 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -245,12 +246,12 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
-  qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(R), comp1);
+  qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
@@ -259,76 +260,76 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
-    CSWAP(p.f, swapndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
+    NFFT_CSWAP(p.f, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   /** NFFT_1d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo_1d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   printf("\n");
 
@@ -340,13 +341,13 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -365,12 +366,12 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_BACKWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
-  qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(R), comp1);
+  qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp1);
   //nfft_vpr_double(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
@@ -379,76 +380,76 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f, p.N_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f_hat, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f_hat, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(adjoint_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
-    CSWAP(p.f_hat, swapndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
+    NFFT_CSWAP(p.f_hat, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   /** NFFT_1d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint_1d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   printf("\n");
 
@@ -460,13 +461,13 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -485,7 +486,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
@@ -502,20 +503,20 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** init pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
@@ -523,63 +524,63 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
 
     //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
-    CSWAP(p.f, swapndft);
+    NFFT_CSWAP(p.f, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
   /** NFFT_2d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo_2d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -593,13 +594,13 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -618,7 +619,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
@@ -631,20 +632,20 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f, p.M_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** init pseudo random samples */
   NFFT(vrand_unit_complex)(p.f, p.M_total);
@@ -652,63 +653,63 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f_hat, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f_hat, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(adjoint_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
 
     //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
-    CSWAP(p.f_hat, swapndft);
+    NFFT_CSWAP(p.f_hat, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
   /** NFFT_2d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint_2d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
@@ -722,13 +723,13 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -747,7 +748,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f_hat, p.f, FFTW_FORWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.M_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
@@ -761,20 +762,20 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** init pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
@@ -782,63 +783,63 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
 
     //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
-    CSWAP(p.f, swapndft);
+    NFFT_CSWAP(p.f, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
   /** NFFT_3d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(trafo_3d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
   //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
 
@@ -852,13 +853,13 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
-  R t, t_fft, t_ndft, t_nfft;
-  ticks t0, t1;
+  NFFT_R t, t_fft, t_ndft, t_nfft;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
 
-  printf("%ld\t", LRINT(LOG((R)(N)) / LOG((R)(2)) * (R)(d) + K(0.5)));
+  printf("%ld\t", NFFT_LRINT(NFFT_LOG((NFFT_R)(N)) / NFFT_LOG((NFFT_R)(2)) * (NFFT_R)(d) + NFFT_K(0.5)));
   fflush(stdout);
 
   for (r = 0, M = 1; r < d; r++)
@@ -877,7 +878,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 
   p_fft = FFTW(plan_dft)(d, NN, p.f, p.f_hat, FFTW_FORWARD, FFTW_MEASURE);
 
-  C *swapndft = (C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(C));
+  NFFT_C *swapndft = (NFFT_C*) NFFT(malloc)((size_t)(p.N_total) * sizeof(NFFT_C));
 
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
@@ -890,20 +891,20 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   NFFT(vrand_unit_complex)(p.f, p.M_total);
 
   /** FFT */
-  t_fft = K(0.0);
+  t_fft = NFFT_K(0.0);
   r = 0;
-  while (t_fft < K(0.1))
+  while (t_fft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     FFTW(execute)(p_fft);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_fft += t;
   }
-  t_fft /= (R)(r);
+  t_fft /= (NFFT_R)(r);
 
-  printf("%.1" __FES__ "\t", t_fft);
+  printf("%.1" NFFT__FES__ "\t", t_fft);
 
   /** init pseudo random samples */
   NFFT(vrand_unit_complex)(p.f, p.M_total);
@@ -911,63 +912,63 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   /** NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f_hat, swapndft);
-    t_ndft = K(0.0);
+    NFFT_CSWAP(p.f_hat, swapndft);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.1))
+    while (t_ndft < NFFT_K(0.1))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(adjoint_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
-    printf("%.1" __FES__ "\t", t_ndft);
+    t_ndft /= (NFFT_R)(r);
+    printf("%.1" NFFT__FES__ "\t", t_ndft);
 
     //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
-    CSWAP(p.f_hat, swapndft);
+    NFFT_CSWAP(p.f_hat, swapndft);
   }
   else
     printf("\t");
 
   /** NFFT */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
   /** NFFT_3d */
-  t_nfft = K(0.0);
+  t_nfft = NFFT_K(0.0);
   r = 0;
-  while (t_nfft < K(0.1))
+  while (t_nfft < NFFT_K(0.1))
   {
     r++;
-    t0 = getticks();
+    t0 = NFFT(clock_gettime_seconds)();
     NFFT(adjoint_3d)(&p);
-    t1 = getticks();
-    t = NFFT(elapsed_seconds)(t1, t0);
+    t1 = NFFT(clock_gettime_seconds)();
+    t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (R)(r);
-  printf("%.1" __FES__ "\t", t_nfft);
+  t_nfft /= (NFFT_R)(r);
+  printf("%.1" NFFT__FES__ "\t", t_nfft);
   if (test_ndft)
-    printf("(%.1" __FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
+    printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
   //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
 
@@ -1015,12 +1016,12 @@ int main(void)
 {
   int l, d, logIN;
 
-  UNUSED(measure_time_nfft_XXX2);
-  UNUSED(measure_time_nfft_XXX3);
-  UNUSED(measure_time_nfft_XXX4);
-  UNUSED(measure_time_nfft_XXX5);
-  UNUSED(measure_time_nfft_XXX6);
-  UNUSED(measure_time_nfft_XXX7);
+  NFFT_UNUSED(measure_time_nfft_XXX2);
+  NFFT_UNUSED(measure_time_nfft_XXX3);
+  NFFT_UNUSED(measure_time_nfft_XXX4);
+  NFFT_UNUSED(measure_time_nfft_XXX5);
+  NFFT_UNUSED(measure_time_nfft_XXX6);
+  NFFT_UNUSED(measure_time_nfft_XXX7);
 
   printf("\\hline $l_N$ & FFT & NDFT & NFFT & NFFT/FFT\\\\\n");
   printf("\\hline \\hline \\multicolumn{5}{|c|}{$d=1$} \\\\ \\hline\n");

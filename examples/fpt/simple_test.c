@@ -28,6 +28,7 @@
 
 /* NFFT3 header */
 #include "nfft3.h"
+#include "nfft3util.h"
 
 int main(void)
 {

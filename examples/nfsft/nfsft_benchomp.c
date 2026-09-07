@@ -22,8 +22,10 @@
 
 #include "config.h"
 
+#include <complex.h>
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 #define NREPEAT 5
 
@@ -41,7 +43,7 @@ static FILE* file_out_tex = NULL;
 
 int get_nthreads_array(int **arr)
 {
-  int max_threads = X(get_num_threads)();
+  int max_threads = NFFT(get_num_threads)();
   int alloc_num = 2;
   int k;
   int ret_number = 0;

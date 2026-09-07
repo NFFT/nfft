@@ -23,6 +23,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 
 static void simple_test_nsfft(int d, int J, int M)
 {
