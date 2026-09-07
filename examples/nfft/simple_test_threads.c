@@ -22,9 +22,6 @@
 #include <omp.h>
 
 #include <sys/time.h>
-
-#define @NFFT_PRECISION_MACRO@
-
 #include "nfft3mp.h"
 
 int main(void)

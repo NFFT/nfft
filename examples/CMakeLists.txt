@@ -1,10 +1,9 @@
-# Examples. All programs are noinst. Sources are qualified by their subdir; 
+# Examples. All programs are noinst. Sources are qualified by their subdir;
 # the helper's <subdir> arg routes each binary to build/examples/<subdir>/.
-set(B ${CMAKE_CURRENT_BINARY_DIR})
 
 # nfft (all precisions)
-configure_file(nfft/simple_test.c.in ${B}/nfft/simple_test.c @ONLY)
-nfft_add_serial_program(example_nfft_simple_test  nfft simple_test  ${B}/nfft/simple_test.c)
+nfft_add_serial_program(example_nfft_simple_test  nfft simple_test  nfft/simple_test.c)
+target_compile_definitions(example_nfft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_ndft_fast    nfft ndft_fast    nfft/ndft_fast.c)
 nfft_add_serial_program(example_nfft_taylor_nfft  nfft taylor_nfft  nfft/taylor_nfft.c)
 nfft_add_serial_program(example_nfft_flags        nfft flags        nfft/flags.c)
@@ -16,9 +15,9 @@ nfft_add_serial_program(example_nfft_nfft_times   nfft nfft_times   nfft/nfft_ti
 # serial library but still need the OpenMP RUNTIME lib (they call omp_* without
 # -fopenmp): add ${OpenMP_C_LIBRARIES} only (no flags), mirroring $(OPENMP_LIBS).
 if(NFFT_ENABLE_OPENMP)
-  configure_file(nfft/simple_test_threads.c.in ${B}/nfft/simple_test_threads.c @ONLY)
   nfft_add_omp_program(example_nfft_simple_test_threads nfft simple_test_threads
-    ${B}/nfft/simple_test_threads.c)
+    nfft/simple_test_threads.c)
+  target_compile_definitions(example_nfft_simple_test_threads PRIVATE ${NFFT_PRECISION_MACRO})
   nfft_add_omp_program(example_nfft_benchomp nfft nfft_benchomp nfft/nfft_benchomp.c)
   nfft_add_omp_program(example_nfft_benchomp_detail_threads nfft
     nfft_benchomp_detail_threads nfft/nfft_benchomp_detail.c)
@@ -32,19 +31,19 @@ endif()
 
 # nfct/nfst (all precisions)
 if(HAVE_NFCT)
-  configure_file(nfct/simple_test.c.in ${B}/nfct/simple_test.c @ONLY)
-  nfft_add_serial_program(example_nfct_simple_test nfct simple_test ${B}/nfct/simple_test.c)
+  nfft_add_serial_program(example_nfct_simple_test nfct simple_test nfct/simple_test.c)
+  target_compile_definitions(example_nfct_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 if(HAVE_NFST)
-  configure_file(nfst/simple_test.c.in ${B}/nfst/simple_test.c @ONLY)
-  nfft_add_serial_program(example_nfst_simple_test nfst simple_test ${B}/nfst/simple_test.c)
+  nfft_add_serial_program(example_nfst_simple_test nfst simple_test nfst/simple_test.c)
+  target_compile_definitions(example_nfst_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 # solver (all precisions)
-configure_file(solver/simple_test.c.in ${B}/solver/simple_test.c @ONLY)
-configure_file(solver/glacier.c.in     ${B}/solver/glacier.c     @ONLY)
-nfft_add_serial_program(example_solver_simple_test solver simple_test ${B}/solver/simple_test.c)
-nfft_add_serial_program(example_solver_glacier     solver glacier     ${B}/solver/glacier.c)
+nfft_add_serial_program(example_solver_simple_test solver simple_test solver/simple_test.c)
+nfft_add_serial_program(example_solver_glacier     solver glacier     solver/glacier.c)
+target_compile_definitions(example_solver_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(example_solver_glacier PRIVATE ${NFFT_PRECISION_MACRO})
 
 # nnfft (double-only)
 if(HAVE_NNFFT)

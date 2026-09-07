@@ -721,22 +721,15 @@ AC_CONFIG_FILES(Makefile \
                 examples/fpt/Makefile \
                 examples/mri/Makefile \
                 examples/nfct/Makefile \
-                examples/nfct/simple_test.c \
                 examples/nfft/Makefile \
-                examples/nfft/simple_test.c \
-                examples/nfft/simple_test_threads.c \
                 examples/nfsft/Makefile \
                 examples/nfsoft/Makefile \
                 examples/nfst/Makefile \
-                examples/nfst/simple_test.c \
                 examples/nnfft/Makefile \
                 examples/nsfft/Makefile \
                 examples/solver/Makefile \
-		examples/solver/glacier.c \
-		examples/solver/simple_test.c \
                 applications/Makefile \
                 applications/fastgauss/Makefile \
-		applications/fastgauss/fastgauss.c \
                 applications/fastsum/Makefile \
                 applications/fastsumS2/Makefile \
                 applications/quadratureS2/Makefile \
@@ -744,12 +737,7 @@ AC_CONFIG_FILES(Makefile \
                 applications/mri/mri2d/Makefile \
                 applications/mri/mri3d/Makefile \
                 applications/polarFFT/Makefile \
-                applications/polarFFT/linogram_fft_test.c \
-                applications/polarFFT/mpolar_fft_test.c \
-                applications/polarFFT/polar_fft_test.c \
                 applications/radon/Makefile \
-		applications/radon/inverse_radon.c \
-		applications/radon/radon.c \
                 matlab/Makefile \
                 matlab/fpt/Makefile \
                 matlab/nfsft/Makefile \

@@ -17,10 +17,10 @@
  */
 
 /**
- * \file radon.c
- * \brief NFFT-based discrete Radon transform.
+ * \file inverse_radon.c
+ * \brief NFFT-based discrete inverse Radon transform.
  *
- * Computes the discrete Radon transform
+ * Computes the inverse of the discrete Radon transform
  * \f[
  *    R_{\theta_t} f\left(\frac{s}{R}\right)
  *    = \sum_{r \in I_R} w_r \; \sum_{k \in I_N^2} f_{k}
@@ -28,10 +28,9 @@
  *        \, \mathrm{e}^{2\pi\mathrm{i} r s / R}
  *    \qquad(t \in I_T, s \in I_R).
  * \f]
- * by taking the 2D-NFFT of \f$f_k\f$ (\f$k \in I_N^2\f$)
- * at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
- * followed by 1D-iFFTs for every direction \f$t \in T\f$,
- * where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel.
+ * given at the points \f$\frac{r}{R}\theta_t\f$ of the polar or linogram grid
+ * and where \f$w_r\f$ are the weights of the Dirichlet- or Fejer-kernel
+ * by 1D-FFTs and the 2D-iNFFT.
  * \author Markus Fenn
  * \date 2005
  */
@@ -41,9 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
-
-#define @NFFT_PRECISION_MACRO@
-
 #include "nfft3mp.h"
 
 /** define weights of kernel function for discrete Radon transform */
@@ -108,19 +104,23 @@ static int linogram_grid(int T, int S, NFFT_R *x, NFFT_R *w)
   return 0;
 }
 
-/** computes the NFFT-based discrete Radon transform of f
+/** computes the inverse discrete Radon transform of Rf
  *  on the grid given by gridfcn() with T angles and R offsets
+ *  by a NFFT-based CG-type algorithm
  */
-static int Radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T, int S, NFFT_R *f, int NN, NFFT_R *Rf)
+static int inverse_radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T, int S, NFFT_R *Rf, int NN, NFFT_R *f,
+    int max_i)
 {
   int j, k; /**< index for nodes and freqencies   */
   NFFT(plan) my_nfft_plan; /**< plan for the nfft-2D             */
+  SOLVER(plan_complex) my_infft_plan; /**< plan for the inverse nfft        */
 
   NFFT_C *fft; /**< variable for the fftw-1Ds        */
   FFTW(plan) my_fftw_plan; /**< plan for the fftw-1Ds            */
 
   int t, r; /**< index for directions and offsets */
   NFFT_R *x, *w; /**< knots and associated weights     */
+  int l; /**< index for iterations             */
 
   int N[2], n[2];
   int M = T * S;
@@ -131,7 +131,7 @@ static int Radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T
   n[1] = 2 * N[1];
 
   fft = (NFFT_C *) NFFT(malloc)((size_t)(S) * sizeof(NFFT_C));
-  my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_BACKWARD, FFTW_MEASURE);
+  my_fftw_plan = FFTW(plan_dft_1d)(S, fft, fft, FFTW_FORWARD, FFTW_MEASURE);
 
   x = (NFFT_R *) NFFT(malloc)((size_t)(2 * T * S) * (sizeof(NFFT_R)));
   if (x == NULL)
@@ -146,12 +146,20 @@ static int Radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT,
       FFTW_MEASURE);
 
-  /** init nodes from grid*/
+  /** init two dimensional infft plan */
+  SOLVER(init_advanced_complex)(&my_infft_plan,
+      (NFFT(mv_plan_complex)*) (&my_nfft_plan), CGNR | PRECOMPUTE_WEIGHT);
+
+  /** init nodes and weights of grid*/
   gridfcn(T, S, x, w);
   for (j = 0; j < my_nfft_plan.M_total; j++)
   {
     my_nfft_plan.x[2 * j + 0] = x[2 * j + 0];
     my_nfft_plan.x[2 * j + 1] = x[2 * j + 1];
+    if (j % S)
+      my_infft_plan.w[j] = w[j];
+    else
+      my_infft_plan.w[j] = NFFT_K(0.0);
   }
 
   /** precompute psi, the entries of the matrix B */
@@ -164,44 +172,65 @@ static int Radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T
   if (my_nfft_plan.flags & PRE_FULL_PSI)
     NFFT(precompute_full_psi)(&my_nfft_plan);
 
-  /** init Fourier coefficients from given image */
-  for (k = 0; k < my_nfft_plan.N_total; k++)
-    my_nfft_plan.f_hat[k] = f[k] + _Complex_I * NFFT_K(0.0);
-
-  /** NFFT-2D */
-  NFFT(trafo)(&my_nfft_plan);
-
-  /** FFTW-1Ds */
+  /** compute 1D-ffts and init given samples and weights */
   for (t = 0; t < T; t++)
   {
-    fft[0] = NFFT_K(0.0);
-    for (r = -S / 2 + 1; r < S / 2; r++)
-      fft[r + S / 2] = KERNEL(r) * my_nfft_plan.f[t * S + (r + S / 2)];
+    /*    for(r=0; r<R/2; r++)
+     fft[r] = cexp(I*NFFT_KPI*r)*Rf[t*R+(r+R/2)];
+     for(r=0; r<R/2; r++)
+     fft[r+R/2] = cexp(I*NFFT_KPI*r)*Rf[t*R+r];
+     */
+
+    for (r = 0; r < S; r++)
+      fft[r] = Rf[t * S + r] + _Complex_I * NFFT_K(0.0);
 
     NFFT(fftshift_complex_int)(fft, 1, &S);
     FFTW(execute)(my_fftw_plan);
     NFFT(fftshift_complex_int)(fft, 1, &S);
 
-    for (r = 0; r < S; r++)
-      Rf[t * S + r] = NFFT_M(creal)(fft[r]) / (NFFT_R)(S);
-
-    /*    for(r=0; r<R/2; r++)
-     Rf[t*R+(r+R/2)] = creal(cexp(-I*NFFT_KPI*r)*fft[r]);
-     for(r=0; r<R/2; r++)
-     Rf[t*R+r] = creal(cexp(-I*NFFT_KPI*r)*fft[r+R/2]);
-     */
+    my_infft_plan.y[t * S] = NFFT_K(0.0);
+    for (r = -S / 2 + 1; r < S / 2; r++)
+      my_infft_plan.y[t * S + (r + S / 2)] = fft[r + S / 2] / KERNEL(r);
   }
+
+  /** initialise some guess f_hat_0 */
+  for (k = 0; k < my_nfft_plan.N_total; k++)
+    my_infft_plan.f_hat_iter[k] = NFFT_K(0.0) + _Complex_I * NFFT_K(0.0);
+
+  /** solve the system */
+  SOLVER(before_loop_complex)(&my_infft_plan);
+
+  if (max_i < 1)
+  {
+    l = 1;
+    for (k = 0; k < my_nfft_plan.N_total; k++)
+      my_infft_plan.f_hat_iter[k] = my_infft_plan.p_hat_iter[k];
+  }
+  else
+  {
+    for (l = 1; l <= max_i; l++)
+    {
+      SOLVER(loop_one_step_complex)(&my_infft_plan);
+      /*if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;*/
+    }
+  }
+  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));*/
+
+  /** copy result */
+  for (k = 0; k < my_nfft_plan.N_total; k++)
+    f[k] = NFFT_M(creal)(my_infft_plan.f_hat_iter[k]);
 
   /** finalise the plans and free the variables */
   FFTW(destroy_plan)(my_fftw_plan);
   NFFT(free)(fft);
+  SOLVER(finalize_complex)(&my_infft_plan);
   NFFT(finalize)(&my_nfft_plan);
   NFFT(free)(x);
   NFFT(free)(w);
   return 0;
 }
 
-/** simple test program for the discrete Radon transform
+/** simple test program for the inverse discrete Radon transform
  */
 int main(int argc, char **argv)
 {
@@ -209,16 +238,18 @@ int main(int argc, char **argv)
   int T, S; /**< number of directions/offsets    */
   FILE *fp;
   int N; /**< image size                      */
-  NFFT_R *f, *Rf;
+  NFFT_R *Rf, *iRf;
+  int max_i; /**< number of iterations            */
 
-  if (argc != 5)
+  if (argc != 6)
   {
-    printf("radon gridfcn N T R\n");
+    printf("inverse_radon gridfcn N T R max_i\n");
     printf("\n");
     printf("gridfcn    \"polar\" or \"linogram\" \n");
     printf("N          image size NxN            \n");
     printf("T          number of slopes          \n");
     printf("R          number of offsets         \n");
+    printf("max_i      number of iterations      \n");
     exit(EXIT_FAILURE);
   }
 
@@ -231,30 +262,31 @@ int main(int argc, char **argv)
   T = atoi(argv[3]);
   S = atoi(argv[4]);
   /*printf("N=%d, %s grid with T=%d, R=%d. \n",N,argv[1],T,R);*/
+  max_i = atoi(argv[5]);
 
-  f = (NFFT_R *) NFFT(malloc)((size_t)(N * N) * (sizeof(NFFT_R)));
   Rf = (NFFT_R *) NFFT(malloc)((size_t)(T * S) * (sizeof(NFFT_R)));
+  iRf = (NFFT_R *) NFFT(malloc)((size_t)(N * N) * (sizeof(NFFT_R)));
 
   /** load data */
-  fp = fopen("input_data.bin", "rb");
+  fp = fopen("sinogram_data.bin", "rb");
   if (fp == NULL)
     return EXIT_FAILURE;
-  fread(f, sizeof(NFFT_R), (size_t)(N * N), fp);
+  fread(Rf, sizeof(NFFT_R), (size_t)(T * S), fp);
   fclose(fp);
 
-  /** Radon transform */
-  Radon_trafo(gridfcn, T, S, f, N, Rf);
+  /** inverse Radon transform */
+  inverse_radon_trafo(gridfcn, T, S, Rf, N, iRf, max_i);
 
   /** write result */
-  fp = fopen("sinogram_data.bin", "wb+");
+  fp = fopen("output_data.bin", "wb+");
   if (fp == NULL)
     return EXIT_FAILURE;
-  fwrite(Rf, sizeof(NFFT_R), (size_t)(T * S), fp);
+  fwrite(iRf, sizeof(NFFT_R), (size_t)(N * N), fp);
   fclose(fp);
 
   /** free the variables */
-  NFFT(free)(f);
   NFFT(free)(Rf);
+  NFFT(free)(iRf);
 
   return EXIT_SUCCESS;
 }
