@@ -559,7 +559,7 @@ saved_LIBS=$LIBS
 AC_CHECK_LIB(m, sin, [])
 LIBS=$saved_LIBS
 
-AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time])
+AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time gettimeofday])
 
 AC_CHECK_FUNCS([memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])

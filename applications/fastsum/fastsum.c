@@ -32,7 +32,6 @@
 
 #include "nfft3.h"
 #include "fastsum.h"
-#include "infft.h"
 
 // Required for test if (ths->k == one_over_x)
 #include "kernels.h"
@@ -49,56 +48,56 @@ static int max_i(int a, int b)
 }
 
 /** factorial */
-static R fak(int n)
+static NFFT_R fak(int n)
 {
   if (n <= 1)
-    return K(1.0);
+    return NFFT_K(1.0);
   else
-    return (R)(n) * fak(n - 1);
+    return (NFFT_R)(n) * fak(n - 1);
 }
 
 /** binomial coefficient */
-static R binom(int n, int m)
+static NFFT_R binom(int n, int m)
 {
   return fak(n) / fak(m) / fak(n - m);
 }
 
 /** basis polynomial for regularized kernel */
-static R BasisPoly(int m, int r, R xx)
+static NFFT_R BasisPoly(int m, int r, NFFT_R xx)
 {
   int k;
-  R sum = K(0.0);
+  NFFT_R sum = NFFT_K(0.0);
 
   for (k = 0; k <= m - r; k++)
   {
-    sum += binom(m + k, k) * POW((xx + K(1.0)) / K(2.0), (R) k);
+    sum += binom(m + k, k) * NFFT_POW((xx + NFFT_K(1.0)) / NFFT_K(2.0), (NFFT_R) k);
   }
-  return sum * POW((xx + K(1.0)), (R) r) * POW(K(1.0) - xx, (R) (m + 1))
-      / (R)(1 << (m + 1)) / fak(r); /* 1<<(m+1) = 2^(m+1) */
+  return sum * NFFT_POW((xx + NFFT_K(1.0)), (NFFT_R) r) * NFFT_POW(NFFT_K(1.0) - xx, (NFFT_R) (m + 1))
+      / (NFFT_R)(1 << (m + 1)) / fak(r); /* 1<<(m+1) = 2^(m+1) */
 }
 
 /** regularized kernel with K_I arbitrary and K_B smooth to zero */
-C regkern(kernel k, R xx, int p, const R *param, R a, R b)
+NFFT_C regkern(kernel k, NFFT_R xx, int p, const NFFT_R *param, NFFT_R a, NFFT_R b)
 {
   int r;
-  C sum = K(0.0);
+  NFFT_C sum = NFFT_K(0.0);
 
-  if (xx < -K(0.5))
-    xx = -K(0.5);
-  if (xx > K(0.5))
-    xx = K(0.5);
-  if ((xx >= -K(0.5) + b && xx <= -a) || (xx >= a && xx <= K(0.5) - b))
+  if (xx < -NFFT_K(0.5))
+    xx = -NFFT_K(0.5);
+  if (xx > NFFT_K(0.5))
+    xx = NFFT_K(0.5);
+  if ((xx >= -NFFT_K(0.5) + b && xx <= -a) || (xx >= a && xx <= NFFT_K(0.5) - b))
   {
     return k(xx, 0, param);
   }
-  else if (xx < -K(0.5) + b)
+  else if (xx < -NFFT_K(0.5) + b)
   {
-    sum = (k(-K(0.5), 0, param) + k(K(0.5), 0, param)) / K(2.0)
-        * BasisPoly(p - 1, 0, K(2.0) * xx / b + (K(1.0) - b) / b);
+    sum = (k(-NFFT_K(0.5), 0, param) + k(NFFT_K(0.5), 0, param)) / NFFT_K(2.0)
+        * BasisPoly(p - 1, 0, NFFT_K(2.0) * xx / b + (NFFT_K(1.0) - b) / b);
     for (r = 0; r < p; r++)
     {
-      sum += POW(-b / K(2.0), (R) r) * k(-K(0.5) + b, r, param)
-          * BasisPoly(p - 1, r, -K(2.0) * xx / b + (b - K(1.0)) / b);
+      sum += NFFT_POW(-b / NFFT_K(2.0), (NFFT_R) r) * k(-NFFT_K(0.5) + b, r, param)
+          * BasisPoly(p - 1, r, -NFFT_K(2.0) * xx / b + (b - NFFT_K(1.0)) / b);
     }
     return sum;
   }
@@ -107,21 +106,21 @@ C regkern(kernel k, R xx, int p, const R *param, R a, R b)
     for (r = 0; r < p; r++)
     {
       sum +=
-          POW(a, (R) r)
+          NFFT_POW(a, (NFFT_R) r)
               * (k(-a, r, param) * BasisPoly(p - 1, r, xx / a)
                   + k(a, r, param) * BasisPoly(p - 1, r, -xx / a)
                       * (r & 1 ? -1 : 1));
     }
     return sum;
   }
-  else if (xx > K(0.5) - b)
+  else if (xx > NFFT_K(0.5) - b)
   {
-    sum = (k(-K(0.5), 0, param) + k(K(0.5), 0, param)) / K(2.0)
-        * BasisPoly(p - 1, 0, -K(2.0) * xx / b + (K(1.0) - b) / b);
+    sum = (k(-NFFT_K(0.5), 0, param) + k(NFFT_K(0.5), 0, param)) / NFFT_K(2.0)
+        * BasisPoly(p - 1, 0, -NFFT_K(2.0) * xx / b + (NFFT_K(1.0) - b) / b);
     for (r = 0; r < p; r++)
     {
-      sum += POW(b / K(2.0), (R) r) * k(K(0.5) - b, r, param)
-          * BasisPoly(p - 1, r, K(2.0) * xx / b - (K(1.0) - b) / b);
+      sum += NFFT_POW(b / NFFT_K(2.0), (NFFT_R) r) * k(NFFT_K(0.5) - b, r, param)
+          * BasisPoly(p - 1, r, NFFT_K(2.0) * xx / b - (NFFT_K(1.0) - b) / b);
     }
     return sum;
   }
@@ -131,16 +130,16 @@ C regkern(kernel k, R xx, int p, const R *param, R a, R b)
 /** regularized kernel with K_I arbitrary and K_B periodized
  *  (used in 1D)
  */
-static C regkern1(kernel k, R xx, int p, const R *param, R a, R b)
+static NFFT_C regkern1(kernel k, NFFT_R xx, int p, const NFFT_R *param, NFFT_R a, NFFT_R b)
 {
   int r;
-  C sum = K(0.0);
+  NFFT_C sum = NFFT_K(0.0);
 
-  if (xx < -K(0.5))
-    xx = -K(0.5);
-  if (xx > K(0.5))
-    xx = K(0.5);
-  if ((xx >= -K(0.5) + b && xx <= -a) || (xx >= a && xx <= K(0.5) - b))
+  if (xx < -NFFT_K(0.5))
+    xx = -NFFT_K(0.5);
+  if (xx > NFFT_K(0.5))
+    xx = NFFT_K(0.5);
+  if ((xx >= -NFFT_K(0.5) + b && xx <= -a) || (xx >= a && xx <= NFFT_K(0.5) - b))
   {
     return k(xx, 0, param);
   }
@@ -149,31 +148,31 @@ static C regkern1(kernel k, R xx, int p, const R *param, R a, R b)
     for (r = 0; r < p; r++)
     {
       sum +=
-          POW(a, (R) r)
+          NFFT_POW(a, (NFFT_R) r)
               * (k(-a, r, param) * BasisPoly(p - 1, r, xx / a)
                   + k(a, r, param) * BasisPoly(p - 1, r, -xx / a)
                       * (r & 1 ? -1 : 1));
     }
     return sum;
   }
-  else if (xx < -K(0.5) + b)
+  else if (xx < -NFFT_K(0.5) + b)
   {
     for (r = 0; r < p; r++)
     {
-      sum += POW(b, (R) r)
-          * (k(K(0.5) - b, r, param) * BasisPoly(p - 1, r, (xx + K(0.5)) / b)
-              + k(-K(0.5) + b, r, param) * BasisPoly(p - 1, r, -(xx + K(0.5)) / b)
+      sum += NFFT_POW(b, (NFFT_R) r)
+          * (k(NFFT_K(0.5) - b, r, param) * BasisPoly(p - 1, r, (xx + NFFT_K(0.5)) / b)
+              + k(-NFFT_K(0.5) + b, r, param) * BasisPoly(p - 1, r, -(xx + NFFT_K(0.5)) / b)
                   * (r & 1 ? -1 : 1));
     }
     return sum;
   }
-  else if (xx > K(0.5) - b)
+  else if (xx > NFFT_K(0.5) - b)
   {
     for (r = 0; r < p; r++)
     {
-      sum += POW(b, (R) r)
-          * (k(K(0.5) - b, r, param) * BasisPoly(p - 1, r, (xx - K(0.5)) / b)
-              + k(-K(0.5) + b, r, param) * BasisPoly(p - 1, r, -(xx - K(0.5)) / b)
+      sum += NFFT_POW(b, (NFFT_R) r)
+          * (k(NFFT_K(0.5) - b, r, param) * BasisPoly(p - 1, r, (xx - NFFT_K(0.5)) / b)
+              + k(-NFFT_K(0.5) + b, r, param) * BasisPoly(p - 1, r, -(xx - NFFT_K(0.5)) / b)
                   * (r & 1 ? -1 : 1));
     }
     return sum;
@@ -182,65 +181,23 @@ static C regkern1(kernel k, R xx, int p, const R *param, R a, R b)
 }
 
 /** regularized kernel for even kernels with K_I even and K_B mirrored */
-//static C regkern2(kernel k, R xx, int p, const R *param, R a, R b)
-//{
-//  int r;
-//  C sum = K(0.0);
-//
-//  xx = FABS(xx);
-//
-//  if (xx > K(0.5))
-//  {
-//    for (r = 0; r < p; r++)
-//    {
-//      sum += POW(b, (R) r) * k(K(0.5) - b, r, param)
-//          * (BasisPoly(p - 1, r, 0) + BasisPoly(p - 1, r, 0));
-//    }
-//    return sum;
-//  }
-//  else if ((a <= xx) && (xx <= K(0.5) - b))
-//  {
-//    return k(xx, 0, param);
-//  }
-//  else if (xx < a)
-//  {
-//    for (r = 0; r < p; r++)
-//    {
-//      sum += POW(-a, (R) r) * k(a, r, param)
-//          * (BasisPoly(p - 1, r, xx / a) + BasisPoly(p - 1, r, -xx / a));
-//    }
-//    return sum;
-//  }
-//  else if ((K(0.5) - b < xx) && (xx <= K(0.5)))
-//  {
-//    for (r = 0; r < p; r++)
-//    {
-//      sum += POW(b, (R) r) * k(K(0.5) - b, r, param)
-//          * (BasisPoly(p - 1, r, (xx - K(0.5)) / b)
-//              + BasisPoly(p - 1, r, -(xx - K(0.5)) / b));
-//    }
-//    return sum;
-//  }
-//  return K(0.0);
-//}
 
 /** regularized kernel for even kernels with K_I even
  *  and K_B mirrored smooth to K(1/2) (used in dD, d>1)
  */
-static C regkern3(kernel k, R xx, int p, const R *param, R a, R b)
+static NFFT_C regkern3(kernel k, NFFT_R xx, int p, const NFFT_R *param, NFFT_R a, NFFT_R b)
 {
   int r;
-  C sum = K(0.0);
+  NFFT_C sum = NFFT_K(0.0);
 
-  xx = FABS(xx);
+  xx = NFFT_FABS(xx);
 
-  if (xx >= K(0.5))
+  if (xx >= NFFT_K(0.5))
   {
-    /*return kern(typ,c,0,K(0.5));*/
-    xx = K(0.5);
+    xx = NFFT_K(0.5);
   }
   /* else */
-  if ((a <= xx) && (xx <= K(0.5) - b))
+  if ((a <= xx) && (xx <= NFFT_K(0.5) - b))
   {
     return k(xx, 0, param);
   }
@@ -248,80 +205,34 @@ static C regkern3(kernel k, R xx, int p, const R *param, R a, R b)
   {
     for (r = 0; r < p; r++)
     {
-      sum += POW(-a, (R) r) * k(a, r, param)
+      sum += NFFT_POW(-a, (NFFT_R) r) * k(a, r, param)
           * (BasisPoly(p - 1, r, xx / a) + BasisPoly(p - 1, r, -xx / a));
     }
-    /*sum=kern(typ,c,0,xx); */
     return sum;
   }
-  else if ((K(0.5) - b < xx) && (xx <= K(0.5)))
+  else if ((NFFT_K(0.5) - b < xx) && (xx <= NFFT_K(0.5)))
   {
-    sum = k(K(0.5), 0, param) * BasisPoly(p - 1, 0, -K(2.0) * xx / b + (K(1.0) - b) / b);
-    /* sum=regkern2(typ,c,p,a,b, K(0.5))*BasisPoly(p-1,0,-K(2.0)*xx/b+(K(1.0)-b)/b); */
+    sum = k(NFFT_K(0.5), 0, param) * BasisPoly(p - 1, 0, -NFFT_K(2.0) * xx / b + (NFFT_K(1.0) - b) / b);
     for (r = 0; r < p; r++)
     {
-      sum += POW(b / K(2.0), (R) r) * k(K(0.5) - b, r, param)
-          * BasisPoly(p - 1, r, K(2.0) * xx / b - (K(1.0) - b) / b);
+      sum += NFFT_POW(b / NFFT_K(2.0), (NFFT_R) r) * k(NFFT_K(0.5) - b, r, param)
+          * BasisPoly(p - 1, r, NFFT_K(2.0) * xx / b - (NFFT_K(1.0) - b) / b);
     }
     return sum;
   }
-  return K(0.0);
+  return NFFT_K(0.0);
 }
 
 /** linear spline interpolation in near field with even kernels */
-//static C linintkern(const R x, const C *Add, const int Ad, const R a)
-//{
-//  R c, c1, c3;
-//  int r;
-//  C f1, f2;
-//
-//  c = x * Ad / a;
-//  r = (int)(LRINT(c));
-//  r = abs(r);
-//  f1 = Add[r];
-//  f2 = Add[r + 1];
-//  c = FABS(c);
-//  c1 = c - r;
-//  c3 = c1 - K(1.0);
-//  return (-f1 * c3 + f2 * c1);
-//}
-//
-//static C quadrintkern(const R x, const C *Add, const int Ad, const R a)
-//{
-//  R c, c1, c2, c3;
-//  int r;
-//  C f0, f1, f2;
-//
-//  c = x * Ad / a;
-//  r = (int)(LRINT(c));
-//  r = abs(r);
-//  if (r == 0)
-//  {
-//    f0 = Add[r + 1];
-//    f1 = Add[r];
-//    f2 = Add[r + 1];
-//  }
-//  else
-//  {
-//    f0 = Add[r - 1];
-//    f1 = Add[r];
-//    f2 = Add[r + 1];
-//  }
-//  c = FABS(c);
-//  c1 = c - r;
-//  c2 = c1 + K(1.0);
-//  c3 = c1 - K(1.0);
-//  return (f0 * c1 * c3 / K(2.0) - f1 * c2 * c3 + f2 * c2 * c1 / K(2.0));
-//}
 
 /** cubic spline interpolation in near field with even kernels */
-C kubintkern(const R x, const C *Add, const int Ad, const R a)
+NFFT_C kubintkern(const NFFT_R x, const NFFT_C *Add, const int Ad, const NFFT_R a)
 {
-  R c, c1, c2, c3, c4;
+  NFFT_R c, c1, c2, c3, c4;
   int r;
-  C f0, f1, f2, f3;
-  c = x * (R)(Ad) / a;
-  r = (int)(LRINT(c));
+  NFFT_C f0, f1, f2, f3;
+  c = x * (NFFT_R)(Ad) / a;
+  r = (int)(NFFT_LRINT(c));
   r = abs(r);
   if (r == 0)
   {
@@ -337,26 +248,24 @@ C kubintkern(const R x, const C *Add, const int Ad, const R a)
     f2 = Add[r + 1];
     f3 = Add[r + 2];
   }
-  c = FABS(c);
-  c1 = c - (R)(r);
-  c2 = c1 + K(1.0);
-  c3 = c1 - K(1.0);
-  c4 = c1 - K(2.0);
-  /* return(-f0*(c-r)*(c-r-K(1.0))*(c-r-K(2.0))/K(6.0)+f1*(c-r+K(1.0))*(c-r-K(1.0))*(c-r-K(2.0))/2-
-   f2*(c-r+K(1.0))*(c-r)*(c-r-K(2.0))/2+f3*(c-r+K(1.0))*(c-r)*(c-r-K(1.0))/K(6.0)); */
-  return (-f0 * c1 * c3 * c4 / K(6.0) + f1 * c2 * c3 * c4 / K(2.0)
-      - f2 * c2 * c1 * c4 / K(2.0) + f3 * c2 * c1 * c3 / K(6.0));
+  c = NFFT_FABS(c);
+  c1 = c - (NFFT_R)(r);
+  c2 = c1 + NFFT_K(1.0);
+  c3 = c1 - NFFT_K(1.0);
+  c4 = c1 - NFFT_K(2.0);
+  return (-f0 * c1 * c3 * c4 / NFFT_K(6.0) + f1 * c2 * c3 * c4 / NFFT_K(2.0)
+      - f2 * c2 * c1 * c4 / NFFT_K(2.0) + f3 * c2 * c1 * c3 / NFFT_K(6.0));
 }
 
 /** cubic spline interpolation in near field with arbitrary kernels */
-static C kubintkern1(const R x, const C *Add, const int Ad, const R a)
+static NFFT_C kubintkern1(const NFFT_R x, const NFFT_C *Add, const int Ad, const NFFT_R a)
 {
-  R c, c1, c2, c3, c4;
+  NFFT_R c, c1, c2, c3, c4;
   int r;
-  C f0, f1, f2, f3;
+  NFFT_C f0, f1, f2, f3;
   Add += 2;
-  c = (x + a) * (R)(Ad) / K(2.0) / a;
-  r = (int)(LRINT(c));
+  c = (x + a) * (NFFT_R)(Ad) / NFFT_K(2.0) / a;
+  r = (int)(NFFT_LRINT(c));
   r = abs(r);
   /*if (r==0) {f0=Add[r];f1=Add[r];f2=Add[r+1];f3=Add[r+2];}
    else */
@@ -366,28 +275,25 @@ static C kubintkern1(const R x, const C *Add, const int Ad, const R a)
     f2 = Add[r + 1];
     f3 = Add[r + 2];
   }
-  c = FABS(c);
-  c1 = c - (R)(r);
-  c2 = c1 + K(1.0);
-  c3 = c1 - K(1.0);
-  c4 = c1 - K(2.0);
-  /* return(-f0*(c-r)*(c-r-K(1.0))*(c-r-K(2.0))/K(6.0)+f1*(c-r+K(1.0))*(c-r-K(1.0))*(c-r-K(2.0))/2-
-   f2*(c-r+K(1.0))*(c-r)*(c-r-K(2.0))/2+f3*(c-r+K(1.0))*(c-r)*(c-r-K(1.0))/K(6.0)); */
-  return (-f0 * c1 * c3 * c4 / K(6.0) + f1 * c2 * c3 * c4 / K(2.0)
-      - f2 * c2 * c1 * c4 / K(2.0) + f3 * c2 * c1 * c3 / K(6.0));
+  c = NFFT_FABS(c);
+  c1 = c - (NFFT_R)(r);
+  c2 = c1 + NFFT_K(1.0);
+  c3 = c1 - NFFT_K(1.0);
+  c4 = c1 - NFFT_K(2.0);
+  return (-f0 * c1 * c3 * c4 / NFFT_K(6.0) + f1 * c2 * c3 * c4 / NFFT_K(2.0)
+      - f2 * c2 * c1 * c4 / NFFT_K(2.0) + f3 * c2 * c1 * c3 / NFFT_K(6.0));
 }
 
 /** quicksort algorithm for source knots and associated coefficients */
-static void quicksort(int d, int t, R *x, C *alpha, int *permutation_x_alpha, int N)
+static void quicksort(int d, int t, NFFT_R *x, NFFT_C *alpha, int *permutation_x_alpha, int N)
 {
   int lpos = 0;
   int rpos = N - 1;
-  /*R pivot=x[((N-1)/2)*d+t];*/
-  R pivot = x[(N / 2) * d + t];
+  NFFT_R pivot = x[(N / 2) * d + t];
 
   int k;
-  R temp1;
-  C temp2;
+  NFFT_R temp1;
+  NFFT_C temp2;
   int temp_int;
 
   while (lpos <= rpos)
@@ -430,7 +336,7 @@ static void BuildBox(fastsum_plan *ths)
 {
   int t, l;
   int *box_index;
-  R val[ths->d];
+  NFFT_R val[ths->d];
 
   box_index = (int *) NFFT(malloc)((size_t)(ths->box_count) * sizeof(int));
   for (t = 0; t < ths->box_count; t++)
@@ -441,7 +347,7 @@ static void BuildBox(fastsum_plan *ths)
     int ind = 0;
     for (t = 0; t < ths->d; t++)
     {
-      val[t] = ths->x[ths->d * l + t] + K(0.25) - ths->eps_B / K(2.0);
+      val[t] = ths->x[ths->d * l + t] + NFFT_K(0.25) - ths->eps_B / NFFT_K(2.0);
       ind *= ths->box_count_per_dim;
       ind += (int) (val[t] / ths->eps_I);
     }
@@ -460,7 +366,7 @@ static void BuildBox(fastsum_plan *ths)
     int ind = 0;
     for (t = 0; t < ths->d; t++)
     {
-      val[t] = ths->x[ths->d * l + t] + K(0.25) - ths->eps_B / K(2.0);
+      val[t] = ths->x[ths->d * l + t] + NFFT_K(0.25) - ths->eps_B / NFFT_K(2.0);
       ind *= ths->box_count_per_dim;
       ind += (int) (val[t] / ths->eps_I);
     }
@@ -477,14 +383,14 @@ static void BuildBox(fastsum_plan *ths)
 }
 
 /** inner computation function for box-based near field correction */
-static inline C calc_SearchBox(int d, R *y, R *x, C *alpha, int start,
-    int end_lt, const C *Add, const int Ad, int p, R a, const kernel k,
-    const R *param, const unsigned flags)
+static inline NFFT_C calc_SearchBox(int d, NFFT_R *y, NFFT_R *x, NFFT_C *alpha, int start,
+    int end_lt, const NFFT_C *Add, const int Ad, int p, NFFT_R a, const kernel k,
+    const NFFT_R *param, const unsigned flags)
 {
-  C result = K(0.0);
+  NFFT_C result = NFFT_K(0.0);
 
   int m, l;
-  R r;
+  NFFT_R r;
 
   for (m = start; m < end_lt; m++)
   {
@@ -494,25 +400,25 @@ static inline C calc_SearchBox(int d, R *y, R *x, C *alpha, int start,
     }
     else
     {
-      r = K(0.0);
+      r = NFFT_K(0.0);
       for (l = 0; l < d; l++)
         r += (y[l] - x[m * d + l]) * (y[l] - x[m * d + l]);
-      r = SQRT(r);
+      r = NFFT_SQRT(r);
     }
-    if (FABS(r) < a)
+    if (NFFT_FABS(r) < a)
     {
       result += alpha[m] * k(r, 0, param); /* alpha*(kern-regkern) */
       if (d == 1)
       {
         if (flags & EXACT_NEARFIELD)
-          result -= alpha[m] * regkern1(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in 1D)  */
+          result -= alpha[m] * regkern1(k, r, p, param, a, NFFT_K(1.0) / NFFT_K(16.0)); /* exact value (in 1D)  */
         else
           result -= alpha[m] * kubintkern1(r, Add, Ad, a); /* spline approximation */
       }
       else
       {
         if (flags & EXACT_NEARFIELD)
-          result -= alpha[m] * regkern(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in dD)  */
+          result -= alpha[m] * regkern(k, r, p, param, a, NFFT_K(1.0) / NFFT_K(16.0)); /* exact value (in dD)  */
         else
 #if defined(NF_KUB)
           result -= alpha[m] * kubintkern(r, Add, Ad, a); /* spline approximation */
@@ -530,9 +436,9 @@ static inline C calc_SearchBox(int d, R *y, R *x, C *alpha, int start,
 }
 
 /** box-based near field correction */
-static C SearchBox(R *y, fastsum_plan *ths)
+static NFFT_C SearchBox(NFFT_R *y, fastsum_plan *ths)
 {
-  C val = K(0.0);
+  NFFT_C val = NFFT_K(0.0);
   int t;
   int y_multiind[ths->d];
   int multiindex[ths->d];
@@ -540,7 +446,7 @@ static C SearchBox(R *y, fastsum_plan *ths)
 
   for (t = 0; t < ths->d; t++)
   {
-    y_multiind[t] = (int)(LRINT((y[t] + K(0.25) - ths->eps_B / K(2.0)) / ths->eps_I));
+    y_multiind[t] = (int)(NFFT_LRINT((y[t] + NFFT_K(0.25) - ths->eps_B / NFFT_K(2.0)) / ths->eps_I));
   }
 
   if (ths->d == 1)
@@ -596,7 +502,7 @@ static C SearchBox(R *y, fastsum_plan *ths)
 }
 
 /** recursive sort of source knots dimension by dimension to get tree structure */
-static void BuildTree(int d, int t, R *x, C *alpha, int *permutation_x_alpha, int N)
+static void BuildTree(int d, int t, NFFT_R *x, NFFT_C *alpha, int *permutation_x_alpha, int N)
 {
   if (N > 1)
   {
@@ -610,24 +516,24 @@ static void BuildTree(int d, int t, R *x, C *alpha, int *permutation_x_alpha, in
 }
 
 /** fast search in tree of source knots for near field computation*/
-static C SearchTree(const int d, const int t, const R *x, const C *alpha,
-    const R *xmin, const R *xmax, const int N, const kernel k, const R *param,
-    const int Ad, const C *Add, const int p, const unsigned flags)
+static NFFT_C SearchTree(const int d, const int t, const NFFT_R *x, const NFFT_C *alpha,
+    const NFFT_R *xmin, const NFFT_R *xmax, const int N, const kernel k, const NFFT_R *param,
+    const int Ad, const NFFT_C *Add, const int p, const unsigned flags)
 {
   if (N == 0)
   {
-      return K(0.0);
+      return NFFT_K(0.0);
   }
   else
   {
       int m = N / 2;
-      R Min = xmin[t];
-      R Max = xmax[t];
-      R Median = x[m * d + t];
-      R a = FABS(Max - Min) / 2;
+      NFFT_R Min = xmin[t];
+      NFFT_R Max = xmax[t];
+      NFFT_R Median = x[m * d + t];
+      NFFT_R a = NFFT_FABS(Max - Min) / 2;
       int l;
       int E = 0;
-      R r;
+      NFFT_R r;
 
       if (Min > Median)
           return SearchTree(d, (t + 1) % d, x + (m + 1) * d, alpha + (m + 1), xmin,
@@ -637,7 +543,7 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
                   Add, p, flags);
       else
       {
-          C result = K(0.0);
+          NFFT_C result = NFFT_K(0.0);
           E = 0;
 
           for (l = 0; l < d; l++)
@@ -654,25 +560,25 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
               }
               else
               {
-                  r = K(0.0);
+                  r = NFFT_K(0.0);
                   for (l = 0; l < d; l++)
                       r += (xmin[l] + a - x[m * d + l]) * (xmin[l] + a - x[m * d + l]); /* remember: xmin+a = y */
-                  r = SQRT(r);
+                  r = NFFT_SQRT(r);
               }
-              if (FABS(r) < a)
+              if (NFFT_FABS(r) < a)
               {
                   result += alpha[m] * k(r, 0, param); /* alpha*(kern-regkern) */
                   if (d == 1)
                   {
                       if (flags & EXACT_NEARFIELD)
-                          result -= alpha[m] * regkern1(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in 1D)  */
+                          result -= alpha[m] * regkern1(k, r, p, param, a, NFFT_K(1.0) / NFFT_K(16.0)); /* exact value (in 1D)  */
                       else
                           result -= alpha[m] * kubintkern1(r, Add, Ad, a); /* spline approximation */
                   }
                   else
                   {
                       if (flags & EXACT_NEARFIELD)
-                          result -= alpha[m] * regkern(k, r, p, param, a, K(1.0) / K(16.0)); /* exact value (in dD)  */
+                          result -= alpha[m] * regkern(k, r, p, param, a, NFFT_K(1.0) / NFFT_K(16.0)); /* exact value (in dD)  */
                       else
 #if defined(NF_KUB)
                           result -= alpha[m] * kubintkern(r, Add, Ad, a); /* spline approximation */
@@ -698,16 +604,16 @@ static C SearchTree(const int d, const int t, const R *x, const C *alpha,
 static void fastsum_precompute_kernel(fastsum_plan *ths)
 {
   int j, k, t;
-  INT N[ths->d];
+  NFFT_INT N[ths->d];
   int n_total;
 #ifdef MEASURE_TIME
-  ticks t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[0] = K(0.0);
+  ths->MEASURE_TIME_t[0] = NFFT_K(0.0);
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** precompute spline values for near field */
   if (ths->eps_I > 0.0 && !(ths->flags & EXACT_NEARFIELD))
@@ -718,23 +624,23 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
 #endif
       for (k = -ths->Ad / 2 - 2; k <= ths->Ad / 2 + 2; k++)
         ths->Add[k + ths->Ad / 2 + 2] = regkern1(ths->k,
-            ths->eps_I * (R) k / (R)(ths->Ad) * K(2.0), ths->p, ths->kernel_param,
+            ths->eps_I * (NFFT_R) k / (NFFT_R)(ths->Ad) * NFFT_K(2.0), ths->p, ths->kernel_param,
             ths->eps_I, ths->eps_B);
     else
 #ifdef _OPENMP
       #pragma omp parallel for default(shared) private(k)
 #endif
       for (k = 0; k <= ths->Ad + 2; k++)
-        ths->Add[k] = regkern3(ths->k, ths->eps_I * (R) k / (R)(ths->Ad), ths->p,
+        ths->Add[k] = regkern3(ths->k, ths->eps_I * (NFFT_R) k / (NFFT_R)(ths->Ad), ths->p,
             ths->kernel_param, ths->eps_I, ths->eps_B);
   }
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[0] += NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[0] += t1 - t0;
 #endif
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** precompute Fourier coefficients of regularised kernel*/
   n_total = 1;
@@ -747,20 +653,20 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
   for (j = 0; j < n_total; j++)
   {
     if (ths->d == 1)
-      ths->b[j] = regkern1(ths->k, (R) - (j / (R)(ths->n) - K(0.5)), ths->p,
-          ths->kernel_param, ths->eps_I, ths->eps_B) / (R)(n_total);
+      ths->b[j] = regkern1(ths->k, (NFFT_R) - (j / (NFFT_R)(ths->n) - NFFT_K(0.5)), ths->p,
+          ths->kernel_param, ths->eps_I, ths->eps_B) / (NFFT_R)(n_total);
     else
     {
       k = j;
-      ths->b[j] = K(0.0);
+      ths->b[j] = NFFT_K(0.0);
       for (t = 0; t < ths->d; t++)
       {
-        ths->b[j] += ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5))
-            * ((R) (k % (ths->n)) / (R)(ths->n) - K(0.5));
+        ths->b[j] += ((NFFT_R) (k % (ths->n)) / (NFFT_R)(ths->n) - NFFT_K(0.5))
+            * ((NFFT_R) (k % (ths->n)) / (NFFT_R)(ths->n) - NFFT_K(0.5));
         k = k / (ths->n);
       }
-      ths->b[j] = regkern3(ths->k, SQRT(CREAL(ths->b[j])), ths->p, ths->kernel_param,
-          ths->eps_I, ths->eps_B) / (R)(n_total);
+      ths->b[j] = regkern3(ths->k, NFFT_SQRT(NFFT_CREAL(ths->b[j])), ths->p, ths->kernel_param,
+          ths->eps_I, ths->eps_B) / (NFFT_R)(n_total);
     }
   }
 
@@ -771,13 +677,13 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
   FFTW(execute)(ths->fft_plan);
   NFFT(fftshift_complex)(ths->b, (int)(ths->d), N);
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[0] += nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[0] += t1 - t0;
 #endif
 }
 
-void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
-    unsigned flags, int nn, int p, R eps_I, R eps_B)
+void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, NFFT_R *param,
+    unsigned flags, int nn, int p, NFFT_R eps_I, NFFT_R eps_B)
 {
   int t;
   int N[d];
@@ -794,8 +700,8 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   ths->flags = flags;
 
   ths->p = p;
-  ths->eps_I = eps_I; /* =(R)ths->p/(R)nn; *//** inner boundary */
-  ths->eps_B = eps_B; /* =K(1.0)/K(16.0); *//** outer boundary */
+  ths->eps_I = eps_I; /* =(NFFT_R)ths->p/(NFFT_R)nn; *//** inner boundary */
+  ths->eps_B = eps_B; /* =NFFT_K(1.0)/NFFT_K(16.0); *//** outer boundary */
 
   /** init spline for near field computation */
   if (ths->eps_I > 0.0 && !(ths->flags & EXACT_NEARFIELD))
@@ -803,46 +709,46 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
     if (ths->d == 1)
     {
       ths->Ad = 4 * (ths->p) * (ths->p);
-      ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 5) * (sizeof(C)));
+      ths->Add = (NFFT_C *) NFFT(malloc)((size_t)(ths->Ad + 5) * (sizeof(NFFT_C)));
     }
     else
     {
       if (ths->k == one_over_x)
       {
-        R delta = K(1e-8);
+        NFFT_R delta = NFFT_K(1e-8);
         switch (p)
         {
           case 2:
-            delta = K(1e-3);
+            delta = NFFT_K(1e-3);
             break;
           case 3:
-            delta = K(1e-4);
+            delta = NFFT_K(1e-4);
             break;
           case 4:
-            delta = K(1e-5);
+            delta = NFFT_K(1e-5);
             break;
           case 5:
-            delta = K(1e-6);
+            delta = NFFT_K(1e-6);
             break;
           case 6:
-            delta = K(1e-6);
+            delta = NFFT_K(1e-6);
             break;
           case 7:
-            delta = K(1e-7);
+            delta = NFFT_K(1e-7);
             break;
           default:
-            delta = K(1e-8);
+            delta = NFFT_K(1e-8);
         }
 
 #if defined(NF_KUB)
-        ths->Ad = max_i(10, (int)(LRINT(CEIL(K(1.4) / POW(delta, K(1.0) / K(4.0))))));
-        ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
+        ths->Ad = max_i(10, (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(1.4) / NFFT_POW(delta, NFFT_K(1.0) / NFFT_K(4.0))))));
+        ths->Add = (NFFT_C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(NFFT_C)));
 #elif defined(NF_QUADR)
-        ths->Ad = (int)(LRINT(CEIL(K(2.2)/POW(delta,K(1.0)/K(3.0)))));
-        ths->Add = (C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
+        ths->Ad = (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(2.2)/NFFT_POW(delta,NFFT_K(1.0)/NFFT_K(3.0)))));
+        ths->Add = (NFFT_C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(NFFT_C)));
 #elif defined(NF_LIN)
-        ths->Ad = (int)(LRINT(CEIL(K(1.7)/pow(delta,K(1.0)/K(2.0)))));
-        ths->Add = (C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(C)));
+        ths->Ad = (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(1.7)/pow(delta,NFFT_K(1.0)/NFFT_K(2.0)))));
+        ths->Add = (NFFT_C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(NFFT_C)));
 #else
 #error define NF_LIN or NF_QUADR or NF_KUB
 #endif
@@ -850,7 +756,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
       else
       {
         ths->Ad = 2 * (ths->p) * (ths->p);
-        ths->Add = (C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(C)));
+        ths->Add = (NFFT_C *) NFFT(malloc)((size_t)(ths->Ad + 3) * (sizeof(NFFT_C)));
       }
     } /* multi-dimensional case */
   } /* !EXACT_NEARFIELD == spline approximation in near field AND eps_I > 0 */
@@ -866,8 +772,8 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, R *param,
   for (t = 0; t < d; t++)
     n_total *= nn;
 
-  ths->b = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
-  ths->f_hat = (C*) NFFT(malloc)((size_t)(n_total) * sizeof(C));
+  ths->b = (NFFT_C*) NFFT(malloc)((size_t)(n_total) * sizeof(NFFT_C));
+  ths->f_hat = (NFFT_C*) NFFT(malloc)((size_t)(n_total) * sizeof(NFFT_C));
 #if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
   #pragma omp critical (nfft_omp_critical_fftw_plan)
   {
@@ -901,8 +807,8 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
 
   ths->N_total = N_total;
 
-  ths->x = (R *) NFFT(malloc)((size_t)(ths->d * N_total) * (sizeof(R)));
-  ths->alpha = (C *) NFFT(malloc)((size_t)(N_total) * (sizeof(C)));
+  ths->x = (NFFT_R *) NFFT(malloc)((size_t)(ths->d * N_total) * (sizeof(NFFT_R)));
+  ths->alpha = (NFFT_C *) NFFT(malloc)((size_t)(N_total) * (sizeof(NFFT_C)));
 
   /** init d-dimensional NFFT plan */
   for (t = 0; t < ths->d; t++)
@@ -929,16 +835,16 @@ void fastsum_init_guru_source_nodes(fastsum_plan *ths, int N_total, int nn_overs
   {
     if (ths->eps_I > 0.0)
     {
-      ths->box_count_per_dim = (int)(LRINT(FLOOR((K(0.5) - ths->eps_B) / ths->eps_I))) + 1;
+      ths->box_count_per_dim = (int)(NFFT_LRINT(NFFT_FLOOR((NFFT_K(0.5) - ths->eps_B) / ths->eps_I))) + 1;
       ths->box_count = 1;
       for (t = 0; t < ths->d; t++)
         ths->box_count *= ths->box_count_per_dim;
 
       ths->box_offset = (int *) NFFT(malloc)((size_t)(ths->box_count + 1) * sizeof(int));
 
-      ths->box_alpha = (C *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(C)));
+      ths->box_alpha = (NFFT_C *) NFFT(malloc)((size_t)(ths->N_total) * (sizeof(NFFT_C)));
 
-      ths->box_x = (R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(R));
+      ths->box_x = (NFFT_R *) NFFT(malloc)((size_t)(ths->d * ths->N_total) * sizeof(NFFT_R));
     } /* eps_I > 0 */
   } /* NEARFIELD_BOXES */
   else
@@ -963,8 +869,8 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_overs
 
   ths->M_total = M_total;
 
-  ths->y = (R *) NFFT(malloc)((size_t)(ths->d * M_total) * (sizeof(R)));
-  ths->f = (C *) NFFT(malloc)((size_t)(M_total) * (sizeof(C)));
+  ths->y = (NFFT_R *) NFFT(malloc)((size_t)(ths->d * M_total) * (sizeof(NFFT_R)));
+  ths->f = (NFFT_C *) NFFT(malloc)((size_t)(M_total) * (sizeof(NFFT_C)));
 
   /** init d-dimensional NFFT plan */
   for (t = 0; t < ths->d; t++)
@@ -985,7 +891,7 @@ void fastsum_init_guru_target_nodes(fastsum_plan *ths, int M_total, int nn_overs
 
 /** initialization of fastsum plan */
 void fastsum_init_guru(fastsum_plan *ths, int d, int N_total, int M_total,
-    kernel k, R *param, unsigned flags, int nn, int m, int p, R eps_I, R eps_B)
+    kernel k, NFFT_R *param, unsigned flags, int nn, int m, int p, NFFT_R eps_I, NFFT_R eps_B)
 {
   fastsum_init_guru_kernel(ths, d, k, param, flags, nn, p, eps_I, eps_B);
   fastsum_init_guru_source_nodes(ths, N_total, 2*nn, m);
@@ -1057,25 +963,25 @@ void fastsum_exact(fastsum_plan *ths)
 {
   int j, k;
   int t;
-  R r;
+  NFFT_R r;
 
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(j,k,t,r)
 #endif
   for (j = 0; j < ths->M_total; j++)
   {
-    ths->f[j] = K(0.0);
+    ths->f[j] = NFFT_K(0.0);
     for (k = 0; k < ths->N_total; k++)
     {
       if (ths->d == 1)
         r = ths->y[j] - ths->x[k];
       else
       {
-        r = K(0.0);
+        r = NFFT_K(0.0);
         for (t = 0; t < ths->d; t++)
           r += (ths->y[j * ths->d + t] - ths->x[k * ths->d + t])
               * (ths->y[j * ths->d + t] - ths->x[k * ths->d + t]);
-        r = SQRT(r);
+        r = NFFT_SQRT(r);
       }
       ths->f[j] += ths->alpha[k] * ths->k(r, 0, ths->kernel_param);
     }
@@ -1086,14 +992,14 @@ void fastsum_exact(fastsum_plan *ths)
 void fastsum_precompute_source_nodes(fastsum_plan *ths)
 {
 #ifdef MEASURE_TIME
-  ticks t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[1] = K(0.0);
-  ths->MEASURE_TIME_t[3] = K(0.0);
+  ths->MEASURE_TIME_t[1] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[3] = NFFT_K(0.0);
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
 
   if (ths->eps_I > 0.0)
@@ -1106,17 +1012,14 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
   } /* eps_I > 0 */
 
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[3] += nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[3] += t1 - t0;
 #endif
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** init NFFT plan for transposed transform in first step*/
-//  for (k = 0; k < ths->mv1.M_total; k++)
-//    for (t = 0; t < ths->mv1.d; t++)
-//      ths->mv1.x[ths->mv1.d * k + t] = -ths->x[ths->mv1.d * k + t]; /* note the factor -1 for transposed transform instead of adjoint*/
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv1.flags & PRE_LIN_PSI)
@@ -1128,31 +1031,25 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
   if (ths->mv1.flags & PRE_FULL_PSI)
     NFFT(precompute_full_psi)(&(ths->mv1));
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[1] += nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[1] += t1 - t0;
 #endif
 
-//  /** init Fourier coefficients */
-//  for (k = 0; k < ths->mv1.M_total; k++)
-//    ths->mv1.f[k] = ths->alpha[k];
 }
 
 /** precomputation for fastsum */
 void fastsum_precompute_target_nodes(fastsum_plan *ths)
 {
 #ifdef MEASURE_TIME
-  ticks t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[2] = K(0.0);
+  ths->MEASURE_TIME_t[2] = NFFT_K(0.0);
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** init NFFT plan for transform in third step*/
-//  for (j = 0; j < ths->mv2.M_total; j++)
-//    for (t = 0; t < ths->mv2.d; t++)
-//      ths->mv2.x[ths->mv2.d * j + t] = -ths->y[ths->mv2.d * j + t]; /* note the factor -1 for conjugated transform instead of standard*/
 
   /** precompute psi, the entries of the matrix B */
   if (ths->mv2.flags & PRE_LIN_PSI)
@@ -1164,8 +1061,8 @@ void fastsum_precompute_target_nodes(fastsum_plan *ths)
   if (ths->mv2.flags & PRE_FULL_PSI)
     NFFT(precompute_full_psi)(&(ths->mv2));
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[2] += NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[2] += t1 - t0;
 #endif
 }
 
@@ -1181,26 +1078,26 @@ void fastsum_trafo(fastsum_plan *ths)
 {
   int j, k, t;
 #ifdef MEASURE_TIME
-  ticks t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[4] = K(0.0);
-  ths->MEASURE_TIME_t[5] = K(0.0);
-  ths->MEASURE_TIME_t[6] = K(0.0);
-  ths->MEASURE_TIME_t[7] = K(0.0);
+  ths->MEASURE_TIME_t[4] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[5] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[6] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[7] = NFFT_K(0.0);
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** first step of algorithm */
   NFFT(adjoint)(&(ths->mv1));
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[4] += NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[4] += t1 - t0;
 #endif
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** second step of algorithm */
 #ifdef _OPENMP
@@ -1209,22 +1106,22 @@ void fastsum_trafo(fastsum_plan *ths)
   for (k = 0; k < ths->mv2.N_total; k++)
     ths->mv2.f_hat[k] = ths->b[k] * ths->mv1.f_hat[k];
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[5] += nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[5] += t1 - t0;
 #endif
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
   /** third step of algorithm */
   NFFT(trafo)(&(ths->mv2));
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[6] += nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[6] += t1 - t0;
 #endif
 
 #ifdef MEASURE_TIME
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
 #endif
 
   /** write far field to output */
@@ -1242,7 +1139,7 @@ void fastsum_trafo(fastsum_plan *ths)
   #endif
     for (j = 0; j < ths->M_total; j++)
     {
-      R ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
+      NFFT_R ymin[ths->d], ymax[ths->d]; /** limits for d-dimensional near field box */
 
       if (ths->flags & NEARFIELD_BOXES)
         ths->f[j] += SearchBox(ths->y + ths->d * j, ths);
@@ -1261,8 +1158,8 @@ void fastsum_trafo(fastsum_plan *ths)
   }
 
 #ifdef MEASURE_TIME
-  t1 = getticks();
-  ths->MEASURE_TIME_t[7] += NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  ths->MEASURE_TIME_t[7] += t1 - t0;
 #endif
 }
 /* \} */

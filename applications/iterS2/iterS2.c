@@ -36,15 +36,16 @@
 /* Include NFFT 3 utilities headers. */
 /* Include NFFT3 library header. */
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 #include "legendre.h"
 
-static void voronoi_weights_S2(R *w, R *xi, INT M)
+static void voronoi_weights_S2(NFFT_R *w, NFFT_R *xi, INT M)
 {
-  R *x;
-  R *y;
-  R *z;
+  NFFT_R *x;
+  NFFT_R *y;
+  NFFT_R *z;
   int j;
   int k;
   int el;
@@ -56,46 +57,46 @@ static void voronoi_weights_S2(R *w, R *xi, INT M)
   int *lend;
   int *near;
   int *next;
-  R  *dist;
+  NFFT_R  *dist;
   int *ltri;
   int *listc;
   int nb;
-  R *xc;
-  R *yc;
-  R *zc;
-  R *rc;
-  R *vr;
+  NFFT_R *xc;
+  NFFT_R *yc;
+  NFFT_R *zc;
+  NFFT_R *rc;
+  NFFT_R *vr;
   int lp;
   int lpl;
   int kv;
-  R a;
+  NFFT_R a;
 
   /* Allocate memory for auxilliary arrays. */
-  x = (R*)X(malloc)(M * sizeof(R));
-  y = (R*)X(malloc)(M * sizeof(R));
-  z = (R*)X(malloc)(M * sizeof(R));
+  x = (NFFT_R*)NFFT(malloc)(M * sizeof(NFFT_R));
+  y = (NFFT_R*)NFFT(malloc)(M * sizeof(NFFT_R));
+  z = (NFFT_R*)NFFT(malloc)(M * sizeof(NFFT_R));
 
-  list = (int*)X(malloc)((6*M-12+1)*sizeof(int));
-  lptr = (int*)X(malloc)((6*M-12+1)*sizeof(int));
-  lend = (int*)X(malloc)((M+1)*sizeof(int));
-  near = (int*)X(malloc)((M+1)*sizeof(int));
-  next = (int*)X(malloc)((M+1)*sizeof(int));
-  dist = (R*)X(malloc)((M+1)*sizeof(R));
-  ltri = (int*)X(malloc)((6*M+1)*sizeof(int));
-  listc = (int*)X(malloc)((6*M-12+1)*sizeof(int));
-  xc = (R*)X(malloc)((2*M-4+1)*sizeof(R));
-  yc = (R*)X(malloc)((2*M-4+1)*sizeof(R));
-  zc = (R*)X(malloc)((2*M-4+1)*sizeof(R));
-  rc = (R*)X(malloc)((2*M-4+1)*sizeof(R));
-  vr = (R*)X(malloc)(3*(2*M-4+1)*sizeof(R));
+  list = (int*)NFFT(malloc)((6*M-12+1)*sizeof(int));
+  lptr = (int*)NFFT(malloc)((6*M-12+1)*sizeof(int));
+  lend = (int*)NFFT(malloc)((M+1)*sizeof(int));
+  near = (int*)NFFT(malloc)((M+1)*sizeof(int));
+  next = (int*)NFFT(malloc)((M+1)*sizeof(int));
+  dist = (NFFT_R*)NFFT(malloc)((M+1)*sizeof(NFFT_R));
+  ltri = (int*)NFFT(malloc)((6*M+1)*sizeof(int));
+  listc = (int*)NFFT(malloc)((6*M-12+1)*sizeof(int));
+  xc = (NFFT_R*)NFFT(malloc)((2*M-4+1)*sizeof(NFFT_R));
+  yc = (NFFT_R*)NFFT(malloc)((2*M-4+1)*sizeof(NFFT_R));
+  zc = (NFFT_R*)NFFT(malloc)((2*M-4+1)*sizeof(NFFT_R));
+  rc = (NFFT_R*)NFFT(malloc)((2*M-4+1)*sizeof(NFFT_R));
+  vr = (NFFT_R*)NFFT(malloc)(3*(2*M-4+1)*sizeof(NFFT_R));
 
   /* Convert from spherical Coordinates in [0,1/2]x[-1/2,1/2) to Cartesian
    * coordinates. */
   for (k = 0; k < M; k++)
   {
-    x[k] = SIN(K2PI*xi[2*k+1])*COS(K2PI*xi[2*k]);
-    y[k] = SIN(K2PI*xi[2*k+1])*SIN(K2PI*xi[2*k]);
-    z[k] = COS(K2PI*xi[2*k+1]);
+    x[k] = SIN(NFFT_K2PI*xi[2*k+1])*COS(NFFT_K2PI*xi[2*k]);
+    y[k] = SIN(NFFT_K2PI*xi[2*k+1])*SIN(NFFT_K2PI*xi[2*k]);
+    z[k] = COS(NFFT_K2PI*xi[2*k+1]);
   }
 
   /* Generate Delaunay triangulation. */
@@ -146,23 +147,23 @@ static void voronoi_weights_S2(R *w, R *xi, INT M)
   }
 
   /* Deallocate memory. */
-  X(free)(x);
-  X(free)(y);
-  X(free)(z);
+  NFFT(free)(x);
+  NFFT(free)(y);
+  NFFT(free)(z);
 
-  X(free)(list);
-  X(free)(lptr);
-  X(free)(lend);
-  X(free)(near);
-  X(free)(next);
-  X(free)(dist);
-  X(free)(ltri);
-  X(free)(listc);
-  X(free)(xc);
-  X(free)(yc);
-  X(free)(zc);
-  X(free)(rc);
-  X(free)(vr);
+  NFFT(free)(list);
+  NFFT(free)(lptr);
+  NFFT(free)(lend);
+  NFFT(free)(near);
+  NFFT(free)(next);
+  NFFT(free)(dist);
+  NFFT(free)(ltri);
+  NFFT(free)(listc);
+  NFFT(free)(xc);
+  NFFT(free)(yc);
+  NFFT(free)(zc);
+  NFFT(free)(rc);
+  NFFT(free)(vr);
 }
 
 /** Enumeration for parameter values */
@@ -280,7 +281,7 @@ int main (int argc, char **argv)
     /* */
     if ((N+1)*(N+1) > M)
     {
-      X(next_power_of_2_exp_int)(N, &npt, &npt_exp);
+      NFFT(next_power_of_2_exp_int)(N, &npt, &npt_exp);
       fprintf(stderr, "npt = %d, npt_exp = %d\n", npt, npt_exp);
       fprintf(stderr,"Optimal interpolation!\n");
       ys = (double*) nfft_malloc((N+1)*sizeof(double));
@@ -394,8 +395,8 @@ int main (int argc, char **argv)
     for (j = 0; j < M; j++)
     {
       fscanf(stdin,"%le %le %le %le\n",&plan.x[2*j+1],&plan.x[2*j],&re,&im);
-      plan.x[2*j+1] = plan.x[2*j+1]/(2.0*KPI);
-      plan.x[2*j] = plan.x[2*j]/(2.0*KPI);
+      plan.x[2*j+1] = plan.x[2*j+1]/(2.0*NFFT_KPI);
+      plan.x[2*j] = plan.x[2*j]/(2.0*NFFT_KPI);
       if (plan.x[2*j] >= 0.5)
       {
         plan.x[2*j] = plan.x[2*j] - 1;
@@ -422,8 +423,8 @@ int main (int argc, char **argv)
     for (j = 0; j < M2; j++)
     {
       fscanf(stdin,"%le %le\n",&plan2.x[2*j+1],&plan2.x[2*j]);
-      plan2.x[2*j+1] = plan2.x[2*j+1]/(2.0*KPI);
-      plan2.x[2*j] = plan2.x[2*j]/(2.0*KPI);
+      plan2.x[2*j+1] = plan2.x[2*j+1]/(2.0*NFFT_KPI);
+      plan2.x[2*j] = plan2.x[2*j]/(2.0*NFFT_KPI);
       if (plan2.x[2*j] >= 0.5)
       {
         plan2.x[2*j] = plan2.x[2*j] - 1;
@@ -514,9 +515,9 @@ int main (int argc, char **argv)
       solver_loop_one_step_complex(&iplan);
     }
 
-    /*CSWAP(iplan.f_hat_iter, plan.f_hat);
+    /*NFFT_CSWAP(iplan.f_hat_iter, plan.f_hat);
     nfsft_trafo(&plan);
-    CSWAP(iplan.f_hat_iter, plan.f_hat);
+    NFFT_CSWAP(iplan.f_hat_iter, plan.f_hat);
 
     a = 0.0;
     b = 0.0;
@@ -530,9 +531,9 @@ int main (int argc, char **argv)
 
     fprintf(stderr,"relative error in 2-norm: %le\n",a/b);*/
 
-    CSWAP(iplan.f_hat_iter, plan2.f_hat);
+    NFFT_CSWAP(iplan.f_hat_iter, plan2.f_hat);
     nfsft_trafo(&plan2);
-    CSWAP(iplan.f_hat_iter, plan2.f_hat);
+    NFFT_CSWAP(iplan.f_hat_iter, plan2.f_hat);
     for (k = 0; k < plan2.M_total; k++)
     {
       fprintf(stdout,"%le\n",cabs(plan2.f[k]));

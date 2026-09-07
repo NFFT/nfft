@@ -5,9 +5,13 @@
 nfft_add_serial_program(example_nfft_simple_test  nfft simple_test  nfft/simple_test.c)
 target_compile_definitions(example_nfft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_ndft_fast    nfft ndft_fast    nfft/ndft_fast.c)
+target_compile_definitions(example_nfft_ndft_fast PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_taylor_nfft  nfft taylor_nfft  nfft/taylor_nfft.c)
+target_compile_definitions(example_nfft_taylor_nfft PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_flags        nfft flags        nfft/flags.c)
+target_compile_definitions(example_nfft_flags PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_nfft_times   nfft nfft_times   nfft/nfft_times.c)
+target_compile_definitions(example_nfft_nfft_times PRIVATE ${NFFT_PRECISION_MACRO})
 
 # nfft (OpenMP)
 # nfft_benchomp_detail.c is built TWICE: serial (_single) and OpenMP (_threads),
@@ -19,13 +23,17 @@ if(NFFT_ENABLE_OPENMP)
     nfft/simple_test_threads.c)
   target_compile_definitions(example_nfft_simple_test_threads PRIVATE ${NFFT_PRECISION_MACRO})
   nfft_add_omp_program(example_nfft_benchomp nfft nfft_benchomp nfft/nfft_benchomp.c)
+  target_compile_definitions(example_nfft_benchomp PRIVATE ${NFFT_PRECISION_MACRO})
   nfft_add_omp_program(example_nfft_benchomp_detail_threads nfft
     nfft_benchomp_detail_threads nfft/nfft_benchomp_detail.c)
+  target_compile_definitions(example_nfft_benchomp_detail_threads PRIVATE ${NFFT_PRECISION_MACRO})
   nfft_add_serial_program(example_nfft_benchomp_createdataset nfft
     nfft_benchomp_createdataset nfft/nfft_benchomp_createdataset.c)
+  target_compile_definitions(example_nfft_benchomp_createdataset PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(example_nfft_benchomp_createdataset PRIVATE ${OpenMP_C_LIBRARIES})
   nfft_add_serial_program(example_nfft_benchomp_detail_single nfft
     nfft_benchomp_detail_single nfft/nfft_benchomp_detail.c)
+  target_compile_definitions(example_nfft_benchomp_detail_single PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(example_nfft_benchomp_detail_single PRIVATE ${OpenMP_C_LIBRARIES})
 endif()
 
@@ -73,15 +81,21 @@ if(HAVE_NFSFT)
   # threads + benchomp set. The nfsft benchomp_createdataset/detail_single
   # are pure serial (unlike nfft's).
   nfft_add_serial_program(example_nfsft_simple_test nfsft simple_test nfsft/simple_test.c)
+  target_compile_definitions(example_nfsft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
   if(NFFT_ENABLE_OPENMP)
     nfft_add_omp_program(example_nfsft_simple_test_threads nfsft simple_test_threads
       nfsft/simple_test_threads.c)
+    target_compile_definitions(example_nfsft_simple_test_threads PRIVATE ${NFFT_PRECISION_MACRO})
     nfft_add_omp_program(example_nfsft_benchomp nfsft nfsft_benchomp nfsft/nfsft_benchomp.c)
+    target_compile_definitions(example_nfsft_benchomp PRIVATE ${NFFT_PRECISION_MACRO})
     nfft_add_omp_program(example_nfsft_benchomp_detail_threads nfsft
       nfsft_benchomp_detail_threads nfsft/nfsft_benchomp_detail.c)
+    target_compile_definitions(example_nfsft_benchomp_detail_threads PRIVATE ${NFFT_PRECISION_MACRO})
     nfft_add_serial_program(example_nfsft_benchomp_createdataset nfsft
       nfsft_benchomp_createdataset nfsft/nfsft_benchomp_createdataset.c)
+    target_compile_definitions(example_nfsft_benchomp_createdataset PRIVATE ${NFFT_PRECISION_MACRO})
     nfft_add_serial_program(example_nfsft_benchomp_detail_single nfsft
       nfsft_benchomp_detail_single nfsft/nfsft_benchomp_detail.c)
+    target_compile_definitions(example_nfsft_benchomp_detail_single PRIVATE ${NFFT_PRECISION_MACRO})
   endif()
 endif()

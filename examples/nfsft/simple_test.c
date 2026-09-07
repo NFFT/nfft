@@ -25,6 +25,7 @@
 #include <complex.h>
 
 #include "nfft3.h" /* NFFT3 header */
+#include "nfft3util.h"
 
 #define __FES__ "E"
 #define K(x) ((double) x)

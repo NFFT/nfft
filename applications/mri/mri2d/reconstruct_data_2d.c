@@ -20,6 +20,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 
 /**
  * \defgroup applications_mri2d_reconstruct_data_2d reconstruct_data_2d

@@ -31,6 +31,7 @@ endif()
 install(FILES
   ${PROJECT_SOURCE_DIR}/include/nfft3.h
   ${PROJECT_SOURCE_DIR}/include/nfft3mp.h
+  ${PROJECT_SOURCE_DIR}/include/nfft3util.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # ---- pkg-config (reuse the Autotools template) --------------------------
