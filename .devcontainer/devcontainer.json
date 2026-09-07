@@ -30,15 +30,14 @@
         "ghcr.io/devcontainers/features/git:1.3.8": {
             "version": "os-provided"
         },
-        "ghcr.io/devcontainers/features/github-cli:1.1.1": {},
-        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0.5": {}
+        "ghcr.io/devcontainers/features/github-cli:1.1.1": {}
     },
-    // Node must install before claude-code so the latter reuses it instead of
-    // installing its own runtime.
+    // Claude Code is installed natively in the Dockerfile (as vscode, into
+    // ~/.local/bin) rather than via the claude-code feature, whose root-owned
+    // npm global install cannot be updated from inside the container.
     "overrideFeatureInstallOrder": [
         "ghcr.io/devcontainers/features/common-utils",
-        "ghcr.io/devcontainers/features/node",
-        "ghcr.io/anthropics/devcontainer-features/claude-code"
+        "ghcr.io/devcontainers/features/node"
     ],
     "containerEnv": {
         // Keeps Claude Code's settings, plugins, and its login/onboarding state
@@ -46,7 +45,6 @@
         // preserve across container rebuilds.
         "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
     },
-    "postCreateCommand": "bash .devcontainer/setup-claude-extensions.sh",
     "remoteUser": "vscode",
     "containerUser": "vscode",
     "mounts": [
