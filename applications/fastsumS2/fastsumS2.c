@@ -34,9 +34,10 @@
 
 /* NFFT3 header */
 #include "nfft3.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
-/* NFFT3 utilities */
-#include "infft.h"
+#define K4PI NFFT_K(12.5663706143591729538505735331180115367886775975004)
 
 /* Fourier-Legendre coefficients for Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
@@ -58,85 +59,85 @@
 /** Enumeration type for yes/no/both-type parameters */
 enum pvalue {NO = 0, YES = 1, BOTH = 2};
 
-static inline int scaled_modified_bessel_i_series(const R x, const R alpha,
-  const int nb, const int ize, R *b)
+static inline int scaled_modified_bessel_i_series(const NFFT_R x, const NFFT_R alpha,
+  const int nb, const int ize, NFFT_R *b)
 {
-  const R enmten = K(4.0)*nfft_float_property(NFFT_R_MIN);
-  R tempa = K(1.0), empal = K(1.0) + alpha, halfx = K(0.0), tempb = K(0.0);
+  const NFFT_R enmten = NFFT_K(4.0)*nfft_float_property(NFFT_R_MIN);
+  NFFT_R tempa = NFFT_K(1.0), empal = NFFT_K(1.0) + alpha, halfx = NFFT_K(0.0), tempb = NFFT_K(0.0);
   int n, ncalc = nb;
 
   if (enmten < x)
-    halfx = x/K(2.0);
+    halfx = x/NFFT_K(2.0);
 
-  if (alpha != K(0.0))
-    tempa = POW(halfx, alpha)/TGAMMA(empal);
+  if (alpha != NFFT_K(0.0))
+    tempa = NFFT_POW(halfx, alpha)/NFFT_TGAMMA(empal);
 
   if (ize == 2)
-    tempa *= EXP(-x);
+    tempa *= NFFT_EXP(-x);
 
-  if (K(1.0) < x + K(1.0))
+  if (NFFT_K(1.0) < x + NFFT_K(1.0))
     tempb = halfx*halfx;
 
   b[0] = tempa + tempa*tempb/empal;
 
-  if (x != K(0.0) && b[0] == K(0.0))
+  if (x != NFFT_K(0.0) && b[0] == NFFT_K(0.0))
     ncalc = 0;
 
   if (nb == 1)
     return ncalc;
 
-  if (K(0.0) < x)
+  if (NFFT_K(0.0) < x)
   {
-    R tempc = halfx, tover = (enmten + enmten)/x;
+    NFFT_R tempc = halfx, tover = (enmten + enmten)/x;
 
-    if (tempb != K(0.0))
+    if (tempb != NFFT_K(0.0))
       tover = enmten/tempb;
 
     for (n = 1; n < nb; n++)
     {
       tempa /= empal;
-      empal += K(1.0);
+      empal += NFFT_K(1.0);
       tempa *= tempc;
 
       if (tempa <= tover*empal)
-        tempa = K(0.0);
+        tempa = NFFT_K(0.0);
 
       b[n] = tempa + tempa*tempb/empal;
 
-      if (b[n] == K(0.0) && n < ncalc)
+      if (b[n] == NFFT_K(0.0) && n < ncalc)
         ncalc = n;
     }
   }
   else
     for (n = 1; n < nb; n++)
-      b[n] = K(0.0);
+      b[n] = NFFT_K(0.0);
 
   return ncalc;
 }
 
-static inline void scaled_modified_bessel_i_normalize(const R x,
-  const R alpha, const int nb, const int ize, R *b, const R sum_)
+static inline void scaled_modified_bessel_i_normalize(const NFFT_R x,
+  const NFFT_R alpha, const int nb, const int ize, NFFT_R *b, const NFFT_R sum_)
 {
-  const R enmten = K(4.0)*nfft_float_property(NFFT_R_MIN);
-  R sum = sum_, tempa;
+  const NFFT_R enmten = NFFT_K(4.0)*nfft_float_property(NFFT_R_MIN);
+  NFFT_R sum = sum_, tempa;
   int n;
 
   /* Normalize, i.e., divide all b[n] by sum */
-  if (alpha != K(0.0))
-    sum = sum * TGAMMA(K(1.0) + alpha) * POW(x/K(2.0), -alpha);
+  if (alpha != NFFT_K(0.0))
+    sum = sum * NFFT_TGAMMA(NFFT_K(1.0) + alpha) * NFFT_POW(x/NFFT_K(2.0), -alpha);
 
   if (ize == 1)
-    sum *= EXP(-x);
+    sum *= NFFT_EXP(-x);
 
   tempa = enmten;
 
-  if (K(1.0) < sum)
+  if (NFFT_K(1.0) < sum)
     tempa *= sum;
 
   for (n = 1; n <= nb; n++)
   {
     if (b[n-1] < tempa)
-      b[n-1] = K(0.0);
+      b[n-1] = NFFT_K(0.0);
 
     b[n-1] /= sum;
   }
@@ -189,7 +190,7 @@ static inline void scaled_modified_bessel_i_normalize(const R x,
  * Modified by Jens Keiner, Institute of Mathematics, University of Lübeck,
  *   23560 Lübeck, Germany
  */
-static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
+static int smbi(const NFFT_R x, const NFFT_R alpha, const int nb, const int ize, NFFT_R *b)
 {
   /* machine dependent parameters */
   /* NSIG   - DECIMAL SIGNIFICANCE DESIRED.  SHOULD BE SET TO */
@@ -211,24 +212,24 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   /* EXPARG - LARGEST WORKING PRECISION ARGUMENT THAT THE LIBRARY */
   /*          EXP ROUTINE CAN HANDLE AND UPPER LIMIT ON THE */
   /*          MAGNITUDE OF X WHEN IZE=1. */
-  const int nsig = MANT_DIG + 2;
-  const R enten = nfft_float_property(NFFT_R_MAX);
-  const R ensig = POW(K(10.0),(R)nsig);
-  const R rtnsig = POW(K(10.0),-CEIL((R)nsig/K(4.0)));
-  const R xlarge = K(1E4);
-  const R exparg = FLOOR(LOG(POW(K(R_RADIX),K(DBL_MAX_EXP-1))));
+  const int nsig = NFFT_R_MANT_DIG + 2;
+  const NFFT_R enten = nfft_float_property(NFFT_R_MAX);
+  const NFFT_R ensig = NFFT_POW(NFFT_K(10.0),(NFFT_R)nsig);
+  const NFFT_R rtnsig = NFFT_POW(NFFT_K(10.0),-NFFT_CEIL((NFFT_R)nsig/NFFT_K(4.0)));
+  const NFFT_R xlarge = NFFT_K(1E4);
+  const NFFT_R exparg = NFFT_FLOOR(NFFT_LOG(NFFT_POW(NFFT_K(NFFT_R_RADIX),NFFT_K(DBL_MAX_EXP-1))));
 
   /* System generated locals */
   int l, n, nend, magx, nbmx, ncalc, nstart;
-  R p, em, en, sum, pold, test, empal, tempa, tempb, tempc, psave, plast, tover,
+  NFFT_R p, em, en, sum, pold, test, empal, tempa, tempb, tempc, psave, plast, tover,
     emp2al, psavel;
 
-  magx = LRINT(FLOOR(x));
+  magx = NFFT_LRINT(NFFT_FLOOR(x));
 
   /* return if x, nb, or ize out of range */
-  if (   nb <= 0 || x < K(0.0) || alpha < K(0.0) || K(1.0) <= alpha
+  if (   nb <= 0 || x < NFFT_K(0.0) || alpha < NFFT_K(0.0) || NFFT_K(1.0) <= alpha
       || ((ize != 1 || exparg < x) && (ize != 2 || xlarge < x)))
-    return (MIN(nb,0) - 1);
+    return (NFFT_MIN(nb,0) - 1);
 
   /* 2-term ascending series for small x */
   if (x < rtnsig)
@@ -240,17 +241,17 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   nbmx = nb - magx;
   n = magx + 1;
 
-  en = (R) (n+n) + (alpha+alpha);
-  plast = K(1.0);
+  en = (NFFT_R) (n+n) + (alpha+alpha);
+  plast = NFFT_K(1.0);
   p = en/x;
 
   /* significance test */
   test = ensig + ensig;
 
   if ((5*nsig) < (magx << 1))
-    test = SQRT(test*p);
+    test = NFFT_SQRT(test*p);
   else
-    test /= POW(K(1.585),(R)magx);
+    test /= NFFT_POW(NFFT_K(1.585),(NFFT_R)magx);
 
   if (3 <= nbmx)
   {
@@ -261,7 +262,7 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
 
     for (n = nstart; n <= nend; n++)
     {
-      en += K(2.0);
+      en += NFFT_K(2.0);
       pold = plast;
       plast = p;
       p = en*plast/x + pold;
@@ -279,20 +280,20 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
         do
         {
           n++;
-          en += K(2.0);
+          en += NFFT_K(2.0);
           pold = plast;
           plast = p;
           p = en*plast/x + pold;
-        } while (p <= K(1.0));
+        } while (p <= NFFT_K(1.0));
 
         tempb = en/x;
 
         /* Backward test. Find ncalc as the largest n such that test is passed. */
-        test = pold*plast*(K(0.5) - K(0.5)/(tempb * tempb))/ensig;
+        test = pold*plast*(NFFT_K(0.5) - NFFT_K(0.5)/(tempb * tempb))/ensig;
         p = plast*tover;
         n--;
-        en -= K(2.0);
-        nend = MIN(nb,n);
+        en -= NFFT_K(2.0);
+        nend = NFFT_MIN(nb,n);
 
         for (ncalc = nstart; ncalc <= nend; ncalc++)
         {
@@ -309,17 +310,17 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
     }
 
     n = nend;
-    en = (R) (n+n) + (alpha+alpha);
+    en = (NFFT_R) (n+n) + (alpha+alpha);
 
     /* special significance test for 2 <= nbmx */
-    test = FMAX(test,SQRT(plast*ensig)*SQRT(p+p));
+    test = NFFT_FMAX(test,NFFT_SQRT(plast*ensig)*NFFT_SQRT(p+p));
   }
 
   /* calculate p-sequence until significance test is passed */
   do
   {
     n++;
-    en += K(2.0);
+    en += NFFT_K(2.0);
     pold = plast;
     plast = p;
     p = en*plast/x + pold;
@@ -328,12 +329,12 @@ static int smbi(const R x, const R alpha, const int nb, const int ize, R *b)
   /* Initialize backward recursion and normalization sum. */
 L80:
   n++;
-  en += K(2.0);
-  tempb = K(0.0);
-  tempa = K(1.0)/p;
-  em = (R)(n-1);
+  en += NFFT_K(2.0);
+  tempb = NFFT_K(0.0);
+  tempa = NFFT_K(1.0)/p;
+  em = (NFFT_R)(n-1);
   empal = em + alpha;
-  emp2al = em - K(1.0) + (alpha+alpha);
+  emp2al = em - NFFT_K(1.0) + (alpha+alpha);
   sum = tempa*empal*emp2al/em;
   nend = n-nb;
 
@@ -343,7 +344,7 @@ L80:
     b[n-1] = tempa;
     nend = -nend;
     for (l = 1; l <= nend; ++l)
-      b[n-1 + l] = K(0.0);
+      b[n-1 + l] = NFFT_K(0.0);
   }
   else
   {
@@ -353,20 +354,20 @@ L80:
       for (l = 1; l <= nend; ++l)
       {
         n--;
-        en -= K(2.0);
+        en -= NFFT_K(2.0);
         tempc = tempb;
         tempb = tempa;
         tempa = en*tempb/x + tempc;
-        em -= K(1.0);
-        emp2al -= K(1.0);
+        em -= NFFT_K(1.0);
+        emp2al -= NFFT_K(1.0);
 
         if (n == 1)
           break;
 
         if (n == 2)
-          emp2al = K(1.0);
+          emp2al = NFFT_K(1.0);
 
-        empal -= K(1.0);
+        empal -= NFFT_K(1.0);
         sum = (sum + tempa*empal)*emp2al/em;
       }
     }
@@ -393,13 +394,13 @@ L80:
       return ncalc;
     }
 
-    em -= K(1.0);
-    emp2al -= K(1.0);
+    em -= NFFT_K(1.0);
+    emp2al -= NFFT_K(1.0);
 
     if (n == 2)
-      emp2al = K(1.0);
+      emp2al = NFFT_K(1.0);
 
-    empal -= K(1.0);
+    empal -= NFFT_K(1.0);
     sum = (sum + b[n-1]*empal)*emp2al/em;
   }
 
@@ -411,21 +412,21 @@ L80:
     for (l = 1; l <= nend; ++l)
     {
       n--;
-      en -= K(2.0);
+      en -= NFFT_K(2.0);
       b[n-1] = en*b[n]/x + b[n+1];
-      em -= K(1.0);
-      emp2al -= K(1.0);
+      em -= NFFT_K(1.0);
+      emp2al -= NFFT_K(1.0);
 
       if (n == 2)
-        emp2al = K(1.0);
+        emp2al = NFFT_K(1.0);
 
-      empal -= K(1.0);
+      empal -= NFFT_K(1.0);
       sum = (sum + b[n-1]*empal)*emp2al/em;
     }
   }
 
   /* calculate b[1] */
-  b[0] = K(2.0)*empal*b[1]/x + b[2];
+  b[0] = NFFT_K(2.0)*empal*b[1]/x + b[2];
   sum = sum + sum + b[0];
 
   scaled_modified_bessel_i_normalize(x,alpha,nb,ize,b,sum);
@@ -449,9 +450,9 @@ L80:
 static inline double innerProduct(const double phi1, const double theta1,
   const double phi2, const double theta2)
 {
-  double pi2theta1 = K2PI*theta1, pi2theta2 = K2PI*theta2;
+  double pi2theta1 = NFFT_K2PI*theta1, pi2theta2 = NFFT_K2PI*theta2;
   return (cos(pi2theta1)*cos(pi2theta2)
-    + sin(pi2theta1)*sin(pi2theta2)*cos(K2PI*(phi1-phi2)));
+    + sin(pi2theta1)*sin(pi2theta2)*cos(NFFT_K2PI*(phi1-phi2)));
 }
 
 /**
@@ -483,7 +484,7 @@ static inline double poissonKernel(const double x, const double h)
  */
 static inline double singularityKernel(const double x, const double h)
 {
-  return (1.0/(K2PI))/sqrt(1.0-2.0*h*x+h*h);
+  return (1.0/(NFFT_K2PI))/sqrt(1.0-2.0*h*x+h*h);
 }
 
 /**
@@ -570,7 +571,7 @@ int main (int argc, char **argv)
   double temp;                 /*                                             */
   double err_f;                /* Error E_infty for fast algorithm            */
   double err_fd;               /* Error E_\infty for fast direct algorithm    */
-  ticks t0, t1;                /*                                             */
+  double t0, t1;                /*                                             */
   int precompute = NO;         /*                                             */
   fftw_complex *ptr;         /*                                             */
   double* steed;               /*                                             */
@@ -691,7 +692,7 @@ int main (int argc, char **argv)
       /* Read cut-off degree. */
       fscanf(stdin,"%d\n",&m[im]);
       fprintf(stdout,"%d\n",m[im]);
-      m_max = MAX(m_max,m[im]);
+      m_max = NFFT_MAX(m_max,m[im]);
     }
 
     /* Read number of node specifications. */
@@ -708,12 +709,12 @@ int main (int argc, char **argv)
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
       fprintf(stdout,"%d\n",ld[ild][0]);
-      l_max = MAX(l_max,ld[ild][0]);
+      l_max = NFFT_MAX(l_max,ld[ild][0]);
 
       /* Read number of target nodes. */
       fscanf(stdin,"D=%d ",&ld[ild][1]);
       fprintf(stdout,"%d\n",ld[ild][1]);
-      d_max = MAX(d_max,ld[ild][1]);
+      d_max = NFFT_MAX(d_max,ld[ild][1]);
 
       /* Determine whether direct and fast algorithm shall be compared. */
       fscanf(stdin,"compare=%d ",&ld[ild][2]);
@@ -735,9 +736,9 @@ int main (int argc, char **argv)
         if (ld[ild][3] == YES)
         {
           /* Update ld_max_prec. */
-          ld_max_prec = MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
+          ld_max_prec = NFFT_MAX(ld_max_prec,ld[ild][0]*ld[ild][1]);
           /* Update l_max_prec. */
-          l_max_prec = MAX(l_max_prec,ld[ild][0]);
+          l_max_prec = NFFT_MAX(l_max_prec,ld[ild][0]);
           /* Turn on the precomputation for the direct algorithm. */
           precompute = YES;
         }
@@ -769,14 +770,14 @@ int main (int argc, char **argv)
     {
       b[l] = (((double)rand())/RAND_MAX) - 0.5;
       eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
-      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(K2PI);
+      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(NFFT_K2PI);
     }
 
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
       xi[2*d] = (((double)rand())/RAND_MAX) - 0.5;
-      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(K2PI);
+      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(NFFT_K2PI);
     }
 
     /* Do precomputation. */
@@ -818,7 +819,7 @@ int main (int argc, char **argv)
           steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
           smbi(2.0*p[ip][0],0.5,m_max+1,2,steed);
           for (k = 0; k <= m_max; k++)
-            a[k] = K2PI*(sqrt(KPI/p[ip][0]))*steed[k];
+            a[k] = NFFT_K2PI*(sqrt(NFFT_KPI/p[ip][0]))*steed[k];
 
           nfft_free(steed);
           break;
@@ -888,7 +889,7 @@ int main (int argc, char **argv)
             t_dp = 0.0;
 
             /* Initialize time measurement. */
-            t0 = getticks();
+            t0 = NFFT(clock_gettime_seconds)();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -905,7 +906,7 @@ int main (int argc, char **argv)
                 /* Perform final summation */
 
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(K2PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(NFFT_K2PI*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -943,8 +944,8 @@ int main (int argc, char **argv)
             }
 
             /* Calculate the time needed. */
-            t1 = getticks();
-            t_dp = nfft_elapsed_seconds(t1,t0);
+            t1 = NFFT(clock_gettime_seconds)();
+            t_dp = t1 - t0;
 
             /* Calculate average time needed. */
             t_dp = t_dp/((double)ld[ild][4]);
@@ -959,7 +960,7 @@ int main (int argc, char **argv)
           t_d = 0.0;
 
           /* Initialize time measurement. */
-          t0 = getticks();
+          t0 = NFFT(clock_gettime_seconds)();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -1012,7 +1013,7 @@ int main (int argc, char **argv)
 
               case KT_LOC_SUPP:
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(K2PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(NFFT_K2PI*pow(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
@@ -1060,8 +1061,8 @@ int main (int argc, char **argv)
           }
 
           /* Calculate and add the time needed. */
-          t1 = getticks();
-          t_d = nfft_elapsed_seconds(t1,t0);
+          t1 = NFFT(clock_gettime_seconds)();
+          t_d = t1 - t0;
           /* Calculate average time needed. */
           t_d = t_d/((double)ld[ild][4]);
         }
@@ -1109,7 +1110,7 @@ int main (int argc, char **argv)
             t_fd = 0.0;
 
             /* Initialize time measurement. */
-            t0 = getticks();
+            t0 = NFFT(clock_gettime_seconds)();
 
             /* Cycle through all runs. */
             for (i = 0; i < ld[ild][4]; i++)
@@ -1129,8 +1130,8 @@ int main (int argc, char **argv)
             }
 
             /* Calculate and add the time needed. */
-            t1 = getticks();
-            t_fd = nfft_elapsed_seconds(t1,t0);
+            t1 = NFFT(clock_gettime_seconds)();
+            t_fd = t1 - t0;
 
             /* Calculate average time needed. */
             t_fd = t_fd/((double)ld[ild][4]);
@@ -1139,7 +1140,7 @@ int main (int argc, char **argv)
             if (ld[ild][2] != NO)
             {
               /* Compute the error E_infinity. */
-              err_fd = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
+              err_fd = NFFT(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }
@@ -1158,7 +1159,7 @@ int main (int argc, char **argv)
           }
 
           /* Initialize time measurement. */
-          t0 = getticks();
+          t0 = NFFT(clock_gettime_seconds)();
 
           /* Cycle through all runs. */
           for (i = 0; i < ld[ild][4]; i++)
@@ -1194,12 +1195,12 @@ int main (int argc, char **argv)
           }
 
           /* Check if the fast NFSFT algorithm has been used. */
-          t1 = getticks();
+          t1 = NFFT(clock_gettime_seconds)();
 
           if (use_nfsft != NO)
-            t_f = nfft_elapsed_seconds(t1,t0);
+            t_f = t1 - t0;
           else
-            t_fd = nfft_elapsed_seconds(t1,t0);
+            t_fd = t1 - t0;
 
           /* Check if the fast NFSFT algorithm has been used. */
           if (use_nfsft != NO)
@@ -1220,13 +1221,13 @@ int main (int argc, char **argv)
             if (use_nfsft != NO)
             {
               /* Compute the error E_infinity. */
-              err_f = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
+              err_f = NFFT(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
             else
             {
               /* Compute the error E_infinity. */
-              err_fd = X(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
+              err_fd = NFFT(error_l_infty_1_complex)(f, f_m, ld[ild][1], b,
                 ld[ild][0]);
             }
           }

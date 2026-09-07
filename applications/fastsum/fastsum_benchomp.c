@@ -22,8 +22,10 @@
 
 #include "config.h"
 
+#include <complex.h>
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 #define NREPEAT 5
 
@@ -119,16 +121,16 @@ typedef struct
   int m;
   int p;
   char *kernel_name;
-  R c;
-  R eps_I;
-  R eps_B;
+  NFFT_R c;
+  NFFT_R eps_I;
+  NFFT_R eps_B;
 } s_param;
 
 typedef struct
 {
-  R avg;
-  R min;
-  R max;
+  NFFT_R avg;
+  NFFT_R min;
+  NFFT_R max;
 } s_resval;
 
 typedef struct
@@ -145,25 +147,25 @@ typedef struct
 } s_testset;
 
 void run_test(s_resval *res, int nrepeat, int n, int m, int p,
-    char *kernel_name, R c, R eps_I, R eps_B, int nthreads)
+    char *kernel_name, NFFT_R c, NFFT_R eps_I, NFFT_R eps_B, int nthreads)
 {
   char cmd[1025];
   int r, t;
 
   for (t = 0; t < 16; t++)
   {
-    res[t].avg = K(0.0);
-    res[t].min = K(1.0) / K(0.0);
-    res[t].max = K(0.0);
+    res[t].avg = NFFT_K(0.0);
+    res[t].min = NFFT_K(1.0) / NFFT_K(0.0);
+    res[t].max = NFFT_K(0.0);
   }
 
   if (nthreads < 2)
     snprintf(cmd, 1024,
-        "%s %d %d %d %s " __FR__ " " __FR__ " " __FR__ " < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
+        "%s %d %d %d %s " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
         CMD_DETAIL_SINGLE, n, m, p, kernel_name, c, eps_I, eps_B);
   else
     snprintf(cmd, 1024,
-        "%s %d %d %d %s " __FR__ " " __FR__ " " __FR__ " %d < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
+        "%s %d %d %d %s " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " %d < fastsum_benchomp_test.data > fastsum_benchomp_test.out",
         CMD_DETAIL_THREADS, n, m, p, kernel_name, c, eps_I, eps_B, nthreads);
   fprintf(stderr, "%s\n", cmd);
   check_result_value(system(cmd), 0, cmd);
@@ -171,12 +173,12 @@ void run_test(s_resval *res, int nrepeat, int n, int m, int p,
   for (r = 0; r < nrepeat; r++)
   {
     int retval;
-    R v[16];
+    NFFT_R v[16];
     FILE *f;
     check_result_value(system(cmd), 0, cmd);
     f = fopen("fastsum_benchomp_test.out", "r");
     retval = fscanf(f,
-        "" __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ " " __FR__ "", v,
+        "" NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ "", v,
         v + 1, v + 2, v + 3, v + 4, v + 5, v + 6, v + 7, v + 8, v + 9, v + 10,
         v + 11, v + 12, v + 13, v + 14, v + 15);
     check_result_value(retval, 16, "read fastsum_benchomp_test.out");
@@ -193,11 +195,11 @@ void run_test(s_resval *res, int nrepeat, int n, int m, int p,
   }
 
   for (t = 0; t < 16; t++)
-    res[t].avg /= (R)(nrepeat);
+    res[t].avg /= (NFFT_R)(nrepeat);
 
   fprintf(stderr, "%d %d: ", nthreads, nrepeat);
   for (t = 0; t < 16; t++)
-    fprintf(stderr, "%.3" __FES__ " %.3" __FES__ " %.3" __FES__ " | ", res[t].avg, res[t].min, res[t].max);
+    fprintf(stderr, "%.3" NFFT__FES__ " %.3" NFFT__FES__ " %.3" NFFT__FES__ " | ", res[t].avg, res[t].min, res[t].max);
   fprintf(stderr, "\n");
 }
 
@@ -375,7 +377,7 @@ void fastsum_get_plot_title_minus_indep(char *outstr, int maxlen,
   if ((mask & (MASK_FSUM_EPSI | MASK_FSUM_EPSB)) && param.eps_I == param.eps_B)
   {
     len = snprintf(outstr + offset, maxlen - offset,
-        " $\\varepsilon_\\mathrm{I}$=$\\varepsilon_\\mathrm{B}$=%" __FGS__ "",
+        " $\\varepsilon_\\mathrm{I}$=$\\varepsilon_\\mathrm{B}$=%" NFFT__FGS__ "",
         param.eps_I);
     if (len < 0 || len + offset >= maxlen - 1)
       return;
@@ -386,7 +388,7 @@ void fastsum_get_plot_title_minus_indep(char *outstr, int maxlen,
     if (mask & MASK_FSUM_EPSI)
     {
       len = snprintf(outstr + offset, maxlen - offset,
-          " $\\varepsilon_\\mathrm{I}$=%" __FGS__ "", param.eps_I);
+          " $\\varepsilon_\\mathrm{I}$=%" NFFT__FGS__ "", param.eps_I);
       if (len < 0 || len + offset >= maxlen - 1)
         return;
       offset += len;
@@ -395,7 +397,7 @@ void fastsum_get_plot_title_minus_indep(char *outstr, int maxlen,
     if (mask & MASK_FSUM_EPSB)
     {
       len = snprintf(outstr + offset, maxlen - offset,
-          " $\\varepsilon_\\mathrm{B}$=%" __FGS__ "", param.eps_B);
+          " $\\varepsilon_\\mathrm{B}$=%" NFFT__FGS__ "", param.eps_B);
       if (len < 0 || len + offset >= maxlen - 1)
         return;
       offset += len;
@@ -432,31 +434,31 @@ void nfft_adjoint_print_output_histo_DFBRT(FILE *out, s_testset testset)
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[10].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[11].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[12].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[1].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[4].avg + testset.results[i].resval[1].avg);
   fprintf(out, "};\n");
   fprintf(out,
@@ -497,31 +499,31 @@ void nfft_trafo_print_output_histo_DFBRT(FILE *out, s_testset testset)
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[13].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[14].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[15].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[2].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[6].avg + testset.results[i].resval[2].avg);
   fprintf(out, "};\n");
   fprintf(out, "\\legend{D,F,B,prepsi,total}\n");
@@ -562,32 +564,32 @@ void fastsum_print_output_histo_PreRfNfT(FILE *out, s_testset testset)
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[1].avg + testset.results[i].resval[2].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[3].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[4].avg + testset.results[i].resval[5].avg
             + testset.results[i].resval[6].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[7].avg);
   fprintf(out, "};\n");
 
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
-    fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+    fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
         testset.results[i].resval[9].avg - testset.results[i].resval[0].avg);
   fprintf(out, "};\n");
   fprintf(out,
@@ -627,7 +629,7 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
   {
     s_testset testset = testsets[t];
 
-    R tref = K(0.0);
+    NFFT_R tref = NFFT_K(0.0);
     for (i = 0; i < testset.nresults; i++)
       if (testset.results[i].nthreads == 1)
         tref = testset.results[i].resval[9].avg
@@ -635,7 +637,7 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
 
     fprintf(out, "\\addplot coordinates {");
     for (i = 0; i < testset.nresults; i++)
-      fprintf(out, "(%d, %.6" __FES__ ") ", testset.results[i].nthreads,
+      fprintf(out, "(%d, %.6" NFFT__FES__ ") ", testset.results[i].nthreads,
           tref
               / (testset.results[i].resval[9].avg
                   - testset.results[i].resval[0].avg));
@@ -643,7 +645,7 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
 
     for (i = 0; i < testset.nresults; i++)
     {
-      fprintf(stderr, "%d:%.3" __FIS__ "  ", testset.results[i].nthreads,
+      fprintf(stderr, "%d:%.3" NFFT__FIS__ "  ", testset.results[i].nthreads,
           tref
               / (testset.results[i].resval[9].avg
                   - testset.results[i].resval[0].avg));
@@ -670,7 +672,7 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
 }
 
 void run_testset(s_testset *testset, int d, int L, int M, int n, int m, int p,
-    char *kernel_name, R c, R eps_I, R eps_B,
+    char *kernel_name, NFFT_R c, NFFT_R eps_I, NFFT_R eps_B,
     int *nthreads_array, int n_threads_array_size)
 {
   int i;
@@ -706,7 +708,7 @@ void test1(int *nthreads_array, int n_threads_array_size)
   s_testset testsets[1];
 
 #if defined MEASURE_TIME && defined MEASURE_TIME_FFTW
-  run_testset(&testsets[0], 3, 100000, 100000, 128, 4, 7, "one_over_x", K(0.0), K(0.03125), K(0.03125), nthreads_array, n_threads_array_size);
+  run_testset(&testsets[0], 3, 100000, 100000, 128, 4, 7, "one_over_x", NFFT_K(0.0), NFFT_K(0.03125), NFFT_K(0.03125), nthreads_array, n_threads_array_size);
 
   fastsum_print_output_speedup_total_minus_indep(file_out_tex, testsets, 1);
 

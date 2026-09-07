@@ -8,7 +8,8 @@ Guidance for coding agents working in this repository.
 and related transforms. It is a mature, research-grade numerical library.
 
 Transforms implemented (each is its own module under `kernel/` with a public
-API in `include/nfft3.h`):
+API in `include/nfft3.h`; see "Headers" in `CONVENTIONS.md` for the other
+public headers and for when to use each):
 
 - **NFFT** — nonequispaced FFT (forward + adjoint), the core module (`kernel/nfft`)
 - **NNFFT** — nonequispaced in both time *and* frequency (`kernel/nnfft`)
@@ -49,7 +50,15 @@ Key rules:
   (e.g. `nfct_foo` inside the NFCT module), and `FFTW(foo)` for FFTW names.
   Never hard-code a `nfft_`/`nfftf_`/`nfftl_` prefix.
 - Use the type aliases `R` (real), `E` (real, possibly extended precision),
-  `C` (complex); `A(...)` for assert, `CK(...)` for check.
+  `C` (complex); `A(...)` for assert, `CK(...)` for check. These live in
+  `include/infft.h` and are for `kernel/` and `tests/` only. Examples,
+  applications and the Julia/Matlab bindings use the installed headers
+  `nfft3.h`, `nfft3mp.h` and `nfft3util.h`, and the `NFFT_`-prefixed spellings
+  `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`.
+- Include order matters. `<complex.h>` must precede anything that pulls in
+  `<fftw3.h>`, or `fftw_complex` and `NFFT_C` become a two-element array. The
+  canonical order is `<complex.h>`, `nfft3.h`, the precision macro,
+  `nfft3mp.h`, then `nfft3util.h`.
 - Indentation is 2 spaces, BSD brace style. A `.clang-format` is provided.
 - New code must keep the float/double/long-double build matrix working.
 

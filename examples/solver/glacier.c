@@ -21,7 +21,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 /**
  * \defgroup examples_solver_glacier Reconstruction of a glacier from \

@@ -34,7 +34,6 @@
 
 #include "fastsum.h"
 #include "kernels.h"
-#include "infft.h"
 
 /**
  * \defgroup applications_fastsum_matlab fastsum_matlab
@@ -52,17 +51,17 @@ int main(int argc, char **argv)
   int m; /**< cut-off parameter       */
   int p; /**< degree of smoothness    */
   const char *s; /**< name of kernel          */
-  C (*kernel)(R, int, const R *); /**< kernel function         */
-  R c; /**< parameter for kernel    */
+  NFFT_C (*kernel)(NFFT_R, int, const NFFT_R *); /**< kernel function         */
+  NFFT_R c; /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan; /**< plan for fast summation */
-  C *direct; /**< array for direct computation */
-  ticks t0, t1; /**< for time measurement    */
-  R time; /**< for time measurement    */
-  R error = K(0.0); /**< for error computation   */
-  R eps_I; /**< inner boundary          */
-  R eps_B; /**< outer boundary          */
+  NFFT_C *direct; /**< array for direct computation */
+  double t0, t1; /**< for time measurement    */
+  NFFT_R time; /**< for time measurement    */
+  NFFT_R error = NFFT_K(0.0); /**< for error computation   */
+  NFFT_R eps_I; /**< inner boundary          */
+  NFFT_R eps_B; /**< outer boundary          */
   FILE *fid1, *fid2;
-  R temp;
+  NFFT_R temp;
 
   if (argc != 11)
   {
@@ -83,15 +82,15 @@ int main(int argc, char **argv)
   {
     d = atoi(argv[1]);
     N = atoi(argv[2]);
-    c = K(1.0) / POW((R)(N), K(1.0) / ((R)(d)));
+    c = NFFT_K(1.0) / NFFT_POW((NFFT_R)(N), NFFT_K(1.0) / ((NFFT_R)(d)));
     M = atoi(argv[3]);
     n = atoi(argv[4]);
     m = atoi(argv[5]);
     p = atoi(argv[6]);
     s = argv[7];
-    c = (R)(atof(argv[8]));
-    eps_I = (R)(atof(argv[9]));
-    eps_B = (R)(atof(argv[10]));
+    c = (NFFT_R)(atof(argv[8]));
+    eps_I = (NFFT_R)(atof(argv[9]));
+    eps_B = (NFFT_R)(atof(argv[10]));
     if (strcmp(s, "gaussian") == 0)
       kernel = gaussian;
     else if (strcmp(s, "multiquadric") == 0)
@@ -135,7 +134,7 @@ int main(int argc, char **argv)
     }
   }
   printf(
-      "d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%" __FGS__ ", eps_I=%" __FGS__ ", eps_B=%" __FGS__ " \n",
+      "d=%d, N=%d, M=%d, n=%d, m=%d, p=%d, kernel=%s, c=%" NFFT__FGS__ ", eps_I=%" NFFT__FGS__ ", eps_B=%" NFFT__FGS__ " \n",
       d, N, M, n, m, p, s, c, eps_I, eps_B);
 
   /** init two dimensional fastsum plan */
@@ -150,12 +149,12 @@ int main(int argc, char **argv)
   {
     for (t = 0; t < d; t++)
     {
-      fscanf(fid1, __FR__, &my_fastsum_plan.x[k * d + t]);
+      fscanf(fid1, NFFT__FR__, &my_fastsum_plan.x[k * d + t]);
     }
-    fscanf(fid2, __FR__, &temp);
+    fscanf(fid2, NFFT__FR__, &temp);
     my_fastsum_plan.alpha[k] = temp;
-    fscanf(fid2, __FR__, &temp);
-    my_fastsum_plan.alpha[k] += temp * II;
+    fscanf(fid2, NFFT__FR__, &temp);
+    my_fastsum_plan.alpha[k] += temp * NFFT_II;
   }
   fclose(fid1);
   fclose(fid2);
@@ -166,7 +165,7 @@ int main(int argc, char **argv)
   {
     for (t = 0; t < d; t++)
     {
-      fscanf(fid1, __FR__, &my_fastsum_plan.y[j * d + t]);
+      fscanf(fid1, NFFT__FR__, &my_fastsum_plan.y[j * d + t]);
     }
   }
   fclose(fid1);
@@ -174,43 +173,43 @@ int main(int argc, char **argv)
   /** direct computation */
   printf("direct computation: ");
   fflush(NULL);
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   fastsum_exact(&my_fastsum_plan);
-  t1 = getticks();
-  time = NFFT(elapsed_seconds)(t1, t0);
-  printf(__FI__ "sec\n", time);
+  t1 = NFFT(clock_gettime_seconds)();
+  time = t1 - t0;
+  printf(NFFT__FI__ "sec\n", time);
 
   /** copy result */
-  direct = (C *) NFFT(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(C)));
+  direct = (NFFT_C *) NFFT(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(NFFT_C)));
   for (j = 0; j < my_fastsum_plan.M_total; j++)
     direct[j] = my_fastsum_plan.f[j];
 
   /** precomputation */
   printf("pre-computation:    ");
   fflush(NULL);
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   fastsum_precompute(&my_fastsum_plan);
-  t1 = getticks();
-  time = NFFT(elapsed_seconds)(t1, t0);
-  printf(__FI__ "sec\n", time);
+  t1 = NFFT(clock_gettime_seconds)();
+  time = t1 - t0;
+  printf(NFFT__FI__ "sec\n", time);
 
   /** fast computation */
   printf("fast computation:   ");
   fflush(NULL);
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   fastsum_trafo(&my_fastsum_plan);
-  t1 = getticks();
-  time = NFFT(elapsed_seconds)(t1, t0);
-  printf(__FI__ "sec\n", time);
+  t1 = NFFT(clock_gettime_seconds)();
+  time = t1 - t0;
+  printf(NFFT__FI__ "sec\n", time);
 
   /** compute max error */
-  error = K(0.0);
+  error = NFFT_K(0.0);
   for (j = 0; j < my_fastsum_plan.M_total; j++)
   {
-    if (CABS(direct[j] - my_fastsum_plan.f[j]) / CABS(direct[j]) > error)
-      error = CABS(direct[j] - my_fastsum_plan.f[j]) / CABS(direct[j]);
+    if (NFFT_CABS(direct[j] - my_fastsum_plan.f[j]) / NFFT_CABS(direct[j]) > error)
+      error = NFFT_CABS(direct[j] - my_fastsum_plan.f[j]) / NFFT_CABS(direct[j]);
   }
-  printf("max relative error: " __FE__ "\n", error);
+  printf("max relative error: " NFFT__FE__ "\n", error);
 
   /** write result to file */
   fid1 = fopen("f.dat", "w+");
@@ -222,15 +221,15 @@ int main(int argc, char **argv)
   }
   for (j = 0; j < M; j++)
   {
-    temp = CREAL(my_fastsum_plan.f[j]);
-    fprintf(fid1, "  % .16" __FES__ "", temp);
-    temp = CIMAG(my_fastsum_plan.f[j]);
-    fprintf(fid1, "  % .16" __FES__ "\n", temp);
+    temp = NFFT_CREAL(my_fastsum_plan.f[j]);
+    fprintf(fid1, "  % .16" NFFT__FES__ "", temp);
+    temp = NFFT_CIMAG(my_fastsum_plan.f[j]);
+    fprintf(fid1, "  % .16" NFFT__FES__ "\n", temp);
 
-    temp = CREAL(direct[j]);
-    fprintf(fid2, "  % .16" __FES__ "", temp);
-    temp = CIMAG(direct[j]);
-    fprintf(fid2, "  % .16" __FES__ "\n", temp);
+    temp = NFFT_CREAL(direct[j]);
+    fprintf(fid2, "  % .16" NFFT__FES__ "", temp);
+    temp = NFFT_CIMAG(direct[j]);
+    fprintf(fid2, "  % .16" NFFT__FES__ "\n", temp);
   }
   fclose(fid1);
   fclose(fid2);

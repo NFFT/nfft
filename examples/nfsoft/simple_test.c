@@ -25,6 +25,7 @@
 
 /* Include NFFT3 library header. */
 #include "nfft3.h"
+#include "nfft3util.h"
 
 static void simple_test_nfsoft(int bw, int M)
 {

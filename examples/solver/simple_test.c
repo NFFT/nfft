@@ -21,7 +21,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 /* void simple_test_infft_1d(int N, int M, int iter) */
 /* { */

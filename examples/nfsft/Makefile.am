@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -D@NFFT_PRECISION_MACRO@
 
 if ENABLE_OPENMP
   SIMPLE_TEST_THREADS=simple_test_threads

@@ -19,7 +19,10 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 static void simple_test_nfft_1d(void)
 {
@@ -75,7 +78,7 @@ static void simple_test_nfft_1d(void)
 static void simple_test_nfft_2d(void)
 {
   int K, N[2], n[2], M;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
 
