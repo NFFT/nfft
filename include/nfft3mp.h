@@ -19,16 +19,22 @@
 #ifndef __NFFT3MP_H__
 #define __NFFT3MP_H__
 
-/* Canonical include order. <complex.h> must precede <fftw3.h>, which nfft3.h
- * pulls in, or fftw_complex (and hence NFFT_C) is a 2-element array that no
- * arithmetic works on.
+/* Canonical include order. <complex.h> must precede <fftw3.h> if the C99 complex 
+ * type should be used. The header nfft3.h pulls it in. Otherwise, fftw_complex 
+ * (and hence NFFT_C) is a 2-element real array instead. In a program:
  *
  *   #include <complex.h>
  *   #include <nfft3.h>
- *   #define NFFT_PRECISION_SINGLE
+ *   #define NFFT_PRECISION_SINGLE  // or NFFT_PRECISION_DOUBLE/NFFT_PRECISION_LONG_DOUBLE, depending on desired type
  *   #include <nfft3mp.h>
+ *
+ * NFFT_R/NFFT_C are then the real/complex types for the selected floating-point type
+ * so code can be written type-agnostic.
  */
-#include "nfft3.h"
+#ifndef FFTW3_H
+#error include nfft3.h (or <fftw3.h>) before nfft3mp.h
+#endif
+
 #include <float.h>
 #include <math.h>
 
@@ -37,45 +43,47 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#define NFFT_MP_CONCAT(prefix, name) prefix ## name
+
 #if defined(NFFT_PRECISION_SINGLE)
 typedef float NFFT_R;
-typedef fftwf_complex NFFT_C;
+#define NFFT_C fftwf_complex
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_R_MANT_DIG FLT_MANT_DIG
 #define NFFT_R_EPSILON FLT_EPSILON
-#define NFFT_M(name) NFFT_CONCAT(name,f)
-#define FFTW(name) NFFT_CONCAT(fftwf_,name)
-#define NFFT(name) NFFT_CONCAT(nfftf_,name)
-#define NFCT(name) NFFT_CONCAT(nfctf_,name)
-#define NFST(name) NFFT_CONCAT(nfstf_,name)
-#define NFSFT(name) NFFT_CONCAT(nfsftf_,name)
-#define SOLVER(name) NFFT_CONCAT(solverf_,name)
+#define NFFT_M(name) NFFT_MP_CONCAT(name,f)
+#define FFTW(name) NFFT_MP_CONCAT(fftwf_,name)
+#define NFFT(name) NFFT_MP_CONCAT(nfftf_,name)
+#define NFCT(name) NFFT_MP_CONCAT(nfctf_,name)
+#define NFST(name) NFFT_MP_CONCAT(nfstf_,name)
+#define NFSFT(name) NFFT_MP_CONCAT(nfsftf_,name)
+#define SOLVER(name) NFFT_MP_CONCAT(solverf_,name)
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 typedef long double NFFT_R;
-typedef fftwl_complex NFFT_C;
+#define NFFT_C fftwl_complex
 #define NFFT_K(x) ((NFFT_R) x##L)
 #define NFFT_R_MANT_DIG LDBL_MANT_DIG
 #define NFFT_R_EPSILON LDBL_EPSILON
-#define NFFT_M(name) NFFT_CONCAT(name,l)
-#define FFTW(name) NFFT_CONCAT(fftwl_,name)
-#define NFFT(name) NFFT_CONCAT(nfftl_,name)
-#define NFCT(name) NFFT_CONCAT(nfctl_,name)
-#define NFST(name) NFFT_CONCAT(nfstl_,name)
-#define NFSFT(name) NFFT_CONCAT(nfsftl_,name)
-#define SOLVER(name) NFFT_CONCAT(solverl_,name)
+#define NFFT_M(name) NFFT_MP_CONCAT(name,l)
+#define FFTW(name) NFFT_MP_CONCAT(fftwl_,name)
+#define NFFT(name) NFFT_MP_CONCAT(nfftl_,name)
+#define NFCT(name) NFFT_MP_CONCAT(nfctl_,name)
+#define NFST(name) NFFT_MP_CONCAT(nfstl_,name)
+#define NFSFT(name) NFFT_MP_CONCAT(nfsftl_,name)
+#define SOLVER(name) NFFT_MP_CONCAT(solverl_,name)
 #elif defined(NFFT_PRECISION_DOUBLE)
 typedef double NFFT_R;
-typedef fftw_complex NFFT_C;
+#define NFFT_C fftw_complex
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_R_MANT_DIG DBL_MANT_DIG
 #define NFFT_R_EPSILON DBL_EPSILON
 #define NFFT_M(name) name
-#define FFTW(name) NFFT_CONCAT(fftw_,name)
-#define NFFT(name) NFFT_CONCAT(nfft_,name)
-#define NFCT(name) NFFT_CONCAT(nfct_,name)
-#define NFST(name) NFFT_CONCAT(nfst_,name)
-#define NFSFT(name) NFFT_CONCAT(nfsft_,name)
-#define SOLVER(name) NFFT_CONCAT(solver_,name)
+#define FFTW(name) NFFT_MP_CONCAT(fftw_,name)
+#define NFFT(name) NFFT_MP_CONCAT(nfft_,name)
+#define NFCT(name) NFFT_MP_CONCAT(nfct_,name)
+#define NFST(name) NFFT_MP_CONCAT(nfst_,name)
+#define NFSFT(name) NFFT_MP_CONCAT(nfsft_,name)
+#define SOLVER(name) NFFT_MP_CONCAT(solver_,name)
 #else
 #error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
 #endif
