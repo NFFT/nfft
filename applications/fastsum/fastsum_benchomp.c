@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <complex.h>
 #include "nfft3.h"
@@ -292,16 +291,13 @@ void strEscapeUnderscore(char *dst, char *src, int maxlen)
 }
 
 void fastsum_get_plot_title_minus_indep(char *outstr, int maxlen,
-    char *hostname, s_param param, unsigned int diff_mask)
+    s_param param, unsigned int diff_mask)
 {
   unsigned int mask = ~diff_mask;
   int offset = 0;
   int len;
 
-  len = snprintf(outstr, maxlen, "%s", hostname);
-  if (len < 0 || len + offset >= maxlen - 1)
-    return;
-  offset += len;
+  outstr[0] = '\0';
 
   if (mask & MASK_FSUM_D)
   {
@@ -406,12 +402,6 @@ void fastsum_get_plot_title_minus_indep(char *outstr, int maxlen,
 void nfft_adjoint_print_output_histo_DFBRT(FILE *out, s_testset testset)
 {
   int i, size = testset.nresults;
-  char hostname[1025];
-
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
@@ -426,8 +416,8 @@ void nfft_adjoint_print_output_histo_DFBRT(FILE *out, s_testset testset)
   fprintf(out,
       "}, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Time in s, xtick=data, legend style={legend columns=-1}, ybar, bar width=7pt, ymajorgrids=true, yminorgrids=true, minor y tick num=1, ");
   fprintf(out,
-      " title={%s %dd $\\textrm{NFFT}^\\top$ N=%d $\\sigma$=2 M=%d m=%d prepsi sorted}",
-      hostname, testset.param.d, testset.param.n, testset.param.M,
+      " title={%dd $\\textrm{NFFT}^\\top$ N=%d $\\sigma$=2 M=%d m=%d prepsi sorted}",
+      testset.param.d, testset.param.n, testset.param.M,
       testset.param.m);
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
@@ -471,12 +461,6 @@ void nfft_adjoint_print_output_histo_DFBRT(FILE *out, s_testset testset)
 void nfft_trafo_print_output_histo_DFBRT(FILE *out, s_testset testset)
 {
   int i, size = testset.nresults;
-  char hostname[1025];
-
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
@@ -491,8 +475,8 @@ void nfft_trafo_print_output_histo_DFBRT(FILE *out, s_testset testset)
   fprintf(out,
       "}, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Time in s, xtick=data, legend style={legend columns=-1}, ybar, bar width=7pt, ymajorgrids=true, yminorgrids=true, minor y tick num=1, ");
   fprintf(out,
-      " title={%s %dd $\\textrm{NFFT}$ N=%d $\\sigma$=2 M=%d m=%d prepsi sorted}",
-      hostname, testset.param.d, testset.param.n, testset.param.M,
+      " title={%dd $\\textrm{NFFT}$ N=%d $\\sigma$=2 M=%d m=%d prepsi sorted}",
+      testset.param.d, testset.param.n, testset.param.M,
       testset.param.m);
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
@@ -535,15 +519,9 @@ void nfft_trafo_print_output_histo_DFBRT(FILE *out, s_testset testset)
 void fastsum_print_output_histo_PreRfNfT(FILE *out, s_testset testset)
 {
   int i, size = testset.nresults;
-  char hostname[1025];
   char plottitle[1025];
 
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
-
-  fastsum_get_plot_title_minus_indep(plottitle, 1024, hostname, testset.param,
+  fastsum_get_plot_title_minus_indep(plottitle, 1024, testset.param,
       0);
 
   fprintf(out, "\\begin{tikzpicture}\n");
@@ -603,18 +581,11 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
     s_testset *testsets, int ntestsets)
 {
   int i, t;
-  char hostname[1025];
   char plottitle[1025];
   unsigned int diff_mask = fastsum_determine_different_parameters(testsets,
       ntestsets);
 
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
-
-  fastsum_get_plot_title_minus_indep(plottitle, 1024, hostname,
-      testsets[0].param, diff_mask | MASK_FSUM_WINM);
+  fastsum_get_plot_title_minus_indep(plottitle, 1024, testsets[0].param, diff_mask | MASK_FSUM_WINM);
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
@@ -657,7 +628,7 @@ void fastsum_print_output_speedup_total_minus_indep(FILE *out,
     char title[256];
     if (t > 0)
       fprintf(out, "},{");
-    fastsum_get_plot_title_minus_indep(title, 255, "", testsets[t].param,
+    fastsum_get_plot_title_minus_indep(title, 255, testsets[t].param,
         ~(diff_mask | MASK_FSUM_WINM));
     fprintf(out, "%s", title);
   }
