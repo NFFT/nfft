@@ -26,10 +26,6 @@
 #include <sys/time.h>
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#endif
-
 #ifdef HAVE_MACH_MACH_TIME_H
 #include <mach/mach_time.h>
 #endif
@@ -44,7 +40,12 @@ R Y(elapsed_seconds)(ticks t1, ticks t0)
 /* Monotonic wall clock, so an NTP step cannot corrupt an interval. The ladder
  * mirrors FFTW's timer.c: prefer a monotonic source, fall back to a
  * wall-clock one only where no monotonic source exists. The origin is
- * arbitrary and differs per branch; only differences are meaningful. */
+ * arbitrary and differs per branch; only differences are meaningful.
+ *
+ * No QueryPerformanceCounter branch: it needs <windows.h>, whose windef.h
+ * typedefs INT as int and collides with infft.h's INT. FFTW disabled its own
+ * Windows branch for the same reason (kernel/timer.c) and relies on MinGW,
+ * which supplies clock_gettime and gettimeofday. */
 double Y(clock_gettime_seconds)(void)
 {
 #if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
@@ -52,12 +53,6 @@ double Y(clock_gettime_seconds)(void)
   if (clock_gettime(CLOCK_MONOTONIC, &tp) != 0)
     return 0.0;
   return (double)tp.tv_sec + (double)tp.tv_nsec / 1e9;
-#elif defined(_WIN32) || defined(_WIN64)
-  LARGE_INTEGER t, f;
-  if (!QueryPerformanceFrequency(&f) || f.QuadPart == 0
-      || !QueryPerformanceCounter(&t))
-    return 0.0;
-  return (double)t.QuadPart / (double)f.QuadPart;
 #elif defined(HAVE_MACH_ABSOLUTE_TIME)
   static mach_timebase_info_data_t tb;
   if (tb.denom == 0 && mach_timebase_info(&tb) != 0)
