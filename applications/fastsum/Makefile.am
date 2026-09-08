@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include -D@NFFT_PRECISION_MACRO@ @NFFT_PROGRAM_CPPFLAGS@
 
 if ENABLE_OPENMP
   FASTSUM_TEST_THREADS=fastsum_test_threads

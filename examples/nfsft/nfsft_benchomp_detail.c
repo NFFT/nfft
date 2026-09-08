@@ -23,12 +23,13 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
-void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, double **x, C **f_hat, C **f)
+void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, double **x, NFFT_C **f_hat, NFFT_C **f)
 {
   double re,im;
   int k, n, j, t;
@@ -36,11 +37,11 @@ void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, dou
 
   fscanf(infile, "%d %d %d", trafo_adjoint, N, M);
   *x = (double *)nfft_malloc(2*(*M)*sizeof(double));
-  *f_hat = (C*)nfft_malloc((2*(*N)+2) * (2*(*N)+2) * sizeof(C));
-  *f = (C*)nfft_malloc((*M)*sizeof(C));
+  *f_hat = (NFFT_C*)nfft_malloc((2*(*N)+2) * (2*(*N)+2) * sizeof(NFFT_C));
+  *f = (NFFT_C*)nfft_malloc((*M)*sizeof(NFFT_C));
 
-  memset(*f_hat,0U,(2*(*N)+2) * (2*(*N)+2) * sizeof(C));
-  memset(*f,0U,(*M)*sizeof(C));
+  memset(*f_hat,0U,(2*(*N)+2) * (2*(*N)+2) * sizeof(NFFT_C));
+  memset(*f,0U,(*M)*sizeof(NFFT_C));
 
 #ifdef _OPENMP
   fftw_import_wisdom_from_filename("nfsft_benchomp_detail_threads.plan");
@@ -83,13 +84,13 @@ void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, dou
   nfsft_finalize(&plan);
 }
 
-void bench_openmp(int trafo_adjoint, int N, int M, double *x, C *f_hat, C *f, int m, int nfsft_flags, int psi_flags)
+void bench_openmp(int trafo_adjoint, int N, int M, double *x, NFFT_C *f_hat, NFFT_C *f, int m, int nfsft_flags, int psi_flags)
 {
   nfsft_plan plan;
   int k, n;
 //  int N, M, trafo_adjoint;
   int t, j;
-  ticks t0, t1;
+  double t0, t1;
   double tt_total, tt_pre;
 
 //  fscanf(infile, "%d %d %d", &trafo_adjoint, &N, &M);
@@ -149,18 +150,18 @@ void bench_openmp(int trafo_adjoint, int N, int M, double *x, C *f_hat, C *f, in
     memset(plan.f_hat,0U,plan.N_total*sizeof(double _Complex));
   }
 
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   /* precomputation (for NFFT, node-dependent) */
   nfsft_precompute_x(&plan);
-  t1 = getticks();
-  tt_pre = nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_pre = t1 - t0;
 
   if (trafo_adjoint==0)
     nfsft_trafo(&plan);
   else
     nfsft_adjoint(&plan);
-  t1 = getticks();
-  tt_total = nfft_elapsed_seconds(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_total = t1 - t0;
 
 #ifndef MEASURE_TIME
   plan.MEASURE_TIME_t[0] = 0.0;
@@ -183,7 +184,7 @@ int main(int argc, char **argv)
   int nrepeat;
   int trafo_adjoint, N, M, r;
   double *x;
-  C *f_hat, *f;
+  NFFT_C *f_hat, *f;
 #ifdef _OPENMP
   int nthreads;
 

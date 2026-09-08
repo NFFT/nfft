@@ -213,10 +213,15 @@ if test "x$enable_debug" = "xyes"; then
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra debugging code.])
 fi
 
+# Preprocessor flags handed to the example and application programs. They must
+# not include config.h, so everything they need arrives as -D.
+NFFT_PROGRAM_CPPFLAGS=""
+
 # runtime time measurements
 AC_ARG_ENABLE(measure-time, [AS_HELP_STRING([--enable-measure-time],[measure time during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME,1,[Define to enable runtime time measurements.])
+  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DMEASURE_TIME"
 fi
 
 # runtime time measurements for FFTW part
@@ -224,6 +229,7 @@ AC_ARG_ENABLE(measure-time-fftw, [AS_HELP_STRING([--enable-measure-time-fftw],[m
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW]
   [transforms.])
+  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DMEASURE_TIME_FFTW"
 fi
 
 AC_ARG_ENABLE(mips_zbus_timer, [AS_HELP_STRING([--enable-mips-zbus-timer],[use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval,
@@ -236,7 +242,7 @@ fi
 # select window function
 AC_ARG_WITH(window, [AS_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
-  dirac)])],
+  dirac; "delta" is accepted as a synonym for dirac)])],
   window=$withval, window="kaiserbessel")
 
 AC_MSG_CHECKING([window function])
@@ -249,7 +255,8 @@ case "$window" in
     AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
-  delta)
+  dirac|delta)
+    window=dirac
     AC_DEFINE(DIRAC_DELTA,1,[Define to enable Dirac delta window function.]);;
   *)
     AC_MSG_ERROR([Unknown window function "$window".]);;
@@ -458,11 +465,13 @@ if test "x$enable_threads" = "xyes"; then
     # FFTW3 OpenMP variant found - no warning needed (optimal case)
     fftw3_LIBS_omp="$nfft_fftw3_LIBS_omp"
     AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+    NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_FFTW_THREADS"
   elif test "x$nfft_fftw3_have_lib_threads" = "xyes"; then
     # Only generic multi-threaded FFTW3 found - warn about potential inefficiency
     AC_MSG_WARN([Only generic multi-threaded FFTW3 library found. This may be less efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.])
     fftw3_LIBS_omp="$nfft_fftw3_LIBS_threads"
     AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+    NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_FFTW_THREADS"
   else
     # Only single-threaded FFTW3 found - warn that only NFFT code will be multi-threaded
     AC_MSG_WARN([Only single-threaded FFTW3 library found. Multi-threading will only be used in NFFT code, not in FFTW3 computations.])
@@ -559,13 +568,13 @@ saved_LIBS=$LIBS
 AC_CHECK_LIB(m, sin, [])
 LIBS=$saved_LIBS
 
-AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time])
+AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time gettimeofday])
 
 AC_CHECK_FUNCS([memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
-AC_CHECK_FUNCS([gethostname])
+AC_SUBST(NFFT_PROGRAM_CPPFLAGS)
 
 AC_CHECK_DECLS([memalign, posix_memalign])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])

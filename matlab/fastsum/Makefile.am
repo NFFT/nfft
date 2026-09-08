@@ -1,5 +1,5 @@
 # compiler flags
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/applications/fastsum -I$(top_srcdir)/matlab $(matlab_CPPFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/applications/fastsum -I$(top_srcdir)/matlab $(matlab_CPPFLAGS) -D@NFFT_PRECISION_MACRO@
 
 # matlab wrapper directory
 fastsummatlabdir = $(datadir)/nfft/matlab/fastsum

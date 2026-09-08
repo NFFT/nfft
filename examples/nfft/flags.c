@@ -24,24 +24,19 @@
  *
  * References: Time and Memory Requirements of the Nonequispaced FFT
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
-#ifdef GAUSSIAN
-  unsigned test_fg=1;
-#else
-  unsigned test_fg=0;
-#endif
+/* The Gaussian window is the only one with a fast-Gaussian variant. Which
+ * window the library was built with is a runtime query, not a build flag. */
+static unsigned test_fg = 0;
 
 #ifdef MEASURE_TIME_FFTW
   unsigned test_fftw=1;
@@ -70,9 +65,9 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     unsigned test_pre_full_psi)
 {
   int r, NN[d], nn[d];
-  R t_ndft, t, e;
-  C *swapndft = NULL;
-  ticks t0, t1;
+  NFFT_R t_ndft, t, e;
+  NFFT_C *swapndft = NULL;
+  double t0, t1;
 
   NFFT(plan) p;
   NFFT(plan) p_pre_phi_hut;
@@ -92,7 +87,7 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   /* output vector ndft */
   if (test_ndft)
-    swapndft = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
+    swapndft = (NFFT_C*) NFFT(malloc)((size_t)(M) * sizeof(NFFT_C));
 
   NFFT(init_guru)(&p, d, NN, M, nn, m,
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
@@ -141,25 +136,25 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   /* NDFT */
   if (test_ndft)
   {
-    CSWAP(p.f, swapndft);
+    NFFT_CSWAP(p.f, swapndft);
 
-    t_ndft = K(0.0);
+    t_ndft = NFFT_K(0.0);
     r = 0;
-    while (t_ndft < K(0.01))
+    while (t_ndft < NFFT_K(0.01))
     {
       r++;
-      t0 = getticks();
+      t0 = NFFT(clock_gettime_seconds)();
       NFFT(trafo_direct)(&p);
-      t1 = getticks();
-      t = NFFT(elapsed_seconds)(t1, t0);
+      t1 = NFFT(clock_gettime_seconds)();
+      t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (R)(r);
+    t_ndft /= (NFFT_R)(r);
 
-    CSWAP(p.f, swapndft);
+    NFFT_CSWAP(p.f, swapndft);
   }
   else
-    t_ndft = MKNAN("");
+    t_ndft = NFFT_MKNAN("");
 
   /* NFFTs */
   NFFT(trafo)(&p);
@@ -167,28 +162,28 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   if (test_fg)
     NFFT(trafo)(&p_fg_psi);
   else
-    p_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
+    p_fg_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
   NFFT(trafo)(&p_pre_lin_psi);
   if (test_fg)
     NFFT(trafo)(&p_pre_fg_psi);
   else
-    p_pre_fg_psi.MEASURE_TIME_t[2] = MKNAN("");
+    p_pre_fg_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
   NFFT(trafo)(&p_pre_psi);
   if (test_pre_full_psi)
     NFFT(trafo)(&p_pre_full_psi);
   else
-    p_pre_full_psi.MEASURE_TIME_t[2] = MKNAN("");
+    p_pre_full_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
 
   if (test_fftw == 0)
-    p.MEASURE_TIME_t[1] = MKNAN("");
+    p.MEASURE_TIME_t[1] = NFFT_MKNAN("");
 
   if (test_ndft)
     e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
   else
-    e = MKNAN("");
+    e = NFFT_MKNAN("");
 
   printf(
-      "%.2" __FES__ "\t%d\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\t%.2" __FES__ "\n",
+      "%.2" NFFT__FES__ "\t%d\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\n",
       t_ndft, m, e, p.MEASURE_TIME_t[0], p_pre_phi_hut.MEASURE_TIME_t[0],
       p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], p_fg_psi.MEASURE_TIME_t[2],
       p_pre_lin_psi.MEASURE_TIME_t[2], p_pre_fg_psi.MEASURE_TIME_t[2],
@@ -215,8 +210,8 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 {
   int r, NN[d], nn[d];
-  R e;
-  C *swapndft;
+  NFFT_R e;
+  NFFT_C *swapndft;
 
   NFFT(plan) p;
 
@@ -227,7 +222,7 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   }
 
   /* output vector ndft */
-  swapndft = (C*) NFFT(malloc)((size_t)(M) * sizeof(C));
+  swapndft = (NFFT_C*) NFFT(malloc)((size_t)(M) * sizeof(NFFT_C));
 
   NFFT(init_guru)(&p, d, NN, M, nn, m,
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
@@ -238,7 +233,7 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   /** realloc psi */
   NFFT(free)(p.psi);
   p.K = K;
-  p.psi = (R*) NFFT(malloc)((size_t)((p.K + 1) * p.d) * sizeof(R));
+  p.psi = (NFFT_R*) NFFT(malloc)((size_t)((p.K + 1) * p.d) * sizeof(NFFT_R));
 
   /** precomputation can be done before the nodes are initialised */
   NFFT(precompute_one_psi)(&p);
@@ -250,16 +245,16 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
   /** compute exact result */
-  CSWAP(p.f, swapndft);
+  NFFT_CSWAP(p.f, swapndft);
   NFFT(trafo_direct)(&p);
-  CSWAP(p.f, swapndft);
+  NFFT_CSWAP(p.f, swapndft);
 
   /** NFFT */
   NFFT(trafo)(&p);
   e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
 
   //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
-  printf("$%.1" __FES__ "$&\t", e);
+  printf("$%.1" NFFT__FES__ "$&\t", e);
 
   fflush(stdout);
 
@@ -272,6 +267,8 @@ int main(int argc, char **argv)
 {
   int l, trial;
 
+  test_fg = (strcmp(NFFT(get_window_name)(), "gaussian") == 0);
+
   if (argc <= 2)
   {
     fprintf(stderr, "flags type first last trials d m\n");
@@ -280,7 +277,7 @@ int main(int argc, char **argv)
 
   if ((test == 0) && (atoi(argv[1]) < 2))
   {
-    fprintf(stderr, "MEASURE_TIME in infft.h not set\n");
+    fprintf(stderr, "configure with --enable-measure-time\n");
     return EXIT_FAILURE;
   }
 
@@ -319,7 +316,7 @@ int main(int argc, char **argv)
     {
       for (trial = 0; trial < arg4; trial++)
       {
-        time_accuracy(d, N, (int)(LRINT(POW((R)(N), (R)(d)))), 2 * N, m, 1, 1);
+        time_accuracy(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, 1, 1);
       }
     }
   }
@@ -340,7 +337,7 @@ int main(int argc, char **argv)
     for (l = arg2; l <= arg3; l++)
     {
       int x = (m + 1) * (int)(1U << l);
-      accuracy_pre_lin_psi(d, N, (int)(LRINT(POW((R)(N), (R)(d)))), 2 * N, m, x);
+      accuracy_pre_lin_psi(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, x);
     }
 
     printf("\n");

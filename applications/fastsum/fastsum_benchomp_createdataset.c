@@ -22,31 +22,30 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "config.h"
-
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
 {
   int t, j, k;
-  R *x;
-  R *y;
-  C *alpha;
+  NFFT_R *x;
+  NFFT_R *y;
+  NFFT_C *alpha;
 
-  x = (R*) NFFT(malloc)((size_t)(d * L) * sizeof(R));
-  y = (R*) NFFT(malloc)((size_t)(d * L) * sizeof(R));
-  alpha = (C*) NFFT(malloc)((size_t)(L) * sizeof(C));
+  x = (NFFT_R*) NFFT(malloc)((size_t)(d * L) * sizeof(NFFT_R));
+  y = (NFFT_R*) NFFT(malloc)((size_t)(d * L) * sizeof(NFFT_R));
+  alpha = (NFFT_C*) NFFT(malloc)((size_t)(L) * sizeof(NFFT_C));
 
   /** init source knots in a d-ball with radius 1 */
   k = 0;
   while (k < L)
   {
-    R r_max = K(1.0);
-    R r2 = K(0.0);
+    NFFT_R r_max = NFFT_K(1.0);
+    NFFT_R r2 = NFFT_K(0.0);
 
     for (j = 0; j < d; j++)
-      x[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
+      x[k * d + j] = NFFT_K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += x[k * d + j] * x[k * d + j];
@@ -63,11 +62,11 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
   k = 0;
   while (k < M)
   {
-    R r_max = K(1.0);
-    R r2 = K(0.0);
+    NFFT_R r_max = NFFT_K(1.0);
+    NFFT_R r2 = NFFT_K(0.0);
 
     for (j = 0; j < d; j++)
-      y[k * d + j] = K(2.0) * r_max * NFFT(drand48)() - r_max;
+      y[k * d + j] = NFFT_K(2.0) * r_max * NFFT(drand48)() - r_max;
 
     for (j = 0; j < d; j++)
       r2 += y[k * d + j] * y[k * d + j];
@@ -83,17 +82,17 @@ void fastsum_benchomp_createdataset(unsigned int d, int L, int M)
   for (j = 0; j < L; j++)
   {
     for (t = 0; t < d; t++)
-      printf("%.16" __FES__ " ", x[d * j + t]);
+      printf("%.16" NFFT__FES__ " ", x[d * j + t]);
     printf("\n");
   }
 
   for (j = 0; j < L; j++)
-    printf("%.16" __FES__ " %.16" __FES__ "\n", CREAL(alpha[j]), CIMAG(alpha[j]));
+    printf("%.16" NFFT__FES__ " %.16" NFFT__FES__ "\n", NFFT_CREAL(alpha[j]), NFFT_CIMAG(alpha[j]));
 
   for (j = 0; j < M; j++)
   {
     for (t = 0; t < d; t++)
-      printf("%.16" __FES__ " ", y[d * j + t]);
+      printf("%.16" NFFT__FES__ " ", y[d * j + t]);
     printf("\n");
   }
 

@@ -50,6 +50,7 @@
 
 #include <fftw3.h>
 
+#include "nfft3util.h"
 #include "ticks.h"
 
 /**
@@ -178,7 +179,7 @@ typedef ptrdiff_t INT;
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
-  #define WINDOW_HELP_INIT(d)
+  #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)
@@ -1897,7 +1898,7 @@ static inline void Y(sincpow_phi_run)(R *dst, R w, R m, INT mi, R h, R nx0)
     dst[l] = w * EXP(e * Y(log_sinc)(h * (nx0 - (R)l)));
 }
 
-/* float.c: */
+/* float.c: machine-precision parameters, LAPACK DLAMCH-style. */
 typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
   NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
   NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9 } float_property;
@@ -1914,7 +1915,6 @@ void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
 /* not used */ R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
   const INT m);
-R Y(error_l_2_complex)(const C *x, const C *y, const INT n);
 /* not used */ R Y(error_l_2_double)(const R *x, const R *y, const INT n);
 
 /* sort.c: */

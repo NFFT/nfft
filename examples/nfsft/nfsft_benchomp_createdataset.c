@@ -22,16 +22,15 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "config.h"
-
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 
 void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
 {
   int t, j, k, n;
-  R *x;
-  C *f, *f_hat;
+  NFFT_R *x;
+  NFFT_C *f, *f_hat;
   int N_total = (2*N+2) * (2*N+2);
   nfsft_plan ptemp;
 
@@ -39,15 +38,15 @@ void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
     NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
     PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, 6);
 
-  x = (R*) nfft_malloc(2*M*sizeof(R));
-  f = (C*) nfft_malloc(M*sizeof(C));
-  f_hat = (C*) nfft_malloc(N_total*sizeof(C));
+  x = (NFFT_R*) nfft_malloc(2*M*sizeof(NFFT_R));
+  f = (NFFT_C*) nfft_malloc(M*sizeof(NFFT_C));
+  f_hat = (NFFT_C*) nfft_malloc(N_total*sizeof(NFFT_C));
 
   /* init pseudo-random nodes */
   for (j = 0; j < M; j++)
   {
-    x[2*j]= X(drand48)() - K(0.5);
-    x[2*j+1]= K(0.5) * X(drand48)();
+    x[2*j]= NFFT(drand48)() - NFFT_K(0.5);
+    x[2*j+1]= NFFT_K(0.5) * NFFT(drand48)();
   }
  
   if (trafo_adjoint==0)

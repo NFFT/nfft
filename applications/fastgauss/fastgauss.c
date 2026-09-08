@@ -26,7 +26,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
+#include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 
 /**
  * If this flag is set, the whole matrix is precomputed and stored for the
@@ -335,7 +337,7 @@ static void fgt_test_init_rand(fgt_plan *ths)
 static NFFT_R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
-  NFFT_R t0, t1, time_diff;
+  double t0, t1, time_diff;
   NFFT_R t_out;
   NFFT_R tau = NFFT_K(0.01);
 
