@@ -574,9 +574,6 @@ AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
 AC_CHECK_FUNCS([gethostname])
-if test "x$ac_cv_func_gethostname" = "xyes"; then
-  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_GETHOSTNAME"
-fi
 AC_SUBST(NFFT_PROGRAM_CPPFLAGS)
 
 AC_CHECK_DECLS([memalign, posix_memalign])
