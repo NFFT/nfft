@@ -21,17 +21,13 @@
  * \ingroup applications_quadratureS2
  * \{
  */
-#include "config.h"
-
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 /* Include NFFT 3 utilities headers. */
 
