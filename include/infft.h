@@ -179,7 +179,7 @@ typedef ptrdiff_t INT;
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
-  #define WINDOW_HELP_INIT(d)
+  #define WINDOW_HELP_INIT
   #define WINDOW_HELP_FINALIZE
   #define WINDOW_HELP_ESTIMATE_m 0
 #elif defined(GAUSSIAN)

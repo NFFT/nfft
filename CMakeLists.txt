@@ -41,7 +41,7 @@ option(NFFT_ENABLE_EXAMPLES      "Build the example programs"     ON)
 option(NFFT_ENABLE_APPLICATIONS  "Build the application programs" ON)
 
 set(NFFT_WINDOW "kaiserbessel" CACHE STRING
-    "Window function: kaiserbessel|gaussian|bspline|sinc|dirac")
+    "Window function: kaiserbessel|gaussian|bspline|sinc|dirac (delta = dirac)")
 
 # Language interfaces
 option(NFFT_ENABLE_JULIA "Build Julia interface (double + shared only)" OFF)
