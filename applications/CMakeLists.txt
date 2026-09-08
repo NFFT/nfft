@@ -36,13 +36,13 @@ set(_fastsum_inc
 add_library(fastsum_lib STATIC ${_fastsum_src}/fastsum.c)
 set_target_properties(fastsum_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(fastsum_lib PRIVATE ${_fastsum_inc})
-target_compile_definitions(fastsum_lib PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(fastsum_lib PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
 target_link_libraries(fastsum_lib PRIVATE FFTW3::fftw3)
 
 add_library(fastsum_kernels STATIC ${_fastsum_src}/kernels.c)
 set_target_properties(fastsum_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(fastsum_kernels PRIVATE ${_fastsum_inc})
-target_compile_definitions(fastsum_kernels PRIVATE ${NFFT_PRECISION_MACRO})
+target_compile_definitions(fastsum_kernels PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
 # kernels.c -> kernels.h -> nfft3.h -> <fftw3.h>, so it needs FFTW's include dir.
 # Link FFTW3::fftw3 (as fastsum_lib does) to pick it up portably; ${_fastsum_inc}
 # alone omits it, which only breaks where FFTW is non-system (macOS/Homebrew at
@@ -66,7 +66,7 @@ if(NFFT_ENABLE_OPENMP)
   add_library(fastsum_threads_lib STATIC ${_fastsum_src}/fastsum.c)
   set_target_properties(fastsum_threads_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_include_directories(fastsum_threads_lib PRIVATE ${_fastsum_inc})
-  target_compile_definitions(fastsum_threads_lib PRIVATE ${NFFT_PRECISION_MACRO})
+  target_compile_definitions(fastsum_threads_lib PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
   target_link_libraries(fastsum_threads_lib PRIVATE OpenMP::OpenMP_C FFTW3::fftw3)
   if(FFTW3_OMP_FOUND)
     target_link_libraries(fastsum_threads_lib PRIVATE FFTW3::fftw3_omp)

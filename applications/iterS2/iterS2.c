@@ -23,15 +23,11 @@
  * \ingroup applications_iterS2
  * \{
  */
-#include "config.h"
-
 /* Include standard C headers. */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 /* Include NFFT 3 utilities headers. */
 /* Include NFFT3 library header. */

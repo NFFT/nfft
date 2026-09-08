@@ -22,8 +22,6 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "config.h"
-
 #include "nfft3.h"
 #include "nfft3mp.h"
 #include "nfft3util.h"

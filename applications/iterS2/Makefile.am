@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft -D@NFFT_PRECISION_MACRO@
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/kernel/nfsft -D@NFFT_PRECISION_MACRO@ @NFFT_PROGRAM_CPPFLAGS@
 
 noinst_PROGRAMS = iterS2
 

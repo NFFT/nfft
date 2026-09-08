@@ -24,25 +24,19 @@
  *
  * References: Time and Memory Requirements of the Nonequispaced FFT
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 #include "nfft3mp.h"
 #include "nfft3util.h"
 
-#ifdef GAUSSIAN
-  unsigned test_fg=1;
-#else
-  unsigned test_fg=0;
-#endif
+/* The Gaussian window is the only one with a fast-Gaussian variant. Which
+ * window the library was built with is a runtime query, not a build flag. */
+static unsigned test_fg = 0;
 
 #ifdef MEASURE_TIME_FFTW
   unsigned test_fftw=1;
@@ -272,6 +266,8 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
 int main(int argc, char **argv)
 {
   int l, trial;
+
+  test_fg = (strcmp(NFFT(get_window_name)(), "gaussian") == 0);
 
   if (argc <= 2)
   {

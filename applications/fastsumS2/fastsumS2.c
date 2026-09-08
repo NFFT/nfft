@@ -21,16 +21,12 @@
  * \ingroup applications_fastsumS2
  * \{
  */
-#include "config.h"
-
 /* standard headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 /* NFFT3 header */
 #include "nfft3.h"
