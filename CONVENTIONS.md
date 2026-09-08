@@ -31,6 +31,10 @@ arithmetic works on. This is FFTW's contract, not ours. Canonical order:
 Autotools and CMake both pass the precision macro as `-D`, so in-tree sources
 skip the `#define` step.
 
+`nfft3mp.h` includes nothing of its own. `NFFT_C` is a macro that expands to an
+`fftw_complex` spelling, so `<fftw3.h>` must already be visible; `nfft3.h` is
+what pulls it in. `nfft3mp.h` stops with an `#error` if it is not.
+
 A file that uses a `config.h` macro (`HAVE_FFTW_THREADS`, `MEASURE_TIME`,
 `GAUSSIAN`, ...) must `#include "config.h"` itself. The public headers do not
 pull it in; only `infft.h` does.
