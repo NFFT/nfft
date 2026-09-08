@@ -39,6 +39,20 @@
 
 #define K4PI NFFT_K(12.5663706143591729538505735331180115367886775975004)
 
+/* Underflow and overflow thresholds for the Bessel routines below. R_TINY is
+ * exactly LAPACK DLAMCH's rmin; R_HUGE is one ulp above its rmax, which only
+ * makes an overflow guard marginally less conservative. */
+#if defined(NFFT_PRECISION_SINGLE)
+#define R_TINY FLT_MIN
+#define R_HUGE FLT_MAX
+#elif defined(NFFT_PRECISION_LONG_DOUBLE)
+#define R_TINY LDBL_MIN
+#define R_HUGE LDBL_MAX
+#else
+#define R_TINY DBL_MIN
+#define R_HUGE DBL_MAX
+#endif
+
 /* Fourier-Legendre coefficients for Abel-Poisson kernel */
 #define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
 
@@ -62,7 +76,7 @@ enum pvalue {NO = 0, YES = 1, BOTH = 2};
 static inline int scaled_modified_bessel_i_series(const NFFT_R x, const NFFT_R alpha,
   const int nb, const int ize, NFFT_R *b)
 {
-  const NFFT_R enmten = NFFT_K(4.0)*nfft_float_property(NFFT_R_MIN);
+  const NFFT_R enmten = NFFT_K(4.0)*R_TINY;
   NFFT_R tempa = NFFT_K(1.0), empal = NFFT_K(1.0) + alpha, halfx = NFFT_K(0.0), tempb = NFFT_K(0.0);
   int n, ncalc = nb;
 
@@ -118,7 +132,7 @@ static inline int scaled_modified_bessel_i_series(const NFFT_R x, const NFFT_R a
 static inline void scaled_modified_bessel_i_normalize(const NFFT_R x,
   const NFFT_R alpha, const int nb, const int ize, NFFT_R *b, const NFFT_R sum_)
 {
-  const NFFT_R enmten = NFFT_K(4.0)*nfft_float_property(NFFT_R_MIN);
+  const NFFT_R enmten = NFFT_K(4.0)*R_TINY;
   NFFT_R sum = sum_, tempa;
   int n;
 
@@ -213,7 +227,7 @@ static int smbi(const NFFT_R x, const NFFT_R alpha, const int nb, const int ize,
   /*          EXP ROUTINE CAN HANDLE AND UPPER LIMIT ON THE */
   /*          MAGNITUDE OF X WHEN IZE=1. */
   const int nsig = NFFT_R_MANT_DIG + 2;
-  const NFFT_R enten = nfft_float_property(NFFT_R_MAX);
+  const NFFT_R enten = R_HUGE;
   const NFFT_R ensig = NFFT_POW(NFFT_K(10.0),(NFFT_R)nsig);
   const NFFT_R rtnsig = NFFT_POW(NFFT_K(10.0),-NFFT_CEIL((NFFT_R)nsig/NFFT_K(4.0)));
   const NFFT_R xlarge = NFFT_K(1E4);
