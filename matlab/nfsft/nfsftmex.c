@@ -127,6 +127,7 @@ static void cleanup(void)
     }
     nfsft_forget();
     gflags |= NFSFT_MEX_FIRST_CALL;
+    nfft_mex_pause_threads();
     gflags &= ~NFSFT_MEX_PRECOMPUTED;
     n_max = -1;
   }

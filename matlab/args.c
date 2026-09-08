@@ -21,6 +21,20 @@
 #include "infft.h"
 #include "imex.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+/* Join the OpenMP worker pool before the mex image, and with it libgomp, is
+ * unloaded. Parked workers otherwise run their exit handlers in unmapped
+ * memory. */
+void nfft_mex_pause_threads(void)
+{
+#if defined(_OPENMP) && _OPENMP >= 201811
+  omp_pause_resource_all(omp_pause_hard);
+#endif
+}
+
 int nfft_mex_get_int(const mxArray *p, const char *errmsg)
 {
   DM(if (!mxIsDouble(p) || mxIsComplex(p) || mxGetM(p) != 1 || mxGetN(p) != 1)

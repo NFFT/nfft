@@ -94,6 +94,7 @@ static void cleanup(void)
       plans_num_allocated = 0;
     }
     gflags |= NFSOFT_MEX_FIRST_CALL;
+    nfft_mex_pause_threads();
     n_max = -1;
   }
 }
