@@ -31,32 +31,16 @@
  * otherwise bless a later estimate plan of the same size.
  */
 
-#include "config.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
 #include <time.h>
+#include <unistd.h>
 
-#if defined(NFFT_SINGLE)
-# define NFFT_PRECISION_SINGLE
-#elif defined(NFFT_LDOUBLE)
-# define NFFT_PRECISION_LONG_DOUBLE
-#else
-# define NFFT_PRECISION_DOUBLE
-#endif
-
+#include "nfft3.h"
 #include "nfft3mp.h"
-#include "ticks.h"
-
-#if defined(NFFT_SINGLE)
-# define NFAST_CABS cabsf
-#elif defined(NFFT_LDOUBLE)
-# define NFAST_CABS cabsl
-#else
-# define NFAST_CABS cabs
-#endif
+#include "nfft3util.h"
 
 #ifndef NFAST_NATIVE_DATA
 # define NFAST_NATIVE_DATA "../../tests/data/nfft_1d_8192_128.txt"
@@ -65,7 +49,7 @@
 /* Loose PASS/FAIL gate, scaled by build precision: at N=8192 the legacy
  * per-term direct accumulates ~N*eps, ~1e-3 in float but ~1e-12/~1e-15 in
  * double/long-double, so one bound cannot fit all three. */
-#if defined(NFFT_SINGLE)
+#if defined(NFFT_PRECISION_SINGLE)
 # define NFAST_NATIVE_BOUND NFFT_K(1e-2)
 #else
 # define NFAST_NATIVE_BOUND NFFT_K(1e-5)
@@ -168,8 +152,8 @@ static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len)
   NFFT_R num = NFFT_K(0.0), den = NFFT_K(0.0);
   NFFT_INT j;
   for (j = 0; j < len; j++) {
-    NFFT_R d = (NFFT_R)NFAST_CABS(a[j] - b[j]);
-    NFFT_R m = (NFFT_R)NFAST_CABS(b[j]);
+    NFFT_R d = (NFFT_R)NFFT_CABS(a[j] - b[j]);
+    NFFT_R m = (NFFT_R)NFFT_CABS(b[j]);
     if (d > num)
       num = d;
     if (m > den)
@@ -184,11 +168,10 @@ static NFFT_R rel_max_err(const NFFT_C *a, const NFFT_C *b, NFFT_INT len)
  * re-run until this many seconds elapse. */
 #define NFAST_MEASURE_SECONDS 2.0
 
-/* Mean and population standard deviation of the per-run wall seconds and CPU
- * ticks, plus the run count that fit in the budget. */
+/* Mean and population standard deviation of the per-run wall seconds, plus
+ * the run count that fit in the budget. */
 typedef struct {
   double secs_mean, secs_std;
-  double tks_mean, tks_std;
   long runs;
 } nfast_timing;
 
@@ -246,70 +229,45 @@ static void run_plan_ng_adjoint(void *ctx)
 /* Wall-clock seconds as a double, independent of the build precision. The
  * public NFFT(clock_gettime_seconds)() returns the precision real R, which in
  * the float build cannot resolve sub-second intervals (the epoch ~1.7e9 has
- * only ~200 s resolution in float), so read CLOCK_MONOTONIC directly. */
+ * only ~200 s resolution in float), so read CLOCK_MONOTONIC directly. Where
+ * POSIX timers are absent, fall back to the ISO C process clock. */
 static double wall_seconds(void)
 {
-#if defined(HAVE_CLOCK_GETTIME)
+#if defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
     return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
 #endif
-  return 0.0;
+  return (double)clock() / (double)CLOCKS_PER_SEC;
 }
 
 static nfast_timing time_run(void (*fn)(void *), void *ctx)
 {
-  /* Welford online mean/variance for wall-seconds and CPU ticks. */
-  double s_mean = 0.0, s_m2 = 0.0, t_mean = 0.0, t_m2 = 0.0;
+  /* Welford online mean/variance for the per-run wall seconds. */
+  double s_mean = 0.0, s_m2 = 0.0;
   long n = 0;
-  double probe, start;
+  double start;
   nfast_timing r;
-
-  /* No usable wall clock (wall_seconds() == 0): a budgeted loop would never
-   * terminate, so degrade to a single tick-only measurement. */
-  probe = wall_seconds();
-  if (probe == 0.0) {
-    ticks t0, t1;
-    t0 = getticks();
-    fn(ctx);
-    t1 = getticks();
-    r.secs_mean = 0.0;
-    r.secs_std = 0.0;
-    r.tks_mean = elapsed(t1, t0);
-    r.tks_std = 0.0;
-    r.runs = 1;
-    return r;
-  }
 
   /* Re-run until NFAST_MEASURE_SECONDS of wall time accumulate. The loop
    * condition reads the same monotonic clock, so it terminates even when a
    * single run is below the clock resolution. */
-  start = probe;
+  start = wall_seconds();
   do {
-    ticks t0, t1;
-    double s0, s1, ds, dt, d, d2;
+    double s0, s1, ds, d, d2;
     s0 = wall_seconds();
-    t0 = getticks();
     fn(ctx);
-    t1 = getticks();
     s1 = wall_seconds();
     ds = s1 - s0;
-    dt = elapsed(t1, t0);
     n++;
     d = ds - s_mean;
     s_mean += d / (double)n;
     d2 = ds - s_mean;
     s_m2 += d * d2;
-    d = dt - t_mean;
-    t_mean += d / (double)n;
-    d2 = dt - t_mean;
-    t_m2 += d * d2;
   } while (wall_seconds() - start < NFAST_MEASURE_SECONDS);
 
   r.secs_mean = s_mean;
   r.secs_std = n > 1 ? sqrt(s_m2 / (double)n) : 0.0;
-  r.tks_mean = t_mean;
-  r.tks_std = n > 1 ? sqrt(t_m2 / (double)n) : 0.0;
   r.runs = n;
   return r;
 }
@@ -319,8 +277,8 @@ static nfast_timing time_run(void (*fn)(void *), void *ctx)
 static void print_timing_row(const char *label, const char *op, nfast_timing s,
                              int has_err, NFFT_R err, int ok)
 {
-  printf("  %-26s %-4s %12.6e +/- %10.4e s   %14.0f +/- %12.4e tk   n=%ld",
-         label, op, s.secs_mean, s.secs_std, s.tks_mean, s.tks_std, s.runs);
+  printf("  %-26s %-4s %12.6e +/- %10.4e s   n=%ld", label, op, s.secs_mean,
+         s.secs_std, s.runs);
   if (has_err)
     printf("   err %12.4e bound %g %s", (double)err,
            (double)NFAST_NATIVE_BOUND, ok ? "PASS" : "FAIL");
@@ -401,8 +359,6 @@ int main(void)
   t_pre_legacy = time_run(run_legacy_precompute, &lp);
   t_pre_none.secs_mean = 0.0;
   t_pre_none.secs_std = 0.0;
-  t_pre_none.tks_mean = 0.0;
-  t_pre_none.tks_std = 0.0;
   t_pre_none.runs = 0;
 
   /* trafo_direct ignores the PRE_PSI table (exact NDFT); capture before
@@ -519,8 +475,7 @@ int main(void)
    * Ordered so the two directs sit together (legacy, planner) and the two fast
    * NFFTs are adjacent (legacy, planner native), each fast NFFT showing its
    * FFTW_ESTIMATE row immediately above its FFTW_MEASURE row. */
-  printf("\ntiming (mean +/- std over ~%g s per step; wall seconds / CPU "
-         "ticks)"
+  printf("\ntiming (mean +/- std of the wall seconds over ~%g s per step)"
          " with forward accuracy vs reference (max|got-ref|/max|ref|):\n",
          NFAST_MEASURE_SECONDS);
   print_timing("legacy direct", t_pre_none, t_ld, t_adj_ld,
