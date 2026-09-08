@@ -15,15 +15,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 #include "nfft3mp.h"

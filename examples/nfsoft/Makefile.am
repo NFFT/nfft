@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include @NFFT_PROGRAM_CPPFLAGS@
 
 ## The program name
 noinst_PROGRAMS = simple_test

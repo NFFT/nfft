@@ -213,10 +213,15 @@ if test "x$enable_debug" = "xyes"; then
   AC_DEFINE(NFFT_DEBUG,1,[Define to enable extra debugging code.])
 fi
 
+# Preprocessor flags handed to the example and application programs. They must
+# not include config.h, so everything they need arrives as -D.
+NFFT_PROGRAM_CPPFLAGS=""
+
 # runtime time measurements
 AC_ARG_ENABLE(measure-time, [AS_HELP_STRING([--enable-measure-time],[measure time during execution])], ok=$enableval, ok=no)
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME,1,[Define to enable runtime time measurements.])
+  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DMEASURE_TIME"
 fi
 
 # runtime time measurements for FFTW part
@@ -224,6 +229,7 @@ AC_ARG_ENABLE(measure-time-fftw, [AS_HELP_STRING([--enable-measure-time-fftw],[m
 if test "x$ok" = "xyes"; then
   AC_DEFINE(MEASURE_TIME_FFTW,1,[Define to enable time measurements for FFTW]
   [transforms.])
+  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DMEASURE_TIME_FFTW"
 fi
 
 AC_ARG_ENABLE(mips_zbus_timer, [AS_HELP_STRING([--enable-mips-zbus-timer],[use MIPS ZBus cycle-counter])], have_mips_zbus_timer=$enableval,
@@ -458,11 +464,13 @@ if test "x$enable_threads" = "xyes"; then
     # FFTW3 OpenMP variant found - no warning needed (optimal case)
     fftw3_LIBS_omp="$nfft_fftw3_LIBS_omp"
     AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+    NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_FFTW_THREADS"
   elif test "x$nfft_fftw3_have_lib_threads" = "xyes"; then
     # Only generic multi-threaded FFTW3 found - warn about potential inefficiency
     AC_MSG_WARN([Only generic multi-threaded FFTW3 library found. This may be less efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.])
     fftw3_LIBS_omp="$nfft_fftw3_LIBS_threads"
     AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+    NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_FFTW_THREADS"
   else
     # Only single-threaded FFTW3 found - warn that only NFFT code will be multi-threaded
     AC_MSG_WARN([Only single-threaded FFTW3 library found. Multi-threading will only be used in NFFT code, not in FFTW3 computations.])
@@ -566,6 +574,10 @@ AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
 AC_CHECK_FUNCS([gethostname])
+if test "x$ac_cv_func_gethostname" = "xyes"; then
+  NFFT_PROGRAM_CPPFLAGS="$NFFT_PROGRAM_CPPFLAGS -DHAVE_GETHOSTNAME"
+fi
+AC_SUBST(NFFT_PROGRAM_CPPFLAGS)
 
 AC_CHECK_DECLS([memalign, posix_memalign])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])

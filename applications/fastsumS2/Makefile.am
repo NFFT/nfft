@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -D@NFFT_PRECISION_MACRO@
+AM_CPPFLAGS = -I$(top_srcdir)/include -D@NFFT_PRECISION_MACRO@ @NFFT_PROGRAM_CPPFLAGS@
 
 noinst_PROGRAMS = fastsumS2
 

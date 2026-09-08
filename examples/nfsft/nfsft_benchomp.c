@@ -20,8 +20,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "config.h"
-
 #include <complex.h>
 #include "nfft3.h"
 #include "nfft3mp.h"
