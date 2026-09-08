@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <complex.h>
 #include "nfft3.h"
@@ -254,15 +253,13 @@ unsigned int determine_different_parameters(s_testset *testsets, int ntestsets)
   return mask;
 }
 
-void get_plot_title(char *outstr, int maxlen, char *hostname, s_param param, unsigned int diff_mask)
+void get_plot_title(char *outstr, int maxlen, s_param param, unsigned int diff_mask)
 {
   unsigned int mask = ~diff_mask;
   int offset = 0;
   int len;
 
-  len = snprintf(outstr, maxlen, "%s", hostname);
-  if (len < 0 || len+offset >= maxlen-1) return;
-  offset += len;
+  outstr[0] = '\0';
 
   if (mask & MASK_TA)
   {
@@ -325,16 +322,10 @@ void get_plot_title(char *outstr, int maxlen, char *hostname, s_param param, uns
 void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestsets, int use_tref, double tref)
 {
   int i, t;
-  char hostname[1025];
   char plottitle[1025];
   unsigned int diff_mask = determine_different_parameters(testsets, ntestsets);
 
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
-
-  get_plot_title(plottitle, 1024, hostname, testsets[0].param, diff_mask);
+  get_plot_title(plottitle, 1024, testsets[0].param, diff_mask);
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
@@ -345,7 +336,7 @@ void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestse
   for (t = 0; t < ntestsets; t++)
   {
     s_testset testset = testsets[t];
-    fprintf(stderr, "%s $\\mathrm{NFSFT}%s$ N=%d M=%d m=%d %s %s %s}", hostname, testset.param.trafo_adjoint==0?"":"^\\top", testset.param.N, testset.param.M, testset.param.m, get_psi_string(testset.param.psi_flags), get_sort_string(testset.param.psi_flags), get_adjoint_omp_string(testset.param.psi_flags));
+    fprintf(stderr, "$\\mathrm{NFSFT}%s$ N=%d M=%d m=%d %s %s %s}", testset.param.trafo_adjoint==0?"":"^\\top", testset.param.N, testset.param.M, testset.param.m, get_psi_string(testset.param.psi_flags), get_sort_string(testset.param.psi_flags), get_adjoint_omp_string(testset.param.psi_flags));
     fprintf(stderr, "\n");
 
     fprintf(out, "\\addplot coordinates {");
@@ -370,7 +361,7 @@ void print_output_speedup_total_tref(FILE *out, s_testset *testsets, int ntestse
     char title[256];
     if (t > 0)
       fprintf(out, "},{");
-    get_plot_title(title, 255, "", testsets[t].param, ~(diff_mask));
+    get_plot_title(title, 255, testsets[t].param, ~(diff_mask));
     fprintf(out, "%s", title);
   }
   fprintf(out, "}}\n");
@@ -398,12 +389,6 @@ void print_output_speedup_total(FILE *out, s_testset *testsets, int ntestsets, i
 void print_output_histo_PENRT(FILE *out, s_testset testset)
 {
   int i, size = testset.nresults;
-  char hostname[1025];
-
-#ifdef HAVE_GETHOSTNAME
-  if (gethostname(hostname, 1024) != 0)
-#endif
-    strncpy(hostname, "unnamed", 1024);
 
   fprintf(out, "\\begin{tikzpicture}\n");
   fprintf(out, "\\begin{axis}[");
@@ -416,7 +401,7 @@ void print_output_histo_PENRT(FILE *out, s_testset testset)
       fprintf(out, "%d", testset.results[i].nthreads);
 
   fprintf(out, "}, x tick label style={ /pgf/number format/1000 sep=}, xlabel=Number of threads, ylabel=Time in s, xtick=data, legend style={legend columns=-1}, ybar, bar width=7pt, ymajorgrids=true, yminorgrids=true, minor y tick num=1, ");
-  fprintf(out, " title={%s $\\mathrm{NFSFT}%s$ N=%d M=%d m=%d %s %s %s}", hostname, testset.param.trafo_adjoint==0?"":"^\\top", testset.param.N, testset.param.M, testset.param.m, get_psi_string(testset.param.psi_flags), get_sort_string(testset.param.psi_flags), get_adjoint_omp_string(testset.param.psi_flags));
+  fprintf(out, " title={$\\mathrm{NFSFT}%s$ N=%d M=%d m=%d %s %s %s}", testset.param.trafo_adjoint==0?"":"^\\top", testset.param.N, testset.param.M, testset.param.m, get_psi_string(testset.param.psi_flags), get_sort_string(testset.param.psi_flags), get_adjoint_omp_string(testset.param.psi_flags));
   fprintf(out, " ]\n");
   fprintf(out, "\\addplot coordinates {");
   for (i = 0; i < size; i++)
