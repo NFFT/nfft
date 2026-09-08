@@ -30,11 +30,6 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/* float.c: machine-precision parameters, LAPACK DLAMCH-style. */
-typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
-  NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
-  NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9} float_property;
-
 /* huge second-order macro that defines prototypes for all utility API functions.
  * We expand this macro for each supported precision.
  *   Y: nfft name-mangling macro
@@ -71,8 +66,6 @@ NFFT_EXTERN NFFT_INT Y(has_threads_enabled)(void); \
  * differences to measure an interval. Always double: an absolute timestamp \
  * is not a transform datum, and float quantises it to tens of ms. */ \
 NFFT_EXTERN double Y(clock_gettime_seconds)(void); \
-/* float.c */ \
-NFFT_EXTERN R Y(float_property)(float_property p); \
 /* error.c: */ \
 NFFT_EXTERN R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
 NFFT_EXTERN R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
