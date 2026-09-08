@@ -162,9 +162,6 @@ set(NFFT_PROGRAM_DEFS "")
 if(HAVE_FFTW_THREADS)
   list(APPEND NFFT_PROGRAM_DEFS HAVE_FFTW_THREADS)
 endif()
-if(HAVE_GETHOSTNAME)
-  list(APPEND NFFT_PROGRAM_DEFS HAVE_GETHOSTNAME)
-endif()
 
 if(NFFT_ENABLE_OPENMP)
   # On macOS, two libomp.dylib copies at different paths can both load into one
