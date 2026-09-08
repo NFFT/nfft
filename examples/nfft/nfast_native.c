@@ -35,8 +35,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
-#include <time.h>
-#include <unistd.h>
 
 #include "nfft3.h"
 #include "nfft3mp.h"
@@ -226,21 +224,6 @@ static void run_plan_ng_adjoint(void *ctx)
   NFFT(execute_adjoint_on)(c->p, c->f_hat, c->f);
 }
 
-/* Wall-clock seconds as a double, independent of the build precision. The
- * public NFFT(clock_gettime_seconds)() returns the precision real R, which in
- * the float build cannot resolve sub-second intervals (the epoch ~1.7e9 has
- * only ~200 s resolution in float), so read CLOCK_MONOTONIC directly. Where
- * POSIX timers are absent, fall back to the ISO C process clock. */
-static double wall_seconds(void)
-{
-#if defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0
-  struct timespec ts;
-  if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-    return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
-#endif
-  return (double)clock() / (double)CLOCKS_PER_SEC;
-}
-
 static nfast_timing time_run(void (*fn)(void *), void *ctx)
 {
   /* Welford online mean/variance for the per-run wall seconds. */
@@ -252,19 +235,19 @@ static nfast_timing time_run(void (*fn)(void *), void *ctx)
   /* Re-run until NFAST_MEASURE_SECONDS of wall time accumulate. The loop
    * condition reads the same monotonic clock, so it terminates even when a
    * single run is below the clock resolution. */
-  start = wall_seconds();
+  start = NFFT(clock_gettime_seconds)();
   do {
     double s0, s1, ds, d, d2;
-    s0 = wall_seconds();
+    s0 = NFFT(clock_gettime_seconds)();
     fn(ctx);
-    s1 = wall_seconds();
+    s1 = NFFT(clock_gettime_seconds)();
     ds = s1 - s0;
     n++;
     d = ds - s_mean;
     s_mean += d / (double)n;
     d2 = ds - s_mean;
     s_m2 += d * d2;
-  } while (wall_seconds() - start < NFAST_MEASURE_SECONDS);
+  } while (NFFT(clock_gettime_seconds)() - start < NFAST_MEASURE_SECONDS);
 
   r.secs_mean = s_mean;
   r.secs_std = n > 1 ? sqrt(s_m2 / (double)n) : 0.0;
