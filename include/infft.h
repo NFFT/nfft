@@ -1898,7 +1898,12 @@ static inline void Y(sincpow_phi_run)(R *dst, R w, R m, INT mi, R h, R nx0)
     dst[l] = w * EXP(e * Y(log_sinc)(h * (nx0 - (R)l)));
 }
 
-/* float.c: */
+/* float.c: machine-precision parameters, LAPACK DLAMCH-style. */
+typedef enum {NFFT_EPSILON = 0, NFFT_SAFE__MIN = 1, NFFT_BASE = 2,
+  NFFT_PRECISION = 3, NFFT_MANT_DIG = 4, NFFT_FLTROUND = 5, NFFT_E_MIN = 6,
+  NFFT_R_MIN = 7, NFFT_E_MAX = 8, NFFT_R_MAX = 9 } float_property;
+
+R Y(float_property)(float_property);
 R Y(prod_real)(R *vec, INT d);
 
 /* int.c: */
