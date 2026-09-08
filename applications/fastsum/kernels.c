@@ -19,14 +19,10 @@
 /*! \file kernels.c
  *  \brief File with predefined kernels for the fast summation algorithm.
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "kernels.h"
 

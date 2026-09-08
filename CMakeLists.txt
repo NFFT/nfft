@@ -143,6 +143,19 @@ if(NFFT_ENABLE_OPENMP AND (FFTW3_OMP_FOUND OR FFTW3_THREADS_FOUND))
                  ${PROJECT_BINARY_DIR}/config.h @ONLY)
 endif()
 
+# Preprocessor definitions handed to the example and application programs. They
+# must not include config.h, so everything they need arrives as -D. Mirrors
+# NFFT_PROGRAM_CPPFLAGS in configure.ac.
+# MEASURE_TIME and MEASURE_TIME_FFTW have no CMake option, so they never appear
+# here, exactly as before this change.
+set(NFFT_PROGRAM_DEFS "")
+if(HAVE_FFTW_THREADS)
+  list(APPEND NFFT_PROGRAM_DEFS HAVE_FFTW_THREADS)
+endif()
+if(HAVE_GETHOSTNAME)
+  list(APPEND NFFT_PROGRAM_DEFS HAVE_GETHOSTNAME)
+endif()
+
 if(NFFT_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS C REQUIRED)
   include(CheckCSourceCompiles)

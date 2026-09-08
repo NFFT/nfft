@@ -25,15 +25,11 @@
  * References: Time and memory requirements of the Nonequispaced FFT
  *
  */
-#include "config.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 #include "nfft3mp.h"

@@ -22,13 +22,9 @@
  *  \author Markus Fenn
  *  \date 2003-2006
  */
-#include "config.h"
-
 #include <stdlib.h>
 #include <math.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 #include "fastsum.h"

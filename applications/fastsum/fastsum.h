@@ -42,12 +42,8 @@
 #ifndef fastsum_h_inc
 #define fastsum_h_inc
 
-#include "config.h"
-
 /** Include header for C99 complex datatype. */
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 /** Include header for utils from NFFT3 library. */
 /** Include header for NFFT3 library. */
 #include "nfft3.h"
