@@ -123,12 +123,19 @@ static void sum_adjoint(const problem_nfft *pn)
 #define NDFT_COST_TRIG 50
 #define NDFT_COST_MUL 6
 
+/* Puts this model on the same unit as the fast solver's, so the two are
+ * comparable and PLNR_PRUNE_RATIO measures what it claims to. Measured: one
+ * unit here costs 2.31x the seconds of one unit there. Re-derive with the
+ * sweep in docs/agents/pcost-calibration.md if the models change. */
+#define NDFT_COST_UNIT 2.31
+
 double Y(nfft_ndft_pcost)(const problem *p)
 {
   const problem_nfft *ego = (const problem_nfft *)p;
   double Ntot = (double)Y(problem_nfft_Ntot)(p);
   double M = (double)ego->M;
-  return (NDFT_COST_TRIG / (double)NDFT_RECURRENCE_BLOCK + NDFT_COST_MUL)
+  return NDFT_COST_UNIT
+         * (NDFT_COST_TRIG / (double)NDFT_RECURRENCE_BLOCK + NDFT_COST_MUL)
          * Ntot * M;
 }
 

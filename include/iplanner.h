@@ -167,8 +167,13 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
  * candidate set mixes complexity classes (O(N M) direct vs fast), so an ungated
  * race can spend a minute timing one apply of a direct NDFT. The ratio still
  * admits direct candidates for small problems, where the analytic models are
- * within a few x of each other. */
-#define PLNR_PRUNE_RATIO 8.0
+ * within a few x of each other.
+ *
+ * 4.0 comes from the sweep in docs/agents/pcost-calibration.md: over 961
+ * geometries it never pruned a direct that would have won, and it is the
+ * loosest value whose gain is real. The ratio cannot go below 2.0, where the
+ * fast model's residual spread starts to prune winners. */
+#define PLNR_PRUNE_RATIO 4.0
 
 /* Measurement of pln->adt->apply(pln, p). Returns the cost in arbitrary units,
  * suitable only for comparison against other candidates measured in the same

@@ -1140,8 +1140,9 @@ void Y(check_nplan_measured)(void)
 void Y(check_nplan_destructive_default)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
-   * (PLNR_PRUNE_RATIO), so two candidates race. */
-  INT N = 64, n = 128, M = 64;
+   * (PLNR_PRUNE_RATIO), so two candidates race, and small enough that the
+   * direct then wins, which is what the exact-NDFT reference below assumes. */
+  INT N = 64, n = 128, M = 16;
   static R x[8192];
   static C f_hat[64], f[8192], saved[8192];
   Y(plan_ng) *p;
@@ -1353,7 +1354,7 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
-  INT N = 64, n = 128, M = 64;
+  INT N = 64, n = 128, M = 16;
   static R x[8192];
   static C f_hat[64], f[8192];
   Y(plan_ng) *p;
@@ -2436,10 +2437,10 @@ void Y(check_nplan_awake_zero_internal)(void)
   CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE);
   Y(plan_ng_destroy)(p);
 
-  /* Measured, with M small enough that the direct NDFT survives the estimate
-   * gate and two candidates actually race. */
+  /* Measured, small enough that the direct NDFT survives the estimate gate
+   * (PLNR_PRUNE_RATIO) and two candidates actually race. */
   {
-    INT Nm = 64, nm = 128, Mm = 64;
+    INT Nm = 64, nm = 128, Mm = 16;
     R *xm = (R *)Y(malloc)((size_t)Mm * sizeof(R));
     C *fhm = (C *)Y(malloc)((size_t)Nm * sizeof(C));
     C *fm = (C *)Y(malloc)((size_t)Mm * sizeof(C));

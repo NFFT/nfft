@@ -144,6 +144,18 @@ when inapplicable; `planner_mkplan` consults wisdom, else keeps the cheapest
 candidate and memoises the outcome unblessed. Costs are comparable only within
 one race, never across planning modes.
 
+**pcost** (planner cost model):
+A plan's analytic cost, set at `mkplan` time. Ranks candidates in estimate mode
+and gates the measured race through `PLNR_PRUNE_RATIO`: a candidate above that
+multiple of the cheapest pcost is never timed. The unit is arbitrary but must be
+*common* to every solver of a kind, or the gate measures nothing. The direct
+NDFT and fast NFFT models were calibrated against measurement to share one unit;
+see [`docs/agents/pcost-calibration.md`](docs/agents/pcost-calibration.md) for
+the sweep and how to redo it.
+_Avoid_: a fixed size cutoff to rule out the direct solver. FFTW can do that
+(`GENERIC_MAX_SLOW`) because its slow path is prime-`n`-only and its fast path
+is exact; our crossover moves with `M`, `m` and `sigma`.
+
 **plan_ng** (NFFT bundled plan):
 The next-generation NFFT lifecycle: one bundle owns one forward problem and
 one planner-selected plan that serves both directions via `apply_adjoint`.
