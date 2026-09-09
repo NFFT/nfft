@@ -83,8 +83,8 @@ add-on report FFTW's thread count into the wisdom key.
   `libkernel.la`.
 - `kernel/nfft/Makefile.am`, `CMakeLists.txt` — add `mapflags.c`.
 - `tests/Makefile.am` — the `checkall_ngomp` binary.
-- `tests/planner.c`, `tests/planner.h`, `tests/nplan.c`, `tests/nplan.h`,
-  `tests/check_ng.c` — new cases.
+- `tests/planner.c`, `tests/planner.h`, `tests/nfast.c`, `tests/nfast.h`,
+  `tests/nplan.c`, `tests/nplan.h`, `tests/check_ng.c` — new cases.
 - `.claude/skills/understanding-the-planner-api/SKILL.md` and its
   `reference/planning-modes-and-flags.md`, `reference/wisdom.md`,
   `reference/solvers-problems-windows.md`, `reference/building-testing-examples.md`.
@@ -101,7 +101,8 @@ Implements R1, R2, R3, R9.
   `include/iplanner.h` (declarations near `Y(planner_mkplan)`, line 323),
   `kernel/nfft/plan.c:44-53`, `kernel/nfft/plan.c:80`,
   `kernel/nfft/plan.c:105-107`, `kernel/nfft/Makefile.am`, `CMakeLists.txt`
-- Test: `tests/planner.c`, `tests/planner.h`, `tests/check_ng.c`
+- Test: `tests/planner.c`, `tests/planner.h`, `tests/nfast.c`, `tests/nfast.h`,
+  `tests/check_ng.c`
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
@@ -239,9 +240,9 @@ void Y(check_planner_derive_fftw_flags)(void)
   CU_ASSERT_TRUE(f & FFTW_EXHAUSTIVE);
   CU_ASSERT_FALSE(f & FFTW_ESTIMATE);
 
-  /* Input preservation is stripped on both paths; the scratch grids are ours. */
+  /* Deriving decides patience and nothing else. Input preservation is
+   * normalised once, where the child plan is built. */
   f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE, FFTW_PRESERVE_INPUT | FFTW_PATIENT);
-  CU_ASSERT_FALSE(f & FFTW_PRESERVE_INPUT);
   CU_ASSERT_TRUE(f & FFTW_PATIENT);
 
   /* Distinct patience levels must produce distinct words, or two plans with
@@ -355,23 +356,19 @@ unsigned Y(nfft_map_planning_flags)(unsigned planning)
 unsigned Y(nfft_derive_fftw_flags)(unsigned planning, unsigned fftw_flags)
 {
   unsigned estimate, patient, exhaustive;
-  unsigned ff;
 
   if (fftw_flags != 0u)
-    return fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT;
+    return fftw_flags;
 
   levels(planning, &estimate, &patient, &exhaustive);
 
   if (estimate)
-    ff = (unsigned)FFTW_ESTIMATE;
-  else if (exhaustive)
-    ff = (unsigned)FFTW_EXHAUSTIVE;
-  else if (patient)
-    ff = (unsigned)FFTW_PATIENT;
-  else
-    ff = (unsigned)FFTW_MEASURE; /* zero */
-
-  return ff & ~(unsigned)FFTW_PRESERVE_INPUT;
+    return (unsigned)FFTW_ESTIMATE;
+  if (exhaustive)
+    return (unsigned)FFTW_EXHAUSTIVE;
+  if (patient)
+    return (unsigned)FFTW_PATIENT;
+  return (unsigned)FFTW_MEASURE; /* zero */
 }
 ```
 
@@ -419,16 +416,96 @@ to
 Apply the identical change to any other `Y(mkproblem_nfft)` call in the file;
 grep for `mkproblem_nfft` and confirm each passes the derived word.
 
-- [ ] **Step 9: Run the tests**
+- [ ] **Step 9: Pin the child plan's flag invariants against regression**
+
+Four properties hold today at `kernel/nfft/nfft-nd.c:209-217` and must still
+hold afterwards. FFTW has no in-place or out-of-place flag: in-place is
+expressed by passing the same pointer twice, so the first two are pointer
+properties, not flag properties.
+
+| invariant | enforced by |
+|---|---|
+| the child FFTs are out of place | `g1 != g2` in the two `FFTW(plan_dft)` calls |
+| forward is `g1 -> g2`, backward is `g2 -> g1` | the same two calls |
+| `FFTW_DESTROY_INPUT` always set | `\| FFTW_DESTROY_INPUT` at line 210 |
+| `FFTW_PRESERVE_INPUT` never set | `& ~FFTW_PRESERVE_INPUT` at line 210 |
+
+Append to `tests/nfast.c`, which already reaches inside the fast solver:
+
+```c
+/* The child FFTW plans must stay out of place with input destruction forced,
+ * whatever the caller passed and whatever the patience level. FFTW's own
+ * description of the plan names the direction and whether it is in place, so
+ * it is the cheapest way to assert this from outside. */
+void Y(check_nfast_child_fftw_flags)(void)
+{
+  const INT N = 64, n = 128, M = 64;
+  const unsigned levels[4] = {NFFT_ESTIMATE, NFFT_MEASURE, NFFT_PATIENT,
+                              NFFT_EXHAUSTIVE};
+  /* A caller word that would break both invariants if it were honoured. */
+  const unsigned hostile[2] = {0u, (unsigned)FFTW_PRESERVE_INPUT};
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  INT j;
+  int i, h;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+  for (j = 0; j < N; j++)
+    f_hat[j] = K(0.0);
+
+  for (h = 0; h < 2; h++)
+    for (i = 0; i < 4; i++) {
+      Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                         NFFT(get_window_id)(), x,
+                                         (FC *)f_hat, (FC *)f, hostile[h],
+                                         levels[i]);
+      CU_ASSERT_PTR_NOT_NULL(p);
+      if (p) {
+        /* The plan tree splices in FFTW's own description of the child. An
+         * in-place child would say so; an out-of-place one does not. */
+        char buf[4096];
+        FILE *s = tmpfile();
+        size_t got;
+        CU_ASSERT_PTR_NOT_NULL(s);
+        NFFT(precompute)(p);
+        NFFT(fprint_plan)(p, s);
+        rewind(s);
+        got = fread(buf, 1, sizeof buf - 1, s);
+        buf[got] = '\0';
+        fclose(s);
+        CU_ASSERT_PTR_NOT_NULL(strstr(buf, "fftw"));
+        CU_ASSERT_PTR_NULL(strstr(buf, "in-place"));
+        NFFT(plan_ng_destroy)(p);
+      }
+    }
+
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}
+```
+
+Declare it in `tests/nfast.h`; register as
+`CU_add_test(nfast_suite, "child_fftw_flags", Y(check_nfast_child_fftw_flags));`.
+
+Run: `make -j && tests/checkall_ng`
+Expected: PASS. If `in-place` appears, `nfft-nd.c` was changed and the two
+`FFTW(plan_dft)` calls no longer use distinct buffers. If the guru returns
+`NULL` for the `FFTW_PRESERVE_INPUT` word, the strip at line 210 was lost.
+
+- [ ] **Step 10: Run the tests**
 
 Run: `./bootstrap.sh && ./configure --enable-all --enable-tests && make -j && make check`
-Expected: PASS, including `planner/mapflags` and `planner/derive_fftw_flags`.
+Expected: PASS, including `planner/mapflags`, `planner/derive_fftw_flags` and
+`nfast/child_fftw_flags`.
 
-- [ ] **Step 10: Format and commit**
+- [ ] **Step 11: Format and commit**
 
 ```bash
-clang-format -i kernel/nfft/mapflags.c kernel/nfft/plan.c include/nfft3.h include/iplanner.h tests/planner.c
-git add include/nfft3.h include/iplanner.h kernel/nfft/mapflags.c kernel/nfft/plan.c kernel/nfft/Makefile.am CMakeLists.txt tests/planner.c tests/planner.h tests/check_ng.c
+clang-format -i kernel/nfft/mapflags.c kernel/nfft/plan.c include/nfft3.h include/iplanner.h tests/planner.c tests/nfast.c
+git add include/nfft3.h include/iplanner.h kernel/nfft/mapflags.c kernel/nfft/plan.c kernel/nfft/Makefile.am CMakeLists.txt tests/planner.c tests/planner.h tests/nfast.c tests/nfast.h tests/check_ng.c
 git commit -m "Map the public planning word through an FFTW-style patience lattice and derive the child FFTW flags from it."
 ```
 
