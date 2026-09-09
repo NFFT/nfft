@@ -1721,3 +1721,52 @@ void Y(check_planner_fftw_nthreads_key)(void)
   Y(problem_destroy)(p);
   Y(planner_destroy)(pl);
 }
+
+/* A wisdom file from before this branch must be refused: its l/u words predate
+ * PLNR_NO_NONTHREADED, its keys were computed without FFTW's thread count, and
+ * it carries only top-level entries. The configuration signature's vocabulary
+ * tag is what refuses it. */
+void Y(check_planner_wisdom_vocabulary)(void)
+{
+  planner *pl = Y(the_planner)();
+  md5 m;
+  md5uint sig[4];
+  char buf[256];
+  unsigned i;
+
+  NFFT(forget_wisdom)();
+
+  /* Compute the OLD signature (without vocabulary tag) */
+  Y(md5_begin)(&m);
+  Y(md5_put_unsigned)(&m, (unsigned)sizeof(R));
+  /* Note: no Y(md5_put_str) for vocabulary tag here */
+  for (i = 0; i < pl->nslvdesc; i++) {
+    slvdesc *d = pl->slvdescs + i;
+    Y(md5_put_int)(&m, d->reg_id);
+    Y(md5_put_str)(&m, d->reg_nam ? d->reg_nam : "");
+  }
+  Y(md5_end)(&m);
+  sig[0] = m.s[0];
+  sig[1] = m.s[1];
+  sig[2] = m.s[2];
+  sig[3] = m.s[3];
+
+  /* Format wisdom with the OLD signature (missing vocabulary tag).
+   * This should be rejected because the current config_signature includes the
+   * tag, so this signature will not match. */
+  snprintf(buf, sizeof(buf),
+           "(" STRINGIZE(Y(wisdom)) "-" PACKAGE_VERSION " #x%x #x%x #x%x #x%x)",
+                         sig[0], sig[1], sig[2], sig[3]);
+  CU_ASSERT_EQUAL(NFFT(import_wisdom_from_string)(buf), 0);
+
+  /* Our own wisdom (with the vocabulary tag) still round-trips */
+  {
+    char *w = NFFT(export_wisdom_to_string)();
+    CU_ASSERT_PTR_NOT_NULL(w);
+    if (w) {
+      NFFT(forget_wisdom)();
+      CU_ASSERT_NOT_EQUAL(NFFT(import_wisdom_from_string)(w), 0);
+      NFFT(free)(w);
+    }
+  }
+}

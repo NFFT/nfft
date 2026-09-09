@@ -260,6 +260,12 @@ static void config_signature(planner *pl, md5sig out)
 
   Y(md5_begin)(&m);
   Y(md5_put_unsigned)(&m, (unsigned)sizeof(R));
+  /* The impatience bit vocabulary and the key's composition. Bump this string
+   * whenever a PLNR_* bit is added, removed or renumbered, or whenever the
+   * problem hash gains or loses a field: stored words are meaningless under a
+   * different vocabulary, and a mismatch must be a rejected import rather than
+   * a silently misread entry. */
+  Y(md5_put_str)(&m, "plnr-flags-v2");
   for (i = 0; i < pl->nslvdesc; i++) {
     slvdesc *d = pl->slvdescs + i;
     Y(md5_put_int)(&m, d->reg_id);

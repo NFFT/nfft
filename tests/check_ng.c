@@ -65,6 +65,8 @@ int main(void)
               Y(check_planner_wisdom_roundtrip));
   CU_add_test(planner_suite, "wisdom_rejects",
               Y(check_planner_wisdom_rejects));
+  CU_add_test(planner_suite, "wisdom_vocabulary",
+              Y(check_planner_wisdom_vocabulary));
   CU_add_test(planner_suite, "tensor_basic", Y(check_planner_tensor_basic));
   CU_add_test(planner_suite, "tensor_canonical",
               Y(check_planner_tensor_canonical));
