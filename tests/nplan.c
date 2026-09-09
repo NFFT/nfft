@@ -1097,7 +1097,7 @@ void Y(check_nplan_measured)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                     0u, NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
-  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem >= ub);
+  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > ub); /* fresh search */
   bundle_winners(p2, f1, a1);
   Y(plan_ng_destroy)(p2);
   Y(plan_ng_destroy)(p);
