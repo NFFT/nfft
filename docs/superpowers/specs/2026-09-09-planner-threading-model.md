@@ -186,6 +186,32 @@ unsupported and the key will read 1.
 `fftw_planner_nthreads` is FFTW 3.3.9 and later, so it needs a configure probe.
 When it is absent the add-on library is not built and the hook stays null.
 
+**R11. One source of truth for wisdom-only.** Add `NFFT_WISDOM_ONLY` to the
+planning word. `Y(nfft_derive_fftw_flags)` sets `FFTW_WISDOM_ONLY` in the child
+word when it is given and clears it when it is not, on both the derived and the
+caller-supplied path, so the two spellings can never disagree.
+
+Today the bit reaches FFTW only through `fftw_flags`
+(`tests/nplan.c:1495` passes `FFTW_WISDOM_ONLY | FFTW_ESTIMATE`). That test
+must move to the planning word. This is a deliberate behaviour change: after it,
+`FFTW_WISDOM_ONLY` inside `fftw_flags` is ignored.
+
+**R11a. Wisdom-only must not change the key.** `keyable_fftw_flags`
+(`kernel/nfft/plan.c:39-42`) strips only `FFTW_DESTROY_INPUT` and
+`FFTW_PRESERVE_INPUT`, so `FFTW_WISDOM_ONLY` currently enters the wisdom key.
+A wisdom-only attempt therefore looks under a different key from the ordinary
+plan that wrote the entry, and can never find it. Strip it too. It is a
+planning directive, not a property of the problem.
+
+**R11b. Naming caveat to record, not to fix here.** `NFFT_WISDOM_ONLY` reaches
+only the child FFTW plans. It does not make NFFT's own planner refuse a
+problem that is absent from NFFT wisdom, which is what the name suggests.
+Making it do so is not plumbing: DECONV and CONV children are planned through
+`Y(planner_mkplan)` and their memos stay unblessed
+(`kernel/nfft/plan.c:125`), so they are never exported and a strict
+wisdom-only search would always fail on them. The ADR must record this and
+name it as the open question.
+
 ## Out of scope
 
 - Any threaded solver, OpenMP pragma or thread pool. The roster ships empty.
