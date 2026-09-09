@@ -31,17 +31,15 @@ struct Y(plan_ng_s) {
   plan *dir[2]; /* [FWD] the winning plan; [ADJ] NULL */
 };
 
-/* Strip the bits that are planning directives rather than properties of the
- * problem, before fftw_flags reaches the wisdom key. The preservation bits go
- * because no planner-native candidate mutates its input in place, so the two
- * spellings must not key distinct entries. FFTW_WISDOM_ONLY goes because it
- * says how hard to look for a plan, not which plan is wanted: a wisdom-only
- * attempt must find the entry an ordinary plan wrote. */
+/* Strip the preservation bits before fftw_flags reaches the problem: no
+ * planner-native candidate mutates its input in place, so the two spellings
+ * must not key distinct entries. FFTW_WISDOM_ONLY stays -- it must reach the
+ * child FFTW plans built in nfft-nd.c so they are planned wisdom-only too --
+ * and is kept out of the wisdom key instead by hash()'s own strip
+ * (kernel/nfft/problem.c). */
 static unsigned keyable_fftw_flags(unsigned fftw_flags)
 {
-  return fftw_flags
-         & ~(unsigned)(FFTW_DESTROY_INPUT | FFTW_PRESERVE_INPUT
-                       | FFTW_WISDOM_ONLY);
+  return fftw_flags & ~(unsigned)(FFTW_DESTROY_INPUT | FFTW_PRESERVE_INPUT);
 }
 
 /* Estimate-mode selection under the planner's current bounds (the caller sets
@@ -85,20 +83,35 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   F = Y(nfft_map_planning_flags)(planning);
   is_estimate = (planning & NFFT_ESTIMATE) ? 1 : 0;
 
+  /* Set per call and cleared on every exit, so a refusal never affects the next
+   * call. FFTW's mkplan0 assigns the state on each top-level planning call for
+   * the same reason. A wisdom-only plan is never blessed and writes nothing
+   * back, so this path must not set PLNR_BLESSING. */
+  pl->wisdom_state = (planning & NFFT_WISDOM_ONLY) ? PLNR_WISDOM_ONLY :
+                                                     PLNR_WISDOM_NORMAL;
+
   /* x/f_hat/f are unconditionally required, in both estimate and measured
    * mode: a plan is always bound to real caller-owned pointers, mirroring
    * FFTW's guru contract. */
-  if (d <= 0 || N == 0 || n == 0 || x == 0 || f_hat == 0 || f == 0)
+  if (d <= 0 || N == 0 || n == 0 || x == 0 || f_hat == 0 || f == 0) {
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
     return 0;
-  if (M < (INT)1 || m < 1)
+  }
+  if (M < (INT)1 || m < 1) {
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
     return 0;
-  if (window < NFFT_WINDOW_KAISER_BESSEL || window > NFFT_WINDOW_DIRAC_DELTA)
+  }
+  if (window < NFFT_WINDOW_KAISER_BESSEL || window > NFFT_WINDOW_DIRAC_DELTA) {
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
     return 0;
+  }
   {
     int t;
     for (t = 0; t < d; t++)
-      if (N[t] <= 0 || n[t] <= 0)
+      if (N[t] <= 0 || n[t] <= 0) {
+        pl->wisdom_state = PLNR_WISDOM_NORMAL;
         return 0;
+      }
   }
 
   /* Save the planner's bounds; will be restored on every path. */
@@ -125,6 +138,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   if (!(planning & NFFT_NO_FAST_NATIVE)
       && (window > NFFT_WINDOW_SINC_POWER
           || !Y(nfft_fast_guards_ok)(p->prob[FWD], m))) {
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
     Y(problem_destroy)(p->prob[FWD]);
     Y(free)(p);
     return 0;
@@ -138,12 +152,14 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
      * measured query -- which is FFTW's behaviour too. */
     pl->flags.l = F;
     pl->flags.u = PLNR_ESTIMATE | F;
-    pl->flags.info |= PLNR_BLESSING;
+    if (pl->wisdom_state == PLNR_WISDOM_NORMAL)
+      pl->flags.info |= PLNR_BLESSING;
 
     if (!select_estimate(p, pl)) {
       pl->flags.info &= ~(unsigned)PLNR_BLESSING;
       pl->flags.l = saved_l;
       pl->flags.u = saved_u;
+      pl->wisdom_state = PLNR_WISDOM_NORMAL;
       if (p->prob[FWD])
         Y(problem_destroy)(p->prob[FWD]);
       if (p->prob[ADJ])
@@ -155,6 +171,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
     pl->flags.info &= ~(unsigned)PLNR_BLESSING;
     pl->flags.l = saved_l;
     pl->flags.u = saved_u;
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
 
     return p;
   }
@@ -208,6 +225,14 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       /* Stale hit: fall through to the race (bless will replace it). */
     }
 
+    /* Wisdom-only: the lookup above either answered or missed, and a miss (or
+     * a bogus state a child's recursive planner_mkplan may already have set,
+     * kernel/planner/planner.c) means there is nothing to search for -- the
+     * direction is absent. Building fresh candidates here would search, which
+     * is exactly what wisdom-only forbids. */
+    if (pl->wisdom_state != PLNR_WISDOM_NORMAL)
+      continue;
+
     /* Enumerate candidates under current measured bounds. */
     ncands[dirn] = Y(
          planner_candidates)(pl, p->prob[dirn], cands[dirn], cslvndx[dirn], 8);
@@ -218,6 +243,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       && ncands[ADJ] == 0) {
     pl->flags.l = saved_l;
     pl->flags.u = saved_u;
+    pl->wisdom_state = PLNR_WISDOM_NORMAL;
     if (p->prob[FWD])
       Y(problem_destroy)(p->prob[FWD]);
     if (p->prob[ADJ])
@@ -400,6 +426,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         pl->flags.info &= ~(unsigned)PLNR_BLESSING;
         pl->flags.l = saved_l;
         pl->flags.u = saved_u;
+        pl->wisdom_state = PLNR_WISDOM_NORMAL;
         if (p->prob[FWD])
           Y(problem_destroy)(p->prob[FWD]);
         if (p->prob[ADJ])
@@ -411,6 +438,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       pl->flags.info &= ~(unsigned)PLNR_BLESSING;
       pl->flags.l = saved_l;
       pl->flags.u = saved_u;
+      pl->wisdom_state = PLNR_WISDOM_NORMAL;
 
       return p;
     }
@@ -418,6 +446,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 
   pl->flags.l = saved_l;
   pl->flags.u = saved_u;
+  pl->wisdom_state = PLNR_WISDOM_NORMAL;
 
   return p;
 

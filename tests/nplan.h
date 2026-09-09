@@ -173,4 +173,9 @@ int Y(count_wisdom_entries)(void);
  * solution and its DECONV and CONV children. */
 void Y(check_nplan_blesses_whole_tree)(void);
 
+/* Wisdom-only answers from the store or fails outright, at every patience
+ * level and with children included; a miss disturbs nothing and never
+ * poisons the next ordinary call. */
+void Y(check_nplan_wisdom_only)(void);
+
 #endif
