@@ -1593,7 +1593,34 @@ void Y(check_nplan_fftw_wisdom_only_declines)(void)
       Y(plan_ng_destroy)(p);
   }
 
+  /* R18: FFTW_WISDOM_ONLY must reach the child FFTW plans, not just gate the
+   * NFFT-level search -- otherwise the NFFT wisdom hit below would silently
+   * re-plan the child FFTW DFTs from scratch and the guru would succeed.
+   * Plan normally so both the NFFT wisdom store and FFTW's own wisdom are
+   * populated, then clear FFTW's wisdom alone (the NFFT store stays intact):
+   * the NFFT-level lookup still hits and re-runs the fast solver's mkplan,
+   * which now builds its two child FFTW_WISDOM_ONLY plans against an FFTW
+   * wisdom store that has nothing, so FFTW hands back NULL and the whole
+   * guru call must decline. */
   Y(the_planner_destroy)();
+  FFTW(forget_wisdom)();
+  {
+    Y(plan_ng) *p =
+         Y(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x,
+                              f_hat, f, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    Y(plan_ng_destroy)(p);
+  }
+  FFTW(forget_wisdom)(); /* NFFT's own store (Y(the_planner)()) is untouched */
+  {
+    Y(plan_ng) *p = Y(plan_ng_guru)(
+         1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f, 0u,
+         NFFT_ESTIMATE | NFFT_NO_DIRECT | NFFT_WISDOM_ONLY);
+    CU_ASSERT_PTR_NULL(p);
+  }
+
+  Y(the_planner_destroy)();
+  FFTW(forget_wisdom)();
 }
 
 /* The public nfft_set_timelimit symbol forwards to the internal global-planner
@@ -3065,12 +3092,16 @@ void Y(check_nplan_wisdom_only)(void)
     Y(the_planner_destroy)();
     NFFT(forget_wisdom)();
 
-    /* Empty store: refused at every level, and the refusal writes nothing. */
+    /* Empty store: refused at every level, and the refusal writes nothing.
+     * Checking wisdom_state directly (not through a later call) is what makes
+     * the reset at the guru's return paths falsifiable: without it, the miss
+     * would leave the planner stuck in PLNR_WISDOM_IS_BOGUS. */
     p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
                            NFFT(get_window_id)(), x, (FC *)f_hat,
                      (FC *)f, 0u, levels[i] | NFFT_WISDOM_ONLY);
     CU_ASSERT_PTR_NULL(p);
     CU_ASSERT_EQUAL(Y(count_wisdom_entries)(), 0);
+    CU_ASSERT_EQUAL(Y(the_planner)()->wisdom_state, PLNR_WISDOM_NORMAL);
 
     /* Plan normally to fill the store, then wisdom-only must succeed. */
     p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
@@ -3090,8 +3121,9 @@ void Y(check_nplan_wisdom_only)(void)
       NFFT(plan_ng_destroy)(p);
     }
 
-    /* A failed wisdom-only call must not poison the next ordinary call: the
-     * state is reset at the guru boundary, as FFTW's mkplan0 does. */
+    /* A failed wisdom-only call must not poison the store for a different
+     * geometry: the immediately following ordinary call for N2/n2 still
+     * searches and succeeds, rather than inheriting a stuck refusal. */
     p = NFFT(plan_ng_guru)(1, &N2, 0, &n2, M, 6,
                            NFFT(get_window_id)(), x, (FC *)f_hat,
                      (FC *)f, 0u, levels[i] | NFFT_WISDOM_ONLY);
@@ -3102,6 +3134,21 @@ void Y(check_nplan_wisdom_only)(void)
     CU_ASSERT_PTR_NOT_NULL(p);
     if (p)
       NFFT(plan_ng_destroy)(p);
+  }
+
+  /* An early-return argument-validation refusal precedes the saved_l capture
+   * (plan.c has its own reset at each of those sites, separate from the ones
+   * beside saved_l/saved_u), so it is checked directly here too: M = 0 is
+   * rejected before saved_l is even read. */
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  {
+    Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, /*M=*/0, 6,
+                                       NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u,
+                              NFFT_ESTIMATE | NFFT_WISDOM_ONLY);
+    CU_ASSERT_PTR_NULL(p);
+    CU_ASSERT_EQUAL(Y(the_planner)()->wisdom_state, PLNR_WISDOM_NORMAL);
   }
 
   Y(the_planner_destroy)();
