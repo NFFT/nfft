@@ -165,6 +165,8 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl)
   (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
+  if (NO_NONTHREADEDP(pl))
+    return 0; /* serial: prefer a threaded solver */
   if (pn->sz->rnk < 2)
     return 0;
   if (Y(problem_nfft_has_unit_axis)(p))

@@ -44,5 +44,6 @@ void Y(check_planner_clock_now_monotonic)(void);
 void Y(check_planner_mapflags)(void);
 void Y(check_planner_derive_fftw_flags)(void);
 void Y(check_planner_wisdom_only_not_keyed)(void);
+void Y(check_planner_nonthreaded_decline)(void);
 
 #endif

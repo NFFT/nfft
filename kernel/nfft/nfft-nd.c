@@ -159,6 +159,8 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
   (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
+  if (NO_NONTHREADEDP(pl))
+    return 0; /* serial: prefer a threaded solver */
   if (pn->sz->rnk < 1)
     return 0; /* rnk >= 1 */
   if (Y(problem_nfft_has_unit_axis)(p))

@@ -108,9 +108,10 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl)
   const problem_deconv *pd = (const problem_deconv *)p;
   deconv_plan *pln;
   (void)ego;
-  (void)pl;
   if (p->adt->kind != NFFT_PROBLEM_DECONV)
     return 0;
+  if (NO_NONTHREADEDP(pl))
+    return 0; /* serial: prefer a threaded solver */
   if (pd->sz->rnk != 1)
     return 0;
   if (pd->window < NFFT_WINDOW_KAISER_BESSEL
