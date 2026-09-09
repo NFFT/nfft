@@ -80,6 +80,11 @@ int main(void)
               Y(check_planner_timelimit_default_and_set));
   CU_add_test(planner_suite, "clock_now_monotonic",
               Y(check_planner_clock_now_monotonic));
+  CU_add_test(planner_suite, "mapflags", Y(check_planner_mapflags));
+  CU_add_test(planner_suite, "derive_fftw_flags",
+              Y(check_planner_derive_fftw_flags));
+  CU_add_test(planner_suite, "wisdom_only_not_keyed",
+              Y(check_planner_wisdom_only_not_keyed));
 
   nplan_suite = CU_add_suite("nplan", 0, 0);
   CU_add_test(nplan_suite, "problem", Y(check_nplan_problem));

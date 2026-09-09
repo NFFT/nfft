@@ -31,25 +31,17 @@ struct Y(plan_ng_s) {
   plan *dir[2]; /* [FWD] the winning plan; [ADJ] NULL */
 };
 
-/* Strip the FFTW preservation bits (FFTW_DESTROY_INPUT / FFTW_PRESERVE_INPUT)
- * out of fftw_flags before it reaches the problem's wisdom key: no planner-
- * native candidate mutates its input in place, so the two spellings must not
- * key distinct entries. The remaining bits do affect measured cost and belong
- * in the key. */
+/* Strip the bits that are planning directives rather than properties of the
+ * problem, before fftw_flags reaches the wisdom key. The preservation bits go
+ * because no planner-native candidate mutates its input in place, so the two
+ * spellings must not key distinct entries. FFTW_WISDOM_ONLY goes because it
+ * says how hard to look for a plan, not which plan is wanted: a wisdom-only
+ * attempt must find the entry an ordinary plan wrote. */
 static unsigned keyable_fftw_flags(unsigned fftw_flags)
 {
-  return fftw_flags & ~(unsigned)(FFTW_DESTROY_INPUT | FFTW_PRESERVE_INPUT);
-}
-
-/* Map the public NFFT_* planning gates to their PLNR_* images. */
-static unsigned map_planning_flags(unsigned planning)
-{
-  unsigned F = 0;
-  if (planning & NFFT_NO_DIRECT)
-    F |= PLNR_NO_DIRECT;
-  if (planning & NFFT_NO_FAST_NATIVE)
-    F |= PLNR_NO_FAST_NATIVE;
-  return F;
+  return fftw_flags
+         & ~(unsigned)(FFTW_DESTROY_INPUT | FFTW_PRESERVE_INPUT
+                       | FFTW_WISDOM_ONLY);
 }
 
 /* Estimate-mode selection under the planner's current bounds (the caller sets
@@ -77,7 +69,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   /* Refresh thread count before any keying. */
   pl->nthr = (int)Y(get_num_threads)();
 
-  F = map_planning_flags(planning);
+  F = Y(nfft_map_planning_flags)(planning);
   is_estimate = (planning & NFFT_ESTIMATE) ? 1 : 0;
 
   /* x/f_hat/f are unconditionally required, in both estimate and measured
@@ -103,9 +95,13 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   p = (Y(plan_ng) *)Y(malloc)(sizeof(*p));
   p->dir[FWD] = 0;
   p->dir[ADJ] = 0;
-  p->prob[FWD] = Y(mkproblem_nfft)(d, N, variant, n, M, m, window, +1,
-                                keyable_fftw_flags(fftw_flags), x,
-                                /*copy_x=*/1, (C *)f_hat, (C *)f);
+  /* The derived word is what the child FFTW plans use and what the wisdom key
+   * records, so two patience levels never share a key while planning different
+   * child FFTs. */
+  p->prob[FWD] = Y(mkproblem_nfft)(
+       d, N, variant, n, M, m, window, +1,
+       keyable_fftw_flags(Y(nfft_derive_fftw_flags)(planning, fftw_flags)), x,
+       /*copy_x=*/1, (C *)f_hat, (C *)f);
   p->prob[ADJ] = 0;
 
   /* With the fast solver in play the geometry and the window must satisfy its

@@ -947,12 +947,12 @@ void Y(check_nplan_wisdom_memo)(void)
   CU_ASSERT_STRING_EQUAL(b1, b2);
 
   {
-    /* build_core forces FFTW_PRESERVE_INPUT off whatever the caller passes,
-     * so it must not fragment the wisdom key: keyable_fftw_flags strips it
-     * before hashing, and a stray key would grow htab_unblessed.nelem. */
+    /* PRESERVE_INPUT must not fragment the wisdom key: keyable_fftw_flags
+     * strips it before hashing. The explicit FFTW_ESTIMATE matches what
+     * fftw_flags=0 derives for p1/p2, so the two keys still agree. */
     Y(plan_ng) *p3 =
-         Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat,
-                               f, FFTW_PRESERVE_INPUT, NFFT_ESTIMATE);
+         Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f,
+                      FFTW_ESTIMATE | FFTW_PRESERVE_INPUT, NFFT_ESTIMATE);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p3);
     CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, nelem);
     Y(plan_ng_destroy)(p3);
@@ -1090,17 +1090,15 @@ void Y(check_nplan_measured)(void)
   CU_ASSERT_STRING_EQUAL(a1, a0);
   Y(plan_ng_destroy)(p2);
 
-  /* an estimate-mode guru sees the measured entries: the blessed hit answers
-   * the estimate query, with no further growth and the same winners. A
-   * blessed-hit lookup never reads x/f_hat/f, so the main arrays are reused. */
+  /* The derived child FFTW flags (FFTW_MEASURE vs FFTW_ESTIMATE) are part of
+   * the wisdom key, so patience levels are partitioned and this guru no
+   * longer sees the measured entry above; it runs its own search instead. */
   p2 = Y(
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                     0u, NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, ub);
+  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem >= ub);
   bundle_winners(p2, f1, a1);
-  CU_ASSERT_STRING_EQUAL(f1, f0);
-  CU_ASSERT_STRING_EQUAL(a1, a0);
   Y(plan_ng_destroy)(p2);
   Y(plan_ng_destroy)(p);
 
@@ -1489,7 +1487,7 @@ void Y(check_nplan_timelimit_partial_race_does_not_bless)(void)
   Y(the_planner_destroy)(); /* drop the test-only solvers */
 }
 
-/* FFTW_WISDOM_ONLY without matching FFTW wisdom leaves the internal FFTW plans
+/* Wisdom-only without matching FFTW wisdom leaves the internal FFTW plans
  * NULL, so the fast solver must decline instead of handing back a plan that
  * would execute a NULL FFTW plan. NFFT_NO_DIRECT leaves nothing else. */
 void Y(check_nplan_fftw_wisdom_only_declines)(void)
@@ -1502,9 +1500,23 @@ void Y(check_nplan_fftw_wisdom_only_declines)(void)
   fill_nodes(x, 1, M, 84u);
   FFTW(forget_wisdom)();
 
-  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(
-       1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
-       FFTW_WISDOM_ONLY | FFTW_ESTIMATE, NFFT_ESTIMATE | NFFT_NO_DIRECT));
+  /* Wisdom-only now comes from the planning word; FFTW_WISDOM_ONLY inside
+   * fftw_flags is cleared by Y(nfft_derive_fftw_flags). */
+  CU_ASSERT_PTR_NULL(Y(
+       plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                    0u, NFFT_ESTIMATE | NFFT_NO_DIRECT | NFFT_WISDOM_ONLY));
+
+  /* The old spelling is inert: the child plans are built normally, so the guru
+   * succeeds. */
+  {
+    Y(plan_ng) *p =
+         Y(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x,
+                              f_hat, f, FFTW_WISDOM_ONLY | FFTW_ESTIMATE,
+                              NFFT_ESTIMATE | NFFT_NO_DIRECT);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      Y(plan_ng_destroy)(p);
+  }
 
   Y(the_planner_destroy)();
 }
@@ -2310,11 +2322,11 @@ void Y(check_nplan_restore_guard_fires)(void)
   problem *pr;
   plan *pl;
   fill_nodes(x, 1, M, 77u);
-  pr = Y(mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0u, x,
+  pr = Y( mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0u, x,
                       1, 0, 0);
   Y(
   nfft_x_md5)(((const problem_nfft *)pr)->x, M, sig); /* snapshot the copy */
-  pl = Y(nfft_perm_test_mkplan)(pr);
+  pl = Y( nfft_perm_test_mkplan)(pr);
   Y(
   nfft_perm_break_restore) = 1;
   Y(

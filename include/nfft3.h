@@ -842,11 +842,22 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
  * different plans, but X(execute_on) and X(execute_adjoint_on) are not
  * reentrant on a single plan: one plan runs one transform at a time. */
 
-/* Planning flags. */
+/* Planning flags. Patience rises MEASURE -> PATIENT; ESTIMATE skips
+ * measurement entirely. Patience is expressed internally by the absence of
+ * restrictions, so a more patient request searches a wider space and takes
+ * longer to plan. ESTIMATE overrides PATIENT if both are given. */
 #define NFFT_MEASURE         (0U)       /* Measure solutions. */
 #define NFFT_ESTIMATE        (1U << 0)  /* Estimate winner. */
 #define NFFT_NO_DIRECT       (1U << 1)  /* Do not use direct (slow) algorithms. */
 #define NFFT_NO_FAST_NATIVE  (1U << 4)  /* Do not use the fast NFFT algorithm. */
+#define NFFT_PATIENT         (1U << 5)  /* Widen the search; let serial and
+                                         * threaded solvers compete. */
+/* (1U << 6) is reserved for NFFT_EXHAUSTIVE. Do not reuse it. */
+#define NFFT_NO_NONTHREADED  (1U << 7)  /* Beyond-guru: forbid serial solvers
+                                         * whenever more than one thread was
+                                         * requested, whatever the patience. */
+#define NFFT_WISDOM_ONLY     (1U << 8)  /* Plan only from existing wisdom; the
+                                         * guru returns NULL on a miss. */
 
 /* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2.
  * For odd N, there is only one type (defined as type-I) and the range is k = -(N-1)/2 .. (N-1)/2. */

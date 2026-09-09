@@ -1471,3 +1471,118 @@ void Y(check_planner_clock_now_monotonic)(void)
     dt = Y(planner_elapsed_seconds)(t0);
   CK(dt > 0.0 && dt < 1.0);
 }
+
+/* Both mapping functions are pure, so they are checked directly rather than
+ * through a plan. Mirrors FFTW api/mapflags.c: patience is the absence of
+ * restrictions, and everything below PATIENT carries PLNR_NO_NONTHREADED. */
+void Y(check_planner_mapflags)(void)
+{
+  unsigned f;
+
+  f = Y(
+       nfft_map_planning_flags)(NFFT_MEASURE); /* the default, below PATIENT */
+  CU_ASSERT_TRUE(f & PLNR_NO_NONTHREADED);
+  CU_ASSERT_TRUE(f & PLNR_BELIEVE_PCOST);
+  CU_ASSERT_TRUE(f & PLNR_NO_UGLY);
+  CU_ASSERT_TRUE(f & PLNR_NO_SLOW);
+  CU_ASSERT_FALSE(f & PLNR_ESTIMATE);
+
+  f = Y(nfft_map_planning_flags)(NFFT_ESTIMATE);
+  CU_ASSERT_TRUE(f & PLNR_NO_NONTHREADED);
+  CU_ASSERT_TRUE(f & PLNR_ESTIMATE);
+  CU_ASSERT_TRUE(f & PLNR_ALLOW_PRUNING);
+
+  f = Y(nfft_map_planning_flags)(
+       NFFT_PATIENT); /* drops the below-PATIENT block */
+  CU_ASSERT_FALSE(f & PLNR_NO_NONTHREADED);
+  CU_ASSERT_FALSE(f & PLNR_BELIEVE_PCOST);
+  /* NO_UGLY and NO_SLOW stay set: only EXHAUSTIVE clears them, and its flag is
+   * reserved rather than exposed. */
+  CU_ASSERT_TRUE(f & PLNR_NO_UGLY);
+  CU_ASSERT_TRUE(f & PLNR_NO_SLOW);
+
+  f = Y(nfft_map_planning_flags)(NFFT_ESTIMATE
+                              | NFFT_PATIENT); /* ESTIMATE wins */
+  CU_ASSERT_TRUE(f & PLNR_ESTIMATE);
+  CU_ASSERT_TRUE(f & PLNR_NO_NONTHREADED);
+
+  f = Y(nfft_map_planning_flags)(NFFT_PATIENT | NFFT_NO_NONTHREADED);
+  CU_ASSERT_TRUE(f & PLNR_NO_NONTHREADED); /* the override survives PATIENT */
+
+  f = Y(nfft_map_planning_flags)(NFFT_PATIENT | NFFT_NO_DIRECT
+                              | NFFT_NO_FAST_NATIVE);
+  CU_ASSERT_TRUE(f & PLNR_NO_DIRECT); /* gates are orthogonal to patience */
+  CU_ASSERT_TRUE(f & PLNR_NO_FAST_NATIVE);
+}
+
+/* iplanner.h documents problem_nfft.fftw_flags as "0 = derive". Zero takes the
+ * patience level from the NFFT request; a non-zero word is the caller's own.
+ * Wisdom-only is settled from the planning word on both paths. */
+void Y(check_planner_derive_fftw_flags)(void)
+{
+  unsigned f;
+
+  f = Y(nfft_derive_fftw_flags)(NFFT_ESTIMATE, 0u);
+  CU_ASSERT_TRUE(f & FFTW_ESTIMATE);
+  CU_ASSERT_FALSE(f & FFTW_PATIENT);
+
+  f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u); /* FFTW_MEASURE is zero */
+  CU_ASSERT_FALSE(f & FFTW_ESTIMATE);
+  CU_ASSERT_FALSE(f & FFTW_PATIENT);
+
+  f = Y(nfft_derive_fftw_flags)(NFFT_PATIENT, 0u);
+  CU_ASSERT_TRUE(f & FFTW_PATIENT);
+
+  f = Y(nfft_derive_fftw_flags)(NFFT_ESTIMATE, FFTW_PATIENT); /* caller wins */
+  CU_ASSERT_TRUE(f & FFTW_PATIENT);
+  CU_ASSERT_FALSE(f & FFTW_ESTIMATE);
+
+  CU_ASSERT_NOT_EQUAL(Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u),
+                      Y(nfft_derive_fftw_flags)(NFFT_PATIENT, 0u));
+  CU_ASSERT_NOT_EQUAL(Y(nfft_derive_fftw_flags)(NFFT_ESTIMATE, 0u),
+                      Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u));
+
+  f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE | NFFT_WISDOM_ONLY, 0u);
+  CU_ASSERT_TRUE(f & FFTW_WISDOM_ONLY);
+  f = Y(
+       nfft_derive_fftw_flags)(NFFT_PATIENT | NFFT_WISDOM_ONLY, FFTW_ESTIMATE);
+  CU_ASSERT_TRUE(f & FFTW_WISDOM_ONLY);
+  CU_ASSERT_TRUE(f & FFTW_ESTIMATE);
+  f = Y(
+       nfft_derive_fftw_flags)(NFFT_MEASURE, FFTW_WISDOM_ONLY | FFTW_ESTIMATE);
+  CU_ASSERT_FALSE(
+       f & FFTW_WISDOM_ONLY); /* cleared even when the caller set it */
+  CU_ASSERT_TRUE(f & FFTW_ESTIMATE);
+}
+
+/* Wisdom-only is a planning directive, not a property of the problem, so it
+ * must not enter the key. If it did, a wisdom-only attempt would look under a
+ * different key from the plan that wrote the entry and never find it. */
+void Y(check_planner_wisdom_only_not_keyed)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 32, n = 64, M = 10;
+  R x[10];
+  md5sig a, b;
+  problem *p, *q;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  p = Y(
+       mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1,
+                       Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u), x, 1, 0, 0);
+  q = Y(
+       mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1,
+                       Y(nfft_derive_fftw_flags)(NFFT_MEASURE | NFFT_WISDOM_ONLY,
+                                            0u),
+                     x, 1, 0, 0);
+  Y(problem_md5)(pl, p, a);
+  Y(problem_md5)(pl, q, b);
+  CU_ASSERT_TRUE(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]);
+
+  Y(problem_destroy)(q);
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+}
