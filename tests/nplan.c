@@ -1386,8 +1386,22 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
   /* No candidate finished before expiry: degraded to estimate-grade
-   * selection, which blesses its own tree too (R14). */
-  CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > 0u);
+   * selection, which blesses its own tree too (R14). A genuine completed
+   * measured race also blesses (nelem > 0 alone would not discriminate the
+   * two), but only the degraded selection blesses with PLNR_ESTIMATE riding
+   * in u (measured bounds are {l=u=F}, F never carries PLNR_ESTIMATE) --
+   * that is the positive proof the degrade path, not a real race, ran. */
+  {
+    hashtab *t = &Y(the_planner)()->htab_blessed;
+    unsigned i;
+    int saw_estimate = 0;
+    for (i = 0; i < t->size; i++) {
+      solution *e = t->entries + i;
+      if ((e->flags.info & PLNR_H_LIVE) && (e->flags.u & PLNR_ESTIMATE))
+        saw_estimate = 1;
+    }
+    CU_ASSERT(saw_estimate);
+  }
   /* The doomed candidate build's DECONV/CONV entries stay in the unblessed
    * table -- superseded by the blessed copies, not removed. */
   CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
@@ -1435,16 +1449,49 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void)
   Y(the_planner_destroy)();
 }
 
-/* A test-only NFFT solver whose apply burns BURN_SECONDS of wall clock. Its
- * pcost of 1.0 prunes every real candidate, so registering it twice makes the
- * race a two-way race between two known-slow candidates. */
-#define BURN_SECONDS 2.0e-3
+/* A test-only NFFT solver whose apply burns BURN_SECONDS of wall clock.
+ * Its pcost is set far below any real candidate's by construction (see
+ * burn_mkplan), not by a margin that could close under a different
+ * optimization mode, so registering it twice deterministically makes the
+ * race a two-way race between two known-slow candidates regardless of build
+ * flags (release's -ffast-math vs --enable-debug's strict-IEEE ASan/UBSan
+ * build can shift a real solver's analytic pcost estimate; a merely 4x-ish
+ * margin over that estimate is not safe to assume identical across both).
+ *
+ * BURN_SECONDS is tens of ms, not the ~2ms that once sufficed: the timelimit
+ * check that must NOT yet have tripped sits between capturing t_start and
+ * measuring the first candidate (kernel/nfft/plan.c, the per-direction race),
+ * and nothing bounds how long an OS scheduling preemption can land in that
+ * window on a loaded machine -- confirmed empirically as the actual source of
+ * this case's intermittency deep into a long-running, heavily-instrumented
+ * (--enable-debug ASan/UBSan) test binary, where it is far more likely than
+ * in a short-lived process. A ~25ms half-of-BURN_SECONDS timelimit safely
+ * dwarfs any such jitter while staying far below one full measurement
+ * (PLNR_TIME_REPEAT candidate applies, so ~8x BURN_SECONDS -- see below). */
+#define BURN_SECONDS 5.0e-2
+
+/* How many times a burn candidate actually ran under measurement. Reset by
+ * the test before the guru call, checked right after: this is the positive
+ * proof that the race entered the timed_out branch it means to exercise.
+ * Y(plan_measure_cost) (kernel/planner/timer.c) always runs a full
+ * PLNR_TIME_REPEAT-batch level at n=1 before it can accept -- burn's own
+ * duration trivially clears the fine-clock floor on the very first batch,
+ * but every batch in that level still runs -- so one fully measured
+ * candidate means exactly PLNR_TIME_REPEAT calls. Zero would mean
+ * need_restart ran instead (which now blesses, R14) or a lone survivor was
+ * blessed untimed -- either way silently turning this into a different,
+ * passing case; more than PLNR_TIME_REPEAT would mean a second candidate
+ * also got measured, i.e. the budget never bit. Either mismatch means the
+ * blessed/unblessed assertions below are no longer testing what this case
+ * claims to. */
+static int burn_apply_count = 0;
 
 static void burn_apply(const plan *e, const problem *p)
 {
   double t0 = Y(planner_clock_now)();
   (void)e;
   (void)p;
+  burn_apply_count++;
   while (Y(planner_elapsed_seconds)(t0) < BURN_SECONDS)
     ;
 }
@@ -1466,7 +1513,11 @@ static plan *burn_mkplan(const solver *s, const problem *p, planner *pl)
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
   q = Y(plan_create)(sizeof(plan), &burn_plan_adt);
-  q->pcost = 1.0;
+  /* Deliberately near-zero, not merely "cheap": no real solver's analytic
+   * pcost for any actual geometry can round down to this under any
+   * optimization mode, so the PLNR_PRUNE_RATIO gate below always keeps only
+   * the two burn candidates, deterministically. */
+  q->pcost = 1.0e-9;
   return q;
 }
 
@@ -1493,10 +1544,12 @@ void Y(check_nplan_timelimit_partial_race_does_not_bless)(void)
 
   /* Long enough to enter the race, far shorter than one measurement. */
   Y(set_timelimit)(BURN_SECONDS / 2.0);
+  burn_apply_count = 0;
   p = Y(
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  CU_ASSERT_EQUAL(burn_apply_count, PLNR_TIME_REPEAT);
   /* The budget expired after the first candidate: a winner was adopted, but on
    * partial evidence, so nothing is blessed. */
   CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
