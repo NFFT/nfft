@@ -132,6 +132,16 @@ enum {
   PLNR_AWAKE = 2 // may execute, results correct
 };
 
+/* Whether the planner may search. Deliberately outside flags_t: wisdom-only is
+ * a directive about how hard to look, not a property of a stored solution, so
+ * it must not take part in LEQ subsumption or key an entry. FFTW keeps it
+ * outside its flags word for the same reason (kernel/ifftw.h wisdom_state_t). */
+typedef enum {
+  PLNR_WISDOM_NORMAL = 0, /* search freely */
+  PLNR_WISDOM_ONLY = 1, /* answer from the store or fail */
+  PLNR_WISDOM_IS_BOGUS = 2 /* a wisdom-only lookup missed; unwind */
+} wisdom_state_t;
+
 typedef struct {
   void (*apply)(const plan *ego, const problem *p); // forward transform
   void (*awake)(plan *ego, int wakefulness); // may be null
@@ -291,6 +301,7 @@ struct planner_s {
   hashtab htab_blessed, htab_unblessed;
   int nthr;
   flags_t flags;
+  wisdom_state_t wisdom_state;
   double timelimit_seconds; /* wall-clock planning budget; -1.0 = unlimited */
 };
 

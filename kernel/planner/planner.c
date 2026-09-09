@@ -448,6 +448,7 @@ planner *Y(planner_create)(void)
 
   pl->nthr = 1;
   memset(&pl->flags, 0, sizeof(pl->flags));
+  pl->wisdom_state = PLNR_WISDOM_NORMAL;
   pl->timelimit_seconds = -1.0; /* unlimited default */
   return pl;
 }
@@ -601,6 +602,18 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
       }
     }
   }
+
+  /* Wisdom-only: the store did not answer, so there is nothing to do. Setting
+   * the bogus state makes the failure sticky for the rest of this planning
+   * call, so a parent solver cannot quietly substitute a different child and
+   * hand back a plan that was never in wisdom. FFTW unwinds the same way
+   * (kernel/planner.c do_search). */
+  if (pl->wisdom_state == PLNR_WISDOM_ONLY) {
+    pl->wisdom_state = PLNR_WISDOM_IS_BOGUS;
+    return 0;
+  }
+  if (pl->wisdom_state == PLNR_WISDOM_IS_BOGUS)
+    return 0;
 
   /* The strict compare is the determinism contract: ties keep the
    * earlier-encountered candidate. */

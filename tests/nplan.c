@@ -3038,3 +3038,75 @@ void Y(check_nplan_blesses_whole_tree)(void)
   Y(free)(f_hat);
   Y(free)(x);
 }
+
+/* Wisdom-only plans from the store or not at all, at every patience level and
+ * for every kind, children included. It writes nothing back, and a miss must
+ * never disturb the store -- FFTW gives it its own branch that bypasses the
+ * forget-everything recovery for exactly that reason (api/apiplan.c:102-107). */
+void Y(check_nplan_wisdom_only)(void)
+{
+  const INT N = 64, n = 128, M = 100;
+  const INT N2 = 32, n2 = 64;
+  const unsigned levels[3] = {NFFT_ESTIMATE, NFFT_MEASURE, NFFT_PATIENT};
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  INT j;
+  int i;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+  for (j = 0; j < N; j++)
+    f_hat[j] = K(0.0);
+
+  for (i = 0; i < 3; i++) {
+    Y(plan_ng) *p;
+
+    Y(the_planner_destroy)();
+    NFFT(forget_wisdom)();
+
+    /* Empty store: refused at every level, and the refusal writes nothing. */
+    p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                           NFFT(get_window_id)(), x, (FC *)f_hat,
+                     (FC *)f, 0u, levels[i] | NFFT_WISDOM_ONLY);
+    CU_ASSERT_PTR_NULL(p);
+    CU_ASSERT_EQUAL(Y(count_wisdom_entries)(), 0);
+
+    /* Plan normally to fill the store, then wisdom-only must succeed. */
+    p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                           NFFT(get_window_id)(), x, (FC *)f_hat,
+                     (FC *)f, 0u, levels[i]);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      NFFT(plan_ng_destroy)(p);
+
+    p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                           NFFT(get_window_id)(), x, (FC *)f_hat,
+                     (FC *)f, 0u, levels[i] | NFFT_WISDOM_ONLY);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p) {
+      NFFT(precompute)(p);
+      NFFT(execute)(p);
+      NFFT(plan_ng_destroy)(p);
+    }
+
+    /* A failed wisdom-only call must not poison the next ordinary call: the
+     * state is reset at the guru boundary, as FFTW's mkplan0 does. */
+    p = NFFT(plan_ng_guru)(1, &N2, 0, &n2, M, 6,
+                           NFFT(get_window_id)(), x, (FC *)f_hat,
+                     (FC *)f, 0u, levels[i] | NFFT_WISDOM_ONLY);
+    CU_ASSERT_PTR_NULL(p); /* a different size class, not in the store */
+    p = NFFT(plan_ng_guru)(1, &N2, 0, &n2, M, 6,
+                           NFFT(get_window_id)(), x, (FC *)f_hat,
+                     (FC *)f, 0u, levels[i]);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      NFFT(plan_ng_destroy)(p);
+  }
+
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}

@@ -168,6 +168,7 @@ int main(void)
               Y(check_nplan_guru_rejects_bad_geometry));
   CU_add_test(nplan_suite, "blesses_whole_tree",
               Y(check_nplan_blesses_whole_tree));
+  CU_add_test(nplan_suite, "wisdom_only", Y(check_nplan_wisdom_only));
 
   nplan_data_suite = CU_add_suite("nplan_data", 0, 0);
   CU_add_test(nplan_data_suite, "native_reference", Y(check_nplan_data));
