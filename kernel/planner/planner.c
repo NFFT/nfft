@@ -541,6 +541,20 @@ static flags_t search_flags(planner *pl)
   return q;
 }
 
+/* Every mkplan the search performs runs inside the caller's budget and may not
+ * change it for the next candidate. A threaded solver lowers pl->nthr for its
+ * children; this restores it. FFTW does the same in invoke_solver. */
+static plan *invoke_solver(planner *pl, const problem *p, solver *s)
+{
+  int nthr = pl->nthr;
+  unsigned l = pl->flags.l, u = pl->flags.u;
+  plan *pln = s->adt->mkplan(s, p, pl);
+  pl->nthr = nthr;
+  pl->flags.l = l;
+  pl->flags.u = u;
+  return pln;
+}
+
 /* Consult wisdom, else try every registered solver of the problem's kind and
  * keep the cheapest by pcost, memoising the outcome unblessed. Estimate-only:
  * pcost is the solver's analytic number, set at mkplan time. */
@@ -565,7 +579,7 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
       return 0;
     {
       solver *s = pl->slvdescs[slvndx].slv;
-      plan *pln = s->adt->mkplan(s, p, pl);
+      plan *pln = invoke_solver(pl, p, s);
       if (pln != 0)
         return pln;
     }
@@ -574,7 +588,7 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
   /* The strict compare is the determinism contract: ties keep the
    * earlier-encountered candidate. */
   FORALL_SOLVERS_OF_KIND(p->adt->kind, pl, s, d, {
-    plan *pln = s->adt->mkplan(s, p, pl);
+    plan *pln = invoke_solver(pl, p, s);
     if (pln != 0) {
       if (best == 0 || pln->pcost < best->pcost) {
         if (best != 0)
@@ -607,7 +621,7 @@ int Y(planner_candidates)(planner *pl, const problem *p, plan **plans,
   int count = 0;
 
   FORALL_SOLVERS_OF_KIND(p->adt->kind, pl, s, d, {
-    plan *pln = s->adt->mkplan(s, p, pl);
+    plan *pln = invoke_solver(pl, p, s);
     if (pln != 0) {
       if (count >= cap) {
         A(0 /* more candidates than cap: caller must pass a larger array */);

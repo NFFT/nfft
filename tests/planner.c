@@ -1625,3 +1625,55 @@ void Y(check_planner_nonthreaded_decline)(void)
   Y(problem_destroy)(p);
   Y(planner_destroy)(pl);
 }
+
+/* A solver that lowers the budget for its children, the way a threaded solver
+ * will. The planner must restore what the solver changed, so the next candidate
+ * is planned under the caller's budget. Mirrors FFTW's invoke_solver. */
+static plan *mkplan_scope_probe(const solver *ego, const problem *p,
+                                planner *pl)
+{
+  (void)ego;
+  (void)p;
+  pl->nthr = 1;
+  pl->flags.l = 0u;
+  pl->flags.u = 0u;
+  return 0;
+}
+static const solver_adt scope_probe_adt = {NFFT_PROBLEM_DECONV, 0,
+                                           mkplan_scope_probe};
+
+void Y(check_planner_nthr_scoping)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 32, n = 64;
+  problem *p = Y(
+       mkproblem_deconv)(1, &N, 0, &n, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0, 0);
+  unsigned l0, u0;
+  plan *pln;
+
+  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &scope_probe_adt));
+
+  pl->nthr = 6;
+  pl->flags.l = pl->flags.u = Y(nfft_map_planning_flags)(NFFT_PATIENT);
+  l0 = pl->flags.l;
+  u0 = pl->flags.u;
+
+  pln = Y(planner_mkplan)(pl, p);
+  CU_ASSERT_PTR_NULL(pln);
+  CU_ASSERT_EQUAL(pl->nthr, 6);
+  CU_ASSERT_EQUAL(pl->flags.l, l0);
+  CU_ASSERT_EQUAL(pl->flags.u, u0);
+
+  {
+    plan *cands[4];
+    unsigned ndx[4];
+    int nc = Y(planner_candidates)(pl, p, cands, ndx, 4);
+    CU_ASSERT_EQUAL(nc, 0);
+    CU_ASSERT_EQUAL(pl->nthr, 6);
+    CU_ASSERT_EQUAL(pl->flags.l, l0);
+    CU_ASSERT_EQUAL(pl->flags.u, u0);
+  }
+
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+}
