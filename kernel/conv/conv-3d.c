@@ -176,9 +176,10 @@ static plan *mkplan_conv_3d(const solver *ego, const problem *p, planner *pl)
   const problem_conv *pc = (const problem_conv *)p;
   conv_3d_plan *pln;
   (void)ego;
-  (void)pl;
   if (p->adt->kind != NFFT_PROBLEM_CONV)
     return 0;
+  if (NO_NONTHREADEDP(pl))
+    return 0; /* serial: prefer a threaded solver */
   if (pc->sz->rnk != 3)
     return 0;
   if (pc->window < NFFT_WINDOW_KAISER_BESSEL

@@ -1586,3 +1586,42 @@ void Y(check_planner_wisdom_only_not_keyed)(void)
   Y(problem_destroy)(p);
   Y(planner_destroy)(pl);
 }
+
+/* A serial solver steps aside when the caller asked for more than one thread
+ * and the patience level is below PATIENT. Mirrors FFTW kernel/ifftw.h
+ * NO_NONTHREADEDP and the declines at dft/ct.c:132, dft/vrank-geq1.c:139. */
+void Y(check_planner_nonthreaded_decline)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 32, n = 64;
+  problem *p = Y(
+       mkproblem_deconv)(1, &N, 0, &n, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0, 0);
+  plan *pln;
+
+  Y(deconv_solvers_register)(pl);
+
+  pl->nthr = 1; /* one thread: the rule never fires */
+  pl->flags.l = pl->flags.u = Y(nfft_map_planning_flags)(NFFT_MEASURE);
+  pln = Y(planner_mkplan)(pl, p);
+  CU_ASSERT_PTR_NOT_NULL(pln);
+  if (pln)
+    Y(plan_destroy)(pln);
+
+  pl->nthr = 4; /* more than one, below PATIENT: the serial solver declines */
+  pln = Y(planner_mkplan)(pl, p);
+  CU_ASSERT_PTR_NULL(pln);
+
+  pl->flags.l = pl->flags.u = Y(nfft_map_planning_flags)(NFFT_PATIENT);
+  pln = Y(planner_mkplan)(pl, p); /* back in the running */
+  CU_ASSERT_PTR_NOT_NULL(pln);
+  if (pln)
+    Y(plan_destroy)(pln);
+
+  pl->flags.l = pl->flags.u =
+       Y(nfft_map_planning_flags)(NFFT_PATIENT | NFFT_NO_NONTHREADED);
+  pln = Y(planner_mkplan)(pl, p); /* the override reinstates the decline */
+  CU_ASSERT_PTR_NULL(pln);
+
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+}

@@ -184,9 +184,10 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
   conv_nd_plan *pln;
   int t, d;
   (void)ego;
-  (void)pl;
   if (p->adt->kind != NFFT_PROBLEM_CONV)
     return 0;
+  if (NO_NONTHREADEDP(pl))
+    return 0; /* serial: prefer a threaded solver */
   if (pc->sz->rnk < 4)
     return 0;
   if (pc->window < NFFT_WINDOW_KAISER_BESSEL

@@ -308,6 +308,14 @@ void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
 #define PLNR_L(pl) ((pl)->flags.l)
 #define PLNR_U(pl) ((pl)->flags.u)
 
+/* A serial solver must step aside when the caller asked for more than one
+ * thread and the patience level is below PATIENT, so PLNR_NO_NONTHREADED is
+ * set. FFTW's kernel/ifftw.h has the same two conditions. It is safe without a
+ * third because raising the count requires the add-on library, and the add-on
+ * library is where threaded solvers are registered. */
+#define NO_NONTHREADEDP(pl)                                                   \
+  ((PLNR_L(pl) & PLNR_NO_NONTHREADED) && (pl)->nthr > 1)
+
 /* Wall-clock planning timelimit. -1.0 is the "unlimited" sentinel (default).
  * The setter clamps any negative argument to -1.0 so an errant caller cannot pin the
  * planner to a zero/budgetless state. */

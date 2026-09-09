@@ -85,6 +85,8 @@ int main(void)
               Y(check_planner_derive_fftw_flags));
   CU_add_test(planner_suite, "wisdom_only_not_keyed",
               Y(check_planner_wisdom_only_not_keyed));
+  CU_add_test(planner_suite, "nonthreaded_decline",
+              Y(check_planner_nonthreaded_decline));
 
   nplan_suite = CU_add_suite("nplan", 0, 0);
   CU_add_test(nplan_suite, "problem", Y(check_nplan_problem));

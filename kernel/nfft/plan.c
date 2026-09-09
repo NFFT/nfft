@@ -66,9 +66,6 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   Y(nfft_ensure_registered)();
   pl = Y(the_planner)();
 
-  /* Refresh thread count before any keying. */
-  pl->nthr = (int)Y(get_num_threads)();
-
   F = Y(nfft_map_planning_flags)(planning);
   is_estimate = (planning & NFFT_ESTIMATE) ? 1 : 0;
 
