@@ -71,6 +71,9 @@ static void hash(const problem *p, md5 *ctx)
   /* FFTW_WISDOM_ONLY says how hard to look for a plan, not which plan is
    * wanted, so it never enters the key, however this problem was built. */
   Y(md5_put_unsigned)(ctx, ego->fftw_flags & ~(unsigned)FFTW_WISDOM_ONLY);
+  /* FFTW's thread count selects a different child FFT plan for the same flags,
+   * so it belongs in the key. Observed, never set. */
+  Y(md5_put_int)(ctx, Y(fftw_nthreads_hook) ? Y(fftw_nthreads_hook)() : 1);
 
   /* x/f_hat/f are not hashed: the wisdom key stays data-blind, so any
    * correctly-shaped arrays reuse the same cached decision.

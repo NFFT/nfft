@@ -428,6 +428,8 @@ malformed:
   return 0;
 }
 
+int (*Y(fftw_nthreads_hook))(void) = 0;
+
 planner *Y(planner_create)(void)
 {
   planner *pl = (planner *)Y(malloc)(sizeof(planner));

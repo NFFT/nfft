@@ -304,6 +304,13 @@ solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q);
 void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
                      unsigned slvndx);
 
+/* FFTW's own planner thread count, reported by the add-on threading library.
+ * libnfft3 links @fftw3_LIBS@ only and fftw_planner_nthreads is defined in
+ * FFTW's threads library, so the main library cannot call it and takes the
+ * value through this hook. Null means one thread. Same device as FFTW's
+ * threads/api.c mksolver_ct_hook. */
+extern int (*Y(fftw_nthreads_hook))(void);
+
 /* the planner's current impatience bounds */
 #define PLNR_L(pl) ((pl)->flags.l)
 #define PLNR_U(pl) ((pl)->flags.u)

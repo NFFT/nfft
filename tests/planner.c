@@ -1677,3 +1677,47 @@ void Y(check_planner_nthr_scoping)(void)
   Y(problem_destroy)(p);
   Y(planner_destroy)(pl);
 }
+
+static int fake_fftw_nthreads_value = 1;
+static int fake_fftw_nthreads(void)
+{
+  return fake_fftw_nthreads_value;
+}
+
+/* FFTW's own thread count selects a different child FFT plan for the same
+ * flags, so it must change our key. libnfft3 links @fftw3_LIBS@ only and
+ * fftw_planner_nthreads lives in FFTW's threads library, so the value arrives
+ * through a hook the add-on installs. A null hook means one thread. */
+void Y(check_planner_fftw_nthreads_key)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 32, n = 64, M = 10;
+  R x[10];
+  md5sig a, b, c;
+  problem *p;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  CU_ASSERT_PTR_NULL(Y(fftw_nthreads_hook));
+
+  p = Y(
+       mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1, 0u, x,
+                     1, 0, 0);
+  Y(problem_md5)(pl, p, a);
+
+  Y(fftw_nthreads_hook) = fake_fftw_nthreads;
+  fake_fftw_nthreads_value = 1; /* a hook reporting 1 must not move the key */
+  Y(problem_md5)(pl, p, b);
+  CU_ASSERT_TRUE(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]);
+
+  fake_fftw_nthreads_value = 8; /* a different count must */
+  Y(problem_md5)(pl, p, c);
+  CU_ASSERT_FALSE(a[0] == c[0] && a[1] == c[1] && a[2] == c[2]
+                  && a[3] == c[3]);
+
+  Y(fftw_nthreads_hook) = 0;
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+}
