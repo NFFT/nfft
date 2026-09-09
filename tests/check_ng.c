@@ -88,6 +88,8 @@ int main(void)
   CU_add_test(planner_suite, "nonthreaded_decline",
               Y(check_planner_nonthreaded_decline));
   CU_add_test(planner_suite, "nthr_scoping", Y(check_planner_nthr_scoping));
+  CU_add_test(planner_suite, "fftw_nthreads_key",
+              Y(check_planner_fftw_nthreads_key));
 
   nplan_suite = CU_add_suite("nplan", 0, 0);
   CU_add_test(nplan_suite, "problem", Y(check_nplan_problem));
