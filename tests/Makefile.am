@@ -18,7 +18,13 @@ else
   CHECK=
 endif
 
-check_PROGRAMS = $(CHECK) $(CHECK_THREADS)
+if ENABLE_NG_OMP
+CHECK_NG_OMP = checkall_ngomp
+else
+CHECK_NG_OMP =
+endif
+
+check_PROGRAMS = $(CHECK) $(CHECK_THREADS) $(CHECK_NG_OMP)
 
 TESTS = $(check_PROGRAMS)
 
@@ -44,6 +50,13 @@ checkall_ng_SOURCES = check_ng.c util.c util.h accuracy_log.c accuracy_log.h ref
 checkall_ng_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_ng_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
+# checkall_ngomp: the add-on threading library's own contract, linked against
+# libnfft3<suffix>_ng_omp in addition to libnfft3<suffix>.
+checkall_ngomp_SOURCES = check_ngomp.c ngomp.c ngomp.h
+checkall_ngomp_CFLAGS = $(OPENMP_CFLAGS)
+checkall_ngomp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@ @cunit_LDFLAGS@
+checkall_ngomp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_ng_omp.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @fftw3_LIBS_omp@ @cunit_LIBS@
+
 EXTRA_DIST = data/generated/nfft_testcases.h \
              data/generated/nfft_native_testcases.h \
              data/generated/nfct_testcases.h \
@@ -64,4 +77,4 @@ checkall_ng_threads_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_
 endif
 
 clean-local:
-	rm -f CUnitAutomated-Results.xml CUnitAutomated_threads-Results.xml checkall.log checkall.trs checkall_threads.log checkall_threads.trs CUnitAutomated_ng-Results.xml CUnitAutomated_ng_threads-Results.xml checkall_ng.log checkall_ng.trs checkall_ng_threads.log checkall_ng_threads.trs
+	rm -f CUnitAutomated-Results.xml CUnitAutomated_threads-Results.xml checkall.log checkall.trs checkall_threads.log checkall_threads.trs CUnitAutomated_ng-Results.xml CUnitAutomated_ng_threads-Results.xml checkall_ng.log checkall_ng.trs checkall_ng_threads.log checkall_ng_threads.trs CUnitAutomated_ngomp-Results.xml checkall_ngomp.log checkall_ngomp.trs

@@ -140,11 +140,13 @@ tests/checkall
 tests/checkall_threads
 tests/checkall_ng
 tests/checkall_ng_threads
+tests/checkall_ngomp
 *.trs
 CUnitAutomated-Results.xml
 CUnitAutomated_threads-Results.xml
 CUnitAutomated_ng-Results.xml
 CUnitAutomated_ng_threads-Results.xml
+CUnitAutomated_ngomp-Results.xml
 matlab/tests/check_nf*t_matlab.sh
 matlab/tests/check_nf*t_octave.sh
 matlab/tests/nfftUnitTests.m
