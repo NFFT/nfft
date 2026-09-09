@@ -93,7 +93,7 @@ add-on report FFTW's thread count into the wisdom key.
 
 ### Task 1: Flag vocabulary, the mapping stage, and the derived child flags
 
-Implements R1, R2, R3, R9.
+Implements R1, R2, R3, R9, R11, R11a.
 
 **Files:**
 - Create: `kernel/nfft/mapflags.c`
@@ -132,6 +132,10 @@ In `include/nfft3.h`, replace the planning-flag block at lines 845-849 with:
 #define NFFT_NO_NONTHREADED  (1U << 7)  /* Beyond-guru: forbid serial solvers
                                          * whenever more than one thread was
                                          * requested, whatever the patience. */
+#define NFFT_WISDOM_ONLY     (1U << 8)  /* Plan only from existing wisdom.
+                                         * Reaches the child FFTW plans; the
+                                         * guru returns NULL when they cannot
+                                         * be built from FFTW wisdom. */
 ```
 
 - [ ] **Step 2: Add the internal bit**
@@ -251,6 +255,51 @@ void Y(check_planner_derive_fftw_flags)(void)
                       Y(nfft_derive_fftw_flags)(NFFT_PATIENT, 0u));
   CU_ASSERT_NOT_EQUAL(Y(nfft_derive_fftw_flags)(NFFT_ESTIMATE, 0u),
                       Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u));
+
+  /* Wisdom-only: the planning word is the only source of truth. Given, it is
+   * forced in on both paths; withheld, it is cleared even when the caller set
+   * it in fftw_flags. */
+  f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE | NFFT_WISDOM_ONLY, 0u);
+  CU_ASSERT_TRUE(f & FFTW_WISDOM_ONLY);
+  f = Y(nfft_derive_fftw_flags)(NFFT_PATIENT | NFFT_WISDOM_ONLY, FFTW_ESTIMATE);
+  CU_ASSERT_TRUE(f & FFTW_WISDOM_ONLY);
+  CU_ASSERT_TRUE(f & FFTW_ESTIMATE);
+  f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE, FFTW_WISDOM_ONLY | FFTW_ESTIMATE);
+  CU_ASSERT_FALSE(f & FFTW_WISDOM_ONLY);
+  CU_ASSERT_TRUE(f & FFTW_ESTIMATE);
+  f = Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u);
+  CU_ASSERT_FALSE(f & FFTW_WISDOM_ONLY);
+}
+
+/* Wisdom-only is a planning directive, not a property of the problem, so it
+ * must not enter the key. If it did, a wisdom-only attempt would look under a
+ * different key from the ordinary plan that wrote the entry and could never
+ * find it, which defeats the flag entirely. */
+void Y(check_planner_wisdom_only_not_keyed)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 32, n = 64, M = 10;
+  R x[10];
+  md5sig a, b;
+  problem *p, *q;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  p = Y(mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1,
+                        Y(nfft_derive_fftw_flags)(NFFT_MEASURE, 0u), x, 1, 0, 0);
+  q = Y(mkproblem_nfft)(
+       1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1,
+       Y(nfft_derive_fftw_flags)(NFFT_MEASURE | NFFT_WISDOM_ONLY, 0u), x, 1, 0,
+       0);
+  Y(problem_md5)(pl, p, a);
+  Y(problem_md5)(pl, q, b);
+  CU_ASSERT_TRUE(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]);
+
+  Y(problem_destroy)(q);
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
 }
 ```
 
@@ -259,6 +308,7 @@ Declare both in `tests/planner.h` before `#endif`:
 ```c
 void Y(check_planner_mapflags)(void);
 void Y(check_planner_derive_fftw_flags)(void);
+void Y(check_planner_wisdom_only_not_keyed)(void);
 ```
 
 Register in `tests/check_ng.c` beside the other planner cases:
@@ -267,6 +317,8 @@ Register in `tests/check_ng.c` beside the other planner cases:
   CU_add_test(planner_suite, "mapflags", Y(check_planner_mapflags));
   CU_add_test(planner_suite, "derive_fftw_flags",
               Y(check_planner_derive_fftw_flags));
+  CU_add_test(planner_suite, "wisdom_only_not_keyed",
+              Y(check_planner_wisdom_only_not_keyed));
 ```
 
 - [ ] **Step 5: Run the test to verify it fails**
@@ -356,19 +408,31 @@ unsigned Y(nfft_map_planning_flags)(unsigned planning)
 unsigned Y(nfft_derive_fftw_flags)(unsigned planning, unsigned fftw_flags)
 {
   unsigned estimate, patient, exhaustive;
+  unsigned ff;
 
   if (fftw_flags != 0u)
-    return fftw_flags;
+    ff = fftw_flags;
+  else {
+    levels(planning, &estimate, &patient, &exhaustive);
+    if (estimate)
+      ff = (unsigned)FFTW_ESTIMATE;
+    else if (exhaustive)
+      ff = (unsigned)FFTW_EXHAUSTIVE;
+    else if (patient)
+      ff = (unsigned)FFTW_PATIENT;
+    else
+      ff = (unsigned)FFTW_MEASURE; /* zero */
+  }
 
-  levels(planning, &estimate, &patient, &exhaustive);
+  /* One source of truth for wisdom-only: the planning word decides, on both
+   * paths. A caller cannot set or clear it behind the planning word's back,
+   * so the two spellings can never disagree. */
+  if (planning & NFFT_WISDOM_ONLY)
+    ff |= (unsigned)FFTW_WISDOM_ONLY;
+  else
+    ff &= ~(unsigned)FFTW_WISDOM_ONLY;
 
-  if (estimate)
-    return (unsigned)FFTW_ESTIMATE;
-  if (exhaustive)
-    return (unsigned)FFTW_EXHAUSTIVE;
-  if (patient)
-    return (unsigned)FFTW_PATIENT;
-  return (unsigned)FFTW_MEASURE; /* zero */
+  return ff;
 }
 ```
 
@@ -381,9 +445,31 @@ twice (a serial and a `_threads` variant), add it to both.
 In `CMakeLists.txt`, find the list naming `kernel/nfft/conf.c` and add
 `kernel/nfft/mapflags.c` next to it.
 
-- [ ] **Step 8: Wire both functions into `plan.c`**
+- [ ] **Step 8: Wire both functions into `plan.c`, and keep wisdom-only out of the key**
 
 In `kernel/nfft/plan.c`:
+
+Extend `keyable_fftw_flags` (lines 34-42) to strip the wisdom-only bit as well.
+It is a planning directive, not a property of the problem: leaving it in the key
+would make a wisdom-only attempt look under a different key from the ordinary
+plan that wrote the entry, so it could never find it.
+
+```c
+/* Strip the bits that are planning directives rather than properties of the
+ * problem, before fftw_flags reaches the wisdom key. The preservation bits
+ * (FFTW_DESTROY_INPUT / FFTW_PRESERVE_INPUT) go because no planner-native
+ * candidate mutates its input in place, so the two spellings must not key
+ * distinct entries. FFTW_WISDOM_ONLY goes because it says how hard to look for
+ * a plan, not which plan is wanted: a wisdom-only attempt must find the entry
+ * an ordinary plan wrote. The remaining bits do affect measured cost and
+ * belong in the key. */
+static unsigned keyable_fftw_flags(unsigned fftw_flags)
+{
+  return fftw_flags
+         & ~(unsigned)(FFTW_DESTROY_INPUT | FFTW_PRESERVE_INPUT
+                       | FFTW_WISDOM_ONLY);
+}
+```
 
 Delete the `map_planning_flags` function at lines 44-53. Change its call site
 at line 80 to:
@@ -416,7 +502,41 @@ to
 Apply the identical change to any other `Y(mkproblem_nfft)` call in the file;
 grep for `mkproblem_nfft` and confirm each passes the derived word.
 
-- [ ] **Step 9: Pin the child plan's flag invariants against regression**
+- [ ] **Step 9: Migrate the existing wisdom-only test to the planning word**
+
+`tests/nplan.c:1495` currently asks for wisdom-only through `fftw_flags`. After
+Step 6 that spelling is cleared, so the test would stop exercising anything.
+Move it to the planning word. Replace the `Y(plan_ng_guru)` call in
+`Y(check_nplan_fftw_wisdom_only_declines)` with:
+
+```c
+  /* Wisdom-only now comes from the planning word; FFTW_WISDOM_ONLY inside
+   * fftw_flags is cleared by Y(nfft_derive_fftw_flags). */
+  CU_ASSERT_PTR_NULL(Y(plan_ng_guru)(
+       1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f, 0u,
+       NFFT_ESTIMATE | NFFT_NO_DIRECT | NFFT_WISDOM_ONLY));
+
+  /* The old spelling is now inert: with no FFTW wisdom present the child plans
+   * are still built, so the guru succeeds. */
+  {
+    Y(plan_ng) *p = Y(plan_ng_guru)(
+         1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+         FFTW_WISDOM_ONLY | FFTW_ESTIMATE, NFFT_ESTIMATE | NFFT_NO_DIRECT);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      Y(plan_ng_destroy)(p);
+  }
+```
+
+Update the comment above the function to say the request comes from the
+planning word. Rename nothing: the case keeps its registered name so the
+history in the CUnit reports stays continuous.
+
+Run: `make -j && tests/checkall_ng`
+Expected: `nplan/fftw_wisdom_only_declines` passes. A failure on the second
+half means Step 6's clearing path is missing.
+
+- [ ] **Step 10: Pin the child plan's flag invariants against regression**
 
 Four properties hold today at `kernel/nfft/nfft-nd.c:209-217` and must still
 hold afterwards. FFTW has no in-place or out-of-place flag: in-place is
@@ -495,18 +615,19 @@ Expected: PASS. If `in-place` appears, `nfft-nd.c` was changed and the two
 `FFTW(plan_dft)` calls no longer use distinct buffers. If the guru returns
 `NULL` for the `FFTW_PRESERVE_INPUT` word, the strip at line 210 was lost.
 
-- [ ] **Step 10: Run the tests**
+- [ ] **Step 11: Run the tests**
 
 Run: `./bootstrap.sh && ./configure --enable-all --enable-tests && make -j && make check`
-Expected: PASS, including `planner/mapflags`, `planner/derive_fftw_flags` and
+Expected: PASS, including `planner/mapflags`, `planner/derive_fftw_flags`,
+`planner/wisdom_only_not_keyed`, `nplan/fftw_wisdom_only_declines` and
 `nfast/child_fftw_flags`.
 
-- [ ] **Step 11: Format and commit**
+- [ ] **Step 12: Format and commit**
 
 ```bash
-clang-format -i kernel/nfft/mapflags.c kernel/nfft/plan.c include/nfft3.h include/iplanner.h tests/planner.c tests/nfast.c
-git add include/nfft3.h include/iplanner.h kernel/nfft/mapflags.c kernel/nfft/plan.c kernel/nfft/Makefile.am CMakeLists.txt tests/planner.c tests/planner.h tests/nfast.c tests/nfast.h tests/check_ng.c
-git commit -m "Map the public planning word through an FFTW-style patience lattice and derive the child FFTW flags from it."
+clang-format -i kernel/nfft/mapflags.c kernel/nfft/plan.c include/nfft3.h include/iplanner.h tests/planner.c tests/nfast.c tests/nplan.c
+git add include/nfft3.h include/iplanner.h kernel/nfft/mapflags.c kernel/nfft/plan.c kernel/nfft/Makefile.am CMakeLists.txt tests/planner.c tests/planner.h tests/nfast.c tests/nfast.h tests/nplan.c tests/check_ng.c
+git commit -m "Map the public planning word through an FFTW-style patience lattice and make it the only source of the child FFTW flags."
 ```
 
 ---
@@ -1493,8 +1614,10 @@ In `include/nfft3.h`, extend the `plan_ng_guru` doc comment:
  * level: ESTIMATE -> FFTW_ESTIMATE, MEASURE -> FFTW_MEASURE, PATIENT ->
  * FFTW_PATIENT, EXHAUSTIVE -> FFTW_EXHAUSTIVE. A non-zero word is used as
  * given. Either way input preservation is stripped and destruction forced,
- * because the scratch grids belong to the plan. The derived word is part of
- * the wisdom key.
+ * because the scratch grids belong to the plan, and FFTW_WISDOM_ONLY is set
+ * or cleared from NFFT_WISDOM_ONLY, so passing it in fftw_flags has no
+ * effect. The derived word is part of the wisdom key, except for those bits,
+ * which are planning directives rather than properties of the problem.
  *
  * Threads. X(plan_with_nthreads) sets the maximum number of threads a plan
  * may use; it lives in the add-on library libnfft3<suffix>_ng_omp, so a
@@ -1537,17 +1660,28 @@ shape of `docs/adr/0004-in-tree-html-accuracy-reports.md`. It must record:
   admitting FFTW's count. Both invalidate stored wisdom, which the
   configuration signature turns into a clean miss. On OpenMP builds the key
   changes again because `nthr` no longer follows the OpenMP thread count.
-- Not decided here: racing thread counts, a pthreads variant, and consumers for
-  `PLNR_NO_UGLY`, `PLNR_NO_SLOW`, `PLNR_ALLOW_PRUNING` and
-  `PLNR_BELIEVE_PCOST`, which the mapping sets and nothing reads.
+- `NFFT_WISDOM_ONLY`: the planning word is the only source of truth for
+  wisdom-only, and the bit is kept out of the wisdom key because it says how
+  hard to look for a plan, not which plan is wanted. Record the caveat: it
+  reaches only the child FFTW plans and does not make NFFT's own planner refuse
+  a problem absent from NFFT wisdom. Making it do so is not plumbing — the
+  DECONV and CONV children are planned through `Y(planner_mkplan)` and their
+  memos stay unblessed (`kernel/nfft/plan.c:125`), so they are never exported
+  and a strict search would always fail on them.
+- Not decided here: racing thread counts, a pthreads variant, strict NFFT-side
+  wisdom-only, and consumers for `PLNR_NO_UGLY`, `PLNR_NO_SLOW`,
+  `PLNR_ALLOW_PRUNING` and `PLNR_BELIEVE_PCOST`, which the mapping sets and
+  nothing reads.
 
 - [ ] **Step 5: Update the planner skill**
 
 - `SKILL.md`: extend the planning-flags table with `NFFT_PATIENT (1<<5)`,
-  `NFFT_EXHAUSTIVE (1<<6)`, `NFFT_NO_NONTHREADED (1<<7)`; add the four add-on
+  `NFFT_EXHAUSTIVE (1<<6)`, `NFFT_NO_NONTHREADED (1<<7)`,
+  `NFFT_WISDOM_ONLY (1<<8)`; add the four add-on
   entry points to the API listing with a note that they need
   `-lnfft3_ng_omp`; correct the `fftw_flags` paragraph, which currently says
-  `0` means `FFTW_MEASURE`, to the derive rule.
+  `0` means `FFTW_MEASURE`, to the derive rule; state that `FFTW_WISDOM_ONLY`
+  inside `fftw_flags` is ignored and `NFFT_WISDOM_ONLY` is the way to ask.
 - `reference/planning-modes-and-flags.md`: add the patience lattice and the
   decline rule, stating that below `PATIENT` a threaded plan is chosen without
   being timed against the serial one.
@@ -1589,7 +1723,8 @@ git commit -m "Document the patience lattice and pin the guru's behaviour at eve
 
 ## Self-Review
 
-**Spec coverage.** R1, R2, R3 and R9 are Task 1. R4 is Task 2. R5 is Task 3.
+**Spec coverage.** R1, R2, R3, R9, R11 and R11a are Task 1; R11b is recorded
+in the ADR in Task 8 step 4. R4 is Task 2. R5 is Task 3.
 R10 is Task 4. R6, R7 and R8 are Task 5, tested in Task 6. The wisdom clause
 common to all of them is Task 7. The acceptance clause's documentation and
 end-to-end cases are Task 8.
@@ -1635,3 +1770,11 @@ Both are tested in isolation before then, so no task depends on a later one.
    wisdom. FFTW does the same, but FFTW's `plan_with_nthreads` is documented as
    an early call. A caller who plans, then calls `plan_with_nthreads`, loses
    every earlier decision.
+6. `NFFT_WISDOM_ONLY` reaches only the child FFTW plans, so the name promises
+   more than it delivers. A caller could reasonably read it as "refuse unless
+   NFFT wisdom has this problem". Whether to ship a flag with that gap, rename
+   it, or widen it to NFFT's own search is a fair thing to attack.
+7. Task 1 step 9 changes documented behaviour: `FFTW_WISDOM_ONLY` inside
+   `fftw_flags` stops working. Nothing in the tree relies on it beyond the test
+   being migrated, but it is a public-API change riding inside a threading
+   plan.
