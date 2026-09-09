@@ -79,8 +79,14 @@ else
   LIB_FPT_THREADS=
 endif
 
+if ENABLE_NG_OMP
+  DIR_THREADS_NG = threads
+else
+  DIR_THREADS_NG =
+endif
+
 SUBDIRS = util planner nfft deconv conv $(DIR_NFCT) $(DIR_NFST) $(DIR_NNFFT) $(DIR_NSFFT) \
-  $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver .
+  $(DIR_MRI) $(DIR_FPT) $(DIR_NFSFT) $(DIR_NFSOFT) solver $(DIR_THREADS_NG) .
 
 if ENABLE_OPENMP
   LIBKERNEL_THREADS_LA = libkernel_threads.la

@@ -48,9 +48,15 @@ LIBNFFT3_THREADDS_LA =
 LIBNFFT3_OMP_LA =
 endif
 
+if ENABLE_NG_OMP
+LIBNFFT3_NG_OMP_LA = libnfft3@PREC_SUFFIX@_ng_omp.la
+else
+LIBNFFT3_NG_OMP_LA =
+endif
+
 SUBDIRS= include kernel . tests $(EXAMPLE_DIRS) $(APPLICATION_DIRS) $(MATLAB_DIRS) $(JULIA_DIRS) $(BENCHMARK_DIRS)
 
-lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADDS_LA) $(LIBNFFT3_OMP_LA)
+lib_LTLIBRARIES = libnfft3@PREC_SUFFIX@.la $(LIBNFFT3_THREADDS_LA) $(LIBNFFT3_OMP_LA) $(LIBNFFT3_NG_OMP_LA)
 noinst_LTLIBRARIES = $(LIBNFFT3_MATLAB_LA) $(LIBNFFT3_JULIA_LA)
 
 libnfft3@PREC_SUFFIX@_la_SOURCES =
@@ -68,6 +74,13 @@ libnfft3@PREC_SUFFIX@_omp_la_SOURCES =
 libnfft3@PREC_SUFFIX@_omp_la_LIBADD = kernel/libkernel_threads.la @fftw3_LIBS@  @fftw3_LIBS_omp@
 libnfft3@PREC_SUFFIX@_omp_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
 libnfft3@PREC_SUFFIX@_omp_la_CFLAGS = $(OPENMP_CFLAGS)
+endif
+
+if ENABLE_NG_OMP
+libnfft3@PREC_SUFFIX@_ng_omp_la_SOURCES =
+libnfft3@PREC_SUFFIX@_ng_omp_la_LIBADD = kernel/threads/libthreads_ng.la libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @fftw3_LIBS_omp@
+libnfft3@PREC_SUFFIX@_ng_omp_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ $(OPENMP_CFLAGS) @fftw3_LDFLAGS@
+libnfft3@PREC_SUFFIX@_ng_omp_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 if HAVE_MATLAB
