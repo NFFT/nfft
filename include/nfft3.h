@@ -842,6 +842,19 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
  * different plans, but X(execute_on) and X(execute_adjoint_on) are not
  * reentrant on a single plan: one plan runs one transform at a time. */
 
+/* Threading. These four are declared here but DEFINED ONLY in the add-on
+ * library libnfft3<suffix>_ng_omp, linked in addition to libnfft3<suffix>:
+ * `-lnfft3_ng_omp -lnfft3`. FFTW packages its threading the same way. A program
+ * that links only libnfft3<suffix> cannot raise the thread count above 1, which
+ * is exactly why a serial plan is always available there.
+ *
+ * X(plan_with_nthreads) initialises threading, which destroys the planner and
+ * its in-memory wisdom because the solver roster is about to change. Call it
+ * before any other NFFT routine, as FFTW documents for fftw_init_threads.
+ *
+ * Note libnfft3<suffix>_omp is a different thing: a whole-library OpenMP
+ * rebuild for the legacy API, linked INSTEAD of libnfft3<suffix>. */
+
 /* Planning flags. Patience rises MEASURE -> PATIENT; ESTIMATE skips
  * measurement entirely. Patience is expressed internally by the absence of
  * restrictions, so a more patient request searches a wider space and takes
@@ -919,6 +932,10 @@ NFFT_EXTERN void X(forget_wisdom)(void); \
 /** per-process planning timelimit in seconds (negative = unlimited); applies \
  *  to every problem planned through the shared wisdom store */ \
 NFFT_EXTERN void X(set_timelimit)(double seconds); \
+NFFT_EXTERN int X(init_threads)(void); \
+NFFT_EXTERN void X(cleanup_threads)(void); \
+NFFT_EXTERN void X(plan_with_nthreads)(int nthreads); \
+NFFT_EXTERN int X(planner_nthreads)(void); \
 /** Return the compile-time-selected window as an NFFT_WINDOW_* ordinal. */ \
 NFFT_EXTERN int X(get_window_id)(void);
 

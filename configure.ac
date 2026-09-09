@@ -505,6 +505,11 @@ AC_CHECK_DECL([fftw${PREC_SUFFIX}_planner_nthreads],
   [[#include <fftw3.h>]])
 CPPFLAGS="$saved_CPPFLAGS"
 
+AM_CONDITIONAL(ENABLE_NG_OMP,
+  test "x$enable_threads" = "xyes" \
+    -a "x$nfft_have_fftw_planner_nthreads" = "xyes" \
+    -a "x$nfft_fftw3_have_lib_omp" = "xyes")
+
 # Check for MATLAB.
 AX_PROG_MATLAB
 
@@ -744,6 +749,7 @@ AC_CONFIG_FILES(Makefile \
                 kernel/solver/Makefile \
                 kernel/util/Makefile \
                 kernel/planner/Makefile \
+                kernel/threads/Makefile \
                 tests/Makefile \
                 tests/data/Makefile \
                 examples/Makefile \
