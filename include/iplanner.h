@@ -251,7 +251,10 @@ enum {
   PLNR_NO_UGLY = 0x0008,
   PLNR_NO_DIRECT = 0x0010, /* forbid O(N.M) direct solvers */
   PLNR_ALLOW_PRUNING = 0x0080,
-  PLNR_NO_FAST_NATIVE = 0x0200 /* forbid the planner-native fast NFFT solver */
+  PLNR_NO_FAST_NATIVE =
+       0x0200, /* forbid the planner-native fast NFFT solver */
+  PLNR_NO_NONTHREADED = 0x0400 /* a serial solver may not answer when more than
+                                * one thread was requested */
 };
 
 /* hashtable slot information */
@@ -321,6 +324,11 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out);
 /* the estimate search: wisdom lookup, else cheapest applicable solver of
  * the problem's kind; memoises the outcome unblessed. */
 plan *Y(planner_mkplan)(planner *pl, const problem *p);
+
+/* mapflags.c: translation of the caller's request. Both are pure functions of
+ * their arguments; no planner or problem state is read. */
+unsigned Y(nfft_map_planning_flags)(unsigned planning);
+unsigned Y(nfft_derive_fftw_flags)(unsigned planning, unsigned fftw_flags);
 
 /* Run every applicable solver of p's kind under the planner's current
  * bounds: store up to cap (plan, descriptor-index) pairs; return the count.
