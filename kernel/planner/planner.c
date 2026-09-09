@@ -530,15 +530,19 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out)
   out[3] = m.s[3];
 }
 
-/* Query flags from the planner's current impatience bounds; timelimit_imp and
- * info stay zero (unblessed session memo). */
+/* Query flags from the planner's current impatience bounds; timelimit_imp
+ * stays zero. */
 static flags_t search_flags(planner *pl)
 {
   flags_t q;
   q.l = PLNR_L(pl);
   q.u = PLNR_U(pl);
   q.timelimit_imp = 0;
-  q.info = 0;
+  /* Blessing is dynamically scoped: whatever the planner is currently blessing,
+   * every solution memoised beneath it inherits. That is how FFTW gets the
+   * whole winning tree blessed on its second pass without enumerating children
+   * (api/apiplan.c:147, kernel/planner.c BLISS). */
+  q.info = pl->flags.info & PLNR_BLESSING;
   q.slvndx = 0;
   return q;
 }
@@ -549,11 +553,12 @@ static flags_t search_flags(planner *pl)
 static plan *invoke_solver(planner *pl, const problem *p, solver *s)
 {
   int nthr = pl->nthr;
-  unsigned l = pl->flags.l, u = pl->flags.u;
+  unsigned l = pl->flags.l, u = pl->flags.u, info = pl->flags.info;
   plan *pln = s->adt->mkplan(s, p, pl);
   pl->nthr = nthr;
   pl->flags.l = l;
   pl->flags.u = u;
+  pl->flags.info = info;
   return pln;
 }
 
@@ -577,13 +582,23 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
   sol = Y(planner_hlookup)(pl, sig, &q);
   if (sol != 0) {
     unsigned slvndx = sol->flags.slvndx; /* copy before any store mutation */
+    flags_t hit = sol->flags; /* copy before invoke_solver may rehash */
     if (slvndx == INFEASIBLE_SLVNDX)
       return 0;
     {
       solver *s = pl->slvdescs[slvndx].slv;
       plan *pln = invoke_solver(pl, p, s);
-      if (pln != 0)
+      if (pln != 0) {
+        /* A hit still re-memoises: blessing is monotonic, inherited from
+         * whichever of the stored entry or the planner's current scope
+         * already has it (FFTW's kernel/planner.c BLISS, folded into the
+         * shared skip_search hinsert). This is what promotes a child that a
+         * losing candidate already memoised unblessed once the second pass
+         * revisits it under PLNR_BLESSING. */
+        hit.info = (hit.info | q.info) & PLNR_BLESSING;
+        Y(planner_hinsert)(pl, sig, &hit, slvndx);
         return pln;
+      }
     }
   }
 
