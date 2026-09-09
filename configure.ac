@@ -491,12 +491,19 @@ AC_SUBST(OPENMP_LIBS)
 # fftw_planner_nthreads arrived in FFTW 3.3.9. The add-on threading library
 # reports FFTW's thread count into our wisdom key through it; without it that
 # library is not built.
+#
+# NFFT_LIB_FFTW3 restores CPPFLAGS before returning, so a custom
+# --with-fftw3-includedir isn't on CPPFLAGS yet here: bring it in for this
+# check the same way that macro does for its own probes.
+saved_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$nfft_fftw3_CPPFLAGS $CPPFLAGS"
 AC_CHECK_DECL([fftw${PREC_SUFFIX}_planner_nthreads],
   [AC_DEFINE([HAVE_FFTW_PLANNER_NTHREADS],[1],
      [Define to 1 if FFTW declares fftw_planner_nthreads.])
    nfft_have_fftw_planner_nthreads=yes],
   [nfft_have_fftw_planner_nthreads=no],
   [[#include <fftw3.h>]])
+CPPFLAGS="$saved_CPPFLAGS"
 
 # Check for MATLAB.
 AX_PROG_MATLAB
