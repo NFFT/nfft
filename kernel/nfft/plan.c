@@ -53,6 +53,22 @@ static int select_estimate(Y(plan_ng) *p, planner *pl)
   return (p->dir[FWD] != 0 || p->dir[ADJ] != 0);
 }
 
+/* Second pass, FFTW's trick: re-plan the just-blessed winner with the
+ * blessing bit set. Every node hits the memo the race left behind, so the
+ * whole winning tree is blessed and no losing candidate's children are. The
+ * plan it returns is discarded; the raced winner already sits in p->dir[dirn]
+ * and replacing it would disturb the race's result. */
+static void bless_whole_tree(planner *pl, const problem *prob)
+{
+  pl->flags.info |= PLNR_BLESSING;
+  {
+    plan *bless_pass = Y(planner_mkplan)(pl, prob);
+    if (bless_pass)
+      Y(plan_destroy)(bless_pass);
+  }
+  pl->flags.info &= ~(unsigned)PLNR_BLESSING;
+}
+
 Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT *n,
                       INT M, int m, int window, R *x, FC *f_hat, FC *f,
                       unsigned fftw_flags, unsigned planning)
@@ -115,11 +131,17 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   }
 
   if (is_estimate) {
-    /* Bounds {l = F, u = PLNR_ESTIMATE | F}; memos stay unblessed. */
+    /* Bounds {l = F, u = PLNR_ESTIMATE | F}. Estimate solutions are blessed and
+     * exported, matching FFTW: mkplan0 sets BLESSING whatever the patience and
+     * exprt filters nothing. They can only ever answer another estimate query,
+     * because PLNR_ESTIMATE rides in u and LEQ(a->u, q->u) then fails for a
+     * measured query -- which is FFTW's behaviour too. */
     pl->flags.l = F;
     pl->flags.u = PLNR_ESTIMATE | F;
+    pl->flags.info |= PLNR_BLESSING;
 
     if (!select_estimate(p, pl)) {
+      pl->flags.info &= ~(unsigned)PLNR_BLESSING;
       pl->flags.l = saved_l;
       pl->flags.u = saved_u;
       if (p->prob[FWD])
@@ -130,6 +152,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       return 0;
     }
 
+    pl->flags.info &= ~(unsigned)PLNR_BLESSING;
     pl->flags.l = saved_l;
     pl->flags.u = saved_u;
 
@@ -263,6 +286,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
           p->dir[dirn] = cands[dirn][lone];
           ncands[dirn] = 0;
           Y(planner_bless)(pl, p->prob[dirn], cslvndx[dirn][lone]);
+          bless_whole_tree(pl, p->prob[dirn]);
           continue;
         }
       }
@@ -344,8 +368,10 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         fl.info = 0;
         fl.slvndx = cslvndx[dirn][winner_idx];
         Y(planner_hinsert)(pl, sig, &fl, cslvndx[dirn][winner_idx]);
-      } else
+      } else {
         Y(planner_bless)(pl, p->prob[dirn], cslvndx[dirn][winner_idx]);
+        bless_whole_tree(pl, p->prob[dirn]);
+      }
     }
 
     /* Shared estimate-grade restart. */
@@ -368,8 +394,10 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 
       pl->flags.l = F;
       pl->flags.u = PLNR_ESTIMATE | F;
+      pl->flags.info |= PLNR_BLESSING;
 
       if (!select_estimate(p, pl)) {
+        pl->flags.info &= ~(unsigned)PLNR_BLESSING;
         pl->flags.l = saved_l;
         pl->flags.u = saved_u;
         if (p->prob[FWD])
@@ -380,6 +408,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         return 0;
       }
 
+      pl->flags.info &= ~(unsigned)PLNR_BLESSING;
       pl->flags.l = saved_l;
       pl->flags.u = saved_u;
 

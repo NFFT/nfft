@@ -164,4 +164,13 @@ void Y(check_nplan_guru_rejects_null_args)(void);
  * n[t]<=0) and on a bad M, m or window ordinal. */
 void Y(check_nplan_guru_rejects_bad_geometry)(void);
 
+/* Entry lines in an exported wisdom file are indented; the preamble and the
+ * closing paren are not. Declared here because the wisdom-only case reuses
+ * it. */
+int Y(count_wisdom_entries)(void);
+
+/* After planning, an export must describe the whole winning tree: the NFFT
+ * solution and its DECONV and CONV children. */
+void Y(check_nplan_blesses_whole_tree)(void);
+
 #endif

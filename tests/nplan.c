@@ -927,9 +927,10 @@ void Y(check_nplan_wisdom_memo)(void)
   p1 = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f, 0u,
                     NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p1);
-  nelem = Y(the_planner)()->htab_unblessed.nelem;
-  /* estimate flows never bless: blessing is measured-mode only */
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
+  nelem = Y(the_planner)()->htab_blessed.nelem;
+  /* Estimate solutions are blessed too, FFTW parity (R14): the fast native
+   * winner's DECONV and CONV children land in the blessed table alongside it. */
+  CU_ASSERT_TRUE(nelem >= 3u); /* NFFT + DECONV + CONV */
   pr = Y(printer_create_str)(b1);
   Y(plan_ng_print)(p1, pr);
   Y(printer_destroy)(pr);
@@ -940,7 +941,7 @@ void Y(check_nplan_wisdom_memo)(void)
   p2 = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f, 0u,
                     NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, nelem);
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, nelem);
   pr = Y(printer_create_str)(b2);
   Y(plan_ng_print)(p2, pr);
   Y(printer_destroy)(pr);
@@ -954,7 +955,7 @@ void Y(check_nplan_wisdom_memo)(void)
          Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f,
                       FFTW_ESTIMATE | FFTW_PRESERVE_INPUT, NFFT_ESTIMATE);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p3);
-    CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, nelem);
+    CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, nelem);
     Y(plan_ng_destroy)(p3);
   }
 
@@ -962,12 +963,13 @@ void Y(check_nplan_wisdom_memo)(void)
   Y(plan_ng_destroy)(p2);
 
   /* global teardown re-arms registration; the fresh generation really
-   * re-searches (its wisdom starts empty and grows) */
+   * re-searches (its wisdom starts empty and grows) -- into the blessed
+   * table now, since an estimate solution is blessed on first sight. */
   Y(the_planner_destroy)();
   p1 = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f, 0u,
                     NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p1);
-  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
+  CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > 0u);
   Y(plan_ng_destroy)(p1);
   Y(the_planner_destroy)();
 }
@@ -1045,10 +1047,13 @@ void Y(check_nplan_measured)(void)
   Y(the_planner_destroy)(); /* fresh store: absolute counts below */
   fill_nodes(x, 1, M, 51u);
 
-  /* (a) A large-M measured race blesses exactly one size-class entry,
-   * whatever wins, because only the forward problem is raced. The unblessed
-   * table may still grow: the composed native fast memoises its DECONV/CONV
-   * children on their first plan. Once those are memoised a repeat query is
+  /* (a) A large-M measured race blesses the whole winning tree (NFFT +
+   * DECONV + CONV), because the second pass re-visits every node the race
+   * left memoised. The unblessed table keeps the DECONV/CONV entries the
+   * candidate build wrote before the winner was known -- promoting to
+   * blessed adds a new entry rather than moving the old one, same as FFTW's
+   * own hinsert (kernel/planner.c: htab_insert picks one table by the new
+   * flags, never touches the other). Once promoted a repeat query is
    * idempotent -- neither table grows and the same winners come back. */
   p = Y(
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
@@ -1063,8 +1068,8 @@ void Y(check_nplan_measured)(void)
             "(known-skipped)");
 #endif
     /* no usable clock: measured degrades to estimate-grade selection, which
-     * memoises unblessed only, and the bundle still works */
-    CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
+     * now blesses too (R14), and the bundle still works */
+    CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > 0u);
     Y(precompute)(p);
     fill_fhat(f_hat, N, 52u);
     Y(execute)(p);
@@ -1072,10 +1077,14 @@ void Y(check_nplan_measured)(void)
     Y(the_planner_destroy)();
     return;
   }
-  /* the forward direction raced and blessed (the adjoint half is dormant) */
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 1u);
-  ub = Y(the_planner)()
-            ->htab_unblessed.nelem; /* may be >0: DECONV/CONV children */
+  /* the forward direction raced; the whole tree it built is blessed
+   * (the adjoint half is dormant) */
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem,
+                  3u); /* NFFT+DECONV+CONV */
+  ub = Y(the_planner)()->htab_unblessed.nelem; /* stale DECONV/CONV
+                                                 * candidate-build entries,
+                                                 * superseded by the blessed
+                                                 * copies but not removed */
   bundle_winners(p, f0, a0); /* capture the actual per-direction winners */
 
   /* repeat measured guru: blessed hit, no race, no growth, same winners */
@@ -1083,7 +1092,7 @@ void Y(check_nplan_measured)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                     0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 1u);
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 3u);
   CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, ub);
   bundle_winners(p2, f1, a1);
   CU_ASSERT_STRING_EQUAL(f1, f0);
@@ -1092,14 +1101,20 @@ void Y(check_nplan_measured)(void)
 
   /* The derived child FFTW flags (FFTW_MEASURE vs FFTW_ESTIMATE) are part of
    * the wisdom key, so patience levels are partitioned and this guru no
-   * longer sees the measured entry above; it runs its own search instead. */
-  p2 = Y(
-       plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
-                    0u, NFFT_ESTIMATE);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
-  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > ub); /* fresh search */
-  bundle_winners(p2, f1, a1);
-  Y(plan_ng_destroy)(p2);
+   * longer sees the measured entry above; it runs its own search instead --
+   * and, being an estimate query, blesses its own tree too (R14), so the
+   * growth lands in the blessed table rather than the unblessed one. */
+  {
+    unsigned bb = Y(the_planner)()->htab_blessed.nelem;
+    p2 = Y(
+         plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat,
+                      f, 0u, NFFT_ESTIMATE);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
+    CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > bb); /* fresh search */
+    CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, ub);
+    bundle_winners(p2, f1, a1);
+    Y(plan_ng_destroy)(p2);
+  }
   Y(plan_ng_destroy)(p);
 
   /* (b) a tiny-M measured race where both candidates genuinely run: the
@@ -1117,15 +1132,17 @@ void Y(check_nplan_measured)(void)
     Y(plan_ng_destroy)(p);
   }
 
-  /* a gated query misses the blessed {F=0} entries, so it searches and
-   * memoises */
-  ub = Y(the_planner)()->htab_unblessed.nelem;
-  p = Y(
-       plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
-                   0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > ub); /* new memos */
-  Y(plan_ng_destroy)(p);
+  /* a gated estimate query misses the blessed {F=0} entries, so it searches
+   * and blesses its own tree (R14: estimate solutions are blessed too) */
+  {
+    unsigned bb = Y(the_planner)()->htab_blessed.nelem;
+    p = Y(
+         plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat,
+                     f, 0u, NFFT_ESTIMATE | NFFT_NO_DIRECT);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > bb); /* new memos */
+    Y(plan_ng_destroy)(p);
+  }
 
   Y(the_planner_destroy)();
 }
@@ -1321,21 +1338,22 @@ void Y(check_nplan_measured_wisdom)(void)
   Y(nfft_ensure_registered)(); /* import checks the config signature */
   CU_ASSERT(Y(test_wisdom_import)(Y(the_planner)(), wis));
   Y(free)(wis);
-  /* the race is forward-only, so only the sign=+1 entry is exported */
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 1u);
+  /* the race is forward-only, so only the sign=+1 entries are exported --
+   * but the second pass blessed the whole tree, so that is the top-level
+   * NFFT entry plus its DECONV and CONV children, all three exported. */
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 3u);
 
   /* The measured guru adopts the imported blessed winner: the top-level
    * problem is a blessed hit, so the same forward choice comes back. Its
-   * DECONV/CONV children are never blessed or exported, so they re-race on
-   * the imported re-plan and each leaves an unblessed memo. That is the
-   * native winner rebuilding its children in a fresh generation, not a wisdom
-   * leak: the count is stable across the cycle. */
+   * DECONV/CONV children are blessed and exported too now (R14), so they are
+   * blessed hits on the imported re-plan as well -- no re-race, no unblessed
+   * memo, the whole tree comes back from wisdom alone. */
   p = Y(
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 1u);
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, 2u);
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 3u);
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_unblessed.nelem, 0u);
   bundle_winners(p, f1, a1);
   CU_ASSERT_STRING_EQUAL(f1, f0);
   CU_ASSERT_STRING_EQUAL(a1, a0);
@@ -1346,8 +1364,10 @@ void Y(check_nplan_measured_wisdom)(void)
 
 /* A zero-second timelimit forces every measured race to bail out before a
  * measurement completes, so the guru takes the same estimate-grade restart
- * path as the no-usable-clock case. Estimate never blesses, so the blessed
- * store stays empty; the degraded bundle still produces unblessed memos. */
+ * path as the no-usable-clock case. That restart blesses too now (R14): the
+ * degraded bundle's whole tree (NFFT + DECONV + CONV) lands in the blessed
+ * table; the unblessed table keeps the stale DECONV/CONV entries the doomed
+ * candidate build left behind before the timeout was noticed. */
 void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
@@ -1366,9 +1386,10 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
   /* No candidate finished before expiry: degraded to estimate-grade
-   * selection; estimate never blesses. */
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
-  /* Estimate-grade selection memoises unblessed entries. */
+   * selection, which blesses its own tree too (R14). */
+  CU_ASSERT(Y(the_planner)()->htab_blessed.nelem > 0u);
+  /* The doomed candidate build's DECONV/CONV entries stay in the unblessed
+   * table -- superseded by the blessed copies, not removed. */
   CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
   Y(plan_ng_destroy)(p);
 
@@ -1377,7 +1398,7 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
 }
 
 /* With the default unlimited timelimit (-1.0) the race completes and blesses
- * one new entry for the forward direction. */
+ * the whole winning tree for the forward direction. */
 void Y(check_nplan_timelimit_unset_measures_and_blesses)(void)
 {
   INT N = 64, n = 128, M = 8192;
@@ -1406,8 +1427,9 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void)
     Y(the_planner_destroy)();
     return;
   }
-  /* the forward direction's race finished and blessed. */
-  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 1u);
+  /* the forward direction's race finished; its whole tree is blessed. */
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem,
+                  3u); /* NFFT+DECONV+CONV */
   Y(plan_ng_destroy)(p);
 
   Y(the_planner_destroy)();
@@ -1561,7 +1583,8 @@ void Y(check_nplan_public_api)(void)
   CU_ASSERT(got > 0);
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "nfft_solver_"));
 
-  blessed = Y(the_planner)()->htab_blessed.nelem; /* 1 with a clock, else 0 */
+  blessed = Y(the_planner)()->htab_blessed.nelem; /* whole tree with a clock,
+                                                    * else 0 (estimate-grade) */
 
   /* string wisdom roundtrip through the public functions */
   s = Y(export_wisdom_to_string)();
@@ -2892,4 +2915,73 @@ void Y(check_nplan_guru_rejects_bad_geometry)(void)
   Y(free)(x);
   Y(free)(fh);
   Y(free)(f);
+}
+
+/* Entry lines in an exported wisdom file are indented; the preamble and the
+ * closing paren are not. Declared in nplan.h because the wisdom-only case
+ * reuses it. */
+int Y(count_wisdom_entries)(void)
+{
+  char *w = NFFT(export_wisdom_to_string)();
+  int n = 0;
+  if (w) {
+    const char *s = w;
+    while ((s = strchr(s, '\n')) != 0) {
+      s++;
+      if (*s == ' ')
+        n++;
+    }
+    NFFT(free)(w);
+  }
+  return n;
+}
+
+/* After planning, an export must describe the whole winning tree: the NFFT
+ * solution and its DECONV and CONV children. FFTW gets this by re-creating the
+ * finished plan with BLESSING set so every lookup hits the first pass's memo
+ * (api/apiplan.c:147); we do the same. Losing candidates' children stay out. */
+void Y(check_nplan_blesses_whole_tree)(void)
+{
+  const INT N = 64, n = 128, M = 100;
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+  for (j = 0; j < N; j++)
+    f_hat[j] = K(0.0);
+
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  {
+    Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                       NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u, NFFT_MEASURE);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      NFFT(plan_ng_destroy)(p);
+  }
+  CU_ASSERT_TRUE(Y(count_wisdom_entries)() >= 3); /* NFFT + DECONV + CONV */
+
+  /* Estimate solutions are blessed too, FFTW parity: mkplan0 sets BLESSING
+   * whatever the patience and exprt filters nothing. */
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  {
+    Y(plan_ng) *p =
+         NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u, NFFT_ESTIMATE);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p)
+      NFFT(plan_ng_destroy)(p);
+  }
+  CU_ASSERT_TRUE(Y(count_wisdom_entries)() >= 3);
+
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
 }
