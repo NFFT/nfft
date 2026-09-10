@@ -1765,15 +1765,18 @@ INT Y(bspline_cheb_guard)(const R *tab, const INT k, const R thresh);
 
 /* B_k(x) from the Chebyshev table, in O(k) rather than de Boor's O(k^2).
  *
- * Clenshaw's error is bounded by the coefficient sum, so this holds accuracy
+ * Clenshaw's algorithm, but two steps at once.
+ *
+ * The error is bounded by the coefficient sum, so this holds accuracy
  * against the peak of B_k everywhere but loses relative accuracy in the tail,
  * where B_k runs below the peak by any number of orders. Callers that divide by
- * the result want Y(bspline_cheb_rel) instead. */
+ * the result want Y(bspline_cheb_rel) instead.
+ */
 static inline R Y(bspline_cheb)(const R *tab, const INT k, const R x)
 {
   const INT i = (INT)FLOOR(x);
   const R *c;
-  R s, s2, b1 = K(0.0), b2 = K(0.0);
+  R s, s2, u, b1, b2 = K(0.0);
   INT l;
 
   if (x <= K(0.0) || x >= (R)k)
@@ -1782,13 +1785,16 @@ static inline R Y(bspline_cheb)(const R *tab, const INT k, const R x)
   c = tab + i * k;
   s = K(2.0) * (x - (R)i) - K(1.0);
   s2 = K(2.0) * s;
+  u = s2 * s2 - K(1.0);
+  b1 = c[k - 1];
 
-  for (l = k - 1; l >= 1; l--)
+  for (l = k - 2; l >= 2; l -= 2)
   {
-    const R b = s2 * b1 - b2 + c[l];
+    const R hi = s2 * b1 - b2 + c[l];
+    const R lo = u * b1 - s2 * b2 + (s2 * c[l] + c[l - 1]);
 
-    b2 = b1;
-    b1 = b;
+    b1 = lo;
+    b2 = hi;
   }
 
   return s * b1 - b2 + c[0];
