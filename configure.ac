@@ -339,6 +339,18 @@ AM_PROG_AS
 # compiler options
 ################################################################################
 
+# Prefer -march=native. AX_GCC_ARCHFLAG caches its guess in ax_cv_gcc_archflag,
+# so pre-setting that variable makes it skip its own CPUID tables. Those tables
+# stop at Broadwell, which leaves every later Intel part on core2 and every AMD
+# Zen part on amdfam10, neither of which has AVX2 or FMA. Skipped when the guess
+# would be wrong or unwanted: a cross build detects the build machine, and
+# --with-gcc-arch and --enable-portable-binary are explicit requests.
+if test "x$cross_compiling" != "xyes" \
+     -a "x$enable_portable_binary" != "xyes" \
+     -a "x$with_gcc_arch" = "x"; then
+  AX_CHECK_COMPILE_FLAG([-march=native], [ax_cv_gcc_archflag="-march=native"])
+fi
+
 # Try to choose good compiler options.
 AX_CC_MAXOPT
 
