@@ -37,25 +37,58 @@ void Y(nfft_solver_perm_test_register)(planner *pl);
 extern INT Y(nfft_slow_test_applies);
 void Y(nfft_solver_slow_test_register)(planner *pl);
 
+/* A description nests the solver's children and the FFTW plan description,
+ * whose length follows the precision and whatever algorithm FFTW picked, so no
+ * fixed buffer is safe: a 4d plan prints over 600 bytes in single precision.
+ * Measure, then allocate, as Y(test_wisdom_export) does. Caller frees. */
+static char *str_of_fmt(const char *fmt, const void *obj)
+{
+  size_t cnt;
+  char *s;
+  printer *p = Y(printer_create_cnt)(&cnt);
+  p->print(p, fmt, obj);
+  Y(printer_destroy)(p);
+  s = (char *)Y(malloc)(cnt + 1);
+  p = Y(printer_create_str)(s);
+  p->print(p, fmt, obj);
+  Y(printer_destroy)(p);
+  s[cnt] = '\0';
+  return s;
+}
+
+static char *str_of_plan_ng(Y(plan_ng) *pln)
+{
+  size_t cnt;
+  char *s;
+  printer *p = Y(printer_create_cnt)(&cnt);
+  Y(plan_ng_print)(pln, p);
+  Y(printer_destroy)(p);
+  s = (char *)Y(malloc)(cnt + 1);
+  p = Y(printer_create_str)(s);
+  Y(plan_ng_print)(pln, p);
+  Y(printer_destroy)(p);
+  s[cnt] = '\0';
+  return s;
+}
+
 void Y(check_nplan_problem)(void)
 {
   planner *pl = Y(planner_create)();
   INT N1 = 16, n1 = 32;
   problem *p1, *p2;
   md5sig s1, s2;
-  char buf[128];
-  printer *pr;
+  char *desc;
 
   p1 = Y(
        mkproblem_nfft)(1, &N1, 0, &n1, (INT)1000, 6, NFFT_WINDOW_KAISER_BESSEL,
                       1, 0u, 0, 0, 0, 0);
   CU_ASSERT_EQUAL(p1->adt->kind, NFFT_PROBLEM_NFFT);
 
-  pr = Y(printer_create_str)(buf);
-  pr->print(pr, "%P", p1);
-  Y(printer_destroy)(pr);
-  CU_ASSERT_STRING_EQUAL(buf, "(nfft sign=1 m=6 M=1000 (tensor 1 (16 1 32 1)) "
-                              "variant=0)");
+  desc = str_of_fmt("%P", p1);
+  CU_ASSERT_STRING_EQUAL(desc, "(nfft sign=1 m=6 M=1000 (tensor 1 (16 1 32 "
+                               "1)) "
+                               "variant=0)");
+  Y(free)(desc);
 
   /* M-bucketing: 1000 and 1023 share a bucket; 1024 does not */
   Y(problem_md5)(
@@ -79,11 +112,10 @@ void Y(check_nplan_problem)(void)
   p2 = Y(
        mkproblem_nfft)(1, &N1, 0, &n1, (INT)1000, 6, NFFT_WINDOW_KAISER_BESSEL,
                       -1, 0u, 0, 0, 0, 0);
-  pr = Y(printer_create_str)(buf);
-  pr->print(pr, "%P", p2);
-  Y(printer_destroy)(pr);
-  CU_ASSERT_STRING_EQUAL(buf, "(nfft sign=-1 m=6 M=1000 (tensor 1 (32 1 16 "
-                              "1)) variant=0)");
+  desc = str_of_fmt("%P", p2);
+  CU_ASSERT_STRING_EQUAL(desc, "(nfft sign=-1 m=6 M=1000 (tensor 1 (32 1 16 "
+                               "1)) variant=0)");
+  Y(free)(desc);
   CU_ASSERT_EQUAL(Y(problem_nfft_N)(p2, 0), (INT)16); /* direction-aware */
   CU_ASSERT_EQUAL(Y(problem_nfft_n)(p2, 0), (INT)32);
   CU_ASSERT_EQUAL(Y(problem_nfft_Ntot)(p2), (INT)16);
@@ -349,21 +381,16 @@ static problem *mk_problem_arr(int d, const INT *N, const INT *n, INT M, int m,
 static void expect_winner(planner *pl, problem *p, const char *nam)
 {
   plan *pln = Y(planner_mkplan)(pl, p);
-  /* 512: printer_create_str is unbounded, and the bundle print nests both
-   * children plus the FFTW plan description, so a smaller buffer overflows
-   * the stack instead of truncating. */
-  char buf[512];
   char tok[64];
-  printer *pr;
+  char *desc;
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
-  pr = Y(printer_create_str)(buf);
-  pr->print(pr, "%p", pln);
-  Y(printer_destroy)(pr);
+  desc = str_of_fmt("%p", pln);
   tok[0] = '(';
   strncpy(tok + 1, nam, sizeof(tok) - 3);
   tok[sizeof(tok) - 3] = '\0';
   strcat(tok, " ");
-  CU_ASSERT_PTR_NOT_NULL(strstr(buf, tok));
+  CU_ASSERT_PTR_NOT_NULL(strstr(desc, tok));
+  Y(free)(desc);
   Y(plan_destroy)(pln);
 }
 
@@ -914,11 +941,7 @@ void Y(check_nplan_wisdom_memo)(void)
   INT N = 256, n = 512, M = 4096;
   static R x[4096];
   static C f_hat[256], f[4096];
-  /* 512: printer_create_str is unbounded, and the bundle print nests both
-   * children plus the FFTW plan description, so a smaller buffer overflows
-   * the stack instead of truncating. */
-  char b1[512], b2[512];
-  printer *pr;
+  char *b1, *b2;
   unsigned nelem;
   Y(plan_ng) *p1, *p2;
 
@@ -931,9 +954,7 @@ void Y(check_nplan_wisdom_memo)(void)
   /* Estimate solutions are blessed too, FFTW parity (R14): the fast native
    * winner's DECONV and CONV children land in the blessed table alongside it. */
   CU_ASSERT_TRUE(nelem >= 3u); /* NFFT + DECONV + CONV */
-  pr = Y(printer_create_str)(b1);
-  Y(plan_ng_print)(p1, pr);
-  Y(printer_destroy)(pr);
+  b1 = str_of_plan_ng(p1);
   CU_ASSERT_PTR_NOT_NULL(strstr(b1, "(fwd (nfft_solver_fast_native"));
   /* forward-only race -- the adjoint half is dormant (adj (null)). */
   CU_ASSERT_PTR_NOT_NULL(strstr(b1, "(adj (null))"));
@@ -942,10 +963,10 @@ void Y(check_nplan_wisdom_memo)(void)
                     NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p2);
   CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, nelem);
-  pr = Y(printer_create_str)(b2);
-  Y(plan_ng_print)(p2, pr);
-  Y(printer_destroy)(pr);
+  b2 = str_of_plan_ng(p2);
   CU_ASSERT_STRING_EQUAL(b1, b2);
+  Y(free)(b2);
+  Y(free)(b1);
 
   {
     /* PRESERVE_INPUT must not fragment the wisdom key: keyable_fftw_flags
@@ -985,14 +1006,8 @@ void Y(check_nplan_wisdom_memo)(void)
  * The race is forward-only, so adj is captured verbatim and reads "(null))". */
 static void bundle_winners(Y(plan_ng) *p, char *fwd, char *adj)
 {
-  /* 512: printer_create_str is unbounded, and the bundle print nests both
-   * children plus the FFTW plan description, so a smaller buffer overflows
-   * the stack instead of truncating. */
-  char buf[512];
   const char *q;
-  printer *pr = Y(printer_create_str)(buf);
-  Y(plan_ng_print)(p, pr);
-  Y(printer_destroy)(pr);
+  char *buf = str_of_plan_ng(p);
   q = strstr(buf, "(fwd (");
   CU_ASSERT_PTR_NOT_NULL_FATAL(q);
   sscanf(q + 6, "%95s", fwd);
@@ -1001,6 +1016,7 @@ static void bundle_winners(Y(plan_ng) *p, char *fwd, char *adj)
   sscanf(q + 6, "%95s", adj);
   /* only the forward direction selects a real solver; adj is dormant */
   CU_ASSERT_PTR_NOT_NULL(strstr(fwd, "nfft_solver_"));
+  Y(free)(buf);
 }
 
 /* The bundle print carries the forward direction's solver registrar name.
@@ -1011,11 +1027,7 @@ void Y(check_nplan_print_includes_registrar_names)(void)
   static R x[8192];
   static C f_hat[64], f[8192];
   Y(plan_ng) *p;
-  /* 512: printer_create_str is unbounded, and the bundle print nests both
-   * children plus the FFTW plan description, so a smaller buffer overflows
-   * the stack instead of truncating. */
-  char buf[512];
-  printer *pr;
+  char *buf;
 
   Y(the_planner_destroy)();
   fill_nodes(x, 1, M, 122u);
@@ -1024,12 +1036,11 @@ void Y(check_nplan_print_includes_registrar_names)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  pr = Y(printer_create_str)(buf);
-  Y(plan_ng_print)(p, pr);
-  Y(printer_destroy)(pr);
+  buf = str_of_plan_ng(p);
 
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(fwd (nfft_solver_"));
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(adj (null))"));
+  Y(free)(buf);
 
   Y(plan_ng_destroy)(p);
   Y(the_planner_destroy)();
@@ -1699,11 +1710,7 @@ void Y(check_nplan_forward_only_race)(void)
   static R x[2048];
   static C f_hat[64], f[2048];
   Y(plan_ng) *p;
-  /* 512: printer_create_str is unbounded, and the bundle print nests both
-   * children plus the FFTW plan description, so a smaller buffer overflows
-   * the stack instead of truncating. */
-  char buf[512];
-  printer *pr;
+  char *buf;
 
   Y(the_planner_destroy)();
   fill_nodes(x, 1, M, 501u);
@@ -1713,11 +1720,10 @@ void Y(check_nplan_forward_only_race)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_ESTIMATE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  pr = Y(printer_create_str)(buf);
-  Y(plan_ng_print)(p, pr);
-  Y(printer_destroy)(pr);
+  buf = str_of_plan_ng(p);
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(fwd (nfft_solver_"));
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(adj (null))"));
+  Y(free)(buf);
   Y(plan_ng_destroy)(p);
 
   /* measured mode: same single-plan shape */
@@ -1725,11 +1731,10 @@ void Y(check_nplan_forward_only_race)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  pr = Y(printer_create_str)(buf);
-  Y(plan_ng_print)(p, pr);
-  Y(printer_destroy)(pr);
+  buf = str_of_plan_ng(p);
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(fwd (nfft_solver_"));
   CU_ASSERT_PTR_NOT_NULL(strstr(buf, "(adj (null))"));
+  Y(free)(buf);
   Y(plan_ng_destroy)(p);
   Y(the_planner_destroy)();
 }
@@ -2464,8 +2469,7 @@ void Y(check_nplan_measured_prunes_by_estimate)(void)
   R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
   C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
-  char buf[512];
-  printer *pr;
+  char *buf;
   Y(plan_ng) *p;
 
   Y(the_planner_destroy)();
@@ -2480,10 +2484,9 @@ void Y(check_nplan_measured_prunes_by_estimate)(void)
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
   CU_ASSERT_EQUAL(Y(nfft_slow_test_applies), (INT)0);
 
-  pr = Y(printer_create_str)(buf);
-  Y(plan_ng_print)(p, pr);
-  Y(printer_destroy)(pr);
+  buf = str_of_plan_ng(p);
   CU_ASSERT_PTR_NULL(strstr(buf, "slow_test"));
+  Y(free)(buf);
 
   Y(plan_ng_destroy)(p);
   Y(the_planner_destroy)();

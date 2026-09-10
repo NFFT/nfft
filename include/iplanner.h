@@ -67,6 +67,12 @@ printer *Y(printer_create)(size_t size, void (*putchr)(printer *p, char c),
                         void (*cleanup)(printer *p));
 void Y(printer_destroy)(printer *p);
 printer *Y(printer_create_file)(FILE *f);
+/* Writes without a bound: buf must already hold the whole description. Measure
+ * it with printer_create_cnt and allocate cnt + 1, the way
+ * Y(export_wisdom_to_string) does. A description nests the solver's children
+ * and the FFTW plan description, so its length follows the precision and
+ * whatever algorithm FFTW picked -- a fixed buffer that fits today overflows
+ * the moment either changes. */
 printer *Y(printer_create_str)(char *buf);
 printer *Y(printer_create_cnt)(size_t *cnt);
 
