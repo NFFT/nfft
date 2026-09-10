@@ -49,10 +49,13 @@ One letter apart, two unrelated models — do not confuse them.
 
 Its own test binary is `checkall_ngomp` (built only under `--enable-openmp`
 with `ENABLE_NG_OMP`), which links `libnfft3<suffix> + libnfft3<suffix>_ng_omp`
-and covers the add-on's contract: `X(init_threads)` failing on an empty
-roster, `X(plan_with_nthreads)` destroying in-memory wisdom and raising
-`pl->nthr`, and FFTW's own thread count reaching the wisdom key through the
-hook the add-on installs.
+and covers the add-on's contract while the threaded roster is empty:
+`X(init_threads)` failing, `X(plan_with_nthreads)` refusing to raise `pl->nthr`
+above 1, `X(cleanup_threads)` being a safe no-op when init never succeeded, and
+ordinary serial planning at every patience level still working through the
+add-on library. It does not yet exercise a populated roster, so it neither
+destroys in-memory wisdom nor observes FFTW's thread count reaching the wisdom
+key through the hook — those need the first threaded solver.
 
 ## `--enable-debug` (the planner's extra checks)
 
