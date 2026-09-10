@@ -174,6 +174,11 @@ recorded here because they change externally observable behaviour.
   candidate has any: "losing candidates are not blessed" holds for the
   measured race only, and is unenforced (currently vacuous, since no losing
   NFFT-kind candidate has children).
+- Legacy `kernel/nfft/nfft.c` calls `FFTW(plan_with_nthreads)` directly for its
+  own threaded FFTW plans. In a mixed program that also links the add-on and
+  uses `plan_ng`, this changes FFTW's thread count mid-process and so
+  repartitions the NFFT wisdom key the add-on's hook reads from it — correct
+  behaviour, but a surprising consequence.
 
 ## Not decided here
 - Racing several thread counts against each other rather than taking the

@@ -3043,7 +3043,7 @@ void Y(check_nplan_blesses_whole_tree)(void)
     if (p)
       NFFT(plan_ng_destroy)(p);
   }
-  CU_ASSERT_TRUE(Y(count_wisdom_entries)() >= 3); /* NFFT + DECONV + CONV */
+  CU_ASSERT_EQUAL(Y(count_wisdom_entries)(), 3); /* NFFT + DECONV + CONV */
 
   /* Estimate solutions are blessed too, FFTW parity: mkplan0 sets BLESSING
    * whatever the patience and exprt filters nothing. */
@@ -3057,7 +3057,7 @@ void Y(check_nplan_blesses_whole_tree)(void)
     if (p)
       NFFT(plan_ng_destroy)(p);
   }
-  CU_ASSERT_TRUE(Y(count_wisdom_entries)() >= 3);
+  CU_ASSERT_EQUAL(Y(count_wisdom_entries)(), 3); /* NFFT + DECONV + CONV */
 
   Y(the_planner_destroy)();
   NFFT(forget_wisdom)();
@@ -3169,9 +3169,13 @@ void Y(check_nplan_patience_levels)(void)
   C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
   C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
   md5sig sig[3];
-  planner *pl = Y(the_planner)();
+  planner *pl;
   INT j;
   int i, k;
+
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
+  pl = Y(the_planner)();
 
   for (j = 0; j < M; j++)
     x[j] = (R)j / (R)M - K(0.5);
@@ -3202,6 +3206,8 @@ void Y(check_nplan_patience_levels)(void)
       CU_ASSERT_FALSE(sig[i][0] == sig[k][0] && sig[i][1] == sig[k][1]
                       && sig[i][2] == sig[k][2] && sig[i][3] == sig[k][3]);
 
+  Y(the_planner_destroy)();
+  NFFT(forget_wisdom)();
   Y(free)(f);
   Y(free)(f_hat);
   Y(free)(x);

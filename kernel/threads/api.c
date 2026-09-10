@@ -31,36 +31,50 @@
 
 #include <fftw3.h>
 
-static int threads_inited = 0;
+/* Generation of the_planner() last given the threaded roster; 0 = never. A
+ * bare latch would miss a planner recreated behind our back (e.g. a test
+ * calling Y(the_planner_destroy)() directly), leaving nthr raised with no
+ * threaded solver to serve it. Compare generations instead, as
+ * kernel/nfft/conf.c does -- which is why the generation is read only after
+ * Y(the_planner)() forces the planner to exist: the_planner_gen is bumped by
+ * that call's lazy-create branch, never by destroy. */
+static unsigned registered_gen = 0;
 
 int Y(init_threads)(void)
 {
-  if (threads_inited)
-    return 1;
+  planner *pl;
+  unsigned gen;
 
   /* Nothing to register yet: report failure rather than leave a caller with a
-   * raised thread count and no threaded solver to serve it. */
+   * raised thread count and no threaded solver to serve it. Checked before
+   * touching the planner, so a failed call never discards in-memory wisdom. */
   if (Y(nfft_threads_roster_size)() == 0)
     return 0;
 
+  pl = Y(the_planner)();
+  gen = Y(the_planner_generation)();
+  if (gen == registered_gen)
+    return 1;
+
   Y(the_planner_destroy)(); /* the roster is about to change */
+  pl = Y(the_planner)();
   Y(nfft_ensure_registered)();
-  Y(nfft_threads_conf_standard)(Y(the_planner)());
+  Y(nfft_threads_conf_standard)(pl);
 
   /* Let the main library observe FFTW's thread count for the wisdom key. */
   Y(fftw_nthreads_hook) = FFTW(planner_nthreads);
 
-  threads_inited = 1;
+  registered_gen = Y(the_planner_generation)();
   return 1;
 }
 
 void Y(cleanup_threads)(void)
 {
-  if (!threads_inited)
+  if (registered_gen == 0)
     return;
   Y(fftw_nthreads_hook) = 0;
   Y(the_planner_destroy)();
-  threads_inited = 0;
+  registered_gen = 0;
 }
 
 /* The maximum number of threads a plan may use, not a target: a threaded solver

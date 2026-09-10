@@ -252,7 +252,8 @@ void Y(planner_forget)(planner *pl, amnesia a)
 /* MD5 over sizeof(R), then every registered solver's reg_id and registrar name
  * in registration order. A wisdom file is honoured only by a library whose
  * registry reproduces this signature; a mismatch rejects the import instead of
- * yielding a wrong plan. */
+ * yielding a wrong plan. tests/planner.c mirrors this field list to compute an
+ * independent signature; update it alongside this function. */
 static void config_signature(planner *pl, md5sig out)
 {
   md5 m;
@@ -601,9 +602,12 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
          * already has it (FFTW's kernel/planner.c BLISS, folded into the
          * shared skip_search hinsert). This is what promotes a child that a
          * losing candidate already memoised unblessed once the second pass
-         * revisits it under PLNR_BLESSING. */
-        hit.info = (hit.info | q.info) & PLNR_BLESSING;
-        Y(planner_hinsert)(pl, sig, &hit, slvndx);
+         * revisits it under PLNR_BLESSING. Skipped in wisdom-only mode, which
+         * must write nothing back. */
+        if (pl->wisdom_state == PLNR_WISDOM_NORMAL) {
+          hit.info = (hit.info | q.info) & PLNR_BLESSING;
+          Y(planner_hinsert)(pl, sig, &hit, slvndx);
+        }
         return pln;
       }
     }
@@ -683,7 +687,9 @@ void Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx)
 
   A(slvndx != INFEASIBLE_SLVNDX);
   A(slvndx < pl->nslvdesc); /* wild index must not be persisted */
-  A(!(PLNR_U(pl) & PLNR_ESTIMATE)); /* estimate-grade evidence never blessed */
+  /* Estimate solutions are blessed too, but via hinsert in
+   * Y(planner_mkplan)'s search path, never via this function. */
+  A(!(PLNR_U(pl) & PLNR_ESTIMATE));
 
   Y(problem_md5)(pl, p, sig);
 
