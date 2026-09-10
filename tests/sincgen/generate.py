@@ -15,13 +15,17 @@ from . import scheme
 # Per-format scheme: the split and the degree of Q.
 #
 # The split is 2 for every format, and is not a free knob: it is the largest
-# round value at which the monomial Horner chain still cannot cancel (growth
-# factor 1.000; at 2.5 it is already 53). It also puts the whole B-spline
-# PHI_HUT range, |t| <= pi/2, inside the polynomial branch.
+# round value at which the monomial chain still cannot cancel (growth factor
+# 1.000; at 2.5 it is already 53). It also puts the whole B-spline PHI_HUT
+# range, |t| <= pi/2, inside the polynomial branch.
+#
+# The degrees are then rounded up so that the table length n+1 is a multiple of
+# four, which is what lets the four-chain loop in poly4 run without a
+# prologue. Rounding up only lowers the design error.
 SPEC = {
-    24: dict(split=2, n=9),
+    24: dict(split=2, n=11),
     53: dict(split=2, n=19),
-    64: dict(split=2, n=22),
+    64: dict(split=2, n=23),
     113: dict(split=2, n=39),
 }
 
@@ -60,7 +64,7 @@ HEADER = """/*
  *
  * Two ranges per format, split at NFFT_LOG_SINC_SPLIT:
  *
- *   |x| <= split   log|sinc(x)| = y * Q(y),  y = x*x, Horner in y.
+ *   |x| <= split   log|sinc(x)| = y * Q(y),  y = x*x, summed by poly4.
  *                  The leading y makes the form exact at x = 0, and the
  *                  coefficients follow the Taylor series of log sinc
  *                  (-1/6, -1/180, -1/2835, ...), all negative, so the sum

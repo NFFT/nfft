@@ -18,6 +18,7 @@
 
 #include "infft.h"
 #include "bessel_i0_data.h"
+#include "poly4.h"
 
 /* Modified Bessel function I0, in the two scaled forms the Kaiser-Bessel window
  * needs. Two ranges, split at NFFT_I0_ASYMP_SPLIT:
@@ -38,44 +39,12 @@
 static const INT N1 = sizeof(NFFT_I0_P1) / sizeof(NFFT_I0_P1[0]);
 static const INT N2 = sizeof(NFFT_I0_P2) / sizeof(NFFT_I0_P2[0]);
 
-/* Both tables are summed as four independent chains over the coefficients whose
- * index shares a residue mod 4, so the dependent-operation count is a quarter of
- * a Horner pass. Table lengths are multiples of four, which is what lets the
- * loop run without a prologue; tests/besselgen pins the degrees to keep that.
- *
- * The regrouping is safe because neither sum cancels: every P1 coefficient is
- * positive, and the split is chosen per format so that P2 has a growth factor
- * of 1 (branch2_growth in tests/besselgen/scheme.py). */
-static inline R poly4(const R *c, const INT n, const R u)
-{
-  const R v = u * u;
-  const R w = v * v;
-  R a0, a1, a2, a3;
-  INT j = n - 4;
-
-  A(n >= 4 && n % 4 == 0);
-
-  a0 = c[j];
-  a1 = c[j + 1];
-  a2 = c[j + 2];
-  a3 = c[j + 3];
-
-  for (j -= 4; j >= 0; j -= 4)
-  {
-    a0 = a0 * w + c[j];
-    a1 = a1 * w + c[j + 1];
-    a2 = a2 * w + c[j + 2];
-    a3 = a3 * w + c[j + 3];
-  }
-
-  return (a0 + u * a1) + v * (a2 + u * a3);
-}
-
 static inline R i0_small_m1(const R x)
 {
   const R h = x * K(0.5);
   const R y = h * h;
 
+  // Safe to use poly4.
   return y * poly4(NFFT_I0_P1, N1, y);
 }
 
