@@ -131,9 +131,11 @@ x-restore guard — is `A(...)`-gated and therefore **only enforced under
 - **Planning is not thread-safe** (global `the_planner()`, mirroring FFTW). Do
   not construct/destroy plans or import/export wisdom concurrently.
 - **Executing** a plan is fine; **`_on` on the same plan is not reentrant**
-  (pointer swap). Thread count is process-global (`Y(get_num_threads)()`, read
-  once per planning entry) and folded into the wisdom key; there is no per-plan
-  thread knob.
+  (pointer swap). The thread count is process-global, defaults to 1, and is
+  raised only by `X(plan_with_nthreads)` (add-on library, see
+  [building-testing-examples.md](building-testing-examples.md)) — it does not
+  follow OpenMP's own thread count. Both it and FFTW's own thread count are
+  folded into the wisdom key; there is no per-plan thread knob.
 
 ## Destroy
 

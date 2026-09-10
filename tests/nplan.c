@@ -3157,3 +3157,52 @@ void Y(check_nplan_wisdom_only)(void)
   Y(free)(f_hat);
   Y(free)(x);
 }
+
+/* Every patience level plans and executes, and each derives its own child FFTW
+ * flags, which is what stops two levels sharing a wisdom key while planning
+ * different child FFTs. */
+void Y(check_nplan_patience_levels)(void)
+{
+  const INT N = 64, n = 128, M = 100;
+  const unsigned levels[3] = {NFFT_ESTIMATE, NFFT_MEASURE, NFFT_PATIENT};
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  md5sig sig[3];
+  planner *pl = Y(the_planner)();
+  INT j;
+  int i, k;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+  for (j = 0; j < N; j++)
+    f_hat[j] = K(0.0);
+
+  for (i = 0; i < 3; i++) {
+    Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                       NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u, levels[i]);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    if (p) {
+      NFFT(precompute)(p);
+      NFFT(execute)(p);
+      NFFT(plan_ng_destroy)(p);
+    }
+    {
+      problem *q = Y(
+           mkproblem_nfft)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, +1,
+                           Y(nfft_derive_fftw_flags)(levels[i], 0u), x, 1, 0, 0);
+      Y(problem_md5)(pl, q, sig[i]);
+      Y(problem_destroy)(q);
+    }
+  }
+
+  for (i = 0; i < 3; i++)
+    for (k = i + 1; k < 3; k++)
+      CU_ASSERT_FALSE(sig[i][0] == sig[k][0] && sig[i][1] == sig[k][1]
+                      && sig[i][2] == sig[k][2] && sig[i][3] == sig[k][3]);
+
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}

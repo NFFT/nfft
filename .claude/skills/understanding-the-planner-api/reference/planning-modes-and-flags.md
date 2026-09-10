@@ -4,7 +4,12 @@ How the planner chooses an algorithm. Ground truth: `kernel/nfft/plan.c`
 (the NFFT guru), `kernel/planner/planner.c` (search + lattice),
 `kernel/planner/timer.c` (measurement), `include/iplanner.h`.
 
-## Two modes
+## The patience lattice
+
+**Patience is the absence of restriction**, as in FFTW: a more patient level
+searches a wider space by *lifting* `PLNR_*` restrictions, not by adding a
+"try harder" bit of its own. `Y(nfft_map_planning_flags)` (`kernel/nfft/mapflags.c`)
+turns the public planning word into the internal image.
 
 **Measured (default, `NFFT_MEASURE == 0`).** The guru races the applicable
 candidate plans **on your actual nodes** at plan time and blesses the winner
@@ -14,9 +19,24 @@ default-measure convention.
 
 **Estimate (`NFFT_ESTIMATE`, `1<<0`).** No race. Each solver's `mkplan`
 returns a plan with an analytic `pcost` (fixed default constants); the planner
-keeps the cheapest applicable one and memoises it **unblessed**. Instant, and
-**never** time-bounded. Use when you cannot afford planning time or want
-deterministic selection.
+keeps the cheapest applicable one and memoises it — **blessed**, same as a
+measured winner (FFTW parity: estimate solutions are exported too). Instant,
+and **never** time-bounded. Use when you cannot afford planning time or want
+deterministic selection. `NFFT_ESTIMATE` overrides `NFFT_PATIENT` if both are
+given.
+
+**Patient (`NFFT_PATIENT`, `1<<5`).** Widens the search: below `NFFT_PATIENT`
+a serial solver declines outright whenever more than one thread was requested
+(`NO_NONTHREADEDP`, below), so the threaded plan is chosen without ever being
+raced against the serial one. At `NFFT_PATIENT` and above that restriction
+lifts and the two compete on cost like any other pair of candidates — FFTW's
+own `FFTW_PATIENT` does the same thing for its child plans, which is why the
+derived `fftw_flags` also promote to `FFTW_PATIENT` at this level.
+
+Wisdom is **not shared between levels**: a query at one level's `(l, u)` bounds
+only ever answers from an entry planned at a level whose bounds subsume it (see
+the lattice rules below), so two levels of the same problem key distinct
+entries whenever they derive different child FFTW flags.
 
 There is **no separate `nfft_optimize()` verb** — measurement is always at plan
 time. Nodes arrive at the guru; you do not "optimize later".
@@ -38,8 +58,11 @@ the `PLNR_*` image of your gate flags:
    earlier-encountered candidate. Losers destroyed; winner **blessed**, left
    `SLEEPY` (precompute awakens it).
 4. **No usable clock** (`plan_measure_cost` returns exactly `-1.0`) → tear down
-   the raced candidates and **restart in estimate mode** (unblessed). A
-   timelimit-induced or clockless loser is never blessed.
+   the raced candidates and **restart in estimate mode**, blessed like any
+   other estimate selection (FFTW parity, see below). A **timelimit-induced**
+   partial race is different: the winner found so far is memoised **unblessed**
+   (an untimed survivor might still be faster), and estimate mode is never
+   restarted for it.
 
 The race is **value-blind**: it zeroes `f_hat` and `f` before timing, FFTW's
 zero-operand measurement. This is safe because NFFT trip counts and access
@@ -98,8 +121,15 @@ live same-key entry the newcomer subsumes.
 So a measured (blessed) entry subsumes a same-`F` estimate query (you get the
 better decision for free), while a *feasible* estimate memo never answers a
 measured query (no poisoning of measured planning with estimate-grade
-evidence). `PLNR_ESTIMATE` must **never** appear in `l`. Estimate-grade results
-are **never blessed** (`planner_bless` asserts no `PLNR_ESTIMATE` in `u`).
+evidence). `PLNR_ESTIMATE` must **never** appear in `l`.
+
+Estimate solutions **are** blessed and exported, FFTW parity: `Y(plan_ng_guru)`
+sets `PLNR_BLESSING` around the whole estimate search, so an exported wisdom
+file also answers other estimate queries, never a measured one (the `u`-bound
+check above still excludes them). `Y(planner_bless)` itself — the helper the
+*measured* path calls to bless its winner — still asserts no `PLNR_ESTIMATE`
+in `u`; that assertion is about its own, measured-only caller, not a claim that
+estimate results go unblessed.
 
 ## The public planning flags → internal images
 
@@ -109,23 +139,33 @@ Public `NFFT_*` (in `nfft3.h`) map to internal `PLNR_*` (in `iplanner.h`) via
 | Public flag | Value | Internal | Effect |
 |-------------|-------|----------|--------|
 | `NFFT_MEASURE` | `0` | — | Default. Race + bless. |
-| `NFFT_ESTIMATE` | `1<<0` | `PLNR_ESTIMATE` (in `u`) | Analytic pick, unblessed, no race. |
+| `NFFT_ESTIMATE` | `1<<0` | `PLNR_ESTIMATE` (in `u`) | Analytic pick, blessed (FFTW parity), no race. |
 | `NFFT_NO_DIRECT` | `1<<1` | `PLNR_NO_DIRECT` | Forbid O(N·M) direct/NDFT solvers. |
 | `NFFT_NO_FAST_NATIVE` | `1<<4` | `PLNR_NO_FAST_NATIVE` | Forbid the native fast NFFT. |
+| `NFFT_PATIENT` | `1<<5` | lifts `PLNR_NO_NONTHREADED`/`PLNR_BELIEVE_PCOST` | Let serial and threaded solvers compete instead of the serial one declining outright. |
+| `NFFT_NO_NONTHREADED` | `1<<7` | `PLNR_NO_NONTHREADED` | Beyond-guru: forbid serial solvers under more than one thread, whatever the patience. |
 
 A solver reads the current bounds (`PLNR_L(pl)`) inside its `mkplan` and returns
 `NULL` when a gate forbids it — impatience gating and plain inapplicability are
-the same mechanism.
+the same mechanism. Below `NFFT_PATIENT`, every solver that does not
+parallelise internally declines via `NO_NONTHREADEDP(pl)` —
+`(PLNR_L(pl) & PLNR_NO_NONTHREADED) && pl->nthr > 1` — whenever more than one
+thread was requested, so a threaded candidate is chosen without ever being
+timed against a serial one.
 
 `fftw_flags` is a **separate** parameter controlling the internal FFTW child
-plans (`0` is fine; the child defaults to `FFTW_ESTIMATE`). Its planning-rigor
-bits (`FFTW_ESTIMATE`/`MEASURE`/`PATIENT`/...) participate in the wisdom key;
-the input-preservation bits (`FFTW_DESTROY_INPUT`/`FFTW_PRESERVE_INPUT`) are
+plans. `0` (the default) *derives* the child plans' patience from the NFFT
+level (`ESTIMATE -> FFTW_ESTIMATE`, `MEASURE -> FFTW_MEASURE`,
+`PATIENT -> FFTW_PATIENT`, via `Y(nfft_derive_fftw_flags)`); a non-zero word is
+used as given. Its planning-rigor bits participate in the wisdom key; the
+input-preservation bits (`FFTW_DESTROY_INPUT`/`FFTW_PRESERVE_INPUT`) are
 stripped from the key (`keyable_fftw_flags`) so a caller's spelling never
 fragments the cache — every native candidate is out-of-place anyway.
+`FFTW_WISDOM_ONLY` inside `fftw_flags` is ignored; it is set or cleared from
+`NFFT_WISDOM_ONLY` instead (see [wisdom.md](wisdom.md)).
 
-> There is **no patience ladder**. `NFFT_PATIENT` / `NFFT_EXHAUSTIVE` were
-> dropped; do not expect them. See [history-and-drift.md](history-and-drift.md).
+`NFFT_EXHAUSTIVE` (`1<<6`) is reserved, not exposed publicly; its mapping
+branch ships dead and uncovered until it is.
 
 ## Timelimit
 
@@ -136,9 +176,12 @@ on the *measured* race (`< 0` = unlimited, the default). It is declared under
 - Before measuring each candidate the guru checks the elapsed coarse wall clock;
   on expiry it stops measuring further candidates.
 - If **no** candidate finished before expiry (or there is no usable clock),
-  selection degrades to **estimate grade (unblessed)** — a timelimit-induced
-  loser is never blessed. A candidate that *did* finish before expiry is a
-  legitimate blessed winner.
+  selection degrades to **estimate grade**, blessed like any other estimate
+  selection (FFTW parity, see above).
+- If **at least one** candidate finished before expiry but others did not, the
+  best-so-far is adopted but memoised **unblessed** — a partial race, since an
+  untimed survivor might still have been faster. A race that completes within
+  the budget blesses its winner normally.
 - **Estimate mode is never time-bounded.**
 - The timelimit is a runtime `double` on `struct planner_s`; it is **not part of
   the wisdom key** (the reserved `timelimit_imp` field stays 0).

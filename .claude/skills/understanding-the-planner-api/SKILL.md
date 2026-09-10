@@ -95,8 +95,11 @@ because the guru does not reveal which solver won and the fallback would cost
 the requirement. Unit axes (`N[t] == 1`) are elided and exempt.
 
 `fftw_flags` reaches the internal FFTW plans with `FFTW_PRESERVE_INPUT`
-stripped and `FFTW_DESTROY_INPUT` forced; otherwise it is FFTW's own
-vocabulary, so `0` means `FFTW_MEASURE`.
+stripped and `FFTW_DESTROY_INPUT` forced. `0` (the default) means *derive*:
+the child plans' patience follows the NFFT planning level (`ESTIMATE` ->
+`FFTW_ESTIMATE`, `MEASURE` -> `FFTW_MEASURE`, `PATIENT` -> `FFTW_PATIENT`); a
+non-zero word is used as given. Either way `FFTW_WISDOM_ONLY` inside
+`fftw_flags` is ignored — it is set or cleared from `NFFT_WISDOM_ONLY` instead.
 
 Planning and wisdom import/export are **not thread-safe**, and `execute_on` /
 `execute_adjoint_on` are not reentrant on a single plan.
@@ -132,14 +135,39 @@ Full detail: [lifecycle-and-contracts.md](reference/lifecycle-and-contracts.md).
 | Flag | Value | Meaning |
 |------|-------|---------|
 | `NFFT_MEASURE` | `0` | Default: race candidates on your nodes, bless the winner. |
-| `NFFT_ESTIMATE` | `1<<0` | Skip the race; pick by analytic cost model. |
+| `NFFT_ESTIMATE` | `1<<0` | Skip the race; pick by analytic cost model. Overrides `NFFT_PATIENT` if both are given. |
 | `NFFT_NO_DIRECT` | `1<<1` | Forbid the O(N·M) direct/NDFT solvers. |
 | `NFFT_NO_FAST_NATIVE` | `1<<4` | Forbid the native fast NFFT (DECONV+FFT+CONV). It is the *only* fast solver, so this effectively forces a direct NDFT. |
+| `NFFT_PATIENT` | `1<<5` | Widen the search: below this level a serial solver declines whenever more than one thread was requested, so it never races the threaded one; at and above it, they compete. |
+| *(reserved)* | `1<<6` | `NFFT_EXHAUSTIVE`. Not defined publicly; do not reuse this bit. |
+| `NFFT_NO_NONTHREADED` | `1<<7` | Beyond-guru: forbid serial solvers whenever more than one thread was requested, whatever the patience. |
+| `NFFT_WISDOM_ONLY` | `1<<8` | Plan only from existing wisdom, at every level and internal stage; the guru returns `NULL` on a miss instead of searching or writing anything. |
 
 Per-axis NDFT variant (even `N`): `NFFT_NDFT_TYPE_I` (`k=-N/2..N/2-1`),
 `NFFT_NDFT_TYPE_II` (`k=-N/2+1..N/2`); odd `N` has only type-I. Windows:
 `NFFT_WINDOW_{KAISER_BESSEL,GAUSSIAN,B_SPLINE,SINC_POWER}` work in the fast path;
 `NFFT_WINDOW_DIRAC_DELTA` is declined by every fast solver (direct-NDFT only).
+
+## Threading (add-on library)
+
+Four entry points are declared in `nfft3.h` but defined **only** in the add-on
+library `libnfft3<suffix>_ng_omp` — link `-lnfft3_ng_omp -lnfft3` to use them;
+a program linking `libnfft3<suffix>` alone always plans at one thread:
+
+```c
+int  nfft_init_threads(void);          /* 0 on an empty threaded roster */
+void nfft_cleanup_threads(void);
+void nfft_plan_with_nthreads(int n);   /* max threads a plan may use; destroys
+                                        * the planner and its wisdom first */
+int  nfft_planner_nthreads(void);
+```
+
+`nfft_plan_with_nthreads` raises the thread count, which is part of the wisdom
+key alongside FFTW's own thread count. Call it before any other NFFT routine,
+as FFTW documents for `fftw_plan_with_nthreads`. `libnfft3<suffix>_omp` is a
+different thing: a whole-library OpenMP rebuild of the *legacy* API, linked
+*instead of* `libnfft3<suffix>`. See
+[building-testing-examples.md](reference/building-testing-examples.md).
 
 ## Minimal example (1D forward + adjoint)
 
@@ -189,8 +217,8 @@ trees). Tests: `tests/checkall_ng` (`nplan.c`, `nfast.c`, ...). See
 - **[history-and-drift.md](reference/history-and-drift.md)** — **read before
   trusting any older mental model.** A catalog of superseded decisions and dead
   terms (legacy/shared core, wrapper solvers, ψ-strategy `PRE_FULL_PSI` flags,
-  NFCT/NFST new API, `nfft_optimize`, patience ladder, `nfft_flags` param, `x`
-  aliasing) with the current correction for each.
+  NFCT/NFST new API, `nfft_optimize`, `nfft_flags` param, `x` aliasing) with the
+  current correction for each — including `NFFT_PATIENT`'s reintroduction.
 
 ## Red flags — you are working from a stale model if you see these
 

@@ -178,4 +178,9 @@ void Y(check_nplan_blesses_whole_tree)(void);
  * poisons the next ordinary call. */
 void Y(check_nplan_wisdom_only)(void);
 
+/* Every patience level (ESTIMATE, MEASURE, PATIENT) plans and executes, and
+ * each derives its own problem signature: two levels never share a wisdom
+ * key while planning different child FFTs. */
+void Y(check_nplan_patience_levels)(void);
+
 #endif

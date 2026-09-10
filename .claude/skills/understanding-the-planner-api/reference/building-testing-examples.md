@@ -31,6 +31,29 @@ make -j
   **compile-time** window (`Y(get_window_id)()`). The native fast path can also
   take *any* implemented window at runtime via the guru's `window` argument.
 
+## The add-on threading library (`libnfft3<suffix>_ng_omp`)
+
+`--enable-openmp` also builds `libnfft3<suffix>_ng_omp` — **provided** FFTW
+declares `fftw_planner_nthreads` (arrived in FFTW 3.3.9, probed by
+`AC_CHECK_DECL` in `configure.ac`) and FFTW's own threads library is present;
+`AM_CONDITIONAL(ENABLE_NG_OMP, ...)` gates it on both. It is linked **in
+addition** to `libnfft3<suffix>` (`-lnfft3_ng_omp -lnfft3`), never instead of
+it, and is where `X(init_threads)`, `X(cleanup_threads)`,
+`X(plan_with_nthreads)` and `X(planner_nthreads)` are actually defined — a
+program linking only `libnfft3<suffix>` cannot raise the thread count above 1.
+
+This is a different thing from `libnfft3<suffix>_omp`: that one is a
+whole-kernel OpenMP rebuild of the **legacy** `nfft_plan` API, linked
+**instead of** the serial library, and it has nothing to do with `plan_ng`.
+One letter apart, two unrelated models — do not confuse them.
+
+Its own test binary is `checkall_ngomp` (built only under `--enable-openmp`
+with `ENABLE_NG_OMP`), which links `libnfft3<suffix> + libnfft3<suffix>_ng_omp`
+and covers the add-on's contract: `X(init_threads)` failing on an empty
+roster, `X(plan_with_nthreads)` destroying in-memory wisdom and raising
+`pl->nthr`, and FFTW's own thread count reaching the wisdom key through the
+hook the add-on installs.
+
 ## `--enable-debug` (the planner's extra checks)
 
 `--enable-debug` does two things that matter here:

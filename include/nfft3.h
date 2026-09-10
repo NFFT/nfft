@@ -896,9 +896,34 @@ typedef struct X(plan_ng_s) X(plan_ng); \
  *  fast solver's geometry guard `N[t] > m`, `n[t] > 2m+2`, `n[t] > N[t]`. \
  *  Unit axes (`N[t] == 1`) are elided and exempt from that guard. \
  * \
- *  `fftw_flags` goes to the internal FFTW plans with FFTW_PRESERVE_INPUT \
- *  stripped and FFTW_DESTROY_INPUT forced. It otherwise follows FFTW's own \
- *  vocabulary, so 0 means FFTW_MEASURE. */ \
+ *  Patience. NFFT_MEASURE (the default, 0) times candidates on the caller's \
+ *  nodes. NFFT_ESTIMATE skips timing and picks by the analytic cost model. \
+ *  NFFT_PATIENT widens the search and, when more than one thread was \
+ *  requested, lets serial and threaded solvers compete instead of preferring \
+ *  the threaded one. Planning cost rises with patience. ESTIMATE overrides \
+ *  PATIENT if both are given. Wisdom is not shared between levels. \
+ * \
+ *  fftw_flags. Zero means derive the child FFTW plans' patience from the \
+ *  NFFT level: ESTIMATE -> FFTW_ESTIMATE, MEASURE -> FFTW_MEASURE, PATIENT \
+ *  -> FFTW_PATIENT. A non-zero word is used as given. Either way input \
+ *  preservation is stripped and destruction forced, because the scratch \
+ *  grids belong to the plan, and FFTW_WISDOM_ONLY is set or cleared from \
+ *  NFFT_WISDOM_ONLY, so passing it in fftw_flags has no effect. The derived \
+ *  word is part of the wisdom key, except for those bits, which are \
+ *  planning directives rather than properties of the problem. \
+ * \
+ *  NFFT_WISDOM_ONLY plans from the store or not at all, at every level and \
+ *  for every internal stage, and returns NULL on a miss without writing or \
+ *  discarding anything. \
+ * \
+ *  Threads. X(plan_with_nthreads) sets the maximum number of threads a plan \
+ *  may use; it lives in libnfft3<suffix>_ng_omp, so a program linked \
+ *  against libnfft3<suffix> alone always plans at one thread. Both that \
+ *  count and FFTW's own are part of the wisdom key. Below NFFT_PATIENT a \
+ *  serial solver declines whenever more than one thread was requested, so \
+ *  the threaded plan is chosen without being timed against the serial one \
+ *  -- FFTW behaves the same way, and NFFT_PATIENT is how the comparison is \
+ *  made to happen. */ \
 NFFT_EXTERN X(plan_ng) *X(plan_ng_guru)(int d, const NFFT_INT *N, \
     const int *variant, const NFFT_INT *n, NFFT_INT M, int m, int window, \
     R *x, C *f_hat, C *f, unsigned fftw_flags, \
