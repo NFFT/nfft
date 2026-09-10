@@ -12,8 +12,11 @@ degrades to a miss, never a wrong plan. Ground truth: `kernel/planner/planner.c`
 `Y(problem_md5)(pl, problem, out)` builds the key. It folds in, structurally
 (never node coordinates):
 
-- `sizeof(R)` (precision) and `pl->nthr` (thread count) — added by
-  `problem_md5` itself, so concrete problem hashes must not repeat them.
+- `sizeof(R)` (precision) and `pl->nthr` (**this library's** thread count) —
+  added by `problem_md5` itself, so concrete problem hashes must not repeat
+  them. `pl->nthr` defaults to 1 and only ever changes via
+  `X(plan_with_nthreads)` (the add-on library) — it does **not** follow
+  OpenMP's own thread count.
 - the problem **kind**;
 - the frequency-tensor geometry `sz` and batch geometry `vecsz` via
   `Y(tensor_md5)` — **strides included** (layout changes which solver wins);
@@ -21,8 +24,14 @@ degrades to a miss, never a wrong plan. Ground truth: `kernel/planner/planner.c`
   buckets; everything else exact);
 - window cutoff `m`, the **runtime window ordinal**, per-axis NDFT `variant`;
 - `sign` (direction — retained even though only forward is raced today);
-- the **keyable** `fftw_flags` (planning-rigor bits only; preservation bits and
-  the removed `nfft_flags` do not participate).
+- the **keyable** `fftw_flags` (planning-rigor bits only; preservation bits,
+  `FFTW_WISDOM_ONLY`, and the removed `nfft_flags` do not participate).
+- **FFTW's own thread count**, added separately by the NFFT problem's own
+  `hash()` (`kernel/nfft/problem.c`) via `Y(fftw_nthreads_hook)` (reads as `1`
+  when the hook is null, i.e. the add-on is not linked). A different FFTW
+  thread count can select a different child FFT plan for the same NFFT-level
+  flags, so it belongs in the key even though the NFFT library only ever
+  observes it, never sets it.
 
 Consequences you can rely on:
 
@@ -37,10 +46,17 @@ Consequences you can rely on:
 
 Two hash tables in `struct planner_s`: `htab_blessed` and `htab_unblessed`.
 
-- **Blessed** (`PLNR_BLESSING` set): worth persisting. Exported to wisdom files,
-  survives `PLNR_FORGET_UNBLESSED`. Only *measured* winners are blessed.
-- **Unblessed**: session-only search memoisation (estimate memos, stale-search
-  outcomes). Dropped on forget; never exported.
+- **Blessed** (`PLNR_BLESSING` set): worth persisting. Exported to wisdom
+  files, survives `PLNR_FORGET_UNBLESSED`. Both measured and estimate winners
+  are blessed (FFTW parity) — the whole winning tree, not just the top-level
+  solution: after the race (or the estimate search) picks a winner, a second
+  `Y(planner_mkplan)` pass over the same top-level problem with
+  `PLNR_BLESSING` set re-hits every node the first pass memoised, so DECONV
+  and CONV children are blessed alongside the NFFT solution with no
+  child-enumeration logic needed.
+- **Unblessed**: session-only search memoisation — a timelimit-induced partial
+  race's winner (an untimed survivor might still be faster), stale-search
+  outcomes. Dropped on forget; never exported.
 
 Infeasibility (no applicable solver under the bounds) is recorded with the
 sentinel `INFEASIBLE_SLVNDX` (`0xFFFF`) so a repeated query short-circuits.
@@ -88,15 +104,25 @@ touch it):
 
 ### The configuration signature (the roster fingerprint)
 
-An MD5 over `sizeof(R)` followed by, in registration order, **every** registered
-solver's `reg_id` and registrar name — computed across *all* kinds, not
-per-kind. Written on export, checked on import **before** the store is touched.
+An MD5 over `sizeof(R)`, a **vocabulary tag** (`"plnr-flags-v2"`, a literal
+string in `config_signature`, `kernel/planner/planner.c`), then, in
+registration order, **every** registered solver's `reg_id` and registrar name
+— computed across *all* kinds, not per-kind. Written on export, checked on
+import **before** the store is touched.
 
 Because it covers the whole roster, **adding or removing any solver changes the
 signature**, so wisdom produced by a process with a different solver set (a
 different precision, or a build that registers extra kinds) fails import — safe
 by design. This is why re-adding NFCT/NFST solvers later would invalidate old
 wisdom (harmless: it is a cache).
+
+The vocabulary tag exists so a `PLNR_*` bit change or a problem-hash field
+change also invalidates old wisdom, even when the solver roster itself is
+unchanged: bump the string whenever either changes. Adding the thread-aware
+key fields and `NFFT_PATIENT`'s restrictions bumped it to `v2`; a file
+exported before that (no `NO_NONTHREADED` bit, keys computed without FFTW's
+thread count, only top-level entries) fails the signature check and is
+rejected as a clean cache miss.
 
 ## Three import guards (defense in depth)
 

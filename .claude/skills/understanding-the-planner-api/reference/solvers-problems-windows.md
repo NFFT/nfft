@@ -48,9 +48,29 @@ Registered in `kernel/nfft/conf.c` (`the_roster`), **registration order shown**
 | 3 | `nfft_solver_ndft_nd` | rnk ≥ 2 | `NFFT_NO_DIRECT` | One generic direct NDFT (no 2D/3D specialization — direct has none); blocked recurrence on the innermost axis. |
 | 4 | `nfft_solver_const_0d` | rnk 0 | ungated | Rank-0 base case: forward = broadcast `f_hat[0]`, adjoint = reduce `Σ f_j`. The sole rank-0 solver, so it never ties. |
 
+Every solver above (plus every DECONV and CONV solver) also declines under
+`NO_NONTHREADEDP(pl)` — none of them parallelise internally, so below
+`NFFT_PATIENT` each steps aside whenever more than one thread was requested.
+`nfft_solver_const_0d` is exempt, same as it is exempt from the fast solver's
+geometry guard.
+
 All direct/NDFT solvers are **serial** (OpenMP was stripped from the native
 direct path). There are no `nfft_solver_direct` or `fast_1d/2d/3d/nd` solvers —
 those were the removed wrapper roster.
+
+**The threaded roster is a separate table, registered in one place.**
+`kernel/threads/conf.c` (built only into the add-on library
+`libnfft3<suffix>_ng_omp`) is the *only* place a threaded solver is
+registered — today that table is empty, since no threaded solver has been
+written yet. `Y(nfft_threads_roster_size)()` reports its length, and
+`X(init_threads)` refuses (returns 0) whenever that length is 0, which is what
+keeps the planner from ever reaching a state with more than one thread
+requested and nothing registered to serve it. Adding the first entry to that
+table is what switches the whole mechanism on: it is also what makes
+`X(init_threads)` succeed, which is a precondition for `X(plan_with_nthreads)`
+ever raising `pl->nthr` above 1, which is in turn what makes the serial
+solvers' `NO_NONTHREADEDP` decline
+(see [planning-modes-and-flags.md](planning-modes-and-flags.md)) take effect.
 
 ## The native fast NFFT (`kernel/nfft/nfft-nd.c`)
 

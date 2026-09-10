@@ -31,7 +31,7 @@ current-branch code wins.**
 | `NFFT_NO_DIM_SPECIAL`, `NFFT_NO_FAST_WRAPPER` flags | **Removed.** Fast is gated by `NFFT_NO_FAST_NATIVE` (`1<<4`); direct by `NFFT_NO_DIRECT`. |
 | `nfft_solver_ndft_1d_blocked`; `NFFT_NO_NDFT_PLAIN` (`1<<2`) / `NFFT_NO_NDFT_BLOCKED` (`1<<3`) flags | **Removed.** The blocked phase recurrence is now the only direct NDFT at every rank, so there is nothing left to choose between; `NFFT_NO_DIRECT` is the single direct gate. |
 | ψ-strategy flags `NFFT_NO_FULL_PSI`, `NFFT_SHARED_CORE`, `NFFT_PREFER_FORWARD`, `NFFT_PREFER_ADJOINT`, `NFFT_CONSERVE_MEMORY`; `fast_*_fullpsi` solvers; share-when-agree cores | **Reverted.** `PRE_PSI` (sparse) is the only fast ψ-strategy in the planner. `PRE_FULL_PSI` survives only in the *legacy* kernel, untouched. |
-| `NFFT_MEASURE`/`NFFT_PATIENT`/`NFFT_EXHAUSTIVE` patience ladder; `BELIEVE_PCOST` | **Dropped.** Only `NFFT_MEASURE` (=0) and `NFFT_ESTIMATE` exist. Planning-effort control is measured-vs-estimate plus the timelimit. |
+| `NFFT_PATIENT`/`NFFT_EXHAUSTIVE` do not exist; only `NFFT_MEASURE`/`NFFT_ESTIMATE` control planning effort | **Reintroduced.** `NFFT_PATIENT` (`1<<5`) is back: below it a serial solver declines whenever more than one thread was requested, so a threaded and a serial candidate never race; at `NFFT_PATIENT` and above they do. `NFFT_EXHAUSTIVE` (`1<<6`) stays reserved, not exposed. See [planning-modes-and-flags.md](planning-modes-and-flags.md). |
 | `nfft_flags` parameter on `plan_ng_guru`; legacy `PRE_*` flags are caller inputs; `nfft_flags` in the wisdom key | **Removed.** Guru takes only `fftw_flags` + `planning`. Each solver derives its own child flags. |
 | `x` is aliased/borrowed by the plan (or plan-owned and freed) | **Copied.** The plan holds a private copy; the caller keeps and frees their own `x`; the plan never writes it. |
 | `plan_ng_x` / `plan_ng_f_hat` / `plan_ng_f` accessors; `x` may be `NULL` in estimate mode | **Removed.** All three arrays are required and passed to the guru in every mode; no accessors. |
@@ -43,6 +43,7 @@ current-branch code wins.**
 | Accuracy floor is a wisdom-key term / an `applicable()` gate | **Reverted.** Redesigned as a (still-unbuilt) construction-time `digits → (m, σ)` helper; not in the key, never in the cost scalar. |
 | The native fast solver is 1D-only / KB-only | **Rank-general** and **all four real windows (KB, Gaussian, B-spline, sinc)**; DIRAC declined. Serial. |
 | Constructor has 8–10 positional args | **12 args** including per-axis `variant` and a runtime `window` ordinal (see SKILL.md). |
+| `pl->nthr` follows `Y(get_num_threads)()`, so an OpenMP build plans at the OpenMP thread count automatically | **Removed.** `pl->nthr` defaults to 1 and is set only by `X(plan_with_nthreads)` (add-on library). An OpenMP build no longer changes the wisdom key or the serial/threaded decision on its own. |
 
 ## Known sharp edges still open (warn future work)
 
