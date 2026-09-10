@@ -82,6 +82,8 @@ Useful `./configure` flags:
 - `--enable-julia` — build the Julia interface (double precision + shared libs only).
 - `--with-matlab=/path` / `--with-octave=/path` — build the MATLAB/Octave interface.
 - `--enable-tests` - build the CUnit test programs.
+- `--disable-simd` — build without SIMD intrinsics, so every transform takes the
+  plain C kernels (see §6). On by default; long-double builds are scalar regardless.
 - `--enable-benchmarks --with-codspeed=<path>` — Autotools benchmark
   build; benchmarks are now built in CI with CMake, easier to integrate (see §4).
 - `./configure --help` lists everything.
@@ -205,6 +207,41 @@ The generators' own notes are in `tests/besselgen/README.md` and
 `tests/sincgen/README.md`. `tests/sincgen` reuses the minimax fitter in
 `tests/besselgen/remez.py`.
 
+## 6. SIMD
+
+The NFFT convolution kernels (`kernel/nfft/compute_body.h`) exist once per
+instruction set, alongside the plain C ones, and the library picks between them
+**at run time** against the host CPU. Nothing is selected at build time, so a
+binary built anywhere runs anywhere; see
+[ADR-0005](docs/adr/0005-runtime-dispatched-simd-kernels.md) for the design.
+
+- `include/simd.h` — what this build carries (`NFFT_SIMD_HAVE_<isa>`,
+  `NFFT_SIMD_MAX`) and what the host has (`Y(simd_isa)()`, cached).
+- `include/simd_run.h` — the two vector primitives, re-included once per
+  variant with `NFFT_SIMD_VARIANT` set. Adding an instruction set means adding
+  a block of macros here and nothing else.
+- `kernel/util/simd.c` — CPU detection and the `NFFT_SIMD` environment override.
+
+Compiled variants: `sse2`, `avx`, `avx2` (x86/x86-64, needing GCC ≥ 4.9 or
+clang for the function `target` attribute) and `neon` (AArch64). Everything
+else — long double, `--disable-simd`, other compilers or architectures — runs
+the scalar kernels.
+
+To run a given path, set `NFFT_SIMD` to `scalar` (or `0`/`off`/`none`), `sse2`,
+`avx`, `avx2` or `neon`; anything the build or the host lacks falls back to
+scalar. Handy for A/B-ing a change:
+
+```bash
+NFFT_SIMD=off  tests/checkall     # plain C kernels
+NFFT_SIMD=avx2 tests/checkall     # AVX2 kernels
+```
+
+`tests/simd.c` (`nfft_simd_*` cases in the `nfft` suite) runs the same
+transforms through every instruction set available on the test host and
+requires them to agree with the scalar result to rounding. Timing comparisons
+are best made with callgrind instruction counts rather than wall clock — see
+the table in ADR-0005.
+
 ## Quick reference
 
 | Task | Command |
@@ -218,6 +255,7 @@ The generators' own notes are in `tests/besselgen/README.md` and
 | Measure (walltime) | `CODSPEED_PROFILE_FOLDER=/tmp/wt build-cmake/benchmarks/bench_nfft_direct` → `/tmp/wt/results/*.json` |
 | Clean | `make clean` / full reset: `make distclean` |
 | Format C code | `clang-format -i <file>` (uses repo `.clang-format`) |
+| Run a specific SIMD path | `NFFT_SIMD=off\|sse2\|avx\|avx2\|neon <program>` (§6) |
 | Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m tests.besselgen.generate` (§5) |
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m tests.sincgen.generate` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |

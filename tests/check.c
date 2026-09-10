@@ -28,6 +28,7 @@
 #include "bessel.h"
 #include "window.h"
 #include "nfft.h"
+#include "simd.h"
 #include "nfct.h"
 #include "nfst.h"
 
@@ -69,6 +70,10 @@ int main(void)
 #undef X
 #define X(name) NFFT(name)
   nfft = CU_add_suite("nfft", 0, 0);
+  CU_add_test(nfft, "nfft_simd_detection", X(check_simd_detection));
+  CU_add_test(nfft, "nfft_simd_1d", X(check_simd_1d));
+  CU_add_test(nfft, "nfft_simd_2d", X(check_simd_2d));
+  CU_add_test(nfft, "nfft_simd_3d", X(check_simd_3d));
   CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfft, "nfft_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));

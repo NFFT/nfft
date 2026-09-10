@@ -115,6 +115,30 @@ transform, and validates the fast transform against it. See
 `docs/agents/test-methodology.md`.
 _Avoid_: reference test / accuracy test (ambiguous — name the class).
 
+### SIMD
+
+**Variant**:
+One compiled instantiation of the convolution kernels for a single instruction set:
+`scalar`, `sse2`, `avx`, `avx2`, `neon`. Every build carries the **scalar variant**
+plus whatever `include/simd.h` says the compiler and architecture allow; they coexist
+in one object file, they are never alternatives at build time. Named by the suffix
+`NFFT_SIMD_ID` pastes on (`nfft_trafo_3d_compute_avx2`). See ADR-0005.
+_Avoid_: SIMD backend, ISA build, code path.
+
+**Active ISA**:
+The variant `Y(simd_isa)()` resolves for this host — the widest one both compiled in
+and supported by the CPU — cached on first call and overridable with the `NFFT_SIMD`
+environment variable or `Y(simd_force_isa)()`. Distinct from `NFFT_SIMD_MAX`, which is
+the widest variant the *build* carries, whatever the host turns out to be.
+_Avoid_: SIMD level, target ISA (ambiguous with the compiler's `-march`).
+
+**Run** (`nfft_run`):
+One dimension's `2m+2` point window for one node, as the one or two *contiguous*
+pieces it occupies on the periodic oversampled grid. The unit the vector primitives
+`cdot`/`caxpy` consume; the two-piece form is what a wrap around the grid end looks
+like. Not to be confused with `PHI_RUN`, which *fills* a run's window values.
+_Avoid_: stencil, window block.
+
 ### Accuracy tracking (HTML report)
 
 **Accuracy metric**:

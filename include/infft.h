@@ -98,6 +98,10 @@ typedef double _Complex C;
 #endif
 #define X(name) Y(name)
 
+/* Which SIMD instruction sets this build carries and which one the host runs.
+ * Needs the precision and the mangling above. */
+#include "simd.h"
+
 #define STRINGIZEx(x) #x
 #define STRINGIZE(x) STRINGIZEx(x)
 

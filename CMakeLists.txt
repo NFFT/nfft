@@ -17,6 +17,10 @@ option(NFFT_ENABLE_FLOAT       "Build single (float) precision"   OFF)
 option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
 option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
+# SIMD. On by default: include/simd.h decides per compiler and architecture what
+# it can build, keeps the plain C kernels alongside anything it does build, and
+# the choice between them happens at run time against the host's CPU.
+option(NFFT_ENABLE_SIMD        "Use SIMD compiler intrinsics"     ON)
 option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
 
 # Benchmarks: a single knob that both selects the CodSpeed measurement mode and

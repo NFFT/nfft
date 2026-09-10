@@ -9,6 +9,7 @@ set(NFFT_TEST_SOURCES
   bspline.c bspline.h
   bessel.c  bessel.h
   window.c  window.h
+  simd.c    simd.h
   nfft.c    nfft.h
   nfct.c    nfct.h
   nfst.c    nfst.h)

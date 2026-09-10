@@ -257,6 +257,17 @@ esac
 AC_MSG_RESULT([$window])
 AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
+# SIMD. Enabled by default: the header decides per compiler and architecture
+# what it can actually build, every variant is compiled next to the plain C one
+# rather than instead of it, and the choice between them is made at run time
+# against the host's CPU. --disable-simd forces the plain C path everywhere.
+AC_ARG_ENABLE(simd, [AS_HELP_STRING([--disable-simd],[do not use SIMD compiler intrinsics, even where the host supports them])], enable_simd=$enableval, enable_simd=yes)
+if test "$enable_simd" = "yes"; then
+  AC_DEFINE(NFFT_ENABLE_SIMD,1,[Define to allow SIMD intrinsics in the kernels.])
+fi
+AC_MSG_CHECKING([whether to use SIMD intrinsics])
+AC_MSG_RESULT([$enable_simd])
+
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)
 matlab_exhaustive_unit_tests_flag=0
 if test "$ok" = "yes"; then

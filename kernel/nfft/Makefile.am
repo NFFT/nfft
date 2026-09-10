@@ -6,6 +6,8 @@ else
   LIBNFFT_THREADS_LA =
 endif
 
+EXTRA_DIST = compute_body.h
+
 noinst_LTLIBRARIES = libnfft.la $(LIBNFFT_THREADS_LA)
 libnfft_la_SOURCES = nfft.c 
 

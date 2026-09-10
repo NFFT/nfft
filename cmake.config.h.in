@@ -24,6 +24,9 @@
 /* Threads */
 #cmakedefine HAVE_FFTW_THREADS 1
 
+/* SIMD */
+#cmakedefine NFFT_ENABLE_SIMD 1
+
 /* Benchmarks */
 #define BENCHMARKS_PREFIX "@BENCHMARKS_PREFIX@"
 

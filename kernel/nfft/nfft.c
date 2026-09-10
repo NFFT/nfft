@@ -535,6 +535,240 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
+/* ############################## PER-NODE KERNELS AND THEIR SIMD VARIANTS ### */
+
+/** One dimension's 2m+2 point window run, as the (at most two) contiguous
+ *  pieces it occupies on the periodic oversampled grid. Filled in by
+ *  nfft_run_init() in compute_body.h. */
+typedef struct
+{
+  INT start[2]; /**< first grid index of each piece */
+  INT len[2]; /**< number of run points in each piece */
+  INT pieces; /**< 1 when the run does not wrap around the grid, else 2 */
+} nfft_run;
+
+/* One set of per-node kernels per instruction set this build carries. The
+ * scalar set is always built and is what a host without SIMD -- or a build
+ * configured with --disable-simd, or in long-double precision -- runs. */
+#define NFFT_SIMD_VARIANT NFFT_SIMD_SCALAR
+#include "simd_run.h"
+#include "compute_body.h"
+#undef NFFT_SIMD_VARIANT
+
+#if NFFT_SIMD_HAVE_SSE2
+#define NFFT_SIMD_VARIANT NFFT_SIMD_SSE2
+#include "simd_run.h"
+#include "compute_body.h"
+#undef NFFT_SIMD_VARIANT
+#endif
+
+#if NFFT_SIMD_HAVE_AVX
+#define NFFT_SIMD_VARIANT NFFT_SIMD_AVX
+#include "simd_run.h"
+#include "compute_body.h"
+#undef NFFT_SIMD_VARIANT
+#endif
+
+#if NFFT_SIMD_HAVE_AVX2
+#define NFFT_SIMD_VARIANT NFFT_SIMD_AVX2
+#include "simd_run.h"
+#include "compute_body.h"
+#undef NFFT_SIMD_VARIANT
+#endif
+
+#if NFFT_SIMD_HAVE_NEON
+#define NFFT_SIMD_VARIANT NFFT_SIMD_NEON
+#include "simd_run.h"
+#include "compute_body.h"
+#undef NFFT_SIMD_VARIANT
+#endif
+
+#if NFFT_SIMD_MAX == NFFT_SIMD_SCALAR
+
+/* Only one set was built, so there is nothing to dispatch: the call sites go
+ * straight to it and the build is exactly as it was before SIMD. */
+#define nfft_select_kernels() ((void)0)
+#define nfft_trafo_1d_compute nfft_trafo_1d_compute_scalar
+#define nfft_trafo_2d_compute nfft_trafo_2d_compute_scalar
+#define nfft_trafo_3d_compute nfft_trafo_3d_compute_scalar
+#ifdef _OPENMP
+#define nfft_adjoint_1d_compute_omp_blockwise \
+  nfft_adjoint_1d_compute_omp_blockwise_scalar
+#define nfft_adjoint_2d_compute_omp_blockwise \
+  nfft_adjoint_2d_compute_omp_blockwise_scalar
+#define nfft_adjoint_3d_compute_omp_blockwise \
+  nfft_adjoint_3d_compute_omp_blockwise_scalar
+#else
+#define nfft_adjoint_1d_compute_serial nfft_adjoint_1d_compute_serial_scalar
+#define nfft_adjoint_2d_compute_serial nfft_adjoint_2d_compute_serial_scalar
+#define nfft_adjoint_3d_compute_serial nfft_adjoint_3d_compute_serial_scalar
+#endif
+
+#else
+
+/* Which set the transforms use. Resolved once per plan initialisation, so the
+ * transforms themselves only read it, and one indirect call covers a whole
+ * node -- a 2m+2 point run in 1D, (2m+2)^d grid points in 2D and 3D. */
+typedef struct
+{
+  void (*trafo_1d)(C *, const C *, const R *, const R *, const INT, const INT);
+  void (*trafo_2d)(C *, const C *, const R *, const R *, const R *, const R *,
+      const INT, const INT, const INT);
+  void (*trafo_3d)(C *, const C *, const R *, const R *, const R *, const R *,
+      const R *, const R *, const INT, const INT, const INT, const INT);
+#ifdef _OPENMP
+  void (*adjoint_1d)(const C, C *, const R *, const R *, const INT, const INT,
+      const INT, const INT);
+  void (*adjoint_2d)(const C, C *, const R *, const R *, const R *, const R *,
+      const INT, const INT, const INT, const INT, const INT);
+  void (*adjoint_3d)(const C, C *, const R *, const R *, const R *, const R *,
+      const R *, const R *, const INT, const INT, const INT, const INT,
+      const INT, const INT);
+#else
+  void (*adjoint_1d)(const C *, C *, const R *, const R *, const INT,
+      const INT);
+  void (*adjoint_2d)(const C *, C *, const R *, const R *, const R *,
+      const R *, const INT, const INT, const INT);
+  void (*adjoint_3d)(const C *, C *, const R *, const R *, const R *,
+      const R *, const R *, const R *, const INT, const INT, const INT,
+      const INT);
+#endif
+} nfft_kernels;
+
+#ifdef _OPENMP
+#define NFFT_KERNEL_SET(sfx) \
+  { \
+    nfft_trafo_1d_compute ## sfx, \
+    nfft_trafo_2d_compute ## sfx, \
+    nfft_trafo_3d_compute ## sfx, \
+    nfft_adjoint_1d_compute_omp_blockwise ## sfx, \
+    nfft_adjoint_2d_compute_omp_blockwise ## sfx, \
+    nfft_adjoint_3d_compute_omp_blockwise ## sfx \
+  }
+#else
+#define NFFT_KERNEL_SET(sfx) \
+  { \
+    nfft_trafo_1d_compute ## sfx, \
+    nfft_trafo_2d_compute ## sfx, \
+    nfft_trafo_3d_compute ## sfx, \
+    nfft_adjoint_1d_compute_serial ## sfx, \
+    nfft_adjoint_2d_compute_serial ## sfx, \
+    nfft_adjoint_3d_compute_serial ## sfx \
+  }
+#endif
+
+static nfft_kernels nfft_K = NFFT_KERNEL_SET(_scalar);
+
+/* Called from init_help(), i.e. once per plan, where the application is
+ * single-threaded. Repeated calls write the same pointers unless
+ * Y(simd_force_isa)() moved the answer in between. */
+static void nfft_select_kernels(void)
+{
+  const int isa = Y(simd_isa)();
+
+#if NFFT_SIMD_HAVE_NEON
+  if (isa == NFFT_SIMD_NEON)
+  {
+    nfft_K = (nfft_kernels) NFFT_KERNEL_SET(_neon);
+    return;
+  }
+#endif
+#if NFFT_SIMD_HAVE_AVX2
+  if (isa == NFFT_SIMD_AVX2)
+  {
+    nfft_K = (nfft_kernels) NFFT_KERNEL_SET(_avx2);
+    return;
+  }
+#endif
+#if NFFT_SIMD_HAVE_AVX
+  if (isa == NFFT_SIMD_AVX)
+  {
+    nfft_K = (nfft_kernels) NFFT_KERNEL_SET(_avx);
+    return;
+  }
+#endif
+#if NFFT_SIMD_HAVE_SSE2
+  if (isa == NFFT_SIMD_SSE2)
+  {
+    nfft_K = (nfft_kernels) NFFT_KERNEL_SET(_sse2);
+    return;
+  }
+#endif
+
+  nfft_K = (nfft_kernels) NFFT_KERNEL_SET(_scalar);
+}
+
+static void nfft_trafo_1d_compute(C *fj, const C *g, const R *psij_const,
+    const R *xj, const INT n, const INT m)
+{
+  nfft_K.trafo_1d(fj, g, psij_const, xj, n, m);
+}
+
+static void nfft_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
+    const R *psij_const1, const R *xj0, const R *xj1, const INT n0,
+    const INT n1, const INT m)
+{
+  nfft_K.trafo_2d(fj, g, psij_const0, psij_const1, xj0, xj1, n0, n1, m);
+}
+
+static void nfft_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
+    const R *psij_const1, const R *psij_const2, const R *xj0, const R *xj1,
+    const R *xj2, const INT n0, const INT n1, const INT n2, const INT m)
+{
+  nfft_K.trafo_3d(fj, g, psij_const0, psij_const1, psij_const2, xj0, xj1, xj2,
+      n0, n1, n2, m);
+}
+
+#ifdef _OPENMP
+static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
+    const R *psij_const, const R *xj, const INT n, const INT m,
+    const INT my_u0, const INT my_o0)
+{
+  nfft_K.adjoint_1d(f, g, psij_const, xj, n, m, my_u0, my_o0);
+}
+
+static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
+    const R *psij_const0, const R *psij_const1, const R *xj0, const R *xj1,
+    const INT n0, const INT n1, const INT m, const INT my_u0, const INT my_o0)
+{
+  nfft_K.adjoint_2d(f, g, psij_const0, psij_const1, xj0, xj1, n0, n1, m, my_u0,
+      my_o0);
+}
+
+static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
+    const R *psij_const0, const R *psij_const1, const R *psij_const2,
+    const R *xj0, const R *xj1, const R *xj2, const INT n0, const INT n1,
+    const INT n2, const INT m, const INT my_u0, const INT my_o0)
+{
+  nfft_K.adjoint_3d(f, g, psij_const0, psij_const1, psij_const2, xj0, xj1, xj2,
+      n0, n1, n2, m, my_u0, my_o0);
+}
+#else
+static void nfft_adjoint_1d_compute_serial(const C *fj, C *g,
+    const R *psij_const, const R *xj, const INT n, const INT m)
+{
+  nfft_K.adjoint_1d(fj, g, psij_const, xj, n, m);
+}
+
+static void nfft_adjoint_2d_compute_serial(const C *fj, C *g,
+    const R *psij_const0, const R *psij_const1, const R *xj0, const R *xj1,
+    const INT n0, const INT n1, const INT m)
+{
+  nfft_K.adjoint_2d(fj, g, psij_const0, psij_const1, xj0, xj1, n0, n1, m);
+}
+
+static void nfft_adjoint_3d_compute_serial(const C *fj, C *g,
+    const R *psij_const0, const R *psij_const1, const R *psij_const2,
+    const R *xj0, const R *xj1, const R *xj2, const INT n0, const INT n1,
+    const INT n2, const INT m)
+{
+  nfft_K.adjoint_3d(fj, g, psij_const0, psij_const1, psij_const2, xj0, xj1,
+      xj2, n0, n1, n2, m);
+}
+#endif
+
+#endif /* NFFT_SIMD_MAX == NFFT_SIMD_SCALAR */
+
 #define MACRO_D_compute_A \
 { \
   g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d]; \
@@ -2234,56 +2468,6 @@ static void nfft_init_fg(R *e, R *q, const R b)
 }
 
 
-static void nfft_trafo_1d_compute(C *fj, const C *g,const R *psij_const,
-  const R *xj, const INT n, const INT m)
-{
-  INT u, o, l;
-  const C *gj;
-  const R *psij;
-  psij = psij_const;
-
-  uo2(&u, &o, *xj, n, m);
-
-  if (u < o)
-  {
-    for (l = 1, gj = g + u, (*fj) = (*psij++) * (*gj++); l <= 2*m+1; l++)
-      (*fj) += (*psij++) * (*gj++);
-  }
-  else
-  {
-    for (l = 1, gj = g + u, (*fj) = (*psij++) * (*gj++); l < 2*m+1 - o; l++)
-      (*fj) += (*psij++) * (*gj++);
-    for (l = 0, gj = g; l <= o; l++)
-      (*fj) += (*psij++) * (*gj++);
-  }
-}
-
-#ifndef _OPENMP
-static void nfft_adjoint_1d_compute_serial(const C *fj, C *g,
-    const R *psij_const, const R *xj, const INT n, const INT m)
-{
-  INT u,o,l;
-  C *gj;
-  const R *psij;
-  psij = psij_const;
-
-  uo2(&u,&o,*xj, n, m);
-
-  if (u < o)
-  {
-    for (l = 0, gj = g+u; l <= 2*m+1; l++)
-      (*gj++) += (*psij++) * (*fj);
-  }
-  else
-  {
-    for (l = 0, gj = g+u; l < 2*m+1-o; l++)
-      (*gj++) += (*psij++) * (*fj);
-    for (l = 0, gj = g; l <= o; l++)
-      (*gj++) += (*psij++) * (*fj);
-  }
-}
-#endif
-
 #ifdef _OPENMP
 /* adjoint NFFT one-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,
@@ -2309,79 +2493,6 @@ static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,
 
     #pragma omp atomic
     lhs_real[1] += CIMAG(val);
-  }
-}
-#endif
-
-#ifdef _OPENMP
-/**
- * Adjoint NFFT for one-dimensional case updating only a specified range of
- * vector g.
- *
- * \arg f input coefficient f[j]
- * \arg g output vector g
- * \arg psij_const vector of window function values
- * \arg xj node x[j]
- * \arg n FFTW length (number oversampled Fourier coefficients)
- * \arg m window length
- * \arg my_u0 lowest index the current thread writes to in g
- * \arg my_o0 highest index the current thread writes to in g
- *
- * \author Toni Volkmer
- */
-static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
-    const R *psij_const, const R *xj, const INT n, const INT m,
-    const INT my_u0, const INT my_o0)
-{
-  INT ar_u,ar_o,l;
-
-  uo2(&ar_u,&ar_o,*xj, n, m);
-
-  if (ar_u < ar_o)
-  {
-    INT u = MAX(my_u0,ar_u);
-    INT o = MIN(my_o0,ar_o);
-    INT offset_psij = u-ar_u;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o-u <= 2*m+1);
-    assert(offset_psij+o-u <= 2*m+1);
-#endif
-
-    for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * f;
-  }
-  else
-  {
-    INT u = MAX(my_u0,ar_u);
-    INT o = my_o0;
-    INT offset_psij = u-ar_u;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o-u <= 2*m+1);
-    assert(offset_psij+o-u <= 2*m+1);
-#endif
-
-    for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * f;
-
-    u = my_u0;
-    o = MIN(my_o0,ar_o);
-    offset_psij += my_u0-ar_u+n;
-
-#ifdef OMP_ASSERT
-    if (u <= o)
-    {
-      assert(o-u <= 2*m+1);
-      if (offset_psij+o-u > 2*m+1)
-      {
-        fprintf(stderr, "ERR: %d %d %d %d %d %d %d\n", ar_u, ar_o, my_u0, my_o0, u, o, offset_psij);
-      }
-      assert(offset_psij+o-u <= 2*m+1);
-    }
-#endif
-    for (l = 0; l <= o-u; l++)
-      g[u+l] += psij_const[offset_psij+l] * f;
   }
 }
 #endif
@@ -3017,85 +3128,6 @@ void X(adjoint_1d)(X(plan) *ths)
 /* ################################################ SPECIFIC VERSIONS FOR d=2 */
 
 
-static void nfft_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
-    const R *psij_const1, const R *xj0, const R *xj1, const INT n0,
-    const INT n1, const INT m)
-{
-  INT u0,o0,l0,u1,o1,l1;
-  const C *gj;
-  const R *psij0,*psij1;
-
-  psij0=psij_const0;
-  psij1=psij_const1;
-
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-
-  *fj=0;
-
-  if (u0 < o0)
-      if(u1 < o1)
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      else
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-  else
-      if(u1<o1)
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      }
-      else
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+l0*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      }
-}
-
 #ifdef _OPENMP
 /* adjoint NFFT two-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
@@ -3132,182 +3164,6 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
       lhs_real[1] += CIMAG(val);
     }
   }
-}
-#endif
-
-#ifdef _OPENMP
-/** 
- * Adjoint NFFT for two-dimensional case updating only a specified range of
- * vector g.
- *
- * \arg f input coefficient f[j]
- * \arg g output vector g
- * \arg psij_const0 vector of window function values first component
- * \arg psij_const1 vector of window function values second component
- * \arg xj0 node x[2*j]
- * \arg xj1 node x[2*j+1]
- * \arg n0 FFTW length (number oversampled Fourier coefficients) first comp.
- * \arg n1 FFTW length (number oversampled Fourier coefficients) second comp.
- * \arg m window length
- * \arg my_u0 lowest index (first component) the current thread writes to
- * \arg my_o0 highest index (second component) the current thread writes to
- *
- * \author Toni Volkmer
- */
-static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
-            const R *psij_const0, const R *psij_const1, const R *xj0,
-            const R *xj1, const INT n0, const INT n1, const INT m,
-            const INT my_u0, const INT my_o0)
-{
-  INT ar_u0,ar_o0,l0,u1,o1,l1;
-  INT index_temp1[2*m+2];
-
-  uo2(&ar_u0,&ar_o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-
-  for (l1 = 0; l1 <= 2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
-
-  if(ar_u0 < ar_o0)
-  {
-    INT u0 = MAX(my_u0,ar_u0);
-    INT o0 = MIN(my_o0,ar_o0);
-    INT offset_psij = u0-ar_u0;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o0-u0 <= 2*m+1);
-    assert(offset_psij+o0-u0 <= 2*m+1);
-#endif
-
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
-    }
-  }
-  else
-  {
-    INT u0 = MAX(my_u0,ar_u0);
-    INT o0 = my_o0;
-    INT offset_psij = u0-ar_u0;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o0-u0 <= 2*m+1);
-    assert(offset_psij+o0-u0 <= 2*m+1);
-#endif
-
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
-    }
-
-    u0 = my_u0;
-    o0 = MIN(my_o0,ar_o0);
-    offset_psij += my_u0-ar_u0+n0;
-
-#ifdef OMP_ASSERT
-    if (u0<=o0)
-    {
-      assert(o0-u0 <= 2*m+1);
-      assert(offset_psij+o0-u0 <= 2*m+1);
-    }
-#endif
-
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
-    }
-  }
-}
-#endif
-
-#ifndef _OPENMP
-static void nfft_adjoint_2d_compute_serial(const C *fj, C *g,
-            const R *psij_const0, const R *psij_const1, const R *xj0,
-            const R *xj1, const INT n0, const INT n1, const INT m)
-{
-  INT u0,o0,l0,u1,o1,l1;
-  C *gj;
-  const R *psij0,*psij1;
-
-  psij0=psij_const0;
-  psij1=psij_const1;
-
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-
-  if(u0<o0)
-      if(u1<o1)
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-    (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      else
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-  else
-      if(u1<o1)
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      }
-      else
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+l0*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      }
 }
 #endif
 
@@ -4054,377 +3910,6 @@ void X(adjoint_2d)(X(plan) *ths)
 /* ################################################ SPECIFIC VERSIONS FOR d=3 */
 
 
-static void nfft_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
-    const R *psij_const1, const R *psij_const2, const R *xj0, const R *xj1,
-    const R *xj2, const INT n0, const INT n1, const INT n2, const INT m)
-{
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
-  const C *gj;
-  const R *psij0, *psij1, *psij2;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
-
-  *fj = 0;
-
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-}
-
-#ifdef _OPENMP
-/** 
- * Adjoint NFFT for three-dimensional case updating only a specified range of
- * vector g.
- *
- * \arg f input coefficient f[j]
- * \arg g output vector g
- * \arg psij_const0 vector of window function values first component
- * \arg psij_const1 vector of window function values second component
- * \arg psij_const2 vector of window function values third component
- * \arg xj0 node x[3*j]
- * \arg xj1 node x[3*j+1]
- * \arg xj2 node x[3*j+2]
- * \arg n0 FFTW length (number oversampled Fourier coefficients) first comp.
- * \arg n1 FFTW length (number oversampled Fourier coefficients) second comp.
- * \arg n2 FFTW length (number oversampled Fourier coefficients) third comp.
- * \arg m window length
- * \arg my_u0 lowest index (first component) the current thread writes to
- * \arg my_o0 highest index (second component) the current thread writes to
- *
- * \author Toni Volkmer
- */
-static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
-    const R *psij_const0, const R *psij_const1, const R *psij_const2,
-    const R *xj0, const R *xj1, const R *xj2,
-    const INT n0, const INT n1, const INT n2, const INT m,
-    const INT my_u0, const INT my_o0)
-{
-  INT ar_u0,ar_o0,l0,u1,o1,l1,u2,o2,l2;
-
-  INT index_temp1[2*m+2];
-  INT index_temp2[2*m+2];
-
-  uo2(&ar_u0,&ar_o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-  uo2(&u2,&o2,*xj2, n2, m);
-
-  for (l1=0; l1<=2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
-
-  for (l2=0; l2<=2*m+1; l2++)
-    index_temp2[l2] = (u2+l2)%n2;
-
-  if(ar_u0<ar_o0)
-  {
-    INT u0 = MAX(my_u0,ar_u0);
-    INT o0 = MIN(my_o0,ar_o0);
-    INT offset_psij = u0-ar_u0;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o0-u0 <= 2*m+1);
-    assert(offset_psij+o0-u0 <= 2*m+1);
-#endif
-
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      const INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
-      }
-    }
-  }
-  else
-  {
-    INT u0 = MAX(my_u0,ar_u0);
-    INT o0 = my_o0;
-    INT offset_psij = u0-ar_u0;
-#ifdef OMP_ASSERT
-    assert(offset_psij >= 0);
-    assert(o0-u0 <= 2*m+1);
-    assert(offset_psij+o0-u0 <= 2*m+1);
-#endif
-
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
-      }
-    }
-
-    u0 = my_u0;
-    o0 = MIN(my_o0,ar_o0);
-    offset_psij += my_u0-ar_u0+n0;
-
-#ifdef OMP_ASSERT
-    if (u0<=o0)
-    {
-      assert(o0-u0 <= 2*m+1);
-      assert(offset_psij+o0-u0 <= 2*m+1);
-    }
-#endif
-    for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      INT i0 = (u0+l0) * n1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
-      }
-    }
-  }
-}
-#endif
-
 #ifdef _OPENMP
 /* adjoint NFFT three-dimensional case with OpenMP atomic operations */
 static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
@@ -4470,254 +3955,6 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
       }
     }
   }
-}
-#endif
-
-#ifndef _OPENMP
-static void nfft_adjoint_3d_compute_serial(const C *fj, C *g,
-    const R *psij_const0, const R *psij_const1, const R *psij_const2, const R *xj0,
-    const R *xj1, const R *xj2, const INT n0, const INT n1, const INT n2,
-    const INT m)
-{
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
-  C *gj;
-  const R *psij0, *psij1, *psij2;
-
-  psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
 }
 #endif
 
@@ -5930,6 +5167,9 @@ static void init_help(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
   INT lprod; /* 'bandwidth' of matrix B */
+
+  /* Which per-node kernels the transforms of this plan will use. */
+  nfft_select_kernels();
 
   if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     ths->flags |= NFFT_SORT_NODES;
