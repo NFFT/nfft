@@ -18,6 +18,7 @@
 
 #include "infft.h"
 #include "sinc_data.h"
+#include "poly4.h"
 
 R Y(sinc)(const R x)
 {
@@ -57,13 +58,9 @@ R Y(log_sinc)(const R x)
   if (a <= NFFT_LOG_SINC_SPLIT)
   {
     const R y = a * a;
-    R q = NFFT_LOG_SINC_Q[SIZE(NFFT_LOG_SINC_Q) - 1];
-    INT j;
 
-    for (j = (INT)SIZE(NFFT_LOG_SINC_Q) - 2; j >= 0; j--)
-      q = q * y + NFFT_LOG_SINC_Q[j];
-
-    return y * q;
+    // Safe to use poly4.
+    return y * poly4(NFFT_LOG_SINC_Q, (INT)SIZE(NFFT_LOG_SINC_Q), y);
   }
 
   return LOG(FABS(SIN(a) / a));
