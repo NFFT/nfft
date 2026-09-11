@@ -67,12 +67,6 @@ printer *Y(printer_create)(size_t size, void (*putchr)(printer *p, char c),
                         void (*cleanup)(printer *p));
 void Y(printer_destroy)(printer *p);
 printer *Y(printer_create_file)(FILE *f);
-/* Writes without a bound: buf must already hold the whole description. Measure
- * it with printer_create_cnt and allocate cnt + 1, the way
- * Y(export_wisdom_to_string) does. A description nests the solver's children
- * and the FFTW plan description, so its length follows the precision and
- * whatever algorithm FFTW picked -- a fixed buffer that fits today overflows
- * the moment either changes. */
 printer *Y(printer_create_str)(char *buf);
 printer *Y(printer_create_cnt)(size_t *cnt);
 
@@ -138,10 +132,7 @@ enum {
   PLNR_AWAKE = 2 // may execute, results correct
 };
 
-/* Whether the planner may search. Deliberately outside flags_t: wisdom-only is
- * a directive about how hard to look, not a property of a stored solution, so
- * it must not take part in LEQ subsumption or key an entry. FFTW keeps it
- * outside its flags word for the same reason (kernel/ifftw.h wisdom_state_t). */
+/* Whether the planner may search. */
 typedef enum {
   PLNR_WISDOM_NORMAL = 0, /* search freely */
   PLNR_WISDOM_ONLY = 1, /* answer from the store or fail */
@@ -357,8 +348,7 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out);
  * the problem's kind; memoises the outcome unblessed. */
 plan *Y(planner_mkplan)(planner *pl, const problem *p);
 
-/* mapflags.c: translation of the caller's request. Both are pure functions of
- * their arguments; no planner or problem state is read. */
+/* mapflags.c: */
 unsigned Y(nfft_map_planning_flags)(unsigned planning);
 unsigned Y(nfft_derive_fftw_flags)(unsigned planning, unsigned fftw_flags);
 
