@@ -142,6 +142,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     nfft_mex_install_mem_hooks();
     nthreads_global = X(get_num_threads)();
+    nfft_mex_lock_openmp_runtime();
 
     mexAtExit(cleanup);
     gflags &= ~NFSFT_MEX_FIRST_CALL;
