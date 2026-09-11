@@ -176,6 +176,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexEvalString("fft([1,2,3,4]);");
 
     nfft_mex_install_mem_hooks();
+    nfft_mex_lock_openmp_runtime();
 
     mexAtExit(cleanup);
     gflags &= ~NNFFT_MEX_FIRST_CALL;
