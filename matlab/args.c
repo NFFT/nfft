@@ -21,6 +21,49 @@
 #include "infft.h"
 #include "imex.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#elif defined(HAVE_DLFCN_H) && defined(HAVE_DLADDR)
+#include <dlfcn.h>
+#endif
+#endif
+
+/* Pin whichever OpenMP runtime is actually linked so it is never unmapped 
+ * for the remaining lifetime of the MATLAB session. Discover the runtime 
+ * by resolving the shared object that provides a standard OpenMP API symbol.
+ *
+ * Background: Some versions of the OpenMP runtime implement per-thread
+ * state via a pthread TSD key whose destructor lives inside the runtime's
+ * own shared library, including the thread that merely calls into
+ * an OpenMP region. This can be the Matlab interpreter thread itself.
+ *
+ * If the shared library is unmapped, e.g. when the MATLAB session's main 
+ * thread exits, it still holds a reference to the state in the now unmapped 
+ * library's region and the pthread tries to invoke the dangling destructor
+ * pointer and crashes. */
+void nfft_mex_pin_openmp_runtime(void)
+{
+#ifdef _OPENMP
+#if defined(_WIN32) || defined(__CYGWIN__)
+  HMODULE h = NULL;
+  GetModuleHandleExA(
+      GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_PIN,
+      (LPCSTR) (void *) &omp_get_num_threads, &h);
+#elif defined(HAVE_DLFCN_H) && defined(HAVE_DLADDR)
+  Dl_info info;
+  if (dladdr((void *) &omp_get_num_threads, &info) && info.dli_fname)
+  {
+    void *h = dlopen(info.dli_fname, RTLD_NOW | RTLD_NODELETE);
+    if (h)
+      dlclose(h);
+  }
+#endif
+#endif
+}
+
 int nfft_mex_get_int(const mxArray *p, const char *errmsg)
 {
   DM(if (!mxIsDouble(p) || mxIsComplex(p) || mxGetM(p) != 1 || mxGetN(p) != 1)

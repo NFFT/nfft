@@ -127,6 +127,7 @@ static void cleanup(void)
     }
     nfsft_forget();
     gflags |= NFSFT_MEX_FIRST_CALL;
+    nfft_mex_pin_openmp_runtime();
     gflags &= ~NFSFT_MEX_PRECOMPUTED;
     n_max = -1;
   }

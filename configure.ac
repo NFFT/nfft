@@ -521,7 +521,8 @@ fi
 
 AC_CHECK_HEADERS([math.h stdio.h stdlib.h time.h  sys/time.h \
   complex.h string.h float.h limits.h stdarg.h stddef.h sys/types.h stdint.h \
-  inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h])
+  inttypes.h stdbool.h malloc.h c_asm.h intrinsics.h mach/mach_time.h \
+  dlfcn.h])
 
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE([long double],
@@ -559,13 +560,17 @@ saved_LIBS=$LIBS
 AC_CHECK_LIB(m, sin, [])
 LIBS=$saved_LIBS
 
+# dladdr/dlopen: used by the Matlab/Octave mex interface (only, guarded by
+# HAVE_DLFCN_H/HAVE_DLADDR) to keep the OpenMP runtime mapped for the life of
+# the process, see matlab/args.c:nfft_mex_pin_openmp_runtime.
+AC_SEARCH_LIBS([dlopen], [dl])
 AC_CHECK_FUNCS([gethrtime read_real_time time_base_to_time clock_gettime mach_absolute_time])
 
 AC_CHECK_FUNCS([memset posix_memalign memalign])
 AC_CHECK_FUNCS([_mm_malloc _mm_free sysctl])
 AC_CHECK_FUNCS([abort snprintf sqrt])
 AC_CHECK_FUNCS([sleep usleep nanosleep drand48 srand48])
-AC_CHECK_FUNCS([gethostname])
+AC_CHECK_FUNCS([gethostname dladdr])
 
 AC_CHECK_DECLS([memalign, posix_memalign])
 AC_CHECK_DECLS([sleep],[],[],[#include <unistd.h>])
