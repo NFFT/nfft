@@ -107,6 +107,7 @@ static void cleanup(void)
       sets_num_allocated = 0;
     }
     gflags |= FPT_MEX_FIRST_CALL;
+    nfft_mex_pin_openmp_runtime();
     n_max = -1;
   }
 }

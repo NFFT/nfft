@@ -164,6 +164,7 @@ static void cleanup(void)
       plans_num_allocated = 0;
     }
     gflags |= NNFFT_MEX_FIRST_CALL;
+    nfft_mex_pin_openmp_runtime();
   }
 }
 
