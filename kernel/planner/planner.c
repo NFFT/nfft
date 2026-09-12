@@ -591,21 +591,33 @@ double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p)
 
 /* After FFTW's evaluate_plan (kernel/planner.c:444). The pcost == 0 disjunct
  * is what makes a fresh candidate always evaluated; BELIEVE_PCOST only
- * suppresses re-evaluating one that already carries a cost. A negative
- * reading means no usable cycle counter, which is a property of the machine,
- * so the fallback is per candidate and the run ends in estimate units of its
- * own accord -- no teardown, no replan. */
-void Y(evaluate_plan)(planner *pl, plan *pln, const problem *p)
+ * suppresses re-evaluating one that already carries a cost.
+ *
+ * Returns 1 when pcost holds a measurement and 0 when it fell back to the
+ * estimate. The caller must not mix the two: Y(plan_measure_cost) returns a
+ * negative not only on a clockless machine but also when this plan's apply is
+ * too quick for the clock to resolve (kernel/planner/timer.c), so one
+ * candidate can fall back while its sibling reports seconds, and op counts
+ * against seconds is not a comparison. A direction with any fallback is
+ * graded estimate by its caller -- no teardown, no replan. */
+int Y(evaluate_plan)(planner *pl, plan *pln, const problem *p)
 {
   if ((PLNR_U(pl) & PLNR_ESTIMATE) || !(PLNR_U(pl) & PLNR_BELIEVE_PCOST)
       || pln->pcost == 0.0) {
+    double t;
     if (PLNR_U(pl) & PLNR_ESTIMATE) {
       pln->pcost = Y(iestimate_cost)(pl, pln, p);
-    } else {
-      double t = Y(plan_measure_cost)(pln, p);
-      pln->pcost = (t < 0.0) ? Y(iestimate_cost)(pl, pln, p) : t;
+      return 0;
     }
+    t = Y(plan_measure_cost)(pln, p);
+    if (t < 0.0) {
+      pln->pcost = Y(iestimate_cost)(pl, pln, p);
+      return 0;
+    }
+    pln->pcost = t;
   }
+  /* Either just measured, or BELIEVE_PCOST vouched for what was there. */
+  return 1;
 }
 
 /* Consult wisdom, else try every registered solver of the problem's kind and

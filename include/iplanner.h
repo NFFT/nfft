@@ -196,10 +196,13 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
  * apply of a direct NDFT. The ratio still admits direct candidates for small
  * problems, where the estimates are within a few x of each other.
  *
- * 4.0 comes from the sweep in docs/agents/pcost-calibration.md: over 961
- * geometries it never pruned a direct that would have won, and it is the
- * loosest value whose gain is real. The ratio cannot go below 2.0, where the
- * fast model's residual spread starts to prune winners. */
+ * 4.0 is provisional. It comes from the sweep in
+ * docs/agents/pcost-calibration.md, which measured the hand-written cost
+ * models this commit deletes -- NDFT_COST_UNIT 2.31 among them, whose whole
+ * job was putting the direct and fast models on a common scale. That evidence
+ * does not carry over to the operation-count estimate, so neither the 4.0 nor
+ * the claimed 2.0 floor is re-derived here. The pcost-calibration task re-runs
+ * the sweep against the new estimator and sets the number. */
 #define PLNR_PRUNE_RATIO 4.0
 
 /* Measurement of pln->adt->apply(pln, p). Returns the cost in arbitrary units,
@@ -383,8 +386,10 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out);
 double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p);
 
 /* Write pln->pcost: the estimate in estimate mode, the measured cost
- * otherwise, falling back to the estimate when there is no usable clock. */
-void Y(evaluate_plan)(planner *pl, plan *pln, const problem *p);
+ * otherwise, falling back to the estimate when the clock cannot resolve this
+ * plan. Returns 1 when pcost holds a measurement, 0 when it holds an
+ * estimate; a caller comparing candidates must not mix the two. */
+int Y(evaluate_plan)(planner *pl, plan *pln, const problem *p);
 
 /* the estimate search: wisdom lookup, else cheapest applicable solver of
  * the problem's kind; memoises the outcome unblessed. */

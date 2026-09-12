@@ -119,8 +119,8 @@ int main(void)
   CU_add_test(nplan_suite, "measured_wisdom", Y(check_nplan_measured_wisdom));
   CU_add_test(nplan_suite, "measured_prunes_by_estimate",
               Y(check_nplan_measured_prunes_by_estimate));
-  CU_add_test(nplan_suite, "timelimit_tight_degrades_to_estimate",
-              Y(check_nplan_timelimit_tight_degrades_to_estimate));
+  CU_add_test(nplan_suite, "timelimit_tight_adopts_untimed",
+              Y(check_nplan_timelimit_tight_adopts_untimed));
   CU_add_test(nplan_suite, "timelimit_unset_measures_and_blesses",
               Y(check_nplan_timelimit_unset_measures_and_blesses));
   CU_add_test(nplan_suite, "set_timelimit_roundtrip",

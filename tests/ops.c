@@ -117,8 +117,8 @@ static const plan_adt test_noop_plan_adt = {noop_apply, noop_awake, noop_print,
                                             noop_destroy, noop_apply};
 
 /* FFTW's condition (kernel/planner.c:446) and its per-candidate fallback
- * (462-465): a negative reading means no usable clock, so that one candidate
- * falls back to its estimate and the race carries on. */
+ * (462-465). The return value is what tells the caller which unit pcost is
+ * in: 0 for an estimate, 1 for a measurement. */
 void Y(check_ops_evaluate_plan)(void)
 {
   planner *pl = Y(planner_create)();
@@ -127,16 +127,17 @@ void Y(check_ops_evaluate_plan)(void)
   pln->ops.mul = 42.0;
   CU_ASSERT_DOUBLE_EQUAL(pln->pcost, 0.0, 0.0);
 
-  /* Estimate mode: pcost is the estimate, whatever the clock does. */
+  /* Estimate mode: pcost is the estimate, whatever the clock does, and the
+   * return says so. */
   pl->flags.u = PLNR_ESTIMATE;
-  Y(evaluate_plan)(pl, pln, 0);
+  CU_ASSERT_EQUAL(Y(evaluate_plan)(pl, pln, 0), 0);
   CU_ASSERT_DOUBLE_EQUAL(pln->pcost, 42.0, 1e-9);
 
   /* A plan that already carries a cost is not re-evaluated when
-   * BELIEVE_PCOST is set. */
+   * BELIEVE_PCOST is set; believing it means calling it measured. */
   pl->flags.u = PLNR_BELIEVE_PCOST;
   pln->pcost = 7.0;
-  Y(evaluate_plan)(pl, pln, 0);
+  CU_ASSERT_EQUAL(Y(evaluate_plan)(pl, pln, 0), 1);
   CU_ASSERT_DOUBLE_EQUAL(pln->pcost, 7.0, 1e-9);
 
   Y(free)(pln);

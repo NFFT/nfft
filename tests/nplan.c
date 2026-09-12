@@ -1019,6 +1019,19 @@ static void bundle_winners(Y(plan_ng) *p, char *fwd, char *adj)
   Y(free)(buf);
 }
 
+/* The parent prints its own pcost before descending, so the first "pcost="
+ * is the top-level figure. Every path that hands a plan back must leave one
+ * there: a measurement where the race measured, the operation-count estimate
+ * on the paths that adopt untimed. Zero means nobody wrote it. */
+static void expect_top_pcost_positive(Y(plan_ng) *p)
+{
+  char *buf = str_of_plan_ng(p);
+  const char *q = strstr(buf, "pcost=");
+  CU_ASSERT_PTR_NOT_NULL_FATAL(q);
+  CU_ASSERT(strtod(q + 6, 0) > 0.0);
+  Y(free)(buf);
+}
+
 /* The bundle print carries the forward direction's solver registrar name.
  * The race is forward-only, so (adj ...) always reads (null). */
 void Y(check_nplan_print_includes_registrar_names)(void)
@@ -1368,6 +1381,7 @@ void Y(check_nplan_measured_wisdom)(void)
   bundle_winners(p, f1, a1);
   CU_ASSERT_STRING_EQUAL(f1, f0);
   CU_ASSERT_STRING_EQUAL(a1, a0);
+  expect_top_pcost_positive(p); /* wisdom hit: adopted untimed */
   Y(plan_ng_destroy)(p);
 
   Y(the_planner_destroy)();
@@ -1377,8 +1391,9 @@ void Y(check_nplan_measured_wisdom)(void)
  * measurement, so it has no timing to choose on and adopts the cheapest
  * candidate by operation-count estimate, untimed. That is zero measured
  * evidence, so the winner is memoised unblessed and nothing is exported --
- * the same rule the partial race follows. */
-void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
+ * the same rule the partial race follows -- and, never having been measured,
+ * it carries that estimate in pcost. */
+void Y(check_nplan_timelimit_tight_adopts_untimed)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
    * (PLNR_PRUNE_RATIO), so two candidates race. */
@@ -1400,6 +1415,7 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
    * DECONV/CONV children are memoised unblessed instead. */
   CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
   CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
+  expect_top_pcost_positive(p);
   /* The adopted plan is usable: an untimed winner is still a real plan. */
   Y(precompute)(p);
   Y(execute)(p);
@@ -2475,6 +2491,7 @@ void Y(check_nplan_measured_prunes_by_estimate)(void)
   buf = str_of_plan_ng(p);
   CU_ASSERT_PTR_NULL(strstr(buf, "slow_test"));
   Y(free)(buf);
+  expect_top_pcost_positive(p); /* lone survivor: adopted untimed */
 
   Y(plan_ng_destroy)(p);
   Y(the_planner_destroy)();

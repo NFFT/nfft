@@ -188,12 +188,13 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   pl->flags.l = F;
   pl->flags.u = F;
 
-  /* Candidate arrays (cap 8 per direction). ncands[dirn] counts the plans
+  /* Candidate arrays, NCAND_MAX per direction. ncands[dirn] counts the plans
    * still owned by cands[dirn]; it drops back to 0 once they are destroyed or
    * a winner has moved into dir[dirn], so no cleanup path can free a plan
    * twice. */
-  plan *cands[2][8];
-  unsigned cslvndx[2][8];
+  enum { NCAND_MAX = 8 };
+  plan *cands[2][NCAND_MAX];
+  unsigned cslvndx[2][NCAND_MAX];
   int ncands[2];
   int dirn;
 
@@ -227,6 +228,9 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       s = pl->slvdescs[hit_slvndx].slv;
       pln = s->adt->mkplan(s, p->prob[dirn], pl);
       if (pln != 0) {
+        /* Adopted untimed, so nothing measures it; carry the estimate so the
+         * plan still prints a cost. */
+        pln->pcost = Y(iestimate_cost)(pl, pln, p->prob[dirn]);
         p->dir[dirn] = pln;
         continue;
       }
@@ -242,8 +246,8 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       continue;
 
     /* Enumerate candidates under current measured bounds. */
-    ncands[dirn] = Y(
-         planner_candidates)(pl, p->prob[dirn], cands[dirn], cslvndx[dirn], 8);
+    ncands[dirn] = Y(planner_candidates)(pl, p->prob[dirn], cands[dirn],
+                                      cslvndx[dirn], NCAND_MAX);
   }
 
   /* A direction is absent when it has neither a plan nor a candidate. */
@@ -287,11 +291,12 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       int ci;
       int winner_idx;
       double winner_cost;
-      double est[8]; /* each candidate's operation-count estimate */
+      double est[NCAND_MAX]; /* each candidate's operation-count estimate */
       int cheapest; /* argmin over est */
       double prune_bound; /* PLNR_PRUNE_RATIO * the cheapest estimate */
       int nc;
       int timed_out = 0;
+      int graded_estimate = 0; /* no usable measured comparison */
 
       if (ncands[dirn] == 0)
         continue; /* hit-adopted or absent: nothing to race */
@@ -324,6 +329,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
             if (ci != lone)
               Y(plan_destroy)(cands[dirn][ci]);
           p->dir[dirn] = cands[dirn][lone];
+          p->dir[dirn]->pcost = est[lone]; /* adopted untimed: carry it */
           ncands[dirn] = 0;
           Y(planner_bless)(pl, p->prob[dirn], cslvndx[dirn][lone]);
           bless_whole_tree(pl, p->prob[dirn]);
@@ -356,7 +362,12 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
 
         Y(plan_awake)(cands[dirn][ci], PLNR_AWAKE_ZERO);
-        Y(evaluate_plan)(pl, cands[dirn][ci], p->prob[dirn]);
+        if (!Y(evaluate_plan)(pl, cands[dirn][ci], p->prob[dirn])) {
+          /* This candidate's pcost is an op count, not seconds; the rest of
+           * the race would compare the two. Stop and grade the direction. */
+          graded_estimate = 1;
+          break;
+        }
         cost = cands[dirn][ci]->pcost;
 
         /* Exactly one candidate is left awake: the running best. */
@@ -373,12 +384,12 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
       }
 
-      /* The budget expired before the first candidate could be measured, which
-       * is the only way out of the race without a timing. Adopt the cheapest
-       * by estimate, untimed; the timed_out branch below memoises it unblessed,
-       * which is right -- there is no measured evidence to export. */
-      if (winner_idx < 0) {
-        A(timed_out);
+      /* No usable measured comparison for this direction: the budget expired
+       * before the first measurement, or a reading fell back to an op count.
+       * Adopt the cheapest by estimate, untimed. */
+      if (graded_estimate || winner_idx < 0) {
+        A(graded_estimate || timed_out);
+        graded_estimate = 1;
         winner_idx = cheapest;
       }
 
@@ -391,11 +402,14 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
           Y(plan_destroy)(cands[dirn][ci]);
       }
       p->dir[dirn] = cands[dirn][winner_idx];
+      if (graded_estimate)
+        p->dir[dirn]->pcost = est[winner_idx]; /* never measured: carry it */
       ncands[dirn] = 0;
 
-      if (timed_out) {
-        /* Partial race: an untimed survivor may be faster, so this winner is
-         * memoised unblessed instead of exported as complete evidence. */
+      if (timed_out || graded_estimate) {
+        /* Incomplete measured evidence -- a partial race whose untimed
+         * survivors may be faster, or none at all -- so this winner is
+         * memoised unblessed instead of exported. */
         md5sig sig;
         flags_t fl;
         Y(problem_md5)(pl, p->prob[dirn], sig);

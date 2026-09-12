@@ -61,7 +61,7 @@ void Y(check_nplan_execute_on)(void);
 void Y(check_nplan_print_includes_registrar_names)(void);
 void Y(check_nplan_measured_wisdom)(void);
 void Y(check_nplan_measured_prunes_by_estimate)(void);
-void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void);
+void Y(check_nplan_timelimit_tight_adopts_untimed)(void);
 void Y(check_nplan_timelimit_unset_measures_and_blesses)(void);
 void Y(check_nplan_timelimit_partial_race_does_not_bless)(void);
 
