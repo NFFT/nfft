@@ -189,12 +189,12 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
 #define PLNR_TIME_LIMIT_SECONDS                                               \
   2.0 /* per-candidate wall budget (budget clock) */
 
-/* Estimate gate of the measured race: a candidate whose analytic pcost exceeds
- * PLNR_PRUNE_RATIO times the cheapest candidate's pcost is not timed. The NFFT
- * candidate set mixes complexity classes (O(N M) direct vs fast), so an ungated
- * race can spend a minute timing one apply of a direct NDFT. The ratio still
- * admits direct candidates for small problems, where the analytic models are
- * within a few x of each other.
+/* Estimate gate of the measured race: a candidate whose operation-count
+ * estimate (Y(iestimate_cost)) exceeds PLNR_PRUNE_RATIO times the cheapest
+ * candidate's is not timed. The NFFT candidate set mixes complexity classes
+ * (O(N M) direct vs fast), so an ungated race can spend a minute timing one
+ * apply of a direct NDFT. The ratio still admits direct candidates for small
+ * problems, where the estimates are within a few x of each other.
  *
  * 4.0 comes from the sweep in docs/agents/pcost-calibration.md: over 961
  * geometries it never pruned a direct that would have won, and it is the
@@ -381,6 +381,10 @@ void Y(problem_md5)(planner *pl, const problem *p, md5sig out);
  * likely wanted -- the pcost-calibration sweep is what decides it, and doing
  * it here would make a movement in the numbers impossible to attribute. */
 double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p);
+
+/* Write pln->pcost: the estimate in estimate mode, the measured cost
+ * otherwise, falling back to the estimate when there is no usable clock. */
+void Y(evaluate_plan)(planner *pl, plan *pln, const problem *p);
 
 /* the estimate search: wisdom lookup, else cheapest applicable solver of
  * the problem's kind; memoises the outcome unblessed. */

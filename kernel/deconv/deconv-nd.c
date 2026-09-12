@@ -211,7 +211,6 @@ static plan *mkplan_deconv_nd(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.other = (double)pln->ntot + 2.0 * (double)pln->Ntot
                            + 2.0 * (double)(d - 1) * (double)rows;
   }
-  pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }
 

@@ -218,7 +218,6 @@ static plan *mkplan_conv_3d(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.add = 2.0 * taps;
     pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * 3.0;
   }
-  pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }
 

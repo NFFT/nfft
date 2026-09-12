@@ -1373,12 +1373,11 @@ void Y(check_nplan_measured_wisdom)(void)
   Y(the_planner_destroy)();
 }
 
-/* A zero-second timelimit forces every measured race to bail out before a
- * measurement completes, so the guru takes the same estimate-grade restart
- * path as the no-usable-clock case. That restart blesses too now (R14): the
- * degraded bundle's whole tree (NFFT + DECONV + CONV) lands in the blessed
- * table; the unblessed table keeps the stale DECONV/CONV entries the doomed
- * candidate build left behind before the timeout was noticed. */
+/* A zero-second timelimit forces the race to bail before its first
+ * measurement, so it has no timing to choose on and adopts the cheapest
+ * candidate by operation-count estimate, untimed. That is zero measured
+ * evidence, so the winner is memoised unblessed and nothing is exported --
+ * the same rule the partial race follows. */
 void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
@@ -1396,26 +1395,14 @@ void Y(check_nplan_timelimit_tight_degrades_to_estimate)(void)
        plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
                    0u, NFFT_MEASURE);
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-  /* No candidate finished before expiry: degraded to estimate-grade
-   * selection, which blesses its own tree too (R14). A genuine completed
-   * measured race also blesses (nelem > 0 alone would not discriminate the
-   * two), but only the degraded selection blesses with PLNR_ESTIMATE riding
-   * in u (measured bounds are {l=u=F}, F never carries PLNR_ESTIMATE) --
-   * that is the positive proof the degrade path, not a real race, ran. */
-  {
-    hashtab *t = &Y(the_planner)()->htab_blessed;
-    unsigned i;
-    int saw_estimate = 0;
-    for (i = 0; i < t->size; i++) {
-      solution *e = t->entries + i;
-      if ((e->flags.info & PLNR_H_LIVE) && (e->flags.u & PLNR_ESTIMATE))
-        saw_estimate = 1;
-    }
-    CU_ASSERT(saw_estimate);
-  }
-  /* The doomed candidate build's DECONV/CONV entries stay in the unblessed
-   * table -- superseded by the blessed copies, not removed. */
+  /* No candidate was measured, so nothing may be blessed: a completed race is
+   * the only thing that exports evidence. The winner and the candidate build's
+   * DECONV/CONV children are memoised unblessed instead. */
+  CU_ASSERT_EQUAL(Y(the_planner)()->htab_blessed.nelem, 0u);
   CU_ASSERT(Y(the_planner)()->htab_unblessed.nelem > 0u);
+  /* The adopted plan is usable: an untimed winner is still a real plan. */
+  Y(precompute)(p);
+  Y(execute)(p);
   Y(plan_ng_destroy)(p);
 
   Y(set_timelimit)(-1.0); /* restore unlimited for the rest of the suite */
@@ -1461,13 +1448,13 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void)
 }
 
 /* A test-only NFFT solver whose apply burns BURN_SECONDS of wall clock.
- * Its pcost is set far below any real candidate's by construction (see
- * burn_mkplan), not by a margin that could close under a different
+ * Its operation count is set far below any real candidate's by construction
+ * (see burn_mkplan), not by a margin that could close under a different
  * optimization mode, so registering it twice deterministically makes the
  * race a two-way race between two known-slow candidates regardless of build
  * flags (release's -ffast-math vs --enable-debug's strict-IEEE ASan/UBSan
- * build can shift a real solver's analytic pcost estimate; a merely 4x-ish
- * margin over that estimate is not safe to assume identical across both).
+ * build can shift a real solver's estimate; a merely 4x-ish margin over that
+ * estimate is not safe to assume identical across both).
  *
  * BURN_SECONDS is tens of ms, not the ~2ms that once sufficed: the timelimit
  * check that must NOT yet have tripped sits between capturing t_start and
@@ -1488,10 +1475,10 @@ void Y(check_nplan_timelimit_unset_measures_and_blesses)(void)
  * PLNR_TIME_REPEAT-batch level at n=1 before it can accept -- burn's own
  * duration trivially clears the fine-clock floor on the very first batch,
  * but every batch in that level still runs -- so one fully measured
- * candidate means exactly PLNR_TIME_REPEAT calls. Zero would mean
- * need_restart ran instead (which now blesses, R14) or a lone survivor was
- * blessed untimed -- either way silently turning this into a different,
- * passing case; more than PLNR_TIME_REPEAT would mean a second candidate
+ * candidate means exactly PLNR_TIME_REPEAT calls. Zero would mean the budget
+ * expired before the first measurement, or that a lone survivor was adopted
+ * untimed -- either way silently turning this into a different, passing
+ * case; more than PLNR_TIME_REPEAT would mean a second candidate
  * also got measured, i.e. the budget never bit. Either mismatch means the
  * blessed/unblessed assertions below are no longer testing what this case
  * claims to. */
@@ -1524,11 +1511,11 @@ static plan *burn_mkplan(const solver *s, const problem *p, planner *pl)
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
   q = Y(plan_create)(sizeof(plan), &burn_plan_adt);
-  /* Deliberately near-zero, not merely "cheap": no real solver's analytic
-   * pcost for any actual geometry can round down to this under any
+  /* Deliberately near-zero, not merely "cheap": no real solver's operation
+   * count for any actual geometry can round down to this under any
    * optimization mode, so the PLNR_PRUNE_RATIO gate below always keeps only
    * the two burn candidates, deterministically. */
-  q->pcost = 1.0e-9;
+  q->ops.other = 1.0e-9;
   return q;
 }
 
@@ -2460,9 +2447,10 @@ void Y(check_nplan_restore_guard_fires)(void)
 #endif
 }
 
-/* A candidate whose pcost exceeds PLNR_PRUNE_RATIO times the cheapest estimate
- * is never timed. The slow test solver accepts every NFFT problem with pcost
- * 1e18, so it joins the candidate set, must be pruned, and must never win. */
+/* A candidate whose estimate exceeds PLNR_PRUNE_RATIO times the cheapest one
+ * is never timed. The slow test solver accepts every NFFT problem with an
+ * operation count of 1e18, so it joins the candidate set, must be pruned, and
+ * must never win. */
 void Y(check_nplan_measured_prunes_by_estimate)(void)
 {
   INT N = 64, n = 128, M = 64;

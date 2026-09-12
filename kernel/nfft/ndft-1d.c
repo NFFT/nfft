@@ -118,27 +118,6 @@ static void sum_adjoint(const problem_nfft *pn)
   }
 }
 
-/* NDFT_COST_TRIG is the legacy direct estimate scale, two transcendentals per
- * term; the recurrence spends ~2/B of those plus one complex multiply. */
-#define NDFT_COST_TRIG 50
-#define NDFT_COST_MUL 6
-
-/* Puts this model on the same unit as the fast solver's, so the two are
- * comparable and PLNR_PRUNE_RATIO measures what it claims to. Measured: one
- * unit here costs 2.31x the seconds of one unit there. Re-derive with the
- * sweep in docs/agents/pcost-calibration.md if the models change. */
-#define NDFT_COST_UNIT 2.31
-
-double Y(nfft_ndft_pcost)(const problem *p)
-{
-  const problem_nfft *ego = (const problem_nfft *)p;
-  double Ntot = (double)Y(problem_nfft_Ntot)(p);
-  double M = (double)ego->M;
-  return NDFT_COST_UNIT
-         * (NDFT_COST_TRIG / (double)NDFT_RECURRENCE_BLOCK + NDFT_COST_MUL)
-         * Ntot * M;
-}
-
 /* Forward counts: every (k, j) tap does two complex-by-complex multiplies --
  * f_hat[k_L] * w into the accumulate, and w *= dw to advance the phase for
  * the next tap -- so mul/add cover both, not just the accumulate. other is
@@ -154,15 +133,14 @@ void Y(nfft_ndft_ops)(const problem *p, opcnt *ops)
   ops->other = 2.0 * taps + 3.0 * taps / (double)NDFT_RECURRENCE_BLOCK;
 }
 
-plan *Y(nfft_ndft_make_plan)(double pcost, const opcnt *ops,
-                          void (*fwd)(const problem_nfft *),
+plan *
+Y(nfft_ndft_make_plan)(const opcnt *ops, void (*fwd)(const problem_nfft *),
                           void (*adj)(const problem_nfft *),
                           const char *reg_nam)
 {
   ndft_plan *pln = (ndft_plan *)Y(
        plan_create)(sizeof(ndft_plan), &ndft_plan_adt);
   Y(ops_cpy)(ops, &pln->super.ops);
-  pln->super.pcost = pcost;
   pln->fwd = fwd;
   pln->adj = adj;
   pln->reg_nam = reg_nam;
@@ -188,8 +166,7 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl)
     opcnt ops;
     Y(nfft_ndft_ops)(p, &ops);
     return Y(
-         nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), &ops, sum, sum_adjoint,
-                               "nfft_solver_ndft_1d");
+         nfft_ndft_make_plan)(&ops, sum, sum_adjoint, "nfft_solver_ndft_1d");
   }
 }
 

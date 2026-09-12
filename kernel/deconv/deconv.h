@@ -22,8 +22,6 @@
 #ifndef NFFT_DECONV_H
 #define NFFT_DECONV_H
 
-double Y(deconv_d_pcost)(const problem *p);
-
 /* DECONV solvers */
 void Y(deconv_solver_1d_register)(planner *pl);
 void Y(deconv_solver_2d_register)(planner *pl);

@@ -23,13 +23,6 @@
 #include "iplanner.h"
 #include "deconv.h"
 
-/* Analytical cost: 2 flops per frequency, over all d axes. */
-double Y(deconv_d_pcost)(const problem *p)
-{
-  INT Ntot = Y(problem_deconv_Ntot)(p);
-  return 2.0 * (double)Ntot;
-}
-
 static void hash(const problem *p, md5 *ctx)
 {
   const problem_deconv *ego = (const problem_deconv *)p;

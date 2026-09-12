@@ -220,7 +220,6 @@ static plan *mkplan_deconv_3d(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.other =
          (double)ntot + 2.0 * (double)Ntot + 4.0 * (double)rows;
   }
-  pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }
 

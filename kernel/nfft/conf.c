@@ -26,8 +26,8 @@
  * d >= 2. Applicability is expressed by mkplan returning NULL.
  *
  * Registration order matters for determinism: iteration is reverse
- * registration order, and on exact pcost ties the earlier-encountered plan is
- * kept. */
+ * registration order, and on exact estimate ties the earlier-encountered plan
+ * is kept. */
 static const solvtab the_roster = {SOLVTAB(
                                         Y(nfft_solver_fast_native_register)),
                                    SOLVTAB(Y(nfft_solver_ndft_1d_register)),

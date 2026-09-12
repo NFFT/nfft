@@ -22,8 +22,6 @@
 #ifndef NFFT_CONV_H
 #define NFFT_CONV_H
 
-double Y(conv_b_pcost)(const problem *p);
-
 /* Split one axis' window support -- len taps starting at wrapped grid cell u --
  * into two contiguous runs (the second is empty when the support does not wrap
  * past n). tof[r] indexes psi, gof[r] indexes the grid, rl[r] is the length. */

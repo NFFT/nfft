@@ -28,8 +28,6 @@
 #include "infft.h"
 #include "iplanner.h"
 
-#include <math.h> /* log2, pow */
-
 /* Applicability guard: every axis of sz must satisfy N_t > m, n_t > 2m + 2 and
  * n_t > N_t. The last is oversampling sigma = n/N strictly above 1; at
  * sigma == 1 there is no zero-pad to deconvolve into, and for even N
@@ -51,18 +49,6 @@ int Y(nfft_fast_guards_ok)(const problem *p, int m)
       return 0;
   }
   return 1;
-}
-
-/* Cost estimate. */
-static double pcost(const problem *p)
-{
-  const problem_nfft *ego = (const problem_nfft *)p;
-  int d = ego->sz->rnk;
-  double Ntot = (double)Y(problem_nfft_Ntot)(p);
-  double ntot = (double)Y(problem_nfft_ntot)(p);
-  double M = (double)ego->M;
-  double W = pow((double)(2 * ego->m + 2), (double)d);
-  return 2.0 * Ntot + 5.0 * ntot * log2(ntot) + 2.0 * M * W;
 }
 
 typedef struct {
@@ -265,7 +251,6 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
     pln->super.ops.mul += fm;
     pln->super.ops.fma += ff;
   }
-  pln->super.pcost = pcost(p); /* removed in the next task */
   pln->super.uses_x = 1; /* reads x via the CONV child */
   return &pln->super;
 }

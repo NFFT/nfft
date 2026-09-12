@@ -79,7 +79,6 @@ static plan *mkplan_rnk0(const solver *ego, const problem *p, planner *pl)
    * arithmetic; the reduce's adds belong to the adjoint, not counted here. */
   Y(ops_zero)(&pln->super.ops);
   pln->super.ops.other = (double)pn->M;
-  pln->super.pcost = 2.0 * (double)pn->M; /* one broadcast + one reduce pass */
   return &pln->super;
 }
 

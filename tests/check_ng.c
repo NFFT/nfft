@@ -227,6 +227,9 @@ int main(void)
   ops_suite = CU_add_suite("ops", 0, 0);
   CU_add_test(ops_suite, "helpers", Y(check_ops_helpers));
   CU_add_test(ops_suite, "estimate", Y(check_ops_estimate));
+  CU_add_test(ops_suite, "evaluate_plan", Y(check_ops_evaluate_plan));
+  CU_add_test(ops_suite, "solvers_leave_pcost_zero",
+              Y(check_ops_solvers_leave_pcost_zero));
 
   CU_automated_run_tests();
   // CU_basic_run_tests();

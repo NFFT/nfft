@@ -24,8 +24,6 @@
 #include "iplanner.h"
 #include "conv.h"
 
-#include <math.h> /* pow */
-
 static void hash(const problem *p, md5 *ctx)
 {
   const problem_conv *ego = (const problem_conv *)p;
@@ -40,14 +38,6 @@ static void hash(const problem *p, md5 *ctx)
     Y(md5_put_INT)(ctx, ego->N[t]);
   Y(md5_put_int)(ctx, ego->window);
   /* x is not hashed: the key is a size class, not the node data. */
-}
-
-/* Analytical cost: 2 flops per tap, (2m+2)^d taps per node. */
-double Y(conv_b_pcost)(const problem *p)
-{
-  const problem_conv *pc = (const problem_conv *)p;
-  return 2.0 * (double)pc->M
-         * pow((double)(2 * pc->m + 2), (double)pc->sz->rnk);
 }
 
 static void print(const problem *p, printer *pr)

@@ -43,11 +43,19 @@ static unsigned keyable_fftw_flags(unsigned fftw_flags)
 }
 
 /* Estimate-mode selection under the planner's current bounds (the caller sets
- * l/u). Fills p->dir[]; returns 1 if at least one direction succeeded. */
+ * l/u, PLNR_ESTIMATE among them). Fills p->dir[]; returns 1 if at least one
+ * direction succeeded. Y(planner_mkplan) selects on the operation-count
+ * estimate but leaves pcost zero, so each returned plan is evaluated here --
+ * PLNR_ESTIMATE in u makes that the estimate, never a measurement -- and the
+ * bundle is handed back carrying a printable figure. */
 static int select_estimate(Y(plan_ng) *p, planner *pl)
 {
+  int dirn;
   p->dir[FWD] = p->prob[FWD] ? Y(planner_mkplan)(pl, p->prob[FWD]) : 0;
   p->dir[ADJ] = p->prob[ADJ] ? Y(planner_mkplan)(pl, p->prob[ADJ]) : 0;
+  for (dirn = FWD; dirn <= ADJ; dirn++)
+    if (p->dir[dirn])
+      Y(evaluate_plan)(pl, p->dir[dirn], p->prob[dirn]);
   return (p->dir[FWD] != 0 || p->dir[ADJ] != 0);
 }
 
@@ -259,8 +267,6 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
     double tl = Y(planner_timelimit)(pl);
     double t_start = (tl >= 0.0) ? Y(planner_clock_now)() : 0.0;
 
-    int need_restart = 0;
-
 #ifdef NFFT_DEBUG
     /* x-restore guard: snapshot the top-level problem's owned x copy before
      * any candidate is awoken, re-verified whenever one goes back to SLEEPY. */
@@ -281,7 +287,9 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       int ci;
       int winner_idx;
       double winner_cost;
-      double prune_bound; /* PLNR_PRUNE_RATIO * the cheapest pcost */
+      double est[8]; /* each candidate's operation-count estimate */
+      int cheapest; /* argmin over est */
+      double prune_bound; /* PLNR_PRUNE_RATIO * the cheapest estimate */
       int nc;
       int timed_out = 0;
 
@@ -293,14 +301,20 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       /* Estimate gate (PLNR_PRUNE_RATIO, iplanner.h). Survivors race on
        * measured cost. */
       {
-        double min_pcost = cands[dirn][0]->pcost;
+        double min_est;
         int nsurvive = 0, lone = 0;
-        for (ci = 1; ci < nc; ci++)
-          if (cands[dirn][ci]->pcost < min_pcost)
-            min_pcost = cands[dirn][ci]->pcost;
-        prune_bound = PLNR_PRUNE_RATIO * min_pcost;
         for (ci = 0; ci < nc; ci++)
-          if (cands[dirn][ci]->pcost <= prune_bound) {
+          est[ci] = Y(iestimate_cost)(pl, cands[dirn][ci], p->prob[dirn]);
+        min_est = est[0];
+        cheapest = 0;
+        for (ci = 1; ci < nc; ci++)
+          if (est[ci] < min_est) {
+            min_est = est[ci];
+            cheapest = ci;
+          }
+        prune_bound = PLNR_PRUNE_RATIO * min_est;
+        for (ci = 0; ci < nc; ci++)
+          if (est[ci] <= prune_bound) {
             nsurvive++;
             lone = ci;
           }
@@ -334,7 +348,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 
       for (ci = 0; ci < nc; ci++) {
         double cost;
-        if (cands[dirn][ci]->pcost > prune_bound)
+        if (est[ci] > prune_bound)
           continue;
         if (tl >= 0.0 && Y(planner_elapsed_seconds)(t_start) >= tl) {
           timed_out = 1;
@@ -342,14 +356,8 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
 
         Y(plan_awake)(cands[dirn][ci], PLNR_AWAKE_ZERO);
-        cost = Y(plan_measure_cost)(cands[dirn][ci], p->prob[dirn]);
-
-        if (cost < 0.0) {
-          need_restart = 1;
-          break;
-        }
-
-        cands[dirn][ci]->pcost = cost;
+        Y(evaluate_plan)(pl, cands[dirn][ci], p->prob[dirn]);
+        cost = cands[dirn][ci]->pcost;
 
         /* Exactly one candidate is left awake: the running best. */
         if (winner_idx < 0 || cost < winner_cost) {
@@ -365,11 +373,14 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
       }
 
-      if (timed_out && winner_idx < 0)
-        need_restart = 1;
-
-      if (need_restart)
-        break;
+      /* The budget expired before the first candidate could be measured, which
+       * is the only way out of the race without a timing. Adopt the cheapest
+       * by estimate, untimed; the timed_out branch below memoises it unblessed,
+       * which is right -- there is no measured evidence to export. */
+      if (winner_idx < 0) {
+        A(timed_out);
+        winner_idx = cheapest;
+      }
 
       /* The winner is never returned to SLEEPY, so verify x here instead. */
       VERIFY_X;
@@ -398,49 +409,6 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         Y(planner_bless)(pl, p->prob[dirn], cslvndx[dirn][winner_idx]);
         bless_whole_tree(pl, p->prob[dirn]);
       }
-    }
-
-    /* Shared estimate-grade restart. */
-    if (need_restart) {
-      int dj, cj;
-      for (dj = FWD; dj <= ADJ; dj++) {
-        int nc_dj = ncands[dj];
-        ncands[dj] = 0;
-        for (cj = 0; cj < nc_dj; cj++)
-          Y(plan_destroy)(cands[dj][cj]);
-      }
-      if (p->dir[FWD]) {
-        Y(plan_destroy)(p->dir[FWD]);
-        p->dir[FWD] = 0;
-      }
-      if (p->dir[ADJ]) {
-        Y(plan_destroy)(p->dir[ADJ]);
-        p->dir[ADJ] = 0;
-      }
-
-      pl->flags.l = F;
-      pl->flags.u = PLNR_ESTIMATE | F;
-      pl->flags.info |= PLNR_BLESSING;
-
-      if (!select_estimate(p, pl)) {
-        pl->flags.info &= ~(unsigned)PLNR_BLESSING;
-        pl->flags.l = saved_l;
-        pl->flags.u = saved_u;
-        pl->wisdom_state = PLNR_WISDOM_NORMAL;
-        if (p->prob[FWD])
-          Y(problem_destroy)(p->prob[FWD]);
-        if (p->prob[ADJ])
-          Y(problem_destroy)(p->prob[ADJ]);
-        Y(free)(p);
-        return 0;
-      }
-
-      pl->flags.info &= ~(unsigned)PLNR_BLESSING;
-      pl->flags.l = saved_l;
-      pl->flags.u = saved_u;
-      pl->wisdom_state = PLNR_WISDOM_NORMAL;
-
-      return p;
     }
   }
 

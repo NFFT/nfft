@@ -1022,7 +1022,7 @@ static const plan_adt mock_plan_adt = {mock_plan_apply, mock_plan_awake,
 
 typedef struct {
   solver super;
-  double pcost;
+  double cost; /* becomes the plan's operation count */
   unsigned gate; /* decline if PLNR_L(pl) & gate */
   int decline; /* always decline */
   int *mkplan_calls;
@@ -1042,7 +1042,7 @@ static plan *mock_mkplan(const solver *ego, const problem *p, planner *pl)
       || (mock_force_decline && strcmp(ms->nam, mock_force_decline) == 0))
     return 0;
   mpl = (mock_plan *)Y(plan_create)(sizeof(mock_plan), &mock_plan_adt);
-  mpl->super.pcost = ms->pcost;
+  mpl->super.ops.other = ms->cost;
   mpl->nam = ms->nam;
   mpl->sleepy_calls = 0;
   mock_plans_alive++;
@@ -1050,12 +1050,12 @@ static plan *mock_mkplan(const solver *ego, const problem *p, planner *pl)
 }
 static const solver_adt mock_slv_adt = {NFFT_PROBLEM_NFFT, 0, mock_mkplan};
 
-static void reg_mock(planner *pl, double pcost, unsigned gate, int decline,
+static void reg_mock(planner *pl, double cost, unsigned gate, int decline,
                      int *calls, const char *nam)
 {
   mock_solver *ms =
        (mock_solver *)Y(solver_create)(sizeof(mock_solver), &mock_slv_adt);
-  ms->pcost = pcost;
+  ms->cost = cost;
   ms->gate = gate;
   ms->decline = decline;
   ms->mkplan_calls = calls;

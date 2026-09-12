@@ -177,8 +177,7 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl)
     opcnt ops;
     Y(nfft_ndft_ops)(p, &ops);
     return Y(
-         nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), &ops, sum, sum_adjoint,
-                               "nfft_solver_ndft_nd");
+         nfft_ndft_make_plan)(&ops, sum, sum_adjoint, "nfft_solver_ndft_nd");
   }
 }
 

@@ -589,15 +589,36 @@ double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p)
          + pln->ops.other;
 }
 
+/* After FFTW's evaluate_plan (kernel/planner.c:444). The pcost == 0 disjunct
+ * is what makes a fresh candidate always evaluated; BELIEVE_PCOST only
+ * suppresses re-evaluating one that already carries a cost. A negative
+ * reading means no usable cycle counter, which is a property of the machine,
+ * so the fallback is per candidate and the run ends in estimate units of its
+ * own accord -- no teardown, no replan. */
+void Y(evaluate_plan)(planner *pl, plan *pln, const problem *p)
+{
+  if ((PLNR_U(pl) & PLNR_ESTIMATE) || !(PLNR_U(pl) & PLNR_BELIEVE_PCOST)
+      || pln->pcost == 0.0) {
+    if (PLNR_U(pl) & PLNR_ESTIMATE) {
+      pln->pcost = Y(iestimate_cost)(pl, pln, p);
+    } else {
+      double t = Y(plan_measure_cost)(pln, p);
+      pln->pcost = (t < 0.0) ? Y(iestimate_cost)(pl, pln, p) : t;
+    }
+  }
+}
+
 /* Consult wisdom, else try every registered solver of the problem's kind and
- * keep the cheapest by pcost, memoising the outcome unblessed. Estimate-only:
- * pcost is the solver's analytic number, set at mkplan time. */
+ * keep the cheapest by the operation-count estimate, memoising the outcome
+ * unblessed. Nothing is measured here: pcost stays zero until whoever hands
+ * the plan back calls Y(evaluate_plan). */
 plan *Y(planner_mkplan)(planner *pl, const problem *p)
 {
   md5sig sig;
   flags_t q;
   solution *sol;
   plan *best = 0;
+  double best_cost = 0.0;
   slvdesc *best_desc = 0;
 
   Y(problem_md5)(pl, p, sig);
@@ -649,10 +670,12 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
   FORALL_SOLVERS_OF_KIND(p->adt->kind, pl, s, d, {
     plan *pln = invoke_solver(pl, p, s);
     if (pln != 0) {
-      if (best == 0 || pln->pcost < best->pcost) {
+      double cost = Y(iestimate_cost)(pl, pln, p);
+      if (best == 0 || cost < best_cost) {
         if (best != 0)
           Y(plan_destroy)(best);
         best = pln;
+        best_cost = cost;
         best_desc = d;
       } else {
         Y(plan_destroy)(pln);

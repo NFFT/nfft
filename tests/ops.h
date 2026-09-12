@@ -23,5 +23,7 @@
 
 void Y(check_ops_helpers)(void);
 void Y(check_ops_estimate)(void);
+void Y(check_ops_evaluate_plan)(void);
+void Y(check_ops_solvers_leave_pcost_zero)(void);
 
 #endif

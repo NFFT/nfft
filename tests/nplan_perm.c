@@ -89,7 +89,7 @@ plan *Y(nfft_perm_test_mkplan)(const problem *p)
   const problem_nfft *pn = (const problem_nfft *)p;
   perm_plan *q = (perm_plan *)Y(
        plan_create)(sizeof(perm_plan), &perm_plan_adt);
-  q->super.pcost = 1.0;
+  q->super.ops.other = 1.0; /* cheapest: steers selection and the gate */
   q->pn = pn;
   q->M = pn->M;
   q->d = pn->sz->rnk;
@@ -114,7 +114,7 @@ void Y(nfft_solver_perm_test_register)(planner *pl)
   REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &perm_solver_adt));
 }
 
-/* A test-only NFFT solver with a huge analytic cost that counts its applies.
+/* A test-only NFFT solver with a huge operation count that counts its applies.
  * The measured race must prune it by estimate and never time it. */
 INT Y(nfft_slow_test_applies) = 0;
 
@@ -142,7 +142,7 @@ static plan *slow_mkplan(const solver *s, const problem *p, planner *pl)
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
   q = Y(plan_create)(sizeof(plan), &slow_plan_adt);
-  q->pcost = 1.0e18;
+  q->ops.other = 1.0e18;
   return q;
 }
 
