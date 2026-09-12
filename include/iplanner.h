@@ -196,13 +196,17 @@ void Y(plan_destroy)(plan *ego); /* awakes to SLEEPY first */
  * apply of a direct NDFT. The ratio still admits direct candidates for small
  * problems, where the estimates are within a few x of each other.
  *
- * 4.0 is provisional. It comes from the sweep in
- * docs/agents/pcost-calibration.md, which measured the hand-written cost
- * models this commit deletes -- NDFT_COST_UNIT 2.31 among them, whose whole
- * job was putting the direct and fast models on a common scale. That evidence
- * does not carry over to the operation-count estimate, so neither the 4.0 nor
- * the claimed 2.0 floor is re-derived here. The pcost-calibration task re-runs
- * the sweep against the new estimator and sets the number. */
+ * 4.0 is confirmed, not carried over. The sweep in
+ * docs/agents/pcost-calibration.md re-ran against Y(iestimate_cost) (976
+ * geometries, same three ranks and grid as before): direct and fast now sit
+ * 1.43x apart in s/model-unit -- down from the hand-written models' 2.31x,
+ * because `other` (loads, stores, index arithmetic) captures most of what
+ * NDFT_COST_UNIT used to correct for by hand -- and harmful prunes (a pruned
+ * candidate that measured faster) start appearing only below ratio 1.6. 4.0
+ * keeps a 2.5x margin over that observed floor and prunes nothing across the
+ * grid; the wasted timing it costs (a losing direct candidate still gets
+ * timed) is ~316 ms summed over all 976 geometries, 32 ms worst case -- not
+ * worth tightening. */
 #define PLNR_PRUNE_RATIO 4.0
 
 /* Measurement of pln->adt->apply(pln, p). Returns the cost in arbitrary units,
