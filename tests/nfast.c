@@ -2086,7 +2086,10 @@ void Y(check_nfast_window_accuracy)(void)
 }
 
 /* The op counts are what the estimator sees, so they are pinned against the
- * kernel's loops rather than against a formula that could drift with it. */
+ * kernel's loops rather than against a formula that could drift with it.
+ * mul is an exact per-element count throughout; other is exact for rank 1
+ * but for ranks 2, 3 and nd approximates the row-setup index arithmetic at a
+ * flat rate per row rather than tracing it. */
 void Y(check_nfast_deconv_ops)(void)
 {
   planner *pl = Y(planner_create)();
@@ -2114,6 +2117,8 @@ void Y(check_nfast_deconv_ops)(void)
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 96.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 200.0, 0.0);
     Y(plan_destroy)(pln);
     Y(problem_destroy)(p);
@@ -2125,6 +2130,8 @@ void Y(check_nfast_deconv_ops)(void)
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 384.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 1344.0, 0.0);
     Y(plan_destroy)(pln);
     Y(problem_destroy)(p);
@@ -2136,6 +2143,8 @@ void Y(check_nfast_deconv_ops)(void)
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 768.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 4800.0, 0.0);
     Y(plan_destroy)(pln);
     Y(problem_destroy)(p);

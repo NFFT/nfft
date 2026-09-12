@@ -202,7 +202,8 @@ static plan *mkplan_deconv_nd(const solver *ego, const problem *p, planner *pl)
   pln->level = PLNR_SLEEPY;
 
   /* Forward counts: plan_measure_cost times apply, so ops records the forward.
-   * The adjoint differs only in needing no clear. */
+   * The adjoint differs only in needing no clear. other approximates the
+   * row-setup index arithmetic (a flat rate per row), not a literal trace. */
   Y(ops_zero)(&pln->super.ops);
   {
     INT rows = pln->Ntot / pln->N[d - 1];
