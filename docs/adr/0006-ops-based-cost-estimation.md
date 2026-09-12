@@ -134,8 +134,7 @@ The sweep in `docs/agents/pcost-calibration.md` re-ran against
 The ratio is confirmed at 4.0, not carried over: zero harmful prunes across
 the grid, a 2.5x margin over the observed unsafe floor of 1.6, and 316 ms of
 wasted timing summed over all 976 geometries, which is not worth tightening
-against. `PLNR_BELIEVE_PCOST` gained its first reader here; see the
-decision above.
+against.
 
 ## Divergences from the plan's text found during implementation
 - **Two rows of the plan's op-count table were wrong, and the kernel won.**
@@ -213,6 +212,19 @@ decision above.
   which holds the worst precision at 1.58 — 2.5x under the 4.0 gate; the
   re-check procedure, with per-precision numbers, is in
   `docs/agents/pcost-calibration.md`.
+- **`check_nplan_ndft_accuracy` fails in a float OpenMP build — pre-existing
+  on the base branch, not caused by anything here.** It fails in float
+  `checkall_ng_threads` only, on `err_planner <= err_legacy`. Measured on
+  this host (N=8192, M=64, nodes near +1/2): the planner's direct NDFT
+  returns the same error in every build (2.00e-06), but the legacy
+  `X(trafo_direct)` compiles to a more accurate result under `-fopenmp`
+  (1.60e-06 against 2.00e-06, thread count irrelevant — a compile-time
+  codegen effect on the blocked phase recurrence, not a threading race), so
+  the comparison flips. `kernel/nfft/nfft.c` is identical to the merge base
+  and the assertion's text is unchanged there, so the base fails it
+  identically; it surfaced only because this branch built float for the first
+  time. Out of scope here: it needs its own ruling — a tolerance in the test
+  or an investigation of the `-fopenmp` codegen difference.
 - The measured-mode fallback leg of `Y(evaluate_plan)` has no deterministic
   unit test: reaching it needs a machine without a fine clock or an `apply`
   the clock cannot resolve. It is covered indirectly on clockless hosts by

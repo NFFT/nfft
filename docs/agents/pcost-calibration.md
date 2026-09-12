@@ -65,7 +65,8 @@ and times one `NFFT(execute)` of each.
 children, so the first occurrence is the top-level one -- an estimate-mode
 plan's own `Y(iestimate_cost)` result. Print into an `open_memstream` buffer
 and `strtod` past `strstr(buf, "pcost=") + 6`. Verified by hand before the
-sweep ran: at `N=64, n=128, M=16, m=6` the direct plan prints
+sweep ran, at `N=64, n=128, M=16, m=6` — the sweep's own check geometry, not
+the fixture table's: at that geometry the direct plan prints
 `pcost=16480` and the fast plan's top line prints `pcost=4576` (its
 DECONV/CONV children print `pcost=0` -- only the composite parent's estimate
 is written, which is exactly the figure this sweep reads).
