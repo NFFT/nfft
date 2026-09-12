@@ -168,12 +168,12 @@ cost is at or below baseline.
 ## Adding a solver or a new kind
 
 1. **Write the `solver_adt`** with `problem_kind` and a `mkplan` that returns a
-   plan with `pcost` set or `NULL` (cheap; no node-dependent state — build ψ in
+   plan with `ops` filled or `NULL` (cheap; no node-dependent state — build ψ in
    `awake`). Provide a `Y(..._register)(planner *)` that
    `REGISTER_SOLVER`s a `Y(solver_create)`'d instance.
 2. **Add it to the kind's roster** (`the_roster` in `conf.c`) via `SOLVTAB(...)`.
    Mind **registration order**: register a candidate *earlier* to make it lose
-   exact-`pcost` ties (iteration is reverse order).
+   exact-estimate ties (iteration is reverse order).
 3. **Register cross-kind children EAGERLY.** If your solver's `mkplan` recurses
    into `Y(planner_mkplan)` for another kind (as fast-native does for
    DECONV/CONV), those child solvers **must already be registered** before the

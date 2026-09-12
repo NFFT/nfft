@@ -140,5 +140,5 @@ x-restore guard — is `A(...)`-gated and therefore **only enforced under
 ## Destroy
 
 `nfft_plan_ng_destroy(p)` is **NULL-safe**. It destroys each present direction
-plan (SLEEPY-first, releasing ψ), then the problem(s) (they outlive plan
-selection because their tensors back the plans' `pcost`), then frees the bundle.
+plan (SLEEPY-first, releasing ψ), then the problem(s) — they must outlive the
+plans, whose `apply` reads and writes through them — then frees the bundle.

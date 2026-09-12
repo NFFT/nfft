@@ -17,13 +17,15 @@ into wisdom. The realistic node distribution drives the true memory-access
 pattern, so the measurement reflects real performance. This is FFTW's
 default-measure convention.
 
-**Estimate (`NFFT_ESTIMATE`, `1<<0`).** No race. Each solver's `mkplan`
-returns a plan with an analytic `pcost` (fixed default constants); the planner
-keeps the cheapest applicable one and memoises it — **blessed**, same as a
-measured winner (FFTW parity: estimate solutions are exported too). Instant,
-and **never** time-bounded. Use when you cannot afford planning time or want
-deterministic selection. `NFFT_ESTIMATE` overrides `NFFT_PATIENT` if both are
-given.
+**Estimate (`NFFT_ESTIMATE`, `1<<0`).** No race. Each solver's `mkplan` fills
+its plan's `opcnt ops` — analytic operation counts (`add`/`mul`/`fma`/`other`,
+the last being loads, stores and index arithmetic). The planner keeps the
+applicable one with the **strictly smallest `Y(iestimate_cost)`** and memoises
+it — **blessed**, same as a measured winner (FFTW parity: estimate solutions
+are exported too). `Y(evaluate_plan)` then writes that estimate into `pcost`,
+so the handed-back plan prints a cost. Instant, and **never** time-bounded.
+Use when you cannot afford planning time or want deterministic selection.
+`NFFT_ESTIMATE` overrides `NFFT_PATIENT` if both are given.
 
 **Patient (`NFFT_PATIENT`, `1<<5`).** Widens the search: below `NFFT_PATIENT`
 a serial solver declines outright whenever more than one thread was requested
@@ -48,21 +50,30 @@ the `PLNR_*` image of your gate flags:
 
 1. **Wisdom lookup** (`planner_hlookup`). Infeasible hit → this direction is
    absent. Feasible hit → re-run that solver's `mkplan` and adopt the plan
-   without racing (stale hit → fall through to the race, which heals it).
+   without racing, carrying its `Y(iestimate_cost)` in `pcost` — adopting a
+   cached plan must not cost a measurement (stale hit → fall through to the
+   race, which heals it).
 2. **Enumerate candidates** (`planner_candidates`, cap 8) — every applicable
-   solver of the kind under the current bounds. Zero → direction absent. One →
-   adopt untimed and **bless** immediately.
-3. **Two or more → race.** For each candidate: `plan_awake(AWAKE_ZERO)` (builds
-   ψ, but may use bogus values), `plan_measure_cost(...)`, `plan_awake(SLEEPY)` 
-   (invalidate ψ, restore for the next candidate). **Strictly smallest cost wins**; ties keep the
+   solver of the kind under the current bounds. Zero → direction absent.
+3. **Estimate gate** (`PLNR_PRUNE_RATIO`, `iplanner.h`). Every candidate gets
+   `Y(iestimate_cost)`; one whose estimate exceeds `PLNR_PRUNE_RATIO` (4.0)
+   times the cheapest's is never timed — the candidate set mixes complexity
+   classes, so an ungated race can spend a minute timing one direct-NDFT
+   apply. A single survivor is adopted untimed with its estimate in `pcost`
+   and **blessed** immediately.
+4. **Two or more survivors → race.** For each candidate: `plan_awake(AWAKE_ZERO)`
+   (builds ψ, but may use bogus values), `Y(evaluate_plan)` (measures via
+   `plan_measure_cost`, falling back to the estimate when the clock cannot
+   resolve the plan), `plan_awake(SLEEPY)` (invalidate ψ, restore for the next
+   candidate). **Strictly smallest measured cost wins**; ties keep the
    earlier-encountered candidate. Losers destroyed; winner **blessed**, left
    `SLEEPY` (precompute awakens it).
-4. **No usable clock** (`plan_measure_cost` returns exactly `-1.0`) → tear down
-   the raced candidates and **restart in estimate mode**, blessed like any
-   other estimate selection (FFTW parity, see below). A **timelimit-induced**
-   partial race is different: the winner found so far is memoised **unblessed**
-   (an untimed survivor might still be faster), and estimate mode is never
-   restarted for it.
+5. **Graded estimate.** A candidate whose `Y(evaluate_plan)` fell back to the
+   estimate, or a budget that expires before the first measurement, grades the
+   *direction* estimate: the race stops, the cheapest candidate by estimate is
+   adopted untimed with that estimate in `pcost`, and the winner is memoised
+   **unblessed** — zero measured evidence must not be exported. No teardown,
+   no replan, and each direction resolves independently.
 
 The race is **value-blind**: it zeroes `f_hat` and `f` before timing, FFTW's
 zero-operand measurement. This is safe because NFFT trip counts and access
@@ -73,7 +84,12 @@ race exists to measure.
 ### The timer (`kernel/planner/timer.c`)
 
 `Y(plan_measure_cost)(plan, problem)` returns a cost in **arbitrary units**
-(comparable only within one process) or exactly `-1.0` (no clock). Two clocks:
+(comparable only within one process) or exactly `-1.0`. A negative has four
+causes and only one is machine-wide — the missing clock. The other three are
+properties of *this plan's apply against the clock*: a whole level of zero
+readings at a sizable `n`, a frozen clock, or the exhausted per-candidate
+budget. That distinction is why `Y(evaluate_plan)` returns a grade instead of
+letting a caller treat any negative as "no clock exists here". Two clocks:
 
 - **fine clock** — a high-resolution CPU tick counter (`getticks`/`elapsed` via
   `include/cycle.h`), used for the actual measurement. `cycle.h` is the *one*
@@ -83,12 +99,13 @@ race exists to measure.
   measurement time.
 
 Loop constants (`iplanner.h`): `PLNR_TIME_REPEAT` = 8 best-of batches per
-doubling level; `PLNR_TIME_MIN_TICKS` = 100 (tick-mode acceptance floor);
-`PLNR_TIME_MIN_SLOW_SECONDS` = 1e-3 (slow-timer floor);
-`PLNR_TIME_LIMIT_SECONDS` = 2.0 (per-candidate wall budget). Where only
-`clock_gettime` exists it falls back to timing in wall seconds (FFTW's
-slow-timer path); where no clock exists it returns `-1.0` → estimate-grade.
-The timer never touches awake state, never allocates, and is not thread-safe.
+doubling level; `PLNR_TIME_MIN_SLOW_SECONDS` = 1e-3 (slow-timer acceptance
+floor); `PLNR_TIME_LIMIT_SECONDS` = 2.0 (per-candidate wall budget). The
+tick-mode acceptance floor is `cycle.h`'s `TIME_MIN`, with a 100-tick fallback
+defined in `timer.c`. Where only `clock_gettime` exists it falls back to
+timing in wall seconds (FFTW's slow-timer path); where no clock exists it
+returns `-1.0` → estimate-grade. The timer never touches awake state, never
+allocates, and is not thread-safe.
 
 ## The impatience / subsumption lattice
 
@@ -134,7 +151,7 @@ estimate results go unblessed.
 ## The public planning flags → internal images
 
 Public `NFFT_*` (in `nfft3.h`) map to internal `PLNR_*` (in `iplanner.h`) via
-`map_planning_flags` in `plan.c`:
+`Y(nfft_map_planning_flags)` in `kernel/nfft/mapflags.c`:
 
 | Public flag | Value | Internal | Effect |
 |-------------|-------|----------|--------|
@@ -152,6 +169,17 @@ parallelise internally declines via `NO_NONTHREADEDP(pl)` —
 `(PLNR_L(pl) & PLNR_NO_NONTHREADED) && pl->nthr > 1` — whenever more than one
 thread was requested, so a threaded candidate is chosen without ever being
 timed against a serial one.
+
+**`PLNR_BELIEVE_PCOST` is no longer inert.** Set by the mapping stage below
+`NFFT_PATIENT` and lifted by it, it is read by `Y(evaluate_plan)`
+(`kernel/planner/planner.c`): with the bit set, a plan that already carries a
+`pcost` is not re-evaluated — the stored cost is vouched for as measured.
+That is *all* it does. It never changes what a fresh plan costs to learn: a
+plan fresh out of `mkplan` has `pcost == 0`, so it is always evaluated, which
+is FFTW's own condition. Note our recursion still selects children on the
+estimate alone (`planner_mkplan` measures nothing); only the top-level race
+measures, unlike FFTW which measures every fresh candidate at every node
+from `MEASURE` upward.
 
 `fftw_flags` is a **separate** parameter controlling the internal FFTW child
 plans. `0` (the default) *derives* the child plans' patience from the NFFT
@@ -175,9 +203,11 @@ on the *measured* race (`< 0` = unlimited, the default). It is declared under
 
 - Before measuring each candidate the guru checks the elapsed coarse wall clock;
   on expiry it stops measuring further candidates.
-- If **no** candidate finished before expiry (or there is no usable clock),
-  selection degrades to **estimate grade**, blessed like any other estimate
-  selection (FFTW parity, see above).
+- If **no** candidate finished before expiry (or a measurement fell back to an
+  estimate), the direction is **graded estimate**: the cheapest candidate by
+  `Y(iestimate_cost)` is adopted untimed, carries that estimate in `pcost`,
+  and is memoised **unblessed** — there is no measured evidence to export, so
+  nothing is blessed and estimate mode is never restarted.
 - If **at least one** candidate finished before expiry but others did not, the
   best-so-far is adopted but memoised **unblessed** — a partial race, since an
   untimed survivor might still have been faster. A race that completes within

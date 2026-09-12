@@ -28,9 +28,12 @@ typedef struct {
   void (*destroy)(plan *ego);                                /* may be NULL */
   void (*apply_adjoint)(const plan *ego, const problem *p);  /* may be NULL */
 } plan_adt;
+/* operation counts, after FFTW's opcnt; `other` = loads/stores/index arithmetic */
+typedef struct { double add, mul, fma, other; } opcnt;
 struct plan_s {
   const plan_adt *adt;
-  double pcost;      /* analytic estimate; overwritten with measured cost in a race */
+  opcnt ops;         /* analytic counts, filled by the solver's mkplan */
+  double pcost;      /* 0 until Y(evaluate_plan) writes an estimate or a measurement */
   int awake_state;   /* PLNR_SLEEPY | PLNR_AWAKE_ZERO | PLNR_AWAKE */
   int uses_x;        /* whether apply/apply_adjoint read x from the problem */
 };
@@ -44,10 +47,12 @@ typedef struct {
 struct solver_s { const solver_adt *adt; int refcnt; };
 ```
 
-**`mkplan` contract:** return a plan with `pcost` set, or `NULL` when not
+**`mkplan` contract:** return a plan with `ops` filled, or `NULL` when not
 applicable. It must be **cheap** and must **not** build node-dependent state —
 that is `awake()`'s job. Impatience gates (`PLNR_L(pl)`) are honoured here by
-returning `NULL`.
+returning `NULL`. `mkplan` never writes `pcost`; that stays 0 until
+`Y(evaluate_plan)` fills it, so `mkplan`-time costs compare through
+`Y(iestimate_cost)` alone.
 
 Problem kinds (current):
 `enum { NFFT_PROBLEM_UNSOLVABLE, NFFT_PROBLEM_NFFT, NFFT_PROBLEM_DECONV,
@@ -77,15 +82,29 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p);   /* estimate search + m
 int   Y(planner_candidates)(planner *pl, const problem *p,
                             plan **plans, unsigned *slvndx, int cap);
 void  Y(planner_bless)(planner *pl, const problem *p, unsigned slvndx);
+double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p);
+int   Y(evaluate_plan)(planner *pl, plan *pln, const problem *p);
 solution *Y(planner_hlookup)(planner *pl, const md5sig s, const flags_t *q);
 void  Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f, unsigned slvndx);
 ```
 
 - **`planner_mkplan`** = the estimate path: hash the problem, consult wisdom;
   on a hit re-run the winning solver's `mkplan`; on a miss iterate
-  `FORALL_SOLVERS_OF_KIND`, keep the **strictly smallest `pcost`** (ties keep the
-  earlier-encountered), destroy losers immediately, and memoise the outcome
-  **unblessed** (or `INFEASIBLE_SLVNDX`).
+  `FORALL_SOLVERS_OF_KIND`, keep the **strictly smallest
+  `Y(iestimate_cost)`** (ties keep the earlier-encountered), destroy losers
+  immediately, and memoise the outcome **unblessed** (or `INFEASIBLE_SLVNDX`).
+  Nothing is measured here — `pcost` stays 0 until the caller runs
+  `Y(evaluate_plan)` on what it gets back.
+- **`iestimate_cost`** collapses `ops` to one scalar with FFTW's weights:
+  `add + mul + (HAVE_FMA ? 1 : 2)*fma + other`. `HAVE_FMA` comes from C99's
+  `FP_FAST_FMA`. This is the *only* comparison key for selection; `pcost`
+  never participates.
+- **`evaluate_plan`** writes `pln->pcost`: the estimate in estimate mode,
+  else a measurement with a per-candidate fallback to the estimate when the
+  clock cannot resolve the plan. Returns a grade — 1 measured, 0 estimate —
+  because the two units must never be compared against each other. With
+  `PLNR_BELIEVE_PCOST` set it skips re-evaluating a plan that already
+  carries a cost.
 - **`planner_candidates`** = the measured path's enumerator: run every
   applicable solver of the kind under current bounds, store up to `cap` (plan,
   descriptor-index) pairs, return the count. **No** wisdom lookup, memoise, or
@@ -96,7 +115,7 @@ void  Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f, unsigned
 
 Solvers register push-front onto a per-kind chain (`kind_head[kind]`,
 `next_same_kind`), so **iteration order is reverse registration order**. On an
-exact-`pcost` tie the earlier-*encountered* (i.e. later-*registered*) plan wins.
+exact-estimate tie the earlier-*encountered* (i.e. later-*registered*) plan wins.
 Rosters (`kernel/nfft/conf.c`) order registrations deliberately — e.g. the
 native fast solver is registered *first* so it is iterated *last* and loses
 exact ties to more-proven candidates.

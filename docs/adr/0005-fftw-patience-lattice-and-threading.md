@@ -159,7 +159,8 @@ recorded here because they change externally observable behaviour.
 - `PLNR_NO_UGLY`, `PLNR_NO_SLOW`, `PLNR_ALLOW_PRUNING` and
   `PLNR_BELIEVE_PCOST` are set correctly by the mapping stage and read by
   nothing — there is no relaxation search and no cost-model consumer for them
-  yet.
+  yet. True when this was written; ADR-0006 later gave
+  `PLNR_BELIEVE_PCOST` its first reader. The other three remain unread.
 - The child FFTW plans' out-of-place and destroy-input invariants at
   `kernel/nfft/nfft-nd.c:209-217` have no test; they are not independently
   observable from outside the plan.

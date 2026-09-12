@@ -172,6 +172,14 @@ operation count has to re-check this; the probe is two `NFFT(plan_ng_guru)`
 calls with `NFFT_NO_FAST_NATIVE` and `NFFT_NO_DIRECT` plus the `fprint_plan`
 pcost read described above.
 
+This check ran in double precision only, and the answer is
+precision-dependent: the fast estimate carries `FFTW(flops)` on the plan the
+precision's own FFTW library built, and on this host `fftw3f` plans `n = 128`
+cheaper than `fftw3`/`fftw3l` (2504 against 4576), which puts the same
+geometry at `r_model = 6.58` in float — above the gate, so the direct
+candidate is pruned and those tests do not race in a float build. See
+ADR-0006.
+
 The ratio is a host calibration, not a law: it is seconds per counted
 operation on this machine, and it moves with the machine. Re-run the sweep if
 either solver's operation count changes, or if the ratio is ever suspected of

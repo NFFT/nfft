@@ -36,9 +36,9 @@ FFTW-style:
 
 - **problem** — a hashable *description of the work* ("what"). Kinds:
   `NFFT_PROBLEM_NFFT`, `NFFT_PROBLEM_DECONV`, `NFFT_PROBLEM_CONV`.
-- **solver** — a stateless *recipe*. Its `mkplan()` returns a **plan** (with an
-  estimated `pcost`) or `NULL` when it does not apply. Both inapplicability and
-  impatience-gating express as `NULL`.
+- **solver** — a stateless *recipe*. Its `mkplan()` returns a **plan** (with
+  its `opcnt ops` filled — analytic operation counts) or `NULL` when it does
+  not apply. Both inapplicability and impatience-gating express as `NULL`.
 - **plan** — an *executable* "how", with `apply()` (forward) and
   `apply_adjoint()`. Building node-dependent tables (ψ) happens in `awake()`,
   never in `mkplan()`.
