@@ -27,6 +27,8 @@
 #include "iplanner.h"
 #include "conv.h"
 
+#include <math.h> /* pow */
+
 typedef struct {
   plan super;
   INT n0, n1, n2, N0, N1, N2, M; /* geometry captured at mkplan */
@@ -203,6 +205,19 @@ static plan *mkplan_conv_3d(const solver *ego, const problem *p, planner *pl)
             malloc)((size_t)pln->M * 3 * (size_t)(2 * pln->m + 2) * sizeof(R));
   pln->u = (INT *)Y(malloc)((size_t)pln->M * 3 * sizeof(INT));
   pln->level = PLNR_SLEEPY;
+
+  /* Forward counts: taps = M * len^3, one complex-by-real accumulate per tap
+   * (two loads: g, psi); other adds the per-axis conv_runs bookkeeping.
+   * Estimate, not a full trace: the per-row axis-combine step (the hoisted
+   * inner-axis run reused across the two outer axes) is a lower-order term
+   * this does not count. */
+  Y(ops_zero)(&pln->super.ops);
+  {
+    const double taps = (double)pln->M * pow((double)(2 * pln->m + 2), 3.0);
+    pln->super.ops.mul = 2.0 * taps;
+    pln->super.ops.add = 2.0 * taps;
+    pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * 3.0;
+  }
   pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }

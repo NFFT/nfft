@@ -173,8 +173,13 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl)
     return 0;
   if (PLNR_L(pl) & PLNR_NO_DIRECT)
     return 0;
-  return Y(nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), sum, sum_adjoint,
-                             "nfft_solver_ndft_nd");
+  {
+    opcnt ops;
+    Y(nfft_ndft_ops)(p, &ops);
+    return Y(
+         nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), &ops, sum, sum_adjoint,
+                               "nfft_solver_ndft_nd");
+  }
 }
 
 static const solver_adt ndft_nd_adt = {NFFT_PROBLEM_NFFT, 0, mkplan};

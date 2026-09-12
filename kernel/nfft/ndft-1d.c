@@ -139,12 +139,29 @@ double Y(nfft_ndft_pcost)(const problem *p)
          * Ntot * M;
 }
 
-plan *Y(nfft_ndft_make_plan)(double pcost, void (*fwd)(const problem_nfft *),
+/* Forward counts: every (k, j) tap does two complex-by-complex multiplies --
+ * f_hat[k_L] * w into the accumulate, and w *= dw to advance the phase for
+ * the next tap -- so mul/add cover both, not just the accumulate. other is
+ * the per-tap f_hat load plus the block-start trig/reduced_omega setup,
+ * amortised over NDFT_RECURRENCE_BLOCK: an estimate, not a full trace. */
+void Y(nfft_ndft_ops)(const problem *p, opcnt *ops)
+{
+  const problem_nfft *ego = (const problem_nfft *)p;
+  const double taps = (double)Y(problem_nfft_Ntot)(p) * (double)ego->M;
+  Y(ops_zero)(ops);
+  ops->mul = 8.0 * taps;
+  ops->add = 6.0 * taps;
+  ops->other = 2.0 * taps + 3.0 * taps / (double)NDFT_RECURRENCE_BLOCK;
+}
+
+plan *Y(nfft_ndft_make_plan)(double pcost, const opcnt *ops,
+                          void (*fwd)(const problem_nfft *),
                           void (*adj)(const problem_nfft *),
                           const char *reg_nam)
 {
   ndft_plan *pln = (ndft_plan *)Y(
        plan_create)(sizeof(ndft_plan), &ndft_plan_adt);
+  Y(ops_cpy)(ops, &pln->super.ops);
   pln->super.pcost = pcost;
   pln->fwd = fwd;
   pln->adj = adj;
@@ -167,8 +184,13 @@ static plan *mkplan(const solver *ego, const problem *p, planner *pl)
     return 0;
   if (PLNR_L(pl) & PLNR_NO_DIRECT)
     return 0;
-  return Y(nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), sum, sum_adjoint,
-                             "nfft_solver_ndft_1d");
+  {
+    opcnt ops;
+    Y(nfft_ndft_ops)(p, &ops);
+    return Y(
+         nfft_ndft_make_plan)(Y(nfft_ndft_pcost)(p), &ops, sum, sum_adjoint,
+                               "nfft_solver_ndft_1d");
+  }
 }
 
 static const solver_adt ndft_1d_adt = {NFFT_PROBLEM_NFFT, 0, mkplan};

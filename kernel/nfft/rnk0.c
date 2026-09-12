@@ -74,6 +74,11 @@ static plan *mkplan_rnk0(const solver *ego, const problem *p, planner *pl)
     return 0;
   pln = (rnk0_plan *)Y(plan_create)(sizeof(rnk0_plan), &rnk0_plan_adt);
   pln->reg_nam = "nfft_solver_const_0d";
+
+  /* Forward counts: apply is a pure broadcast, one store per node and no
+   * arithmetic; the reduce's adds belong to the adjoint, not counted here. */
+  Y(ops_zero)(&pln->super.ops);
+  pln->super.ops.other = (double)pn->M;
   pln->super.pcost = 2.0 * (double)pn->M; /* one broadcast + one reduce pass */
   return &pln->super;
 }

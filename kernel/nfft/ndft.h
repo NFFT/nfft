@@ -39,11 +39,15 @@ static inline R Y(nfft_ndft_reduced_omega)(const R k, const R x, const R base)
   return K2PI * FFMA(k, x, base - RINT(s));
 }
 
-plan *Y(nfft_ndft_make_plan)(double pcost, void (*fwd)(const problem_nfft *),
+plan *Y(nfft_ndft_make_plan)(double pcost, const opcnt *ops,
+                          void (*fwd)(const problem_nfft *),
                           void (*adj)(const problem_nfft *),
                           const char *reg_nam);
 
 /* Direct NDFT cost estimate, both ranks. */
 double Y(nfft_ndft_pcost)(const problem *p);
+
+/* Direct NDFT forward operation count, both ranks. */
+void Y(nfft_ndft_ops)(const problem *p, opcnt *ops);
 
 #endif /* NFFT_NDFT_H */

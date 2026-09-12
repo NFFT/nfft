@@ -57,6 +57,14 @@ void Y(check_nfast_deconv_ops)(void);
  * Y(window_phi) and the wrap formula. */
 void Y(check_nfast_conv_solver)(void);
 
+/* CONV per rank: the forward op counts, pinned against each solver's own
+ * apply loop. */
+void Y(check_nfast_conv_ops)(void);
+
+/* The direct NDFT (rank 1 and rank >= 2) and rank-0 solvers: the forward op
+ * counts, pinned against each solver's own apply loop. */
+void Y(check_nfast_ndft_ops)(void);
+
 /* The composed native fast NFFT on the 1D reference case, each direction
  * against its own reference file. */
 void Y(check_nfast_native_fast_accuracy)(void);

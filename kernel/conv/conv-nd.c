@@ -27,6 +27,8 @@
 #include "iplanner.h"
 #include "conv.h"
 
+#include <math.h> /* pow */
+
 typedef struct {
   plan super;
   int d; /* rank, >= 4 */
@@ -217,6 +219,20 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
                          * sizeof(R));
   pln->u = (INT *)Y(malloc)((size_t)pln->M * (size_t)d * sizeof(INT));
   pln->level = PLNR_SLEEPY;
+
+  /* Forward counts: taps = M * len^d, one complex-by-real accumulate per tap
+   * (two loads: g, psi); other adds the per-axis wrapped-index setup.
+   * Estimate, not a full trace: the odometer's cached prefix-product recompute
+   * (run()'s phi_prod/ll_plain cascade) is a lower-order term this does not
+   * count. */
+  Y(ops_zero)(&pln->super.ops);
+  {
+    const double taps =
+         (double)pln->M * pow((double)(2 * pln->m + 2), (double)d);
+    pln->super.ops.mul = 2.0 * taps;
+    pln->super.ops.add = 2.0 * taps;
+    pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * (double)d;
+  }
   pln->super.pcost = Y(conv_b_pcost)(p);
   return &pln->super;
 }

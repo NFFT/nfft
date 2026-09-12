@@ -2151,3 +2151,132 @@ void Y(check_nfast_deconv_ops)(void)
   }
   Y(planner_destroy)(pl);
 }
+
+/* CONV per rank: mul/add trace the per-tap complex-by-real accumulate
+ * exactly; other adds a flat per-axis conv_runs term and, for rank >= 2,
+ * omits the lower-order axis-combine arithmetic (an estimate, not a full
+ * trace -- see the comment at each fill site). M = 10, m = 6 throughout, so
+ * len = 14. */
+void Y(check_nfast_conv_ops)(void)
+{
+  planner *pl = Y(planner_create)();
+  const int w = Y(get_window_id)();
+  R x0 = K(0.0);
+  C g0 = K(0.0), f0 = K(0.0);
+
+  Y(conv_solvers_register)(pl);
+
+  { /* rank 1: taps = 140 -> mul 280, add 280, other 280 + 20 = 300 */
+    const INT n = 8, N = 4, M = 10;
+    problem *p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, &x0, &g0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 280.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 280.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 300.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 2: taps = 1960 -> mul 3920, add 3920, other 3920 + 40 = 3960 */
+    const INT n[2] = {8, 8}, N[2] = {4, 4}, M = 10;
+    problem *p = Y(mkproblem_conv)(2, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 3920.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 3920.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 3960.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 3: taps = 27440 -> mul 54880, add 54880, other 54880 + 60 = 54940 */
+    const INT n[3] = {8, 8, 8}, N[3] = {4, 4, 4}, M = 10;
+    problem *p = Y(mkproblem_conv)(3, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 54880.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 54880.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 54940.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 4 (nd): taps = 384160 -> mul 768320, add 768320,
+     * other 768320 + 80 = 768400 */
+    const INT n[4] = {8, 8, 8, 8}, N[4] = {4, 4, 4, 4}, M = 10;
+    problem *p = Y(mkproblem_conv)(4, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 768320.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 768320.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 768400.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  Y(planner_destroy)(pl);
+}
+
+/* The direct NDFT (rank 1, rank >= 2) and rank-0 solvers. mul/add trace two
+ * complex-by-complex multiplies per tap exactly: the phase-weighted
+ * accumulate and the w *= dw recurrence step that advances the phase for the
+ * next tap. other is a per-tap load plus the block-start trig/reduced_omega
+ * setup amortised over NDFT_RECURRENCE_BLOCK -- an estimate, not a full trace
+ * (see the comment at the fill site). The rank-0 solver's forward is a pure
+ * broadcast: no arithmetic, one store per node. */
+void Y(check_nfast_ndft_ops)(void)
+{
+  planner *pl = Y(planner_create)();
+  const int w = Y(get_window_id)();
+  R x0 = K(0.0);
+  C fh0 = K(0.0), f0 = K(0.0);
+
+  Y(nfft_solver_ndft_1d_register)(pl);
+  Y(nfft_solver_ndft_nd_register)(pl);
+  Y(nfft_solver_rnk0_register)(pl);
+
+  { /* rank 1: Ntot = 32, M = 10 -> taps = 320
+     * mul 2560, add 1920, other 640 + 30 = 670 */
+    const INT N = 32, n = 32, M = 10;
+    problem *p =
+         Y(mkproblem_nfft)(1, &N, 0, &n, M, 6, w, 1, 0u, &x0, 0, &fh0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 2560.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 1920.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 670.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 2: N = (32, 4) -> Ntot = 128, M = 5 -> taps = 640
+     * mul 5120, add 3840, other 1280 + 60 = 1340 */
+    const INT N[2] = {32, 4}, n[2] = {32, 4}, M = 5;
+    problem *p =
+         Y(mkproblem_nfft)(2, N, 0, n, M, 6, w, 1, 0u, &x0, 0, &fh0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 5120.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 3840.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 1340.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 0: N = (1) elides to sz->rnk == 0; M = 12 -> broadcast only:
+     * mul 0, add 0, other 12 */
+    const INT N1 = 1, n1 = 1, M = 12;
+    problem *p =
+         Y(mkproblem_nfft)(1, &N1, 0, &n1, M, 6, w, 1, 0u, &x0, 1, &fh0, &f0);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 12.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  Y(planner_destroy)(pl);
+}
