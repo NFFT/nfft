@@ -2302,14 +2302,14 @@ void Y(check_nfast_composite_ops)(void)
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
   {
     opcnt top, deconv, conv, fft, sum;
-    if (Y(plan_ng_test_native_parts)(p, &top, &deconv, &conv, &fft)) {
-      Y(ops_add)(&deconv, &conv, &sum);
-      Y(ops_add2)(&fft, &sum);
-      CU_ASSERT_DOUBLE_EQUAL(top.add, sum.add, 1e-6);
-      CU_ASSERT_DOUBLE_EQUAL(top.mul, sum.mul, 1e-6);
-      CU_ASSERT_DOUBLE_EQUAL(top.fma, sum.fma, 1e-6);
-      CU_ASSERT_DOUBLE_EQUAL(top.other, sum.other, 1e-6);
-    }
+    CU_ASSERT_TRUE_FATAL(
+         Y(plan_ng_test_native_parts)(p, &top, &deconv, &conv, &fft));
+    Y(ops_add)(&deconv, &conv, &sum);
+    Y(ops_add2)(&fft, &sum);
+    CU_ASSERT_DOUBLE_EQUAL(top.add, sum.add, 1e-6);
+    CU_ASSERT_DOUBLE_EQUAL(top.mul, sum.mul, 1e-6);
+    CU_ASSERT_DOUBLE_EQUAL(top.fma, sum.fma, 1e-6);
+    CU_ASSERT_DOUBLE_EQUAL(top.other, sum.other, 1e-6);
   }
   Y(plan_ng_destroy)(p);
   Y(free)(f);
