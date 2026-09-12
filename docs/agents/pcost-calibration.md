@@ -164,21 +164,27 @@ against the new numbers rather than carried over.
 Three `tests/nplan.c` cases need a geometry the gate admits, because they
 assert on a two-candidate race actually happening: `destructive_default`,
 `timelimit_tight_adopts_untimed`, and `awake_zero_internal`. Their fixture
-(`N = 64, n = 128, M = 16, m = 6`) was not retuned: under the new estimator it
-prints `pcost=16480` direct vs `pcost=4576` fast, `r_model = 3.60`, still
-below the 4.0 ratio, so the direct candidate still survives the gate and the
-race still happens. Any future change to the ratio or to either solver's
-operation count has to re-check this; the probe is two `NFFT(plan_ng_guru)`
-calls with `NFFT_NO_FAST_NATIVE` and `NFFT_NO_DIRECT` plus the `fprint_plan`
-pcost read described above.
+(`N = 64, n = 128, M = 2, m = 6`) was retuned for the ops estimator, and the
+check is per-precision: the fast estimate carries `FFTW(flops)` on the plan
+the precision's own FFTW library built, and on this host `fftw3f` plans
+`n = 128` cheaper than `fftw3`/`fftw3l`, which moved the ratio far enough to
+prune the direct candidate at the fixture's old `M = 16` in float only:
 
-This check ran in double precision only, and the answer is
-precision-dependent: the fast estimate carries `FFTW(flops)` on the plan the
-precision's own FFTW library built, and on this host `fftw3f` plans `n = 128`
-cheaper than `fftw3`/`fftw3l` (2504 against 4576), which puts the same
-geometry at `r_model = 6.58` in float — above the gate, so the direct
-candidate is pruned and those tests do not race in a float build. See
-ADR-0006.
+| precision | direct | fast | r_model | gate 4.0 |
+|---|---|---|---|---|
+| double | 2060 | 3372 | 0.61 | race |
+| float | 2060 | 1300 | 1.58 | race |
+| long-double | 2060 | 3372 | 0.61 | race |
+
+(For reference, the old `M = 16` fixture: 16480 direct against 4576 fast,
+r = 3.60, in double and long-double — but 2504 fast in float, r = 6.58, which
+pruned the direct and hollowed out the race.) `M = 2` keeps the worst
+precision 2.5x under the gate; for the float FFTW term to prune the direct
+from there it would have to fall a further ~35x. Any future change to the
+ratio, to either solver's operation count, or to the FFTW version has to
+re-check this in **all three precisions**; the probe is two
+`NFFT(plan_ng_guru)` calls with `NFFT_NO_FAST_NATIVE` and `NFFT_NO_DIRECT`
+plus the `fprint_plan` pcost read described above.
 
 The ratio is a host calibration, not a law: it is seconds per counted
 operation on this machine, and it moves with the machine. Re-run the sweep if

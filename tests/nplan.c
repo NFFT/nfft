@@ -1179,9 +1179,12 @@ void Y(check_nplan_measured)(void)
 void Y(check_nplan_destructive_default)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
-   * (PLNR_PRUNE_RATIO), so two candidates race, and small enough that the
-   * direct then wins, which is what the exact-NDFT reference below assumes. */
-  INT N = 64, n = 128, M = 16;
+   * (PLNR_PRUNE_RATIO), so two candidates race. The fast estimate carries
+   * FFTW(flops) on the child plan the precision's own FFTW built, so the
+   * ratio is per-precision (fftw3f plans n=128 cheaper than fftw3); M=2
+   * holds it under the gate in every precision. Either winner meets the
+   * reference bound below. */
+  INT N = 64, n = 128, M = 2;
   static R x[8192];
   static C f_hat[64], f[8192], saved[8192];
   Y(plan_ng) *p;
@@ -1396,8 +1399,10 @@ void Y(check_nplan_measured_wisdom)(void)
 void Y(check_nplan_timelimit_tight_adopts_untimed)(void)
 {
   /* M small enough that the direct NDFT survives the estimate gate
-   * (PLNR_PRUNE_RATIO), so two candidates race. */
-  INT N = 64, n = 128, M = 16;
+   * (PLNR_PRUNE_RATIO) in every precision, so two candidates race; the fast
+   * estimate's FFTW(flops) term is per-precision, and fftw3f plans n=128
+   * cheaper than fftw3. */
+  INT N = 64, n = 128, M = 2;
   static R x[8192];
   static C f_hat[64], f[8192];
   Y(plan_ng) *p;
@@ -2561,9 +2566,10 @@ void Y(check_nplan_awake_zero_internal)(void)
   Y(plan_ng_destroy)(p);
 
   /* Measured, small enough that the direct NDFT survives the estimate gate
-   * (PLNR_PRUNE_RATIO) and two candidates actually race. */
+   * (PLNR_PRUNE_RATIO) in every precision and two candidates actually race;
+   * see the fixture note in docs/agents/pcost-calibration.md. */
   {
-    INT Nm = 64, nm = 128, Mm = 16;
+    INT Nm = 64, nm = 128, Mm = 2;
     R *xm = (R *)Y(malloc)((size_t)Mm * sizeof(R));
     C *fhm = (C *)Y(malloc)((size_t)Nm * sizeof(C));
     C *fm = (C *)Y(malloc)((size_t)Mm * sizeof(C));

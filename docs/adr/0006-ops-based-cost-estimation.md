@@ -200,20 +200,19 @@ decision above.
   rewritten for the new estimator.
 
 ## Known gaps
-- **The estimate is precision-dependent through its FFT term, and the float
-  build pays for it.** `FFTW(flops)` counts the plan the precision's own FFTW
-  library built, and `fftw3f` chose a cheaper n = 128 child plan than
-  `fftw3`/`fftw3l` on this host, so at the tests' race-fixture geometry
-  (`N=64, n=128, M=16, m=6`) the fast estimate is 2504 in float against 4576
-  in double and long-double. The direct estimate is 16480 in every precision,
-  so the ratio is 6.58 in float against 3.60 in the others — above the 4.0
-  gate, the direct candidate is pruned, the fast solver is a lone survivor
-  adopted untimed and blessed, and the three race-dependent tests
-  (`destructive_default`, `timelimit_tight_adopts_untimed`,
-  `awake_zero_internal`) fail in a float build. The deleted formula models
-  were precision-independent, so this gate behaviour is new to this branch.
-  The tests fail loudly rather than silently hollowing out; the fix is not
-  decided here.
+- **The estimate is precision-dependent through its FFT term — a permanent
+  property, not a defect.** `FFTW(flops)` counts the plan the precision's own
+  FFTW library built, and on this host `fftw3f` plans `n = 128` roughly 3.5x
+  cheaper than `fftw3`/`fftw3l` (808 against 2880 counted operations), so
+  the direct/fast estimate ratio at one geometry differs by precision. This
+  is the estimate tracking what FFTW actually planned, which is the design.
+  The consequence is that the race fixtures in `tests/nplan.c` are a
+  per-precision calibration: their first choice (`M = 16`) held the ratio
+  under the gate in double and long-double (3.60) but not float (6.58), and a
+  float build failed three race-dependent tests. The fixture is now `M = 2`,
+  which holds the worst precision at 1.58 — 2.5x under the 4.0 gate; the
+  re-check procedure, with per-precision numbers, is in
+  `docs/agents/pcost-calibration.md`.
 - The measured-mode fallback leg of `Y(evaluate_plan)` has no deterministic
   unit test: reaching it needs a machine without a fine clock or an `apply`
   the clock cannot resolve. It is covered indirectly on clockless hosts by
