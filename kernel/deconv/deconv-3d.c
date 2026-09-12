@@ -207,6 +207,18 @@ static plan *mkplan_deconv_3d(const solver *ego, const problem *p, planner *pl)
   pln->phi_hut_inv1 = (R *)Y(malloc)((size_t)pln->N1 * sizeof(R));
   pln->phi_hut_inv2 = (R *)Y(malloc)((size_t)pln->N2 * sizeof(R));
   pln->level = PLNR_SLEEPY;
+
+  /* Forward counts: plan_measure_cost times apply, so ops records the forward.
+   * The adjoint differs only in needing no clear. */
+  Y(ops_zero)(&pln->super.ops);
+  {
+    INT Ntot = pln->N0 * pln->N1 * pln->N2;
+    INT ntot = pln->n0 * pln->n1 * pln->n2;
+    INT rows = pln->N0 * pln->N1; /* Ntot / N[d-1], d = 3 */
+    pln->super.ops.mul = 3.0 * (double)Ntot;
+    pln->super.ops.other =
+         (double)ntot + 2.0 * (double)Ntot + 4.0 * (double)rows;
+  }
   pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }

@@ -49,6 +49,10 @@ void Y(check_nfast_deconv_2d_general)(void);
 void Y(check_nfast_deconv_3d_general)(void);
 void Y(check_nfast_deconv_nd_general)(void);
 
+/* DECONV per rank: the forward op counts the estimator reads, pinned against
+ * each solver's own apply loop. */
+void Y(check_nfast_deconv_ops)(void);
+
 /* The CONV solver: forward and adjoint against a recompute from
  * Y(window_phi) and the wrap formula. */
 void Y(check_nfast_conv_solver)(void);

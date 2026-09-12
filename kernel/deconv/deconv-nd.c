@@ -200,6 +200,16 @@ static plan *mkplan_deconv_nd(const solver *ego, const problem *p, planner *pl)
   pln->m = pd->m;
   pln->window = pd->window;
   pln->level = PLNR_SLEEPY;
+
+  /* Forward counts: plan_measure_cost times apply, so ops records the forward.
+   * The adjoint differs only in needing no clear. */
+  Y(ops_zero)(&pln->super.ops);
+  {
+    INT rows = pln->Ntot / pln->N[d - 1];
+    pln->super.ops.mul = 3.0 * (double)pln->Ntot;
+    pln->super.ops.other = (double)pln->ntot + 2.0 * (double)pln->Ntot
+                           + 2.0 * (double)(d - 1) * (double)rows;
+  }
   pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }

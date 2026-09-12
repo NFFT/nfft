@@ -131,6 +131,12 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl)
   pln->Npos = pln->N - pln->Nneg;
   pln->phi_hut_inv = (R *)Y(malloc)((size_t)pln->N * sizeof(R));
   pln->level = PLNR_SLEEPY;
+
+  /* Forward counts: plan_measure_cost times apply, so ops records the forward.
+   * The adjoint differs only in needing no clear. */
+  Y(ops_zero)(&pln->super.ops);
+  pln->super.ops.mul = 2.0 * (double)pln->N;
+  pln->super.ops.other = (double)(pln->n - pln->N) + 2.0 * (double)pln->N;
   pln->super.pcost = Y(deconv_d_pcost)(p);
   return &pln->super;
 }

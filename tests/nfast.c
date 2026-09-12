@@ -2084,3 +2084,61 @@ void Y(check_nfast_window_accuracy)(void)
   Y(free)(f);
   Y(the_planner_destroy)();
 }
+
+/* The op counts are what the estimator sees, so they are pinned against the
+ * kernel's loops rather than against a formula that could drift with it. */
+void Y(check_nfast_deconv_ops)(void)
+{
+  planner *pl = Y(planner_create)();
+  const int w = Y(get_window_id)();
+  C fh = K(1.0), g = K(0.0);
+
+  Y(deconv_solvers_register)(pl);
+
+  { /* rank 1: N=16, n=32 -> mul 32, other (32-16) + 32 = 48 */
+    const INT N = 16, n = 32;
+    problem *p = Y(mkproblem_deconv)(1, &N, 0, &n, 6, w, 1, &fh, &g);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 32.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.add, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.fma, 0.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 48.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 2: N=(4,8) n=(8,16) -> Ntot 32, ntot 128, rows 4
+     * mul 96, other 128 + 64 + 2*1*4 = 200 */
+    const INT N[2] = {4, 8}, n[2] = {8, 16};
+    problem *p = Y(mkproblem_deconv)(2, N, 0, n, 6, w, 1, &fh, &g);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 96.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 200.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 3: N=(4,4,8) n=(8,8,16) -> Ntot 128, ntot 1024, rows 16
+     * mul 384, other 1024 + 256 + 2*2*16 = 1344 */
+    const INT N[3] = {4, 4, 8}, n[3] = {8, 8, 16};
+    problem *p = Y(mkproblem_deconv)(3, N, 0, n, 6, w, 1, &fh, &g);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 384.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 1344.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  { /* rank 4: N=(2,4,4,8) n=(4,8,8,16) -> Ntot 256, ntot 4096, rows 32
+     * mul 768, other 4096 + 512 + 2*3*32 = 4800 */
+    const INT N[4] = {2, 4, 4, 8}, n[4] = {4, 8, 8, 16};
+    problem *p = Y(mkproblem_deconv)(4, N, 0, n, 6, w, 1, &fh, &g);
+    plan *pln = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 768.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(pln->ops.other, 4800.0, 0.0);
+    Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+  }
+  Y(planner_destroy)(pl);
+}
