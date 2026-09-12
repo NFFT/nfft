@@ -30,6 +30,7 @@ plan *Y(plan_create)(size_t size, const plan_adt *adt)
   plan *ego = (plan *)Y(malloc)(size);
   A(size >= sizeof(plan));
   ego->adt = adt;
+  Y(ops_zero)(&ego->ops);
   ego->pcost = 0.0;
   ego->awake_state = PLNR_SLEEPY;
   ego->uses_x = 1;

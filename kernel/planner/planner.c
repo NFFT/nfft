@@ -570,6 +570,25 @@ static plan *invoke_solver(planner *pl, const problem *p, solver *s)
   return pln;
 }
 
+/* Collapse an operation record to one comparable scalar. FFTW's weights
+ * unchanged (kernel/planner.c:426): everything at one, fma once where the
+ * hardware fuses and twice where it does not. Our kernels are more
+ * bandwidth-bound than FFTW's codelets, so weighting `other` above one is
+ * likely wanted -- the pcost-calibration sweep is what decides it, and doing
+ * it here would make a movement in the numbers impossible to attribute. */
+double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p)
+{
+  (void)pl;
+  (void)p;
+  return pln->ops.add + pln->ops.mul
+#if HAVE_FMA
+         + pln->ops.fma
+#else
+         + 2.0 * pln->ops.fma
+#endif
+         + pln->ops.other;
+}
+
 /* Consult wisdom, else try every registered solver of the problem's kind and
  * keep the cheapest by pcost, memoising the outcome unblessed. Estimate-only:
  * pcost is the solver's analytic number, set at mkplan time. */

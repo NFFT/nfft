@@ -29,10 +29,12 @@
 #include "planner.h"
 #include "nplan.h"
 #include "nfast.h"
+#include "ops.h"
 
 int main(void)
 {
-  CU_pSuite util, planner_suite, nplan_suite, nplan_data_suite, nfast_suite;
+  CU_pSuite util, planner_suite, nplan_suite, nplan_data_suite, nfast_suite,
+       ops_suite;
   CU_initialize_registry();
 #ifdef _OPENMP
   CU_set_output_filename("CUnitAutomated_ng_threads");
@@ -217,6 +219,10 @@ int main(void)
   CU_add_test(nfast_suite, "native_window_select",
               Y(check_nfast_native_window_select));
   CU_add_test(nfast_suite, "window_accuracy", Y(check_nfast_window_accuracy));
+
+  ops_suite = CU_add_suite("ops", 0, 0);
+  CU_add_test(ops_suite, "helpers", Y(check_ops_helpers));
+  CU_add_test(ops_suite, "estimate", Y(check_ops_estimate));
 
   CU_automated_run_tests();
   // CU_basic_run_tests();

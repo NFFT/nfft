@@ -25,6 +25,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <limits.h>
+#include <math.h> /* FP_FAST_FMA, for HAVE_FMA below */
 
 /* md5.c */
 
@@ -149,9 +150,28 @@ typedef struct {
        const problem *p); // may be null (unsupported direction)
 } plan_adt;
 
+/* Operation counts, after FFTW's opcnt (kernel/ifftw.h:350). Doubles, not INT:
+ * a direct NDFT's count exceeds 2^31 at moderate size, and the estimator
+ * divides and compares. `other` is loads, stores and index arithmetic. */
+typedef struct {
+  double add;
+  double mul;
+  double fma;
+  double other;
+} opcnt;
+
+void Y(ops_zero)(opcnt *dst);
+void Y(ops_other)(INT o, opcnt *dst);
+void Y(ops_cpy)(const opcnt *src, opcnt *dst);
+void Y(ops_add)(const opcnt *a, const opcnt *b, opcnt *dst);
+void Y(ops_add2)(const opcnt *a, opcnt *dst);
+void Y(ops_madd)(INT m, const opcnt *a, const opcnt *b, opcnt *dst);
+void Y(ops_madd2)(INT m, const opcnt *a, opcnt *dst);
+
 struct plan_s {
   const plan_adt *adt;
-  double pcost; // analytic estimate, may get overwritten with measured seconds
+  opcnt ops; // analytic operation counts, filled by the solver at mkplan
+  double pcost; // 0 until Y(evaluate_plan) writes an estimate or a measurement
   int awake_state; // PLNR_SLEEPY | PLNR_AWAKE_ZERO | PLNR_AWAKE
   int uses_x; // whether plan reads x from problem during apply/apply_adjoint
 };
@@ -194,7 +214,7 @@ typedef struct planner_s planner;
 typedef struct {
   int problem_kind;
   void (*destroy)(solver *ego); /* may be NULL */
-  /* return a plan with pcost set, or NULL when not applicable;
+  /* return a plan with `ops` filled, or NULL when not applicable;
    * must be cheap and must not build node-dependent state */
   plan *(*mkplan)(const solver *ego, const problem *p, planner *pl);
 } solver_adt;
@@ -343,6 +363,24 @@ double Y(planner_elapsed_seconds)(double since);
 
 /* Returns the wisdom key. */
 void Y(problem_md5)(planner *pl, const problem *p, md5sig out);
+
+/* FP_FAST_FMA is C99's "the hardware fuses multiply-add", which is exactly the
+ * distinction FFTW's HAVE_FMA draws, so no configure probe is needed. */
+#ifndef HAVE_FMA
+# if defined(FP_FAST_FMA)
+#  define HAVE_FMA 1
+# else
+#  define HAVE_FMA 0
+# endif
+#endif
+
+/* Collapse an operation record to one comparable scalar. FFTW's weights
+ * unchanged (kernel/planner.c:426): everything at one, fma once where the
+ * hardware fuses and twice where it does not. Our kernels are more
+ * bandwidth-bound than FFTW's codelets, so weighting `other` above one is
+ * likely wanted -- the pcost-calibration sweep is what decides it, and doing
+ * it here would make a movement in the numbers impossible to attribute. */
+double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p);
 
 /* the estimate search: wisdom lookup, else cheapest applicable solver of
  * the problem's kind; memoises the outcome unblessed. */
