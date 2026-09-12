@@ -22,14 +22,14 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
-#include "ngomp.h"
+#include "ng_omp.h"
 
 /* The add-on library's contract while its roster is empty. init_threads reports
  * failure, so plan_with_nthreads leaves the count at 1 and no caller can reach
  * a state with more than one thread and nothing to run on them. When the first
  * threaded solver is added to kernel/threads/conf.c these expectations invert,
  * deliberately and visibly. */
-void Y(check_ngomp_empty_roster)(void)
+void Y(check_ng_omp_empty_roster)(void)
 {
   CU_ASSERT_EQUAL(Y(nfft_threads_roster_size)(), 0);
   CU_ASSERT_EQUAL(NFFT(init_threads)(), 0);
@@ -42,7 +42,7 @@ void Y(check_ngomp_empty_roster)(void)
 }
 
 /* Planning still works at every patience level through the add-on library. */
-void Y(check_ngomp_plans_serially)(void)
+void Y(check_ng_omp_plans_serially)(void)
 {
   const INT N = 64, n = 128, M = 100;
   const unsigned levels[3] = {NFFT_ESTIMATE, NFFT_MEASURE, NFFT_PATIENT};

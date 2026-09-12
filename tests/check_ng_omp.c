@@ -22,17 +22,17 @@
 #include <CUnit/Automated.h>
 
 #include "infft.h"
-#include "ngomp.h"
+#include "ng_omp.h"
 
 int main(void)
 {
-  CU_pSuite ngomp;
+  CU_pSuite ng_omp;
   CU_initialize_registry();
-  CU_set_output_filename("CUnitAutomated_ngomp");
+  CU_set_output_filename("CUnitAutomated_ng_omp");
 
-  ngomp = CU_add_suite("ngomp", 0, 0);
-  CU_add_test(ngomp, "empty_roster", Y(check_ngomp_empty_roster));
-  CU_add_test(ngomp, "plans_serially", Y(check_ngomp_plans_serially));
+  ng_omp = CU_add_suite("ng_omp", 0, 0);
+  CU_add_test(ng_omp, "empty_roster", Y(check_ng_omp_empty_roster));
+  CU_add_test(ng_omp, "plans_serially", Y(check_ng_omp_plans_serially));
 
   CU_automated_run_tests();
   // CU_basic_run_tests();

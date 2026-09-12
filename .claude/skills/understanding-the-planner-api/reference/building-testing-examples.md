@@ -47,7 +47,7 @@ whole-kernel OpenMP rebuild of the **legacy** `nfft_plan` API, linked
 **instead of** the serial library, and it has nothing to do with `plan_ng`.
 One letter apart, two unrelated models — do not confuse them.
 
-Its own test binary is `checkall_ngomp` (built only under `--enable-openmp`
+Its own test binary is `checkall_ng_omp` (built only under `--enable-openmp`
 with `ENABLE_NG_OMP`), which links `libnfft3<suffix> + libnfft3<suffix>_ng_omp`
 and covers the add-on's contract while the threaded roster is empty:
 `X(init_threads)` failing, `X(plan_with_nthreads)` refusing to raise `pl->nthr`

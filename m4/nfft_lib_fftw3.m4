@@ -42,6 +42,7 @@ AC_DEFUN([NFFT_LIB_FFTW3],
   nfft_fftw3_LIBS_threads=""
   nfft_fftw3_have_lib_omp="no"
   nfft_fftw3_LIBS_omp=""
+  nfft_fftw3_have_planner_nthreads="no"
 
   AC_ARG_WITH(fftw3, [AS_HELP_STRING([--with-fftw3=DIR],
   [compile with fftw3 in root directory DIR])], with_fftw3=$withval, with_fftw3="yes")
@@ -149,6 +150,16 @@ AC_DEFUN([NFFT_LIB_FFTW3],
           nfft_fftw3_LIBS_omp="$ac_res"
         fi
       fi
+
+      # fftw_planner_nthreads arrived in FFTW 3.3.9. The add-on threading
+      # library reports FFTW's thread count into our wisdom key through it;
+      # without it that library is not built.
+      AC_CHECK_DECL([fftw${PREC_SUFFIX}_planner_nthreads],
+        [AC_DEFINE([HAVE_FFTW_PLANNER_NTHREADS],[1],
+           [Define to 1 if FFTW declares fftw_planner_nthreads.])
+         nfft_fftw3_have_planner_nthreads=yes],
+        [nfft_fftw3_have_planner_nthreads=no],
+        [[#include <fftw3.h>]])
     fi
   fi
 

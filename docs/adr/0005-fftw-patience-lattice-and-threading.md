@@ -126,20 +126,20 @@ recorded here because they change externally observable behaviour.
   mode only — vacuous today because `nfft_solver_fast_native` is the only
   NFFT-kind solver with children (DECONV/CONV), but not actually enforced. See
   Known gaps.
-- **The `fftw_planner_nthreads` configure probe is CPPFLAGS-safe.** The
-  `AC_CHECK_DECL` for it is wrapped to save `CPPFLAGS`, prepend
-  `$nfft_fftw3_CPPFLAGS`, and restore afterward — the same treatment
-  `NFFT_LIB_FFTW3` gives its own probes. Without it, a build configured with
-  `--with-fftw3-includedir` would probe against the wrong (or no) `fftw3.h`,
-  silently conclude the declaration is absent, and drop the whole add-on
-  library rather than fail loudly.
+- **The `fftw_planner_nthreads` probe lives inside `NFFT_LIB_FFTW3`.** It runs
+  with the macro's own `CPPFLAGS`, so a build configured with
+  `--with-fftw3-includedir` probes the same `fftw3.h` the rest of the build
+  uses. Probed elsewhere it would see the wrong (or no) header, conclude the
+  declaration is absent, and drop the whole add-on library rather than fail
+  loudly.
 
 ## Consequences
-- **Every stored wisdom file is invalidated, for every user.** The
-  configuration signature carries a vocabulary tag (`"plnr-flags-v2"` in
-  `config_signature`, `kernel/planner/planner.c`), bumped because the
-  `PLNR_*` bit vocabulary and the problem hash both changed. A mismatch is a
-  clean import rejection, never a wrong plan.
+- **Stored wisdom files are partitioned by a vocabulary tag.** The
+  configuration signature carries one (`"plnr-flags"` in `config_signature`,
+  `kernel/planner/planner.c`). Bump it whenever a `PLNR_*` bit or a
+  problem-hash field changes; a mismatch is a clean import rejection, never a
+  wrong plan. The tag is still at its first value because no wisdom file has
+  been exported by a released build.
 - **Wisdom files grow roughly threefold.** Blessing now reaches DECONV and
   CONV children alongside the top-level NFFT solution, so a single measured
   win writes about three entries where it used to write one.

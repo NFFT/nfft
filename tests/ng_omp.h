@@ -16,16 +16,16 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef NGOMP_TEST_H
-#define NGOMP_TEST_H
+#ifndef NG_OMP_TEST_H
+#define NG_OMP_TEST_H
 
 #include "infft.h"
 
 /* The add-on library's contract while its roster is empty: no threaded solver
  * to reach, no way to raise the thread count. */
-void Y(check_ngomp_empty_roster)(void);
+void Y(check_ng_omp_empty_roster)(void);
 
 /* Planning still works at every patience level through the add-on library. */
-void Y(check_ngomp_plans_serially)(void);
+void Y(check_ng_omp_plans_serially)(void);
 
-#endif /* NGOMP_TEST_H */
+#endif /* NG_OMP_TEST_H */
