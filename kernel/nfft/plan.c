@@ -543,6 +543,18 @@ int Y(plan_ng_test_awake_state)(const Y(plan_ng) *p)
   return p->dir[FWD]->awake_state;
 }
 
+/* Test-only: the winning forward plan's own counts, plus the three parts a
+ * fast-native winner composes them from (prototype in
+ * include/plan_ng_test.h). */
+int Y(plan_ng_test_native_parts)(const Y(plan_ng) *p, opcnt *top, opcnt *deconv,
+                              opcnt *conv, opcnt *fft)
+{
+  A(p != 0);
+  A(p->dir[FWD] != 0);
+  Y(ops_cpy)(&p->dir[FWD]->ops, top);
+  return Y(nfft_fast_native_test_parts)(p->dir[FWD], deconv, conv, fft);
+}
+
 void Y(plan_ng_destroy)(Y(plan_ng) *p)
 {
   if (!p)

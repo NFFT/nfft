@@ -56,7 +56,6 @@ int Y(nfft_fast_guards_ok)(const problem *p, int m)
 /* Cost estimate. */
 static double pcost(const problem *p)
 {
-  // TODO: Defer to cost estimates for DECONV and CONV, and only use an explicit term for the DFT.
   const problem_nfft *ego = (const problem_nfft *)p;
   int d = ego->sz->rnk;
   double Ntot = (double)Y(problem_nfft_Ntot)(p);
@@ -148,6 +147,25 @@ static void print(const plan *ego_, printer *pr)
 static const plan_adt native_fast_adt = {apply, awake, print, destroy,
                                          apply_adjoint};
 
+/* Test-only (prototype in iplanner.h): native_fast_plan is file-static, so
+ * plan.c reaches its children through this accessor rather than the struct. */
+int Y(nfft_fast_native_test_parts)(const plan *top, opcnt *deconv, opcnt *conv,
+                                opcnt *fft)
+{
+  const native_fast_plan *pln = (const native_fast_plan *)top;
+  double fa, fm, ff;
+  if (!top || top->adt != &native_fast_adt)
+    return 0;
+  Y(ops_cpy)(&pln->deconv_child->ops, deconv);
+  Y(ops_cpy)(&pln->conv_child->ops, conv);
+  FFTW(flops)(pln->pfwd, &fa, &fm, &ff);
+  Y(ops_zero)(fft);
+  fft->add = fa;
+  fft->mul = fm;
+  fft->fma = ff;
+  return 1;
+}
+
 /* only (rnk >= 1) */
 static plan *mkplan_native_fast(const solver *ego, const problem *p,
                                 planner *pl)
@@ -235,7 +253,19 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
     Y(free)(pln);
     return 0;
   }
-  pln->super.pcost = pcost(p); /* cost model */
+  /* The estimate is the sum of the three steps it actually got, which is what
+   * the TODO this replaces asked for. FFTW reports its own plan's counts, so
+   * the FFT term tracks whatever FFTW chose -- SIMD codelets today, a threaded
+   * FFT later -- instead of a fitted n log n. */
+  {
+    double fa, fm, ff;
+    Y(ops_add)(&pln->deconv_child->ops, &pln->conv_child->ops, &pln->super.ops);
+    FFTW(flops)(pln->pfwd, &fa, &fm, &ff);
+    pln->super.ops.add += fa;
+    pln->super.ops.mul += fm;
+    pln->super.ops.fma += ff;
+  }
+  pln->super.pcost = pcost(p); /* removed in the next task */
   pln->super.uses_x = 1; /* reads x via the CONV child */
   return &pln->super;
 }

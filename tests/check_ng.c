@@ -200,6 +200,7 @@ int main(void)
   CU_add_test(nfast_suite, "conv_solver", Y(check_nfast_conv_solver));
   CU_add_test(nfast_suite, "conv_ops", Y(check_nfast_conv_ops));
   CU_add_test(nfast_suite, "ndft_ops", Y(check_nfast_ndft_ops));
+  CU_add_test(nfast_suite, "composite_ops", Y(check_nfast_composite_ops));
   CU_add_test(nfast_suite, "native_fast_accuracy",
               Y(check_nfast_native_fast_accuracy));
   CU_add_test(nfast_suite, "native_tree", Y(check_nfast_native_tree));

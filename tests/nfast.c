@@ -26,6 +26,7 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
+#include "plan_ng_test.h" /* test-only plan_ng_test_native_parts hook */
 #include "nfast.h"
 #include "util.h"
 
@@ -2279,4 +2280,39 @@ void Y(check_nfast_ndft_ops)(void)
     Y(problem_destroy)(p);
   }
   Y(planner_destroy)(pl);
+}
+
+/* The composite's estimate is the sum of its three parts and nothing else.
+ * Asserting the identity rather than a number keeps the case alive when any
+ * child's counts change. */
+void Y(check_nfast_composite_ops)(void)
+{
+  const INT N = 64, n = 128, M = 100;
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  Y(plan_ng) *p;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  p = Y(plan_ng_guru)(1, &N, 0, &n, M, 6, Y(get_window_id)(), x, f_hat, f, 0u,
+                   NFFT_ESTIMATE);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  {
+    opcnt top, deconv, conv, fft, sum;
+    if (Y(plan_ng_test_native_parts)(p, &top, &deconv, &conv, &fft)) {
+      Y(ops_add)(&deconv, &conv, &sum);
+      Y(ops_add2)(&fft, &sum);
+      CU_ASSERT_DOUBLE_EQUAL(top.add, sum.add, 1e-6);
+      CU_ASSERT_DOUBLE_EQUAL(top.mul, sum.mul, 1e-6);
+      CU_ASSERT_DOUBLE_EQUAL(top.fma, sum.fma, 1e-6);
+      CU_ASSERT_DOUBLE_EQUAL(top.other, sum.other, 1e-6);
+    }
+  }
+  Y(plan_ng_destroy)(p);
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
 }

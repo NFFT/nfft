@@ -26,11 +26,18 @@
 #define PLAN_NG_TEST_H
 
 #include "infft.h" /* Y() name mangling */
+#include "iplanner.h" /* opcnt */
 
 struct Y(plan_ng_s); /* opaque handle */
 
 /* The winning forward plan's wakefulness: SLEEPY right after construction,
  * AWAKE after precompute. */
 int Y(plan_ng_test_awake_state)(const struct Y(plan_ng_s) *p);
+
+/* Fills the winning forward plan's own counts and the three parts they are
+ * composed from. Returns 0 when the winner is not the native fast solver, so a
+ * caller can skip rather than assert against a plan that has no children. */
+int Y(plan_ng_test_native_parts)(const struct Y(plan_ng_s) *p, opcnt *top,
+                              opcnt *deconv, opcnt *conv, opcnt *fft);
 
 #endif

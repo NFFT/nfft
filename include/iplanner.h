@@ -538,6 +538,13 @@ void Y(nfft_solver_fast_native_register)(planner *pl);
 /* The fast solver's geometry predicate (nfft-nd.c). */
 int Y(nfft_fast_guards_ok)(const problem *p, int m);
 
+/* Test-only: fills the DECONV/CONV children's op counts and the forward FFTW
+ * plan's, read out of a fast-native plan (nfft-nd.c). Returns 0 when `top`
+ * did not come from that solver, so a caller can skip rather than assert
+ * against a plan with no such children. */
+int Y(nfft_fast_native_test_parts)(const plan *top, opcnt *deconv, opcnt *conv,
+                                opcnt *fft);
+
 /* Solver plans. */
 struct Y(plan_ng_s);
 void Y(plan_ng_print)(struct Y(plan_ng_s) *p, printer *pr);

@@ -65,6 +65,10 @@ void Y(check_nfast_conv_ops)(void);
  * counts, pinned against each solver's own apply loop. */
 void Y(check_nfast_ndft_ops)(void);
 
+/* The composed native fast solver's op count is the sum of its DECONV and
+ * CONV children's plus the forward FFTW plan's. */
+void Y(check_nfast_composite_ops)(void);
+
 /* The composed native fast NFFT on the 1D reference case, each direction
  * against its own reference file. */
 void Y(check_nfast_native_fast_accuracy)(void);
