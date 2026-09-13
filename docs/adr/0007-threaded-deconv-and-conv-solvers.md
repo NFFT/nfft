@@ -167,18 +167,18 @@ and still in the tree:
 
 Because it is a `#pragma` rather than a build flag, it applies to *every*
 translation unit that includes the header — every serial CONV solver
-(`conv-1d/2d/3d/nd.c`) as well as the threaded one — confirmed by objdump:
-without the pragma those four files' compiled tap call sites contain 8, 11,
-11 and 1 FMA instructions respectively; with it, zero, across all of them.
-`#if defined(__GNUC__) && !defined(__clang__)` scopes it to GCC specifically.
-Clang is also detected as GNU-vendor by this project's
-`m4/ax_compiler_vendor.m4` and so also receives `-ffast-math` from
-`AX_CC_MAXOPT`, but Task 6 built and tested clang 18.1.3 (aarch64) without
-the pragma and found it fuses consistently across call shapes regardless of
-whether `lo` is a literal or a runtime value — no divergence, and so no gap
-left by scoping the pragma to GCC. This is one compiler version on one
-architecture, empirically checked, not a guarantee that every clang release
-behaves the same.
+(`conv-1d/2d/3d/nd.c`) as well as the threaded one — confirmed during Task 6's
+code review by objdump: without the pragma those four files' compiled tap
+call sites contain 8, 11, 11 and 1 FMA instructions respectively; with it,
+zero, across all of them. `#if defined(__GNUC__) && !defined(__clang__)`
+scopes it to GCC specifically. Clang is also detected as GNU-vendor by this
+project's `m4/ax_compiler_vendor.m4` and so also receives `-ffast-math` from
+`AX_CC_MAXOPT`; Task 6's code review built and tested clang 18.1.3 (aarch64)
+without the pragma and found it fuses consistently across call shapes
+regardless of whether `lo` is a literal or a runtime value — no divergence,
+and so no gap left by scoping the pragma to GCC. This is one compiler
+version on one architecture, empirically checked, not a guarantee that every
+clang release behaves the same.
 
 **The measured cost of the fix (this task).** A throwaway micro-benchmark
 (not committed) called the shared rank-3 tap kernel directly
@@ -231,42 +231,6 @@ header rather than in the build system: it travels with the source (correct
 wherever `conv.h` is compiled, including out-of-tree consumers who build
 with their own flags) but rests on a mechanism GCC documents as less stable
 than a compiler flag.
-
-- **Known gaps:** `NFFT_NO_FAST_NATIVE` below `NFFT_PATIENT` with a raised
-  thread count still returns `NULL` — forbidding the only fast solver leaves
-  the guru with no plan to serve a request that also insists on more than
-  one thread being used, since the direct NDFT solvers are genuinely serial
-  and still decline. The internal FFTW child plan inside
-  `nfft_solver_fast_native` still runs at one thread regardless of
-  `pl->nthr` — nothing in this work touches FFTW's own thread count. CONV
-  has no locality (cache-friendly node order) sort yet — see the counting
-  sort discussion above. **Task 7's timelimit-division-among-survivors
-  plumbing in `Y(planner_mkplan)` (the `budget / nsurvive` divide around the
-  race loop) is currently a no-op for DECONV and CONV**, since both are leaf
-  problem kinds with no further recursive `Y(planner_mkplan)` call inside
-  their own `mkplan` to inherit the divided budget, and the race loop itself
-  enforces no timeout of its own — not a defect, just dormant until a
-  threaded solver kind can itself recurse into a further child race.
-  **`check_ng_omp_nfft_all_levels` (Task 8, `tests/ng_omp.c:522`) fails in a
-  float `--enable-openmp` build**, found while running this task's own
-  full-matrix sanity check. Its per-node correctness assertion
-  (`tests/ng_omp.c:573`) uses a fixed absolute tolerance,
-  `K(1.0e-12) * (CABS(f_ref[j]) + K(1.0))` — a bound written with only double
-  precision in mind. `1.0e-12` is roughly five orders of magnitude below
-  float's own machine epsilon (~1.19e-7), so the assertion cannot pass in a
-  float build even for a correct result: any single-ULP rounding difference
-  between the reference call (built at `nthr = 1`, before
-  `X(plan_with_nthreads)(4)` is called) and the loop's `nthr = 4` calls —
-  expected and harmless, since a different DECONV/CONV solver answers below
-  `NFFT_PATIENT` — already exceeds it at float precision, while comfortably
-  clearing it at double or long-double precision (confirmed: double and
-  long-double both pass this test cleanly in this task's matrix run; only
-  float fails, and only this one assertion). This is a test-tolerance defect
-  in Task 8's test, not a solver correctness defect, and parallel in kind to
-  the pre-existing `check_nplan_ndft_accuracy` float gap ADR-0006 already
-  recorded — but it is a *different* test, not previously documented, and
-  this task's brief scopes only `docs/adr/` and `.claude/skills/` changes, so
-  it is recorded here rather than fixed.
 
 ## The measured scaling tables
 Throwaway harness (not committed; scratchpad only), private planners built
@@ -412,6 +376,45 @@ the race picks the serial solver in that regime automatically.
   (ADR-0005) — the roster itself is part of that signature, so linking or
   not linking the add-on already partitions wisdom correctly without any
   new mechanism.
+
+## Known gaps
+- `NFFT_NO_FAST_NATIVE` below `NFFT_PATIENT` with a raised thread count
+  still returns `NULL` — forbidding the only fast solver leaves the guru
+  with no plan to serve a request that also insists on more than one thread
+  being used, since the direct NDFT solvers are genuinely serial and still
+  decline.
+- The internal FFTW child plan inside `nfft_solver_fast_native` still runs
+  at one thread regardless of `pl->nthr` — nothing in this work touches
+  FFTW's own thread count.
+- CONV has no locality (cache-friendly node order) sort yet — see the
+  counting-sort discussion above.
+- **Task 7's timelimit-division-among-survivors plumbing in
+  `Y(planner_mkplan)` (the `budget / nsurvive` divide around the race loop)
+  is currently a no-op for DECONV and CONV**, since both are leaf problem
+  kinds with no further recursive `Y(planner_mkplan)` call inside their own
+  `mkplan` to inherit the divided budget, and the race loop itself enforces
+  no timeout of its own — not a defect, just dormant until a threaded
+  solver kind can itself recurse into a further child race.
+- **`check_ng_omp_nfft_all_levels` (Task 8, `tests/ng_omp.c:522`) fails in a
+  float `--enable-openmp` build**, found while running this task's own
+  full-matrix sanity check. Its per-node correctness assertion
+  (`tests/ng_omp.c:573`) uses a fixed absolute tolerance,
+  `K(1.0e-12) * (CABS(f_ref[j]) + K(1.0))` — a bound written with only
+  double precision in mind. `1.0e-12` is roughly five orders of magnitude
+  below float's own machine epsilon (~1.19e-7), so the assertion cannot
+  pass in a float build even for a correct result: any single-ULP rounding
+  difference between the reference call (built at `nthr = 1`, before
+  `X(plan_with_nthreads)(4)` is called) and the loop's `nthr = 4` calls —
+  expected and harmless, since a different DECONV/CONV solver answers below
+  `NFFT_PATIENT` — already exceeds it at float precision, while comfortably
+  clearing it at double or long-double precision (confirmed: double and
+  long-double both pass this test cleanly in this task's matrix run; only
+  float fails, and only this one assertion). This is a test-tolerance
+  defect in Task 8's test, not a solver correctness defect, and parallel in
+  kind to the pre-existing `check_nplan_ndft_accuracy` float gap ADR-0006
+  already recorded — but it is a *different* test, not previously
+  documented, and this task's brief scopes only `docs/adr/` and
+  `.claude/skills/` changes, so it is recorded here rather than fixed.
 
 ## Not decided here
 - Racing several thread counts against each other, or searching for a good
