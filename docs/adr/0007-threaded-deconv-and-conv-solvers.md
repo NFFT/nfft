@@ -11,8 +11,9 @@ refused and `pl->nthr` could never rise above 1. ADR-0006 gave every solver a
 composable operation count, but `Y(planner_mkplan)` still only ever measured
 at the top level; a recursive call picked its winner by estimate alone.
 
-This work fills both gaps: a threaded DECONV solver (Step A, every rank) and
-a threaded CONV solver (Step C, every rank, forward and adjoint), plus a real
+This work fills both gaps: a threaded DECONV solver (Step A, every rank up to
+`THREADS_MAX_RANK`) and a threaded CONV solver (Step C, every rank, forward
+and adjoint), plus a real
 recursive race in `Y(planner_mkplan)` so that a raised thread count now
 affects every node of the plan tree, not only the one the guru measures
 directly. `nfft_solver_fast_native` is reclassified from a serial solver to a
@@ -231,6 +232,161 @@ header rather than in the build system: it travels with the source (correct
 wherever `conv.h` is compiled, including out-of-tree consumers who build
 with their own flags) but rests on a mechanism GCC documents as less stable
 than a compiler flag.
+
+**Decision (final whole-branch review).** Keeping the pragma, and keeping
+`compare_conv`'s `memcmp`-equality assertion exactly as written, is a
+deliberate choice, not an incidental side effect of Task 6's debugging. R11
+is literal and binding: "The adjoint result is exactly equal to the serial
+result, at every thread count and every band count." Bit-equality between
+the serial and threaded CONV solvers on GCC is preserved because R11
+requires it in those words, at the measured cost above — roughly 1-8% on
+the forward and adjoint tap kernels on this host, GCC 13.3.0, aarch64 (see
+the table above). The rejected alternative, raised during review, was to
+drop the pragma and relax `compare_conv`'s comparison to a small
+relative-ULP tolerance against the serial solver, asserting only
+thread-count invariance instead of serial-vs-threaded bit-equality. That was
+rejected for two reasons: it would directly contradict R11's own "exactly
+equal" wording, and it would make this the only approximate-exactness test
+in a suite that is otherwise exact or `memcmp`-based throughout — R5's
+thread-count-invariance test and R11's own CONV test both compare by
+`memcmp` today. Relaxing one of the two to a tolerance would introduce an
+inconsistent precedent into the same test file rather than follow the one
+the PRD already set. This decision is not architecturally locked in: if the
+project later decides the performance cost outweighs literal bit-equality,
+dropping the pragma and relaxing the test to a tolerance is a small,
+localised change, confined to `kernel/conv/conv.h` and `compare_conv`.
+
+### ThreadSanitizer run (final whole-branch review)
+
+PRD.md's acceptance criterion asks for "one ThreadSanitizer run against
+clang's `libomp` during the adjoint task, recorded in the ADR rather than
+wired into CI — `libgomp` is not instrumented and reports false positives on
+every OpenMP barrier." This was attempted here, on the dev container
+(clang 18.1.3, aarch64, Ubuntu 24.04). The short version: clang does default
+to `libomp`, not `libgomp`, as the PRD assumed it would — but the underlying
+worry the PRD raised for `libgomp` turns out to apply to `libomp` too, for
+the same reason (barrier synchronisation invisible to TSan's happens-before
+model), and no `libomp` build available in this environment — the distro
+package or one built from clang 18's own matching release source with
+`-fsanitize=thread` — comes back clean for even a trivial OpenMP program.
+
+**Confirming clang's default runtime.** `clang -fopenmp -fsanitize=thread -###
+-o /tmp/x /dev/null` shows the link line pulling
+`libclang_rt.tsan-aarch64.a` and `-lomp` — clang's own driver links `libomp`
+for `-fopenmp` on this distribution, never `libgomp`, so the PRD's premise
+("clang's libomp") holds without any special flag.
+
+**Attempt 1: the distribution's `libomp.so.5` (`libomp5-18`, not built with
+TSan instrumentation).** A trivial `#pragma omp parallel for
+reduction(+:s)` program, compiled `clang -fopenmp -fsanitize=thread -O1 -g`,
+reports a data race before a single line of user code runs:
+```
+WARNING: ThreadSanitizer: data race (pid=...)
+  Atomic read of size 1 ... by main thread:
+    #0 pthread_mutex_lock ...
+    #1 <null> <null> (libomp.so.5+0xb7064)
+  Previous write of size 1 ... by thread T8:
+    #0 pthread_mutex_init ...
+    #1 <null> <null> (libomp.so.5+0xb3aa8)
+```
+This is a mutex-reuse false positive inside `libomp`'s own thread-pool
+bookkeeping (`pthread_mutex_init` on memory a pooled worker's prior mutex
+occupied, raced against a later `pthread_mutex_lock` from the same pool) —
+`libomp.so.5` itself carries no TSan instrumentation, so its internal
+synchronisation is invisible to the tool from the outside. A suppression
+targeting `libomp.so.5` by name (`called_from_lib:libomp.so.5`,
+`race:libomp.so.5`) silences it, but a second experiment — the same
+technique applied to a program with a *genuine*, deliberately planted user
+race (`g[i % 4] += i` across an unsynchronised `omp for`) — also went
+silent under that suppression. A module-name suppression broad enough to
+hide `libomp`'s internal noise is also broad enough to hide a real user race
+whose call stack passes through `libomp` (which every OpenMP-parallel write
+does, via the fork/dispatch frames), so this route was abandoned as unsound
+rather than merely noisy.
+
+**Attempt 2: a `libomp` built from source with `-fsanitize=thread`.** To
+rule out "the distro package just isn't instrumented" as the whole story,
+`openmp-18.1.3.src.tar.xz` (matching the installed clang 18.1.3 exactly) was
+fetched and built standalone (`cmake ... -DCMAKE_C_COMPILER=clang
+-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS=-fsanitize=thread
+-DCMAKE_CXX_FLAGS=-fsanitize=thread -DLIBOMP_ENABLE_SHARED=ON
+-DOPENMP_ENABLE_LIBOMPTARGET=OFF`), producing a genuinely TSan-instrumented
+`libomp.so`, confirmed by TSan's own reports resolving into the fetched
+`openmp-src/runtime/src/*.cpp` sources by file and line once loaded via
+`LD_LIBRARY_PATH` (with a `libomp.so.5` symlink so the dynamic loader
+actually picks it over the system copy). Even with a real,
+source-instrumented runtime, the trivial reduction program above still
+races — this time inside the runtime's own barrier and thread-launch code:
+```
+WARNING: ThreadSanitizer: data race (pid=...)
+  Write of size 8 ... by main thread:
+    #0 __kmp_allocate_thread kmp_runtime.cpp:4559
+    #1 __kmp_allocate_team kmp_runtime.cpp:5390
+    ...
+  Previous read of size 8 ... by thread T1:
+    #0 __kmp_check_stack_overlap kmp_runtime.cpp:321
+    #1 __kmp_launch_worker(void*) z_Linux_util.cpp:562
+```
+
+**Running the actual target: `checkall_ng_omp` under the from-source
+instrumented `libomp`.** The project was rebuilt with `CC=clang
+CFLAGS="-g -O1 -fsanitize=thread -fno-omit-frame-pointer"
+LDFLAGS="-fsanitize=thread"` (overridden on the `make` command line, since
+this project's `configure.ac` runs `AX_CC_MAXOPT` regardless of an
+inherited `CFLAGS` — an unrelated, pre-existing autoconf-generated-script
+quirk, `ac_test_CFLAGS` compares against a literal that the current
+autoconf version no longer produces), then `tests/checkall_ng_omp` was run
+directly (CUnit drives every registered case, including
+`check_ng_omp_conv_adjoint` and its narrow-grid/clustered/wrap siblings, at
+2, 4 and 7 threads internally) with the instrumented `libomp.so`
+preloaded via `LD_LIBRARY_PATH`. The run reports on the order of a thousand
+warnings (983 in one representative run), but inspecting where the two
+racing accesses actually happen shows the same pattern throughout: every
+block's top frame is either (a) literally inside `libomp`'s own runtime —
+`kmp_barrier.cpp`, `kmp_runtime.cpp`, `kmp_wait_release.h`,
+`z_Linux_util.cpp` — including several that are TSan flagging the barrier's
+*own release operation* (`__kmp_hyper_barrier_release`,
+`flag_traits<...>::test_then_add4`) as racing against a worker spinning on
+the same flag, which is the barrier mechanism working as designed, not a
+bug; or (b) a legitimate serial read in the test harness (e.g.
+`compare_rank`'s post-`run_once` comparison loop, `tests/ng_omp.c:141`) of
+memory a worker thread wrote *inside* the now-finished parallel region
+(`kernel/threads/deconv.c`'s or `kernel/threads/conv.c`'s outlined
+lambda) — i.e. TSan reporting a race between a parallel write and the very
+serial read the `#pragma omp parallel` region's implicit join barrier exists
+to make safe. Category (b) is the "false positives on every OpenMP barrier"
+failure mode the PRD named for `libgomp`, reproduced here against `libomp`,
+including one built from source with instrumentation: `libomp`'s spin-wait
+barrier releases a worker via a plain atomic flag flip
+(`kmp_wait_release.h`) without the explicit TSan happens-before annotation
+(`__tsan_acquire`/`__tsan_release`) that would be needed for the tool to
+recognise it as a synchronisation point, so every read that follows a
+parallel write — which is every test in this suite — is flagged, drowning
+out anything a real race in `kernel/threads/conv.c` or `deconv.c` would look
+like.
+
+**What this does and does not show.** It does not deliver a clean run — no
+`libomp` available in this environment, distribution-packaged or built from
+the matching release source with `-fsanitize=thread`, currently comes back
+clean for *any* OpenMP program under TSan on this host, before any NFFT code
+runs at all. It does confirm the PRD's premise that clang links `libomp` by
+default, and it does show, by direct inspection of every reported race's
+call stacks across a real run of `checkall_ng_omp`, that none of the
+roughly-a-thousand reports point at a plausible genuine cross-thread
+conflict over shared NFFT data (`g`, `f_hat`, `f`, the band/`u`/`psi`
+tables) — every one resolves to either `libomp`'s own internals or the
+barrier-invisibility pattern above. TSan detects races on instrumented code
+its happens-before model can see; it cannot currently see past `libomp`'s
+own barrier implementation on this toolchain, instrumented or not, which
+means a TSan run in this environment cannot today distinguish "no race" from
+"a race hidden behind the same barrier that hides all this noise." The
+corroborating evidence for actual thread-safety is the non-TSan evidence
+this branch already has in quantity: R5's and R11's `memcmp`-exact
+comparisons at 2, 4 and 7 threads, run for real (not simulated) in
+`make check` across double, float and long-double builds (see the test
+results recorded elsewhere in this ADR and in the branch's own task
+reports), which is precisely the kind of check a genuine race would be
+likely to eventually break and has not.
 
 ## The measured scaling tables
 Throwaway harness (not committed; scratchpad only), private planners built

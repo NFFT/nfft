@@ -62,8 +62,9 @@ those were the removed wrapper roster.
 `kernel/threads/conf.c` (built only into the add-on library
 `libnfft3<suffix>_ng_omp`) is the *only* place a threaded solver is
 registered. It now holds two: `deconv_solver_threaded`
-(`kernel/threads/deconv.c`) and `conv_solver_threaded`
-(`kernel/threads/conv.c`), each covering every rank of its kind. Both decline
+(`kernel/threads/deconv.c`), covering every rank up to `THREADS_MAX_RANK`,
+and `conv_solver_threaded` (`kernel/threads/conv.c`), covering every rank
+uncapped. Both decline
 below a two-thread budget (`pl->nthr < 2`), so linking the add-on and calling
 `X(plan_with_nthreads)` with a count of 1 changes no plan. Above that, both
 are gated the same way every serial DECONV/CONV solver is: below

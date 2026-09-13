@@ -163,7 +163,8 @@ int  nfft_planner_nthreads(void);
 ```
 
 The threaded roster now holds two solvers (`deconv_solver_threaded`,
-`conv_solver_threaded`, both covering every rank — see
+`conv_solver_threaded`; DECONV covers every rank up to `THREADS_MAX_RANK`,
+CONV every rank uncapped — see
 [solvers-problems-windows.md](reference/solvers-problems-windows.md)), so
 `nfft_init_threads` returns **1**, not 0. A raised thread count
 (`nfft_plan_with_nthreads(n)`, `n > 1`) now plans at *every* patience level:
