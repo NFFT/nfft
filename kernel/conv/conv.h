@@ -22,6 +22,13 @@
 #ifndef NFFT_CONV_H
 #define NFFT_CONV_H
 
+/* FMA fusion under -ffast-math can vary by call site, rounding the same
+ * accumulation order differently for band-clipped calls vs whole-axis ones.
+ * GCC ignores STDC FP_CONTRACT under -ffast-math, hence this override. */
+#if defined(__GNUC__) && !defined(__clang__)
+# pragma GCC optimize("fp-contract=off")
+#endif
+
 /* Split one axis' window support -- len taps starting at wrapped grid cell u --
  * into two contiguous runs (the second is empty when the support does not wrap
  * past n). tof[r] indexes psi, gof[r] indexes the grid, rl[r] is the length. */

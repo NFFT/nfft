@@ -44,4 +44,16 @@ void Y(check_ng_omp_declines_serial_budget)(void);
 /* The threaded CONV forward reproduces the serial one to the last bit. */
 void Y(check_ng_omp_conv_forward)(void);
 
+/* The threaded CONV adjoint reproduces the serial one to the last bit. */
+void Y(check_ng_omp_conv_adjoint)(void);
+
+/* A grid too narrow to band (nb == 1) still matches the serial solver. */
+void Y(check_ng_omp_conv_narrow_grid)(void);
+
+/* Nodes clustered into a slice of the grid still match the serial solver. */
+void Y(check_ng_omp_conv_clustered)(void);
+
+/* A band count that does not divide the grid, wrapping at the boundary. */
+void Y(check_ng_omp_conv_wrap)(void);
+
 #endif /* NG_OMP_TEST_H */

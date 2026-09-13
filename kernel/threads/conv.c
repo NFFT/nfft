@@ -180,17 +180,56 @@ static void apply(const plan *ego_, const problem *p)
     f[j] = node(pln, g, j, 0, n0, K(0.0), 1);
 }
 
-/* Filled in the next task. */
+/* Bands, not nodes. Thread ownership follows the omp for, not the thread id,
+ * so a team smaller than nb is still correct: every band is visited exactly
+ * once and bands write disjoint rows.
+ *
+ * A node's support is at most len rows wide and every band is at least len
+ * rows wide, so a node reaching band b starts in band b or in its cyclic
+ * predecessor. Merging those two lists in ascending j gives each cell the same
+ * accumulation order the serial solver produces, whatever nb is. */
 static void apply_adjoint(const plan *ego_, const problem *p)
 {
   const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
   const problem_conv *pc = (const problem_conv *)p;
   C *g = pc->g;
   const C *f = pc->f;
-  INT j;
-  memset(g, 0, (size_t)pln->ntot * sizeof(C));
-  for (j = 0; j < pln->M; j++)
-    (void)node(pln, g, j, 0, pln->n[0], f[j], 0);
+  const INT ntot = pln->ntot, n0 = pln->n[0], band = pln->band;
+  const int nb = pln->nb;
+  INT i;
+
+#pragma omp parallel num_threads(pln->nthr)
+  {
+    INT k;
+    /* The scatter accumulates into an overlapping, node-dependent set that
+     * does not cover the grid, so the whole grid must start zeroed. The
+     * implicit barrier is what orders the clear before the writes. */
+#pragma omp for schedule(static)
+    for (k = 0; k < ntot; k++)
+      g[k] = K(0.0);
+
+#pragma omp for schedule(dynamic, 1)
+    for (k = 0; k < (INT)nb; k++) {
+      const int b = (int)k;
+      const int prev = (b == 0) ? nb - 1 : b - 1;
+      const INT lo = (INT)b * band;
+      const INT hi = (b == nb - 1) ? n0 : lo + band;
+      INT ia = pln->bstart[prev], ea = pln->bstart[prev + 1];
+      INT ib = pln->bstart[b], eb = pln->bstart[b + 1];
+      if (nb == 1) /* one band: its own predecessor, so take the list once */
+        ia = ea;
+      /* Two ascending lists merged into one ascending pass over j. */
+      while (ia < ea || ib < eb) {
+        INT j;
+        if (ib >= eb || (ia < ea && pln->border[ia] < pln->border[ib]))
+          j = pln->border[ia++];
+        else
+          j = pln->border[ib++];
+        (void)node(pln, g, j, lo, hi, f[j], 0);
+      }
+    }
+  }
+  (void)i;
 }
 
 static void print(const plan *ego_, printer *pr)

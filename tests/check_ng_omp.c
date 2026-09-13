@@ -42,6 +42,10 @@ int main(void)
   CU_add_test(ng_omp, "declines_serial_budget",
               Y(check_ng_omp_declines_serial_budget));
   CU_add_test(ng_omp, "conv_forward", Y(check_ng_omp_conv_forward));
+  CU_add_test(ng_omp, "conv_adjoint", Y(check_ng_omp_conv_adjoint));
+  CU_add_test(ng_omp, "conv_narrow_grid", Y(check_ng_omp_conv_narrow_grid));
+  CU_add_test(ng_omp, "conv_clustered", Y(check_ng_omp_conv_clustered));
+  CU_add_test(ng_omp, "conv_wrap", Y(check_ng_omp_conv_wrap));
 
   CU_automated_run_tests();
   // CU_basic_run_tests();

@@ -306,8 +306,10 @@ static planner *both_conv_rosters(int nthr, int force_threaded)
 /* The threaded CONV solver reproduces the serial one to the last bit: the same
  * kernels, the same per-node order. Anything less means an operation moved.
  * counts covers a team larger than the band count and one that is not a
- * divisor of it. */
-static void compare_conv(int d, const INT *N, const INT *n, INT M, int forward)
+ * divisor of it. clustered picks the node fill: spread across the whole axis,
+ * or packed into a 2% slice of it. */
+static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
+                              int forward, int clustered)
 {
   const int w = Y(get_window_id)();
   const int counts[3] = {2, 4, 7};
@@ -325,8 +327,12 @@ static void compare_conv(int d, const INT *N, const INT *n, INT M, int forward)
   f_ref = (C *)Y(malloc)((size_t)M * sizeof(C));
   f_got = (C *)Y(malloc)((size_t)M * sizeof(C));
 
-  for (i = 0; i < M * d; i++)
-    x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
+  if (clustered)
+    for (i = 0; i < M * d; i++)
+      x[i] = K(0.02) * ((R)((i * 7919) % 1000) / K(1000.0)) - K(0.49);
+  else
+    for (i = 0; i < M * d; i++)
+      x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
   for (i = 0; i < ntot; i++)
     g_ref[i] = (R)(i + 1) / (R)ntot - K(0.25) * II;
   for (i = 0; i < M; i++)
@@ -369,6 +375,17 @@ static void compare_conv(int d, const INT *N, const INT *n, INT M, int forward)
   Y(free)(x);
 }
 
+static void compare_conv(int d, const INT *N, const INT *n, INT M, int forward)
+{
+  compare_conv_body(d, N, n, M, forward, 0);
+}
+
+static void compare_conv_clustered(int d, const INT *N, const INT *n, INT M,
+                                   int forward)
+{
+  compare_conv_body(d, N, n, M, forward, 1);
+}
+
 void Y(check_ng_omp_conv_forward)(void)
 {
   {
@@ -387,4 +404,56 @@ void Y(check_ng_omp_conv_forward)(void)
     const INT N[4] = {6, 6, 8, 8}, n[4] = {24, 24, 24, 24};
     compare_conv(4, N, n, 60, 1);
   }
+}
+
+void Y(check_ng_omp_conv_adjoint)(void)
+{
+  {
+    const INT N[1] = {64}, n[1] = {128};
+    compare_conv(1, N, n, 200, 0);
+  }
+  {
+    const INT N[2] = {16, 24}, n[2] = {48, 64};
+    compare_conv(2, N, n, 150, 0);
+  }
+  {
+    const INT N[3] = {8, 10, 12}, n[3] = {32, 32, 32};
+    compare_conv(3, N, n, 120, 0);
+  }
+  {
+    const INT N[4] = {6, 6, 8, 8}, n[4] = {24, 24, 24, 24};
+    compare_conv(4, N, n, 60, 0);
+  }
+}
+
+/* n[0] = 20 against a support of 2*6+2 = 14 rows leaves room for one band, so
+ * the adjoint runs on one thread while the forward still uses the team. The
+ * result must be the serial one either way. Nodes are pushed against the
+ * wrap so that the cyclic predecessor is exercised. */
+void Y(check_ng_omp_conv_narrow_grid)(void)
+{
+  const INT N[2] = {8, 8}, n[2] = {20, 20};
+  compare_conv(2, N, n, 80, 0);
+  compare_conv(2, N, n, 80, 1);
+}
+
+/* Nodes clustered into a tenth of the grid: most bands hold nothing and one
+ * holds nearly everything. This is where an off-by-one in the merge shows,
+ * since a band's predecessor list is then either empty or the whole set. It is
+ * a correctness case only -- the balance claim it motivates is a performance
+ * claim and belongs in the ADR's measured table. */
+void Y(check_ng_omp_conv_clustered)(void)
+{
+  const INT N[2] = {16, 16}, n[2] = {64, 64};
+  compare_conv_clustered(2, N, n, 400, 0);
+  compare_conv_clustered(2, N, n, 400, 1);
+}
+
+/* A band count that does not divide the grid, and nodes crowded at the wrap,
+ * so that the last band is wider than the rest and band 0's predecessor is the
+ * last one. */
+void Y(check_ng_omp_conv_wrap)(void)
+{
+  const INT N[1] = {16}, n[1] = {45};
+  compare_conv(1, N, n, 300, 0);
 }
