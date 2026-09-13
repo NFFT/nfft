@@ -1104,9 +1104,11 @@ void Y(check_planner_trinity_mkplan)(void)
   Y(problem_destroy)(prb);
 
   /* gated search: NO_DIRECT filters the 0.5 solver; the 10.0 tie keeps
-   * the earlier-encountered candidate (reverse order: tie before cheap) */
+   * the earlier-encountered candidate (reverse order: tie before cheap).
+   * Estimate patience, because a measured race cannot order two plans with
+   * identical operation counts by timing a no-op apply. */
   pl->flags.l = PLNR_NO_DIRECT;
-  pl->flags.u = PLNR_NO_DIRECT;
+  pl->flags.u = PLNR_NO_DIRECT | PLNR_ESTIMATE;
   prb = mk_mock_problem(2);
   pln = Y(planner_mkplan)(pl, prb);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln);

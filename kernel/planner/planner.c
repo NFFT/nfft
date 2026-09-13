@@ -457,6 +457,7 @@ planner *Y(planner_create)(void)
   memset(&pl->flags, 0, sizeof(pl->flags));
   pl->wisdom_state = PLNR_WISDOM_NORMAL;
   pl->timelimit_seconds = -1.0; /* unlimited default */
+  pl->nmeasured = 0;
   return pl;
 }
 
@@ -557,16 +558,19 @@ static flags_t search_flags(planner *pl)
 
 /* Every mkplan the search performs runs inside the caller's budget and may not
  * change it for the next candidate. A threaded solver lowers pl->nthr for its
- * children; this restores it. FFTW does the same in invoke_solver. */
+ * children and a recursive mkplan divides the timelimit among its survivors;
+ * this restores both. FFTW does the same in invoke_solver. */
 static plan *invoke_solver(planner *pl, const problem *p, solver *s)
 {
   int nthr = pl->nthr;
   unsigned l = pl->flags.l, u = pl->flags.u, info = pl->flags.info;
+  double timelimit = pl->timelimit_seconds;
   plan *pln = s->adt->mkplan(s, p, pl);
   pl->nthr = nthr;
   pl->flags.l = l;
   pl->flags.u = u;
   pl->flags.info = info;
+  pl->timelimit_seconds = timelimit;
   return pln;
 }
 
@@ -600,6 +604,7 @@ int Y(evaluate_plan)(planner *pl, plan *pln, const problem *p)
   if ((PLNR_U(pl) & PLNR_ESTIMATE) || !(PLNR_U(pl) & PLNR_BELIEVE_PCOST)
       || pln->pcost == 0.0) {
     double t;
+    pl->nmeasured++; /* one evaluation spent, estimate or measurement */
     if (PLNR_U(pl) & PLNR_ESTIMATE) {
       pln->pcost = Y(iestimate_cost)(pl, pln, p);
       return 0;
@@ -615,10 +620,11 @@ int Y(evaluate_plan)(planner *pl, plan *pln, const problem *p)
   return 1;
 }
 
-/* Consult wisdom, else try every registered solver of the problem's kind and
- * keep the cheapest by the operation-count estimate, memoising the outcome
- * unblessed. Nothing is measured here: pcost stays zero until whoever hands
- * the plan back calls Y(evaluate_plan). */
+/* Consult wisdom, else enumerate every registered solver of the problem's
+ * kind, gate the candidates on the operation-count estimate and race the
+ * survivors -- by measurement, except under PLNR_ESTIMATE where the estimate
+ * itself is the comparison -- keeping the cheapest and memoising the outcome
+ * unblessed. A lone candidate is adopted untimed, so its pcost stays zero. */
 plan *Y(planner_mkplan)(planner *pl, const problem *p)
 {
   md5sig sig;
@@ -627,6 +633,7 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
   plan *best = 0;
   double best_cost = 0.0;
   slvdesc *best_desc = 0;
+  int estmode = (PLNR_U(pl) & PLNR_ESTIMATE) != 0;
 
   Y(problem_md5)(pl, p, sig);
   q = search_flags(pl);
@@ -672,23 +679,78 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
   if (pl->wisdom_state == PLNR_WISDOM_IS_BOGUS)
     return 0;
 
-  /* The strict compare is the determinism contract: ties keep the
-   * earlier-encountered candidate. */
-  FORALL_SOLVERS_OF_KIND(p->adt->kind, pl, s, d, {
-    plan *pln = invoke_solver(pl, p, s);
-    if (pln != 0) {
-      double cost = Y(iestimate_cost)(pl, pln, p);
-      if (best == 0 || cost < best_cost) {
-        if (best != 0)
-          Y(plan_destroy)(best);
-        best = pln;
-        best_cost = cost;
-        best_desc = d;
-      } else {
-        Y(plan_destroy)(pln);
-      }
+  /* Enumerate, gate on the estimate, evaluate the survivors, keep the
+   * cheapest. A lone survivor is adopted untimed -- there is nothing to
+   * compare it against, and the guru's own lone-survivor path (kernel/nfft/
+   * plan.c) has always done this. FFTW measures a lone candidate anyway,
+   * because its pcost is zero there; this is a deliberate divergence.
+   *
+   * Under PLNR_ESTIMATE the survivors are compared by estimate alone: no
+   * awake cycle, no apply, pcost left zero for the caller to fill. FFTW's
+   * mkplan0 does the same, and here it is what lets an estimate-patience
+   * caller pass a problem whose data pointers are never read (the key-probe
+   * problems in tests, children built during a measured parent's
+   * enumeration). The strict compare is the determinism contract: ties keep
+   * the earlier-encountered candidate. */
+  {
+    int cap = (int)pl->nslvdesc;
+    plan **cands = (plan **)Y(malloc)((size_t)cap * sizeof(plan *));
+    unsigned *cslv = (unsigned *)Y(malloc)((size_t)cap * sizeof(unsigned));
+    int nc = Y(planner_candidates)(pl, p, cands, cslv, cap);
+    int ci, nsurvive = 0, lone = -1;
+    double min_est = 0.0, prune_bound;
+
+    for (ci = 0; ci < nc; ci++) {
+      double e = Y(iestimate_cost)(pl, cands[ci], p);
+      if (ci == 0 || e < min_est)
+        min_est = e;
     }
-  });
+    prune_bound = PLNR_PRUNE_RATIO * min_est;
+    for (ci = 0; ci < nc; ci++)
+      if (Y(iestimate_cost)(pl, cands[ci], p) <= prune_bound) {
+        nsurvive++;
+        lone = ci;
+      }
+
+    if (nsurvive > 1) {
+      double budget = Y(planner_timelimit)(pl);
+      /* Divide what is left by the survivors, so a deep tree cannot spend the
+       * whole budget at one node. invoke_solver restores it for the caller. */
+      if (!estmode && budget >= 0.0)
+        pl->timelimit_seconds = budget / (double)nsurvive;
+      for (ci = 0; ci < nc; ci++) {
+        if (Y(iestimate_cost)(pl, cands[ci], p) > prune_bound)
+          continue;
+        if (estmode) {
+          double e = Y(iestimate_cost)(pl, cands[ci], p);
+          if (best == 0 || e < best_cost) {
+            best = cands[ci];
+            best_cost = e;
+            best_desc = pl->slvdescs + cslv[ci];
+          }
+        } else {
+          Y(plan_awake)(cands[ci], PLNR_AWAKE_ZERO);
+          Y(evaluate_plan)(pl, cands[ci], p);
+          Y(plan_awake)(cands[ci], PLNR_SLEEPY);
+          if (best == 0 || cands[ci]->pcost < best->pcost) {
+            best = cands[ci];
+            best_desc = pl->slvdescs + cslv[ci];
+          }
+        }
+      }
+      if (!estmode && budget >= 0.0)
+        pl->timelimit_seconds = budget;
+    } else if (nsurvive == 1) {
+      best = cands[lone];
+      best_desc = pl->slvdescs + cslv[lone];
+    }
+
+    for (ci = 0; ci < nc; ci++)
+      if (cands[ci] != best)
+        Y(plan_destroy)(cands[ci]);
+    Y(free)(cslv);
+    Y(free)(cands);
+  }
 
   /* Memoise unblessed. Reached only when the lookup did not answer, so the
    * insert never duplicates a live hit. */

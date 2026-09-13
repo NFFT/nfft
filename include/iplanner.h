@@ -327,6 +327,7 @@ struct planner_s {
   flags_t flags;
   wisdom_state_t wisdom_state;
   double timelimit_seconds; /* wall-clock planning budget; -1.0 = unlimited */
+  unsigned nmeasured; /* plans evaluated this planner's life (tests) */
 };
 
 planner *Y(planner_create)(void);

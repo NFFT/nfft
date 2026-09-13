@@ -457,3 +457,36 @@ void Y(check_ng_omp_conv_wrap)(void)
   const INT N[1] = {16}, n[1] = {45};
   compare_conv(1, N, n, 300, 0);
 }
+
+/* With both rosters live and two threads, a DECONV child problem has two
+ * applicable solvers, so both are measured and the winner carries a measured
+ * cost. This is the race the whole branch exists to enable. */
+void Y(check_ng_omp_child_race)(void)
+{
+  const INT N = 4096, n = 8192;
+  const int w = Y(get_window_id)();
+  C *fh = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *g = (C *)Y(malloc)((size_t)n * sizeof(C));
+  planner *pl = both_rosters(4, 0);
+  problem *p;
+  plan *pln;
+  INT i;
+
+  for (i = 0; i < N; i++)
+    fh[i] = K(1.0);
+  for (i = 0; i < n; i++)
+    g[i] = K(0.0);
+
+  pl->nmeasured = 0;
+  p = Y(mkproblem_deconv)(1, &N, 0, &n, 6, w, 1, fh, g);
+  pln = Y(planner_mkplan)(pl, p);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+  CU_ASSERT_EQUAL(pl->nmeasured, 2u);
+  CU_ASSERT_TRUE(pln->pcost > 0.0);
+  Y(plan_destroy)(pln);
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+
+  Y(free)(g);
+  Y(free)(fh);
+}

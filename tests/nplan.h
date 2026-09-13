@@ -183,4 +183,9 @@ void Y(check_nplan_wisdom_only)(void);
  * key while planning different child FFTs. */
 void Y(check_nplan_patience_levels)(void);
 
+/* A child problem with a single applicable solver is adopted untimed: the
+ * planner's measurement count stays zero (the two-solver half of this
+ * contract lives in tests/ng_omp.c, which links the threaded solver). */
+void Y(check_nplan_child_race)(void);
+
 #endif

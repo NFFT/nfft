@@ -44,10 +44,10 @@ static unsigned keyable_fftw_flags(unsigned fftw_flags)
 
 /* Estimate-mode selection under the planner's current bounds (the caller sets
  * l/u, PLNR_ESTIMATE among them). Fills p->dir[]; returns 1 if at least one
- * direction succeeded. Y(planner_mkplan) selects on the operation-count
- * estimate but leaves pcost zero, so each returned plan is evaluated here --
- * PLNR_ESTIMATE in u makes that the estimate, never a measurement -- and the
- * bundle is handed back carrying a printable figure. */
+ * direction succeeded. Y(planner_mkplan) picks by operation-count estimate,
+ * so each returned plan is evaluated here -- PLNR_ESTIMATE in u makes that
+ * the estimate, never a measurement -- and the bundle is handed back
+ * carrying a printable figure. */
 static int select_estimate(Y(plan_ng) *p, planner *pl)
 {
   int dirn;
@@ -188,15 +188,50 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
   pl->flags.l = F;
   pl->flags.u = F;
 
-  /* Candidate arrays, NCAND_MAX per direction. ncands[dirn] counts the plans
-   * still owned by cands[dirn]; it drops back to 0 once they are destroyed or
-   * a winner has moved into dir[dirn], so no cleanup path can free a plan
-   * twice. */
-  enum { NCAND_MAX = 8 };
-  plan *cands[2][NCAND_MAX];
-  unsigned cslvndx[2][NCAND_MAX];
+#ifdef NFFT_DEBUG
+  /* x-restore guard: snapshot the top-level problem's owned x copy before any
+   * candidate is built. Re-verified around the whole planner_candidates call
+   * and after the winner is adopted -- the resolution is whole-call now that
+   * the race lives inside Y(planner_mkplan): a candidate that corrupts x and
+   * a later one that restores it would slip through, a coarsening accepted
+   * because it is contrived, debug-only, and against a bug class that has
+   * never fired. x is the COMPRESSED copy (rnk*M reals, not d*M). Sizing the
+   * guard from the original d would over-read out of bounds in debug
+   * builds. */
+  md5sig x_sig_entry;
+  INT dM_guard = (INT)((const problem_nfft *)p->prob[FWD])->sz->rnk * M;
+  Y(
+  nfft_x_md5)(((const problem_nfft *)p->prob[FWD])->x, dM_guard, x_sig_entry);
+# define VERIFY_X                                                             \
+   A(Y(nfft_x_verify)(((const problem_nfft *)p->prob[FWD])->x, dM_guard,      \
+                      x_sig_entry))
+#else
+# define VERIFY_X ((void)0)
+#endif
+
+  /* Candidate arrays sized from the roster: Y(planner_candidates) A(0)-aborts
+   * past cap and silently destroys the overflow, and A() is a no-op in
+   * release, so a fixed cap would eat candidates whole once the rosters grow
+   * past it. ncands[dirn] counts the plans still owned by cands[dirn]; it
+   * drops back to 0 once they are destroyed or a winner has moved into
+   * dir[dirn], so no cleanup path can free a plan twice. Freed on every exit
+   * path below. */
+  plan **cands[2];
+  unsigned *cslvndx[2];
+  double *est; /* each candidate's operation-count estimate */
   int ncands[2];
   int dirn;
+  int cap;
+
+  {
+    int n = pl->nslvdesc > 0u ? (int)pl->nslvdesc : 1;
+    cands[FWD] = (plan **)Y(malloc)((size_t)n * sizeof(plan *));
+    cands[ADJ] = (plan **)Y(malloc)((size_t)n * sizeof(plan *));
+    cslvndx[FWD] = (unsigned *)Y(malloc)((size_t)n * sizeof(unsigned));
+    cslvndx[ADJ] = (unsigned *)Y(malloc)((size_t)n * sizeof(unsigned));
+    est = (double *)Y(malloc)((size_t)n * sizeof(double));
+    cap = n;
+  }
 
   for (dirn = FWD; dirn <= ADJ; dirn++) {
     md5sig sig;
@@ -245,9 +280,24 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
     if (pl->wisdom_state != PLNR_WISDOM_NORMAL)
       continue;
 
-    /* Enumerate candidates under current measured bounds. */
+    /* The candidates run on the caller's arrays, which may hold anything --
+     * f_hat is filled after planning -- and NaNs or denormals there would
+     * skew every timing. With the race inside Y(planner_mkplan) the children
+     * are timed inside the enumeration itself, so zero both once, before it
+     * rather than before the first top-level measurement. */
+    {
+      problem_nfft *pz = (problem_nfft *)p->prob[dirn];
+      memset(pz->f_hat, 0,
+             (size_t)Y(problem_nfft_Ntot)(p->prob[dirn]) * sizeof(C));
+      memset(pz->f, 0, (size_t)pz->M * sizeof(C));
+    }
+
+    /* Enumerate candidates under current measured bounds. Children race and
+     * awake inside this call, so VERIFY_X brackets the whole of it. */
+    VERIFY_X;
     ncands[dirn] = Y(planner_candidates)(pl, p->prob[dirn], cands[dirn],
-                                      cslvndx[dirn], NCAND_MAX);
+                                      cslvndx[dirn], cap);
+    VERIFY_X;
   }
 
   /* A direction is absent when it has neither a plan nor a candidate. */
@@ -260,6 +310,11 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       Y(problem_destroy)(p->prob[FWD]);
     if (p->prob[ADJ])
       Y(problem_destroy)(p->prob[ADJ]);
+    Y(free)(est);
+    Y(free)(cslvndx[ADJ]);
+    Y(free)(cslvndx[FWD]);
+    Y(free)(cands[ADJ]);
+    Y(free)(cands[FWD]);
     Y(free)(p);
     return 0;
   }
@@ -271,27 +326,10 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
     double tl = Y(planner_timelimit)(pl);
     double t_start = (tl >= 0.0) ? Y(planner_clock_now)() : 0.0;
 
-#ifdef NFFT_DEBUG
-    /* x-restore guard: snapshot the top-level problem's owned x copy before
-     * any candidate is awoken, re-verified whenever one goes back to SLEEPY. */
-    md5sig x_sig_entry;
-    /* x is the COMPRESSED copy (rnk*M reals, not d*M). Sizing the guard from
-     * the original d would over-read out of bounds in debug builds. */
-    INT dM_guard = (INT)((const problem_nfft *)p->prob[FWD])->sz->rnk * M;
-    Y(
-    nfft_x_md5)(((const problem_nfft *)p->prob[FWD])->x, dM_guard, x_sig_entry);
-# define VERIFY_X                                                             \
-   A(Y(nfft_x_verify)(((const problem_nfft *)p->prob[FWD])->x, dM_guard,      \
-                      x_sig_entry))
-#else
-# define VERIFY_X ((void)0)
-#endif
-
     for (dirn = FWD; dirn <= ADJ; dirn++) {
       int ci;
       int winner_idx;
       double winner_cost;
-      double est[NCAND_MAX]; /* each candidate's operation-count estimate */
       int cheapest; /* argmin over est */
       double prune_bound; /* PLNR_PRUNE_RATIO * the cheapest estimate */
       int nc;
@@ -337,16 +375,6 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
       }
 
-      /* The candidates run on the caller's arrays, which may hold anything --
-       * f_hat is filled after planning -- and NaNs or denormals there would
-       * skew every timing. Zero both once, before the first measurement. */
-      {
-        problem_nfft *pz = (problem_nfft *)p->prob[dirn];
-        memset(pz->f_hat, 0,
-               (size_t)Y(problem_nfft_Ntot)(p->prob[dirn]) * sizeof(C));
-        memset(pz->f, 0, (size_t)pz->M * sizeof(C));
-      }
-
       /* Two or more survivors: measure each. Strict-smallest cost wins; ties
        * keep the earlier-encountered candidate. */
       winner_idx = -1;
@@ -372,15 +400,12 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 
         /* Exactly one candidate is left awake: the running best. */
         if (winner_idx < 0 || cost < winner_cost) {
-          if (winner_idx >= 0) {
+          if (winner_idx >= 0)
             Y(plan_awake)(cands[dirn][winner_idx], PLNR_SLEEPY);
-            VERIFY_X;
-          }
           winner_idx = ci;
           winner_cost = cost;
         } else {
           Y(plan_awake)(cands[dirn][ci], PLNR_SLEEPY);
-          VERIFY_X;
         }
       }
 
@@ -393,7 +418,8 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         winner_idx = cheapest;
       }
 
-      /* The winner is never returned to SLEEPY, so verify x here instead. */
+      /* The winner is never returned to SLEEPY, so the second whole-call
+       * check lands here, after adoption rather than at every transition. */
       VERIFY_X;
 
       /* Destroy losers, adopt the winner. */
@@ -425,6 +451,12 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
       }
     }
   }
+
+  Y(free)(est);
+  Y(free)(cslvndx[ADJ]);
+  Y(free)(cslvndx[FWD]);
+  Y(free)(cands[ADJ]);
+  Y(free)(cands[FWD]);
 
   pl->flags.l = saved_l;
   pl->flags.u = saved_u;

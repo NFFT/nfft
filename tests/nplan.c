@@ -377,12 +377,18 @@ static problem *mk_problem_arr(int d, const INT *N, const INT *n, INT M, int m,
 
 /* Assert the winner is exactly solver `nam`. The print format is
  * "(<name> pcost=<int>)", so bracketing the name with '(' and ' ' pins the
- * token. */
+ * token. Runs the search at estimate patience: these problems carry no data
+ * (mk_problem passes NULL x/f_hat/f), and a measured race would awake and
+ * apply the candidates against those NULLs. */
 static void expect_winner(planner *pl, problem *p, const char *nam)
 {
-  plan *pln = Y(planner_mkplan)(pl, p);
+  unsigned saved_u = pl->flags.u;
+  plan *pln;
   char tok[64];
   char *desc;
+  pl->flags.u |= PLNR_ESTIMATE;
+  pln = Y(planner_mkplan)(pl, p);
+  pl->flags.u = saved_u;
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
   desc = str_of_fmt("%p", pln);
   tok[0] = '(';
@@ -3175,6 +3181,44 @@ void Y(check_nplan_wisdom_only)(void)
 /* Every patience level plans and executes, and each derives its own child FFTW
  * flags, which is what stops two levels sharing a wisdom key while planning
  * different child FFTs. */
+/* A child problem with two applicable solvers is raced, not estimated. The
+ * observable is that the planner's measurement count moves: a DECONV problem
+ * with both rosters live and two threads costs two evaluations, one with a
+ * single applicable solver costs none, because a lone candidate is adopted
+ * untimed as the guru's own lone-survivor path already does. The two-solver
+ * half lives in checkall_ng_omp (tests/ng_omp.c): only that binary links the
+ * add-on library that carries the threaded solver. */
+void Y(check_nplan_child_race)(void)
+{
+  planner *pl = Y(planner_create)();
+  const INT N = 4096, n = 8192;
+  const int w = Y(get_window_id)();
+  C *fh = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *g = (C *)Y(malloc)((size_t)n * sizeof(C));
+  problem *p;
+  plan *pln;
+  INT i;
+
+  for (i = 0; i < N; i++)
+    fh[i] = K(1.0);
+
+  /* One applicable solver: no measurement. */
+  Y(deconv_solvers_register)(pl);
+  pl->nthr = 1;
+  pl->nmeasured = 0;
+  p = Y(mkproblem_deconv)(1, &N, 0, &n, 6, w, 1, fh, g);
+  pln = Y(planner_mkplan)(pl, p);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
+  CU_ASSERT_EQUAL(pl->nmeasured, 0u);
+  CU_ASSERT_DOUBLE_EQUAL(pln->pcost, 0.0, 0.0); /* adopted untimed */
+  Y(plan_destroy)(pln);
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
+
+  Y(free)(g);
+  Y(free)(fh);
+}
+
 void Y(check_nplan_patience_levels)(void)
 {
   const INT N = 64, n = 128, M = 100;

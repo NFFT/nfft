@@ -209,6 +209,13 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
   pln->ntot = ntot;
   pln->g1 = (C *)Y(malloc)((size_t)ntot * sizeof(C));
   pln->g2 = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  /* Children are measured on their own, so the forward's CONV child would
+   * gather from a g2 the DECONV step never wrote. Uninitialised bytes read as
+   * doubles are frequently denormal, and a denormal operand can put the
+   * multiply on a microcode path an order of magnitude slower -- a plausible
+   * wrong number rather than a crash. */
+  memset(pln->g1, 0, (size_t)ntot * sizeof(C));
+  memset(pln->g2, 0, (size_t)ntot * sizeof(C));
   /* Internal FFTW plans. The user's flags follow FFTW's own vocabulary (0 is
    * FFTW_MEASURE); the FFTs touch only the owned g1/g2, so input preservation
    * is stripped and destruction forced. */
