@@ -529,6 +529,7 @@ void Y(check_ng_omp_nfft_all_levels)(void)
   C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
   INT j;
   int i;
+  R tol;
 
   for (j = 0; j < M; j++)
     x[j] = (R)j / (R)M - K(0.5);
@@ -548,6 +549,13 @@ void Y(check_ng_omp_nfft_all_levels)(void)
 
   NFFT(plan_with_nthreads)(4);
   CU_ASSERT_EQUAL(NFFT(planner_nthreads)(), 4);
+
+  /* max(1e-12, 1e4*eps): trafo vs. a genuinely different code path (threaded
+   * composer vs. the nthr=1 reference), so real precision-scale rounding is
+   * expected; the fixed floor alone is below float's own epsilon. */
+  tol = K(1.0e-12);
+  if ((R)1.0e4 * EPSILON > tol)
+    tol = (R)1.0e4 * EPSILON;
 
   for (i = 0; i < 3; i++) {
     Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
@@ -571,7 +579,7 @@ void Y(check_ng_omp_nfft_all_levels)(void)
     NFFT(execute)(p);
     for (j = 0; j < M; j++)
       CU_ASSERT_DOUBLE_EQUAL(CABS(f[j] - f_ref[j]), K(0.0),
-                             K(1.0e-12) * (CABS(f_ref[j]) + K(1.0)));
+                             tol * (CABS(f_ref[j]) + K(1.0)));
     NFFT(execute_adjoint)(p);
     NFFT(plan_ng_destroy)(p);
   }
