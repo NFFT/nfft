@@ -61,16 +61,26 @@ those were the removed wrapper roster.
 **The threaded roster is a separate table, registered in one place.**
 `kernel/threads/conf.c` (built only into the add-on library
 `libnfft3<suffix>_ng_omp`) is the *only* place a threaded solver is
-registered — today that table is empty, since no threaded solver has been
-written yet. `Y(nfft_threads_roster_size)()` reports its length, and
-`X(init_threads)` refuses (returns 0) whenever that length is 0, which is what
-keeps the planner from ever reaching a state with more than one thread
-requested and nothing registered to serve it. Adding the first entry to that
-table is what switches the whole mechanism on: it is also what makes
-`X(init_threads)` succeed, which is a precondition for `X(plan_with_nthreads)`
-ever raising `pl->nthr` above 1, which is in turn what makes the serial
-solvers' `NO_NONTHREADEDP` decline
-(see [planning-modes-and-flags.md](planning-modes-and-flags.md)) take effect.
+registered. It now holds two: `deconv_solver_threaded`
+(`kernel/threads/deconv.c`) and `conv_solver_threaded`
+(`kernel/threads/conv.c`), each covering every rank of its kind. Both decline
+below a two-thread budget (`pl->nthr < 2`), so linking the add-on and calling
+`X(plan_with_nthreads)` with a count of 1 changes no plan. Above that, both
+are gated the same way every serial DECONV/CONV solver is: below
+`NFFT_PATIENT` the serial solvers decline under `NO_NONTHREADEDP` (see
+[planning-modes-and-flags.md](planning-modes-and-flags.md)), leaving the
+threaded solver as the sole survivor; at `NFFT_PATIENT` and above the serial
+and threaded solvers of the same kind are raced against each other by real
+measured cost (`Y(planner_mkplan)`'s recursive child race — see ADR-0007). The
+serial and threaded CONV solvers share their per-node tap kernels
+(`kernel/conv/conv.h`'s `Y(conv_node_1d/2d/3d/nd)`), so the threaded adjoint's
+band-clipped calls reproduce the serial accumulation order to the last bit.
+`Y(nfft_threads_roster_size)()` reports the table's length (2), and
+`X(init_threads)` refuses (returns 0) whenever that length is 0 — the
+precondition that keeps the planner from ever reaching a state with more than
+one thread requested and nothing registered to serve it; with the roster
+populated, `X(init_threads)` now succeeds, which is what lets
+`X(plan_with_nthreads)` raise `pl->nthr` above 1 at all.
 
 ## The native fast NFFT (`kernel/nfft/nfft-nd.c`)
 

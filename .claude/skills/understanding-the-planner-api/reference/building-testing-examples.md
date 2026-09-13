@@ -49,13 +49,19 @@ One letter apart, two unrelated models — do not confuse them.
 
 Its own test binary is `checkall_ng_omp` (built only under `--enable-openmp`
 with `ENABLE_NG_OMP`), which links `libnfft3<suffix> + libnfft3<suffix>_ng_omp`
-and covers the add-on's contract while the threaded roster is empty:
-`X(init_threads)` failing, `X(plan_with_nthreads)` refusing to raise `pl->nthr`
-above 1, `X(cleanup_threads)` being a safe no-op when init never succeeded, and
-ordinary serial planning at every patience level still working through the
-add-on library. It does not yet exercise a populated roster, so it neither
-destroys in-memory wisdom nor observes FFTW's thread count reaching the wisdom
-key through the hook — those need the first threaded solver.
+and now covers a populated roster: `X(init_threads)` succeeding,
+`X(plan_with_nthreads)` raising `pl->nthr`, and `X(cleanup_threads)` putting it
+back. It compares the threaded DECONV and CONV solvers against their serial
+counterparts bit-exact (`memcmp`) at several thread counts, including counts
+that do not divide the CONV band count evenly, on both uniform and clustered
+node layouts and across ranks. It plans the full `nfft_solver_fast_native`
+composite at `NFFT_ESTIMATE`, `NFFT_MEASURE` and `NFFT_PATIENT` with a raised
+thread count, confirming both threaded children appear below `NFFT_PATIENT`
+(where `NO_NONTHREADED` structurally forces every serial DECONV/CONV solver to
+decline) and that planning still succeeds and the result is correct at
+`NFFT_PATIENT`, where the serial and threaded children race and either may
+legitimately win. It also confirms `NFFT_NO_FAST_NATIVE` still refuses below
+`NFFT_PATIENT` with a raised thread count. See ADR-0007.
 
 ## `--enable-debug` (the planner's extra checks)
 

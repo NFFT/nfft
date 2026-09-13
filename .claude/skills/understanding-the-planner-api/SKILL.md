@@ -155,12 +155,30 @@ library `libnfft3<suffix>_ng_omp` — link `-lnfft3_ng_omp -lnfft3` to use them;
 a program linking `libnfft3<suffix>` alone always plans at one thread:
 
 ```c
-int  nfft_init_threads(void);          /* 0 on an empty threaded roster */
+int  nfft_init_threads(void);          /* 1: the roster is populated (below) */
 void nfft_cleanup_threads(void);
 void nfft_plan_with_nthreads(int n);   /* max threads a plan may use; destroys
                                         * the planner and its wisdom first */
 int  nfft_planner_nthreads(void);
 ```
+
+The threaded roster now holds two solvers (`deconv_solver_threaded`,
+`conv_solver_threaded`, both covering every rank — see
+[solvers-problems-windows.md](reference/solvers-problems-windows.md)), so
+`nfft_init_threads` returns **1**, not 0. A raised thread count
+(`nfft_plan_with_nthreads(n)`, `n > 1`) now plans at *every* patience level:
+below `NFFT_PATIENT` the serial DECONV/CONV solvers decline under
+`NO_NONTHREADED` and their threaded counterparts are the sole survivors; at
+`NFFT_PATIENT` and above `Y(planner_mkplan)` races the serial and threaded
+solver of each kind by real measured cost, all the way down the tree (ADR-0007
+— the same mechanism this skill already described for the top-level guru now
+runs recursively for DECONV/CONV children too). The one exception:
+`NFFT_NO_FAST_NATIVE` below `NFFT_PATIENT` with a raised thread count still
+returns `NULL` — the direct NDFT solver is genuinely serial and declines under
+its own `NO_NONTHREADEDP`, and forbidding the only fast solver leaves nothing
+to serve the request. The internal FFTW child plan inside
+`nfft_solver_fast_native` is unaffected by any of this and always runs at one
+thread, whatever `pl->nthr` is.
 
 `nfft_plan_with_nthreads` raises the thread count, which is part of the wisdom
 key alongside FFTW's own thread count. Call it before any other NFFT routine,
