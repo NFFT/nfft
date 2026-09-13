@@ -88,8 +88,9 @@ counter — a property of the machine, so a per-candidate fallback is safe
 there. `Y(plan_measure_cost)` (`kernel/planner/timer.c`) returns negative for
 four reasons and only one, the missing clock at `timer.c:151`, is
 machine-wide; the other three are properties of this plan's `apply` against
-the clock resolution — a zero-reading level, a frozen clock, an exhausted
-per-candidate budget. Left as a pure per-candidate fallback, a race could
+the clock resolution — a zero-reading level, a frozen clock, or the
+per-candidate budget expiring before any strictly-positive batch reading was
+taken. Left as a pure per-candidate fallback, a race could
 compare an op count against seconds and discard the candidate whose `apply`
 was too fast to resolve, and a clockless machine would bless a selection
 backed by zero measurement.
@@ -197,6 +198,10 @@ against.
   been exported by a released build.
 - `docs/agents/pcost-calibration.md` is the calibration's document and was
   rewritten for the new estimator.
+- **A clockless host now exports no wisdom from measured planning.** Every
+  candidate there returns a negative `Y(plan_measure_cost)`, so the direction
+  grades estimate and memoises unblessed — where the deleted restart used to
+  rerun in estimate mode and bless that selection, nothing is blessed now.
 
 ## Known gaps
 - **The estimate is precision-dependent through its FFT term — a permanent

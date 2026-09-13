@@ -570,12 +570,7 @@ static plan *invoke_solver(planner *pl, const problem *p, solver *s)
   return pln;
 }
 
-/* Collapse an operation record to one comparable scalar. FFTW's weights
- * unchanged (kernel/planner.c:426): everything at one, fma once where the
- * hardware fuses and twice where it does not. Our kernels are more
- * bandwidth-bound than FFTW's codelets, so weighting `other` above one is
- * likely wanted -- the pcost-calibration sweep is what decides it, and doing
- * it here would make a movement in the numbers impossible to attribute. */
+/* See the declaration in iplanner.h for the estimator's rationale. */
 double Y(iestimate_cost)(const planner *pl, const plan *pln, const problem *p)
 {
   (void)pl;

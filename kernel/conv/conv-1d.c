@@ -27,8 +27,6 @@
 #include "iplanner.h"
 #include "conv.h"
 
-#include <math.h> /* pow */
-
 typedef struct {
   plan super;
   INT n, N, M; /* geometry captured at mkplan */
@@ -173,10 +171,10 @@ static plan *mkplan_conv_1d(const solver *ego, const problem *p, planner *pl)
    * (two loads: g, psi); other adds the per-axis conv_runs bookkeeping. */
   Y(ops_zero)(&pln->super.ops);
   {
-    const double taps = (double)pln->M * pow((double)(2 * pln->m + 2), 1.0);
+    const double taps = (double)pln->M * (double)(2 * pln->m + 2);
     pln->super.ops.mul = 2.0 * taps;
     pln->super.ops.add = 2.0 * taps;
-    pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * 1.0;
+    pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M;
   }
   return &pln->super;
 }
