@@ -60,4 +60,11 @@ void Y(check_ng_omp_conv_wrap)(void);
  * solvers are raced by measurement. */
 void Y(check_ng_omp_child_race)(void);
 
+/* End to end through the public API with the count raised, at every patience
+ * level: both threaded children answer, and results match one thread. */
+void Y(check_ng_omp_nfft_all_levels)(void);
+
+/* NFFT_NO_FAST_NATIVE leaves nothing to plan below NFFT_PATIENT. */
+void Y(check_ng_omp_no_fast_native_refuses)(void);
+
 #endif /* NG_OMP_TEST_H */

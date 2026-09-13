@@ -911,7 +911,17 @@ typedef struct X(plan_ng_s) X(plan_ng); \
  *  serial solver declines whenever more than one thread was requested, so \
  *  the threaded plan is chosen without being timed against the serial one \
  *  -- FFTW behaves the same way, and NFFT_PATIENT is how the comparison is \
- *  made to happen. */ \
+ *  made to happen. \
+ * \
+ *  Call it before any other NFFT routine, as FFTW documents for \
+ *  fftw_plan_with_nthreads. A count above one plans at every patience level. \
+ *  The one exception is NFFT_NO_FAST_NATIVE below NFFT_PATIENT: it forbids the \
+ *  only composer, and the direct NDFT solvers own their loops and so decline \
+ *  whenever more than one thread was requested, leaving nothing to plan. The \
+ *  guru returns NULL there. \
+ * \
+ *  The child FFTW plans are still built at one thread; the budget applies to \
+ *  NFFT's own steps. */ \
 NFFT_EXTERN X(plan_ng) *X(plan_ng_guru)(int d, const NFFT_INT *N, \
     const int *variant, const NFFT_INT *n, NFFT_INT M, int m, int window, \
     R *x, C *f_hat, C *f, unsigned fftw_flags, \

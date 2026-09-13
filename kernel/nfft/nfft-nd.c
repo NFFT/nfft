@@ -152,7 +152,10 @@ int Y(nfft_fast_native_test_parts)(const plan *top, opcnt *deconv, opcnt *conv,
   return 1;
 }
 
-/* only (rnk >= 1) */
+/* only (rnk >= 1). This solver runs no loop of its own: apply delegates to the
+ * DECONV child, the child FFTW plan and the CONV child. A composer is not a
+ * serial solver, so it does not test NO_NONTHREADEDP -- the children do, and
+ * a child with no threaded solver is what makes the composition decline. */
 static plan *mkplan_native_fast(const solver *ego, const problem *p,
                                 planner *pl)
 {
@@ -163,8 +166,6 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
   (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_NFFT)
     return 0;
-  if (NO_NONTHREADEDP(pl))
-    return 0; /* serial: prefer a threaded solver */
   if (pn->sz->rnk < 1)
     return 0; /* rnk >= 1 */
   if (Y(problem_nfft_has_unit_axis)(p))

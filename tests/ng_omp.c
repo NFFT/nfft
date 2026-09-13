@@ -490,3 +490,123 @@ void Y(check_ng_omp_child_race)(void)
   Y(free)(g);
   Y(free)(fh);
 }
+
+/* Whether p's printed plan tree contains needle. */
+static int plan_tree_has(Y(plan_ng) *p, const char *needle)
+{
+  FILE *tmp = tmpfile();
+  long len;
+  char *buf;
+  int found;
+
+  if (!tmp)
+    return 0;
+  NFFT(fprint_plan)(p, tmp);
+  fseek(tmp, 0, SEEK_END);
+  len = ftell(tmp);
+  rewind(tmp);
+  buf = (char *)Y(malloc)((size_t)len + 1);
+  if (len > 0 && fread(buf, 1, (size_t)len, tmp) != (size_t)len)
+    len = 0;
+  buf[len] = '\0';
+  found = strstr(buf, needle) != 0;
+  Y(free)(buf);
+  fclose(tmp);
+  return found;
+}
+
+/* End to end through the public API with the count raised, at every patience
+ * level. Below NFFT_PATIENT the mapping sets PLNR_NO_NONTHREADED, so both
+ * children must be the threaded ones and fast_native must not decline. The
+ * results must match the one-thread results. */
+void Y(check_ng_omp_nfft_all_levels)(void)
+{
+  const INT N = 4096, n = 8192, M = 512;
+  const unsigned levels[3] = {NFFT_ESTIMATE, NFFT_MEASURE, NFFT_PATIENT};
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f_ref = (C *)Y(malloc)((size_t)M * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  INT j;
+  int i;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  /* Reference on one thread. */
+  {
+    Y(plan_ng) *p =
+         NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6, NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f_ref, 0u, NFFT_ESTIMATE);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    for (j = 0; j < N; j++)
+      f_hat[j] = (R)(j + 1) / (R)N;
+    NFFT(precompute)(p);
+    NFFT(execute)(p);
+    NFFT(plan_ng_destroy)(p);
+  }
+
+  NFFT(plan_with_nthreads)(4);
+  CU_ASSERT_EQUAL(NFFT(planner_nthreads)(), 4);
+
+  for (i = 0; i < 3; i++) {
+    Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                       NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u, levels[i]);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    /* Below PATIENT the serial children cannot answer, so both threaded
+     * solvers must be in the tree. At PATIENT Task 7's race decides and this
+     * above both crossovers. */
+    CU_ASSERT_TRUE(plan_tree_has(p, "deconv_solver_threaded"));
+    CU_ASSERT_TRUE(plan_tree_has(p, "conv_solver_threaded"));
+    for (j = 0; j < N; j++)
+      f_hat[j] = (R)(j + 1) / (R)N;
+    NFFT(precompute)(p);
+    NFFT(execute)(p);
+    for (j = 0; j < M; j++)
+      CU_ASSERT_DOUBLE_EQUAL(CABS(f[j] - f_ref[j]), K(0.0),
+                             K(1.0e-12) * (CABS(f_ref[j]) + K(1.0)));
+    NFFT(execute_adjoint)(p);
+    NFFT(plan_ng_destroy)(p);
+  }
+
+  NFFT(cleanup_threads)();
+  Y(free)(f);
+  Y(free)(f_ref);
+  Y(free)(f_hat);
+  Y(free)(x);
+}
+
+/* NFFT_NO_FAST_NATIVE forbids the only composer, and the direct NDFT solvers
+ * genuinely own their loops, so below NFFT_PATIENT a raised count has nothing
+ * left to plan. Pinned so the refusal stays deliberate. */
+void Y(check_ng_omp_no_fast_native_refuses)(void)
+{
+  const INT N = 64, n = 128, M = 100;
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  NFFT(plan_with_nthreads)(4);
+  CU_ASSERT_PTR_NULL(NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                        NFFT(get_window_id)(), x,
+                                  (FC *)f_hat, (FC *)f, 0u,
+                                  NFFT_MEASURE | NFFT_NO_FAST_NATIVE));
+  /* At NFFT_PATIENT the serial NDFT competes again and it plans. */
+  {
+    Y(plan_ng) *p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                                       NFFT(get_window_id)(), x,
+                              (FC *)f_hat, (FC *)f, 0u,
+                              NFFT_PATIENT | NFFT_NO_FAST_NATIVE);
+    CU_ASSERT_PTR_NOT_NULL(p);
+    NFFT(plan_ng_destroy)(p);
+  }
+  NFFT(cleanup_threads)();
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}

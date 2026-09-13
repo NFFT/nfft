@@ -24,7 +24,9 @@
 
 /* FMA fusion under -ffast-math can vary by call site, rounding the same
  * accumulation order differently for band-clipped calls vs whole-axis ones.
- * GCC ignores STDC FP_CONTRACT under -ffast-math, hence this override. */
+ * GCC ignores STDC FP_CONTRACT under -ffast-math, hence this override. As a
+ * #pragma it covers every translation unit that includes this header, not
+ * just the threaded solver -- every serial CONV solver gets it too. */
 #if defined(__GNUC__) && !defined(__clang__)
 # pragma GCC optimize("fp-contract=off")
 #endif

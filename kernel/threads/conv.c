@@ -196,7 +196,6 @@ static void apply_adjoint(const plan *ego_, const problem *p)
   const C *f = pc->f;
   const INT ntot = pln->ntot, n0 = pln->n[0], band = pln->band;
   const int nb = pln->nb;
-  INT i;
 
 #pragma omp parallel num_threads(pln->nthr)
   {
@@ -229,7 +228,6 @@ static void apply_adjoint(const plan *ego_, const problem *p)
       }
     }
   }
-  (void)i;
 }
 
 static void print(const plan *ego_, printer *pr)
