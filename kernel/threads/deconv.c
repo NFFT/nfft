@@ -32,8 +32,10 @@
 
 /* The row loop holds the leading axes' multi index in a fixed-size automatic
  * array, so that each thread's scratch is a few words on its own stack rather
- * than a variable-length array inside a parallel loop. */
-#define NFFT_MAX_RANK 16
+ * than a variable-length array inside a parallel loop. 64 INTs is a few
+ * hundred bytes of thread-local stack, cheap at any team size; module-local,
+ * not NFFT_-prefixed, since it names no public API. */
+#define THREADS_MAX_RANK 64
 
 typedef struct {
   plan super;
@@ -113,7 +115,7 @@ static void run(const deconv_omp_plan *pln, const problem_deconv *pd,
     } else {
 #pragma omp for schedule(static)
       for (i = 0; i < rows; i++) {
-        INT ks[NFFT_MAX_RANK];
+        INT ks[THREADS_MAX_RANK];
         R pre = K(1.0);
         INT fh_off = 0, g_off = 0, q = i, k;
         int t;
@@ -205,7 +207,7 @@ static plan *mkplan_deconv_omp(const solver *ego, const problem *p,
   if (pl->nthr < 2)
     return 0;
   d = pd->sz->rnk;
-  if (d < 1 || d > NFFT_MAX_RANK)
+  if (d < 1 || d > THREADS_MAX_RANK)
     return 0;
   if (pd->window < NFFT_WINDOW_KAISER_BESSEL
       || pd->window > NFFT_WINDOW_SINC_POWER)

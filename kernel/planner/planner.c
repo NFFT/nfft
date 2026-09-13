@@ -693,7 +693,11 @@ plan *Y(planner_mkplan)(planner *pl, const problem *p)
    * enumeration). The strict compare is the determinism contract: ties keep
    * the earlier-encountered candidate. */
   {
-    int cap = (int)pl->nslvdesc;
+    /* Defensive fallback to 1, matching kernel/nfft/plan.c's own version of
+     * this sizing pattern: an empty roster would otherwise malloc(0), which
+     * is legal but implementation-defined, and a NULL back from it would look
+     * like allocation failure. */
+    int cap = pl->nslvdesc > 0u ? (int)pl->nslvdesc : 1;
     plan **cands = (plan **)Y(malloc)((size_t)cap * sizeof(plan *));
     unsigned *cslv = (unsigned *)Y(malloc)((size_t)cap * sizeof(unsigned));
     int nc = Y(planner_candidates)(pl, p, cands, cslv, cap);

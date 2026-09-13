@@ -93,6 +93,13 @@ static void compare_rank(int d, const INT *N, const INT *n)
   planner *pl;
   INT i;
   int t;
+  R tol = K(1.0e-13);
+
+  /* max(1e-13, 1e4*eps): rank >= 4 goes through a different factor
+   * association (see check_ng_omp_deconv_4d), and the fixed floor alone is
+   * below float's own epsilon -- same idiom as check_ng_omp_nfft_all_levels. */
+  if ((R)1.0e4 * EPSILON > tol)
+    tol = (R)1.0e4 * EPSILON;
 
   for (t = 0; t < d; t++) {
     Ntot *= N[t];
@@ -105,6 +112,12 @@ static void compare_rank(int d, const INT *N, const INT *n)
   g_in = (C *)Y(malloc)((size_t)ntot * sizeof(C));
   g_ser = (C *)Y(malloc)((size_t)ntot * sizeof(C));
   g_thr = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+
+  /* Sentinel: the adjoint solvers must write every slot themselves. Without
+   * this, an incomplete write would pass by coincidence if both solvers left
+   * the same uninitialised bytes behind. */
+  for (i = 0; i < Ntot; i++)
+    fh_ser[i] = fh_thr[i] = K(-999.0);
 
   for (i = 0; i < Ntot; i++)
     fh[i] = (R)(i + 1) / (R)Ntot + K(0.25) * II;
@@ -126,7 +139,7 @@ static void compare_rank(int d, const INT *N, const INT *n)
 
   for (i = 0; i < ntot; i++)
     CU_ASSERT_DOUBLE_EQUAL(CABS(g_thr[i] - g_ser[i]), K(0.0),
-                           K(1.0e-13) * (CABS(g_ser[i]) + K(1.0)));
+                           tol * (CABS(g_ser[i]) + K(1.0)));
 
   /* adjoint: g -> f_hat, serial then threaded */
   memcpy(g_ser, g_in, (size_t)ntot * sizeof(C));
@@ -145,7 +158,7 @@ static void compare_rank(int d, const INT *N, const INT *n)
 
   for (i = 0; i < Ntot; i++)
     CU_ASSERT_DOUBLE_EQUAL(CABS(fh_thr[i] - fh_ser[i]), K(0.0),
-                           K(1.0e-13) * (CABS(fh_ser[i]) + K(1.0)));
+                           tol * (CABS(fh_ser[i]) + K(1.0)));
 
   Y(free)(g_thr);
   Y(free)(g_ser);
@@ -196,6 +209,12 @@ void Y(check_ng_omp_deconv_variants)(void)
   problem *p;
   planner *pl;
   INT i;
+  R tol = K(1.0e-13);
+
+  /* max(1e-13, 1e4*eps): same idiom as check_ng_omp_nfft_all_levels, kept as
+   * an absolute bound since this comparison already is one. */
+  if ((R)1.0e4 * EPSILON > tol)
+    tol = (R)1.0e4 * EPSILON;
 
   for (i = 0; i < Ntot; i++)
     fh[i] = (R)(i + 1) / (R)Ntot;
@@ -213,7 +232,7 @@ void Y(check_ng_omp_deconv_variants)(void)
   Y(problem_destroy)(p);
 
   for (i = 0; i < ntot; i++)
-    CU_ASSERT_DOUBLE_EQUAL(CABS(g_thr[i] - g_ser[i]), K(0.0), K(1.0e-13));
+    CU_ASSERT_DOUBLE_EQUAL(CABS(g_thr[i] - g_ser[i]), K(0.0), tol);
 
   Y(free)(g_thr);
   Y(free)(g_ser);
@@ -421,15 +440,20 @@ void Y(check_ng_omp_conv_adjoint)(void)
     compare_conv(3, N, n, 120, 0);
   }
   {
-    const INT N[4] = {6, 6, 8, 8}, n[4] = {24, 24, 24, 24};
+    /* n[0] = 48 against a support of 2*6+2 = 14 rows gives nb = 3 bands, so
+     * the band clip in Y(conv_node_nd) and the adjoint's two-list merge are
+     * actually exercised for rank >= 4 (nb was 1, a no-op, at n[0] = 24). */
+    const INT N[4] = {6, 6, 8, 8}, n[4] = {48, 24, 24, 24};
     compare_conv(4, N, n, 60, 0);
   }
 }
 
 /* n[0] = 20 against a support of 2*6+2 = 14 rows leaves room for one band, so
  * the adjoint runs on one thread while the forward still uses the team. The
- * result must be the serial one either way. Nodes are pushed against the
- * wrap so that the cyclic predecessor is exercised. */
+ * result must be the serial one either way. With nb == 1 the adjoint's own
+ * `ia = ea` special case skips the cyclic-predecessor list entirely, so what
+ * this actually exercises is Y(conv_runs)'s own axis wrap, not the
+ * cyclic-predecessor merge -- check_ng_omp_conv_wrap covers that. */
 void Y(check_ng_omp_conv_narrow_grid)(void)
 {
   const INT N[2] = {8, 8}, n[2] = {20, 20};
@@ -504,6 +528,8 @@ static int plan_tree_has(Y(plan_ng) *p, const char *needle)
   NFFT(fprint_plan)(p, tmp);
   fseek(tmp, 0, SEEK_END);
   len = ftell(tmp);
+  if (len < 0)
+    len = 0;
   rewind(tmp);
   buf = (char *)Y(malloc)((size_t)len + 1);
   if (len > 0 && fread(buf, 1, (size_t)len, tmp) != (size_t)len)
