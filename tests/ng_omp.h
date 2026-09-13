@@ -41,4 +41,7 @@ void Y(check_ng_omp_thread_count_invariance)(void);
 /* A one-thread budget makes the threaded solver decline. */
 void Y(check_ng_omp_declines_serial_budget)(void);
 
+/* The threaded CONV forward reproduces the serial one to the last bit. */
+void Y(check_ng_omp_conv_forward)(void);
+
 #endif /* NG_OMP_TEST_H */

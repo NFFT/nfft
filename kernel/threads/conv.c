@@ -1,0 +1,297 @@
+/*
+ * Copyright (c) 2026 Jens Keiner, Stefan Kunis, Daniel Potts
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+/* Threaded CONV solver (Step C), covering every rank.
+ *
+ * Forward is a gather: nodes are independent, so it is an omp for over j.
+ * Adjoint is a scatter, and the tap blocks of different nodes overlap; it is
+ * distributed over contiguous bands of axis 0 of the grid instead, so that
+ * every grid cell is written by exactly one band and no atomic is needed.
+ * Which band a node belongs to comes from a counting sort built beside u in
+ * awake. Legacy reaches the same node list with a radix sort of the full
+ * linearised window start plus a binary search; the counting sort by band is
+ * the part of that the adjoint actually needs.
+ *
+ * The arithmetic is the serial solvers' own, via the shared kernels in
+ * kernel/conv/conv.h, so both directions reproduce the serial result to the
+ * last bit at any thread count. */
+
+#include "nfft3.h"
+#include "infft.h"
+#include "iplanner.h"
+#include "conv.h"
+
+#include <math.h> /* pow */
+
+/* No overhead constant; see the DECONV solver's note. The straddle is counted
+ * honestly in `other` below. */
+
+typedef struct {
+  plan super;
+  int d;
+  INT *n, *N; /* owned, length d */
+  INT M, ntot;
+  int m, window;
+  int nthr; /* team size */
+  int nb; /* bands along axis 0, 1 <= nb <= nthr */
+  INT band; /* band width in grid rows; band >= 2m+2 whenever nb > 1 */
+  const R *x; /* borrowed alias of the problem's nodes */
+  R *psi; /* M*d*(2m+2) */
+  INT *u; /* M*d */
+  INT *bstart; /* nb+1 offsets into border */
+  INT *bcur; /* nb scratch cursors for the counting sort */
+  INT *border; /* M node indices, ascending within each band */
+  int level;
+} conv_omp_plan;
+
+/* ponytail: the rank switch is per node, not hoisted out of the loop. At rank 1
+ * that is a few percent; above it, nothing. Hoist it into four loop bodies if a
+ * measurement says it matters. */
+static inline C node(const conv_omp_plan *pln, C *g, INT j, INT lo, INT hi,
+                     C fj, int forward)
+{
+  const int d = pln->d;
+  const INT len = 2 * (INT)pln->m + 2;
+  const R *ps = pln->psi + (size_t)j * (size_t)d * (size_t)len;
+  const INT *uu = pln->u + (size_t)j * (size_t)d;
+  switch (d) {
+    case 1:
+      return Y(
+           conv_node_1d)(g, ps, uu[0], pln->n[0], len, lo, hi, fj, forward);
+    case 2:
+      return Y(
+           conv_node_2d)(g, ps, ps + len, uu[0], uu[1], pln->n[0], pln->n[1],
+                          len, lo, hi, fj, forward);
+    case 3:
+      return Y(
+           conv_node_3d)(g, ps, ps + len, ps + 2 * len, uu[0], uu[1], uu[2],
+                          pln->n[0], pln->n[1], pln->n[2], len, lo, hi, fj,
+                          forward);
+    default:
+      return Y(conv_node_nd)(g, ps, uu, pln->n, d, len, lo, hi, fj, forward);
+  }
+}
+
+/* Window starts are indices: they steer which grid cells apply touches, so the
+ * true values are built for AWAKE_ZERO as well. Only the psi weights, which
+ * cost a window evaluation each and change no address, get placeholders. */
+static void fill_u(conv_omp_plan *pln)
+{
+  const int d = pln->d, m = pln->m;
+  const INT M = pln->M;
+  INT j;
+  int t;
+  for (t = 0; t < d; t++) {
+    const INT nt = pln->n[t];
+    for (j = 0; j < M; j++) {
+      INT c = LRINT(FLOOR(pln->x[j * d + t] * (R)nt));
+      pln->u[j * d + t] = (((c - m) % nt) + nt) % nt;
+    }
+  }
+}
+
+static void fill_psi(conv_omp_plan *pln)
+{
+  const int d = pln->d, m = pln->m;
+  int t;
+  for (t = 0; t < d; t++)
+    Y(window_phi_precompute)(pln->window, pln->n[t], pln->N[t], m, pln->x + t, d,
+                          pln->M, pln->psi + t * (2 * m + 2), d * (2 * m + 2));
+}
+
+/* Counting sort of the node indices by the band their window start falls in.
+ * Stable, so each band's list is ascending in j -- which is what makes the
+ * adjoint's accumulation order independent of the band count. */
+static void fill_bands(conv_omp_plan *pln)
+{
+  const int d = pln->d, nb = pln->nb;
+  const INT M = pln->M, band = pln->band;
+  INT j, s;
+  int b;
+
+  for (b = 0; b <= nb; b++)
+    pln->bstart[b] = 0;
+  for (j = 0; j < M; j++) {
+    b = (int)(pln->u[j * d] / band);
+    if (b >= nb)
+      b = nb - 1; /* the last band absorbs the rows the division leaves over */
+    pln->bstart[b + 1]++;
+  }
+  for (b = 0, s = 0; b < nb; b++) {
+    s += pln->bstart[b + 1];
+    pln->bstart[b + 1] = s;
+    pln->bcur[b] = pln->bstart[b];
+  }
+  for (j = 0; j < M; j++) {
+    b = (int)(pln->u[j * d] / band);
+    if (b >= nb)
+      b = nb - 1;
+    pln->border[pln->bcur[b]++] = j;
+  }
+}
+
+/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
+ * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
+ * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
+ * a later upgrade refills. */
+static void awake(plan *ego_, int wakefulness)
+{
+  conv_omp_plan *pln = (conv_omp_plan *)ego_;
+  if (wakefulness >= PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    fill_u(pln);
+    fill_bands(pln);
+  }
+  if (wakefulness == PLNR_AWAKE) {
+    if (pln->level != PLNR_AWAKE)
+      fill_psi(pln);
+  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
+    memset(pln->psi, 0,
+           (size_t)pln->M * (size_t)pln->d * (size_t)(2 * pln->m + 2)
+                * sizeof(R));
+  }
+  pln->level = wakefulness;
+}
+
+static void apply(const plan *ego_, const problem *p)
+{
+  const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
+  const problem_conv *pc = (const problem_conv *)p;
+  C *g = (C *)pc->g;
+  C *f = pc->f;
+  const INT M = pln->M, n0 = pln->n[0];
+  INT j;
+#pragma omp parallel for num_threads(pln->nthr) schedule(static)
+  for (j = 0; j < M; j++)
+    f[j] = node(pln, g, j, 0, n0, K(0.0), 1);
+}
+
+/* Filled in the next task. */
+static void apply_adjoint(const plan *ego_, const problem *p)
+{
+  const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
+  const problem_conv *pc = (const problem_conv *)p;
+  C *g = pc->g;
+  const C *f = pc->f;
+  INT j;
+  memset(g, 0, (size_t)pln->ntot * sizeof(C));
+  for (j = 0; j < pln->M; j++)
+    (void)node(pln, g, j, 0, pln->n[0], f[j], 0);
+}
+
+static void print(const plan *ego_, printer *pr)
+{
+  const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
+  pr->print(pr, "(conv_solver_threaded nthr=%d nb=%d)", pln->nthr, pln->nb);
+}
+
+static void destroy(plan *ego_)
+{
+  conv_omp_plan *pln = (conv_omp_plan *)ego_;
+  Y(free)(pln->border);
+  Y(free)(pln->bcur);
+  Y(free)(pln->bstart);
+  Y(free)(pln->u);
+  Y(free)(pln->psi);
+  Y(free)(pln->N);
+  Y(free)(pln->n);
+}
+
+static const plan_adt conv_omp_plan_adt = {apply, awake, print, destroy,
+                                           apply_adjoint};
+
+static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
+{
+  const problem_conv *pc = (const problem_conv *)p;
+  conv_omp_plan *pln;
+  const INT len = 2 * (INT)pc->m + 2;
+  int t, d;
+  (void)ego;
+
+  if (p->adt->kind != NFFT_PROBLEM_CONV)
+    return 0;
+  if (pl->nthr < 2)
+    return 0;
+  d = pc->sz->rnk;
+  if (d < 1)
+    return 0;
+  if (pc->window < NFFT_WINDOW_KAISER_BESSEL
+      || pc->window > NFFT_WINDOW_SINC_POWER)
+    return 0;
+
+  pln =
+       (conv_omp_plan *)Y(
+            plan_create)(sizeof(conv_omp_plan), &conv_omp_plan_adt);
+  pln->d = d;
+  pln->n = (INT *)Y(malloc)((size_t)d * sizeof(INT));
+  pln->N = (INT *)Y(malloc)((size_t)d * sizeof(INT));
+  pln->ntot = Y(problem_conv_ntot)(p);
+  for (t = 0; t < d; t++) {
+    pln->n[t] = Y(problem_conv_n)(p, t);
+    pln->N[t] = Y(problem_conv_N)(p, t);
+  }
+  pln->M = pc->M;
+  pln->m = pc->m;
+  pln->window = pc->window;
+  pln->x = pc->x;
+  pln->nthr = pl->nthr;
+  /* A node's support is len rows wide, so a band narrower than that could be
+   * reached from more than one band away and the adjoint's two-list merge
+   * would not be exhaustive. Below two bands the adjoint runs on one thread;
+   * the forward still uses the whole team. */
+  /* Four bands per thread over a dynamic schedule. One band per thread starves
+   * whenever nodes cluster -- polar and Radon geometries concentrate near the
+   * origin, MRI trajectories along spokes -- and a band holding most of the
+   * nodes serialises the adjoint whatever the team size. Oversubscription does
+   * not touch the exactness argument, which never mentions the band count. */
+  pln->nb = (int)(pln->n[0] / len);
+  if (pln->nb > 4 * pln->nthr)
+    pln->nb = 4 * pln->nthr;
+  if (pln->nb < 1)
+    pln->nb = 1;
+  pln->band = pln->n[0] / pln->nb;
+  pln->psi = (R *)Y(
+       malloc)((size_t)pln->M * (size_t)d * (size_t)len * sizeof(R));
+  pln->u = (INT *)Y(malloc)((size_t)pln->M * (size_t)d * sizeof(INT));
+  pln->bstart = (INT *)Y(malloc)((size_t)(pln->nb + 1) * sizeof(INT));
+  pln->bcur = (INT *)Y(malloc)((size_t)pln->nb * sizeof(INT));
+  pln->border = (INT *)Y(malloc)((size_t)pln->M * sizeof(INT));
+  pln->level = PLNR_SLEEPY;
+  /* One plan serves both directions and they scale differently -- the forward
+   * over the whole team, the adjoint over nb bands -- so the model is the mean
+   * of the two. */
+  /* The serial solver's counts, plus the straddle: a node crossing a band
+   * boundary pays its per-node run setup twice. Its tap work is split, not
+   * repeated, so only `other` moves. */
+  {
+    const double taps = (double)pln->M * pow((double)len, (double)d);
+    const double straddle = (double)pln->nb * (double)len / (double)pln->n[0];
+    Y(ops_zero)(&pln->super.ops);
+    pln->super.ops.mul = 2.0 * taps;
+    pln->super.ops.add = 2.0 * taps;
+    pln->super.ops.other =
+         2.0 * taps + 2.0 * (double)pln->M * (double)d * (1.0 + straddle);
+  }
+  return &pln->super;
+}
+
+static const solver_adt conv_omp_adt = {NFFT_PROBLEM_CONV, 0, mkplan_conv_omp};
+
+void Y(conv_solver_threaded_register)(planner *pl)
+{
+  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &conv_omp_adt));
+}

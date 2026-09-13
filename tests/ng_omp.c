@@ -25,6 +25,7 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "deconv.h"
+#include "conv.h"
 #include "ng_omp.h"
 
 /* A private planner carrying both DECONV rosters, so a case can pick the
@@ -64,7 +65,7 @@ static int run_once(planner *pl, problem *p, int forward)
  * cleanup_threads puts it back. */
 void Y(check_ng_omp_roster)(void)
 {
-  CU_ASSERT_EQUAL(Y(nfft_threads_roster_size)(), 1);
+  CU_ASSERT_EQUAL(Y(nfft_threads_roster_size)(), 2);
   CU_ASSERT_EQUAL(NFFT(init_threads)(), 1);
 
   NFFT(plan_with_nthreads)(4);
@@ -287,4 +288,103 @@ void Y(check_ng_omp_declines_serial_budget)(void)
 
   Y(free)(g);
   Y(free)(fh);
+}
+
+/* Both CONV rosters on one planner, with the same nthr / force_threaded
+ * convention as both_rosters. */
+static planner *both_conv_rosters(int nthr, int force_threaded)
+{
+  planner *pl = Y(planner_create)();
+  pl->nthr = nthr;
+  Y(conv_solvers_register)(pl);
+  Y(nfft_threads_conf_standard)(pl);
+  if (force_threaded)
+    pl->flags.l |= PLNR_NO_NONTHREADED;
+  return pl;
+}
+
+/* The threaded CONV solver reproduces the serial one to the last bit: the same
+ * kernels, the same per-node order. Anything less means an operation moved.
+ * counts covers a team larger than the band count and one that is not a
+ * divisor of it. */
+static void compare_conv(int d, const INT *N, const INT *n, INT M, int forward)
+{
+  const int w = Y(get_window_id)();
+  const int counts[3] = {2, 4, 7};
+  INT ntot = 1, i;
+  R *x;
+  C *g_ref, *g_got, *f_ref, *f_got;
+  int t, c;
+
+  for (t = 0; t < d; t++)
+    ntot *= n[t];
+
+  x = (R *)Y(malloc)((size_t)M * (size_t)d * sizeof(R));
+  g_ref = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  g_got = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  f_ref = (C *)Y(malloc)((size_t)M * sizeof(C));
+  f_got = (C *)Y(malloc)((size_t)M * sizeof(C));
+
+  for (i = 0; i < M * d; i++)
+    x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
+  for (i = 0; i < ntot; i++)
+    g_ref[i] = (R)(i + 1) / (R)ntot - K(0.25) * II;
+  for (i = 0; i < M; i++)
+    f_ref[i] = (R)(M - i) / (R)M + K(0.75) * II;
+  memcpy(g_got, g_ref, (size_t)ntot * sizeof(C));
+  memcpy(f_got, f_ref, (size_t)M * sizeof(C));
+
+  {
+    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g_ref, f_ref);
+    planner *pl = both_conv_rosters(1, 0);
+    CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
+    Y(planner_destroy)(pl);
+    Y(problem_destroy)(p);
+  }
+
+  for (c = 0; c < 3; c++) {
+    problem *p;
+    planner *pl;
+    memcpy(g_got, g_ref, (size_t)ntot * sizeof(C));
+    if (!forward)
+      for (i = 0; i < ntot; i++)
+        g_got[i] = K(0.0);
+    p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g_got, f_got);
+    pl = both_conv_rosters(counts[c], 1);
+    CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
+    Y(planner_destroy)(pl);
+    Y(problem_destroy)(p);
+
+    if (forward) {
+      CU_ASSERT_EQUAL(memcmp(f_got, f_ref, (size_t)M * sizeof(C)), 0);
+    } else {
+      CU_ASSERT_EQUAL(memcmp(g_got, g_ref, (size_t)ntot * sizeof(C)), 0);
+    }
+  }
+
+  Y(free)(f_got);
+  Y(free)(f_ref);
+  Y(free)(g_got);
+  Y(free)(g_ref);
+  Y(free)(x);
+}
+
+void Y(check_ng_omp_conv_forward)(void)
+{
+  {
+    const INT N[1] = {64}, n[1] = {128};
+    compare_conv(1, N, n, 200, 1);
+  }
+  {
+    const INT N[2] = {16, 24}, n[2] = {48, 64};
+    compare_conv(2, N, n, 150, 1);
+  }
+  {
+    const INT N[3] = {8, 10, 12}, n[3] = {32, 32, 32};
+    compare_conv(3, N, n, 120, 1);
+  }
+  {
+    const INT N[4] = {6, 6, 8, 8}, n[4] = {24, 24, 24, 24};
+    compare_conv(4, N, n, 60, 1);
+  }
 }

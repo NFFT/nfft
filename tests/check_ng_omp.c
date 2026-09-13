@@ -41,6 +41,7 @@ int main(void)
               Y(check_ng_omp_thread_count_invariance));
   CU_add_test(ng_omp, "declines_serial_budget",
               Y(check_ng_omp_declines_serial_budget));
+  CU_add_test(ng_omp, "conv_forward", Y(check_ng_omp_conv_forward));
 
   CU_automated_run_tests();
   // CU_basic_run_tests();

@@ -537,6 +537,9 @@ int Y(nfft_threads_roster_size)(void);
 /* kernel/threads/deconv.c, in the add-on library only. */
 void Y(deconv_solver_threaded_register)(planner *pl);
 
+/* kernel/threads/conv.c, in the add-on library only. */
+void Y(conv_solver_threaded_register)(planner *pl);
+
 /* Zero-dimensional direct NDFT aka the constant function.
 * forward = broadcast, adjoint = reduce. */
 void Y(nfft_solver_rnk0_register)(planner *pl);

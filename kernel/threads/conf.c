@@ -25,8 +25,10 @@
 #include "infft.h"
 #include "iplanner.h"
 #include "deconv.h"
+#include "conv.h"
 
 static const solvtab s = {SOLVTAB(Y(deconv_solver_threaded_register)),
+                          SOLVTAB(Y(conv_solver_threaded_register)),
                           SOLVTAB_END};
 
 void Y(nfft_threads_conf_standard)(planner *pl)
