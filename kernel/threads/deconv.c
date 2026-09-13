@@ -20,14 +20,20 @@
  * program that does not link it has no threaded solver and cannot raise the
  * planner's thread count.
  *
- * Rank 1 only; mkplan declines above it (a later task adds deconv-nd.c's
- * row/multi-index arithmetic). Threads write disjoint grid cells, so there
- * is no reduction and no atomic, and results do not depend on thread count. */
+ * Every rank >= 1: rank 1 distributes its single row's frequencies directly,
+ * higher ranks distribute whole rows (one contiguous run along the last
+ * axis each). Threads write disjoint grid cells, so there is no reduction
+ * and no atomic, and results do not depend on thread count. */
 
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
 #include "deconv.h"
+
+/* The row loop holds the leading axes' multi index in a fixed-size automatic
+ * array, so that each thread's scratch is a few words on its own stack rather
+ * than a variable-length array inside a parallel loop. */
+#define NFFT_MAX_RANK 16
 
 typedef struct {
   plan super;
@@ -81,8 +87,7 @@ static void run(const deconv_omp_plan *pln, const problem_deconv *pd,
     INT i;
 
     /* omp for's implicit barrier orders this clear before the write below --
-     * do not add nowait. The d > 1 branch is unreachable until a later task
-     * lifts the rank-1 gate in mkplan. */
+     * do not add nowait. */
     if (forward) {
       if (d == 1) {
 #pragma omp for schedule(static)
@@ -95,17 +100,60 @@ static void run(const deconv_omp_plan *pln, const problem_deconv *pd,
       }
     }
 
-    /* Rank 1 has a single row, so distribute its frequencies instead. */
+    if (d == 1) {
+      /* A single row: distribute its frequencies instead. */
 #pragma omp for schedule(static)
-    for (i = 0; i < Nl; i++) {
-      const INT pos = (i < Nnegl) ? nl - Nnegl + i : i - Nnegl;
-      if (forward)
-        g[pos] = f_hat[i] * pw[i];
-      else
-        f_hat[i] = g[pos] * pw[i];
+      for (i = 0; i < Nl; i++) {
+        const INT pos = (i < Nnegl) ? nl - Nnegl + i : i - Nnegl;
+        if (forward)
+          g[pos] = f_hat[i] * pw[i];
+        else
+          f_hat[i] = g[pos] * pw[i];
+      }
+    } else {
+#pragma omp for schedule(static)
+      for (i = 0; i < rows; i++) {
+        INT ks[NFFT_MAX_RANK];
+        R pre = K(1.0);
+        INT fh_off = 0, g_off = 0, q = i, k;
+        int t;
+        /* Recover the row's multi index over axes 0..d-2. d-1 divisions per
+         * row, against the legacy D step's d per element. */
+        for (t = d - 2; t >= 0; t--) {
+          ks[t] = q % N[t];
+          q /= N[t];
+        }
+        /* Fold the leading axes' window factors and offsets once for the whole
+         * row. A leading slot below Nneg[t] belongs to the grid's tail. */
+        for (t = 0; t < d - 1; t++) {
+          const INT kt = ks[t] < Nneg[t] ? n[t] - Nneg[t] + ks[t] :
+                                           ks[t] - Nneg[t];
+          pre *= phi[t][ks[t]];
+          fh_off = fh_off * N[t] + ks[t];
+          g_off = g_off * n[t] + kt;
+        }
+        fh_off *= Nl;
+        g_off *= nl;
+        {
+          /* The last axis splits into two contiguous runs: slots below Nnegl
+           * land at the grid's tail, the rest at its head. */
+          C *ga = g + g_off + nl - Nnegl, *gb = g + g_off;
+          C *fa = f_hat + fh_off, *fb = f_hat + fh_off + Nnegl;
+          if (forward) {
+            for (k = 0; k < Nnegl; k++)
+              ga[k] = fa[k] * (pre * pw[k]);
+            for (k = 0; k < Nposl; k++)
+              gb[k] = fb[k] * (pre * pw[Nnegl + k]);
+          } else {
+            for (k = 0; k < Nnegl; k++)
+              fa[k] = ga[k] * (pre * pw[k]);
+            for (k = 0; k < Nposl; k++)
+              fb[k] = gb[k] * (pre * pw[Nnegl + k]);
+          }
+        }
+      }
     }
   }
-  (void)rows;
 }
 
 static void apply(const plan *ego_, const problem *p)
@@ -157,12 +205,7 @@ static plan *mkplan_deconv_omp(const solver *ego, const problem *p,
   if (pl->nthr < 2)
     return 0;
   d = pd->sz->rnk;
-  if (d < 1)
-    return 0;
-  /* Rank >= 2 needs deconv-nd.c's row/multi-index arithmetic; a later task
-   * adds it. Decline for now so the serial nd solver keeps answering those
-   * ranks. */
-  if (d != 1)
+  if (d < 1 || d > NFFT_MAX_RANK)
     return 0;
   if (pd->window < NFFT_WINDOW_KAISER_BESSEL
       || pd->window > NFFT_WINDOW_SINC_POWER)

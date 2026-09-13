@@ -27,6 +27,17 @@ void Y(check_ng_omp_roster)(void);
 /* The threaded DECONV solver agrees with the serial solver of the same rank. */
 void Y(check_ng_omp_deconv_1d)(void);
 
+/* Ranks 2, 3 and 4 against the serial solver of the same rank. */
+void Y(check_ng_omp_deconv_2d)(void);
+void Y(check_ng_omp_deconv_3d)(void);
+void Y(check_ng_omp_deconv_4d)(void);
+
+/* An odd axis and a type-II axis both move the slot split. */
+void Y(check_ng_omp_deconv_variants)(void);
+
+/* The results do not move with the team size. */
+void Y(check_ng_omp_thread_count_invariance)(void);
+
 /* A one-thread budget makes the threaded solver decline. */
 void Y(check_ng_omp_declines_serial_budget)(void);
 

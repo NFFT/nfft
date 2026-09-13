@@ -33,6 +33,12 @@ int main(void)
   ng_omp = CU_add_suite("ng_omp", 0, 0);
   CU_add_test(ng_omp, "roster", Y(check_ng_omp_roster));
   CU_add_test(ng_omp, "deconv_1d", Y(check_ng_omp_deconv_1d));
+  CU_add_test(ng_omp, "deconv_2d", Y(check_ng_omp_deconv_2d));
+  CU_add_test(ng_omp, "deconv_3d", Y(check_ng_omp_deconv_3d));
+  CU_add_test(ng_omp, "deconv_4d", Y(check_ng_omp_deconv_4d));
+  CU_add_test(ng_omp, "deconv_variants", Y(check_ng_omp_deconv_variants));
+  CU_add_test(ng_omp, "thread_count_invariance",
+              Y(check_ng_omp_thread_count_invariance));
   CU_add_test(ng_omp, "declines_serial_budget",
               Y(check_ng_omp_declines_serial_budget));
 

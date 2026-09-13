@@ -160,6 +160,99 @@ void Y(check_ng_omp_deconv_1d)(void)
   compare_rank(1, N, n);
 }
 
+void Y(check_ng_omp_deconv_2d)(void)
+{
+  const INT N[2] = {16, 24}, n[2] = {32, 48};
+  compare_rank(2, N, n);
+}
+
+void Y(check_ng_omp_deconv_3d)(void)
+{
+  const INT N[3] = {8, 10, 12}, n[3] = {16, 20, 24};
+  compare_rank(3, N, n);
+}
+
+/* Rank 4 goes against deconv-nd.c, whose factor association differs, so this
+ * is the case the 1e-13 tolerance exists for. */
+void Y(check_ng_omp_deconv_4d)(void)
+{
+  const INT N[4] = {6, 6, 8, 8}, n[4] = {12, 12, 16, 16};
+  compare_rank(4, N, n);
+}
+
+/* An odd N and a type-II axis both move Nneg, which is what decides where a
+ * row's two runs fall. Covered here rather than in compare_rank because the
+ * variant array has to be passed through. */
+void Y(check_ng_omp_deconv_variants)(void)
+{
+  const INT N[2] = {15, 16}, n[2] = {32, 32};
+  const int variant[2] = {NFFT_NDFT_TYPE_I, NFFT_NDFT_TYPE_II};
+  const int w = Y(get_window_id)();
+  const INT Ntot = 15 * 16, ntot = 32 * 32;
+  C *fh = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
+  C *g_ser = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  C *g_thr = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  problem *p;
+  planner *pl;
+  INT i;
+
+  for (i = 0; i < Ntot; i++)
+    fh[i] = (R)(i + 1) / (R)Ntot;
+
+  p = Y(mkproblem_deconv)(2, N, variant, n, 6, w, 1, fh, g_ser);
+  pl = both_rosters(1, 0);
+  CU_ASSERT_EQUAL_FATAL(run_once(pl, p, 1), 1);
+  Y(planner_destroy)(pl);
+  Y(problem_destroy)(p);
+
+  p = Y(mkproblem_deconv)(2, N, variant, n, 6, w, 1, fh, g_thr);
+  pl = both_rosters(4, 1);
+  CU_ASSERT_EQUAL_FATAL(run_once(pl, p, 1), 1);
+  Y(planner_destroy)(pl);
+  Y(problem_destroy)(p);
+
+  for (i = 0; i < ntot; i++)
+    CU_ASSERT_DOUBLE_EQUAL(CABS(g_thr[i] - g_ser[i]), K(0.0), K(1.0e-13));
+
+  Y(free)(g_thr);
+  Y(free)(g_ser);
+  Y(free)(fh);
+}
+
+/* Every output cell is written by exactly one thread, so the results must not
+ * move with the team size. A reduction or an atomic would show up here. */
+void Y(check_ng_omp_thread_count_invariance)(void)
+{
+  const INT N[3] = {8, 10, 12}, n[3] = {16, 20, 24};
+  const int w = Y(get_window_id)();
+  const INT Ntot = 8 * 10 * 12, ntot = 16 * 20 * 24;
+  const int counts[3] = {2, 4, 7};
+  C *fh = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
+  C *ref = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  C *got = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  INT i;
+  int c;
+
+  for (i = 0; i < Ntot; i++)
+    fh[i] = (R)(i + 1) / (R)Ntot - K(0.3) * II;
+
+  for (c = 0; c < 3; c++) {
+    problem *p =
+         Y(mkproblem_deconv)(3, N, 0, n, 6, w, 1, fh, c == 0 ? ref : got);
+    planner *pl = both_rosters(counts[c], 1);
+    CU_ASSERT_EQUAL_FATAL(run_once(pl, p, 1), 1);
+    Y(planner_destroy)(pl);
+    Y(problem_destroy)(p);
+    if (c > 0)
+      for (i = 0; i < ntot; i++)
+        CU_ASSERT_EQUAL(memcmp(&got[i], &ref[i], sizeof(C)), 0);
+  }
+
+  Y(free)(got);
+  Y(free)(ref);
+  Y(free)(fh);
+}
+
 /* A one-thread budget has nothing to distribute, so the threaded solver must
  * decline and leave the plan to the serial roster. */
 void Y(check_ng_omp_declines_serial_budget)(void)
