@@ -82,12 +82,15 @@ static void run(const deconv_nd_plan *pln, const problem_deconv *pd,
 
   if (forward) {
     f_hat = (C *)pd->f_hat;
+    /* The forward writes a fragmented subset of the grid -- one box per grid
+     * corner -- so the zero padding is a whole-grid clear. */
     g_hat = pd->g;
     memset(g_hat, 0, (size_t)pln->ntot * sizeof(C));
   } else {
+    /* The adjoint's loop is a bijection onto the f_hat box, so every slot is
+     * written exactly once and no clear is needed. */
     f_hat = pd->f_hat;
     g_hat = (C *)pd->g;
-    memset(f_hat, 0, (size_t)pln->Ntot * sizeof(C));
   }
 
   c_phi_inv_k[0] = K(1.0);
