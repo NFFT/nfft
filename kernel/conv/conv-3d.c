@@ -100,50 +100,14 @@ static void run(const conv_3d_plan *pln, const problem_conv *pc, int forward)
      * does not cover the grid, so the whole grid must start zeroed. */
     memset(g, 0, (size_t)(n0 * n1 * n2) * sizeof(C));
   for (j = 0; j < M; j++) {
-    const R *psi0 = pln->psi + (j * 3 + 0) * len;
-    const R *psi1 = pln->psi + (j * 3 + 1) * len;
-    const R *psi2 = pln->psi + (j * 3 + 2) * len;
-    INT tof0[2], gof0[2], rl0[2], tof1[2], gof1[2], rl1[2];
-    INT tof2[2], gof2[2], rl2[2], i, k, l;
-    C acc = K(0.0);
-    C fj = forward ? K(0.0) : f[j];
-    int a, b;
-    Y(conv_runs)(pln->u[j * 3 + 0], n0, len, tof0, gof0, rl0);
-    Y(conv_runs)(pln->u[j * 3 + 1], n1, len, tof1, gof1, rl1);
-    Y(conv_runs)(pln->u[j * 3 + 2], n2, len, tof2, gof2, rl2);
-    { /* the inner axis' runs do not vary over the outer axes; hoist them */
-      const INT la = rl2[0], lb = rl2[1], goa = gof2[0], gob = gof2[1];
-      const R *p2a = psi2 + tof2[0], *p2b = psi2 + tof2[1];
-      for (a = 0; a < 2; a++)
-        for (i = 0; i < rl0[a]; i++) {
-          const R p0 = psi0[tof0[a] + i];
-          C *gplane = g + (gof0[a] + i) * n1 * n2;
-          for (b = 0; b < 2; b++) {
-            const INT nk = rl1[b], to1 = tof1[b], go1 = gof1[b];
-            for (k = 0; k < nk; k++) {
-              const R p01 = p0 * psi1[to1 + k];
-              C *grow = gplane + (go1 + k) * n2;
-              C *ga = grow + goa, *gb = grow + gob;
-              if (forward) {
-                C sub = K(0.0);
-                for (l = 0; l < la; l++)
-                  sub += ga[l] * p2a[l];
-                for (l = 0; l < lb; l++)
-                  sub += gb[l] * p2b[l];
-                acc += sub * p01;
-              } else {
-                const C fp = fj * p01;
-                for (l = 0; l < la; l++)
-                  ga[l] += fp * p2a[l];
-                for (l = 0; l < lb; l++)
-                  gb[l] += fp * p2b[l];
-              }
-            }
-          }
-        }
-    }
+    C r =
+         Y(conv_node_3d)(g, pln->psi + (j * 3 + 0) * len,
+                       pln->psi + (j * 3 + 1) * len,
+                       pln->psi + (j * 3 + 2) * len, pln->u[j * 3 + 0],
+                       pln->u[j * 3 + 1], pln->u[j * 3 + 2], n0, n1, n2, len,
+                       0, n0, forward ? K(0.0) : f[j], forward);
     if (forward)
-      f[j] = acc;
+      f[j] = r;
   }
 }
 

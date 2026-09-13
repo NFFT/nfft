@@ -98,17 +98,11 @@ static void run(const conv_nd_plan *pln, const problem_conv *pc, int forward)
   const int m = pln->m;
   const R *psi = pln->psi;
   C *f, *g;
-  INT lprod;
-  INT lj[d]; /* multi index over the taps, 0 <= lj <= 2m+1 */
-  INT ll_plain[d + 1]; /* postfix plain index in g */
-  R phi_prod[d + 1]; /* postfix product of psi */
-  INT l_all[d * (2 * m + 2)]; /* wrapped grid indices per axis/tap */
-  INT j, t, t2, l_L;
+  INT j;
 
   if (forward) {
     f = pc->f;
     g = (C *)pc->g;
-    memset(f, 0, (size_t)M * sizeof(C));
   } else {
     f = (C *)pc->f;
     g = pc->g;
@@ -117,38 +111,12 @@ static void run(const conv_nd_plan *pln, const problem_conv *pc, int forward)
     memset(g, 0, (size_t)pln->ntot * sizeof(C));
   }
 
-  for (t = 0, lprod = 1; t < d; t++)
-    lprod *= (2 * m + 2);
-
   for (j = 0; j < M; j++) {
-    for (t = d - 1; t >= 0; t--) {
-      INT lj_t;
-      for (lj_t = 0; lj_t < 2 * m + 2; lj_t++)
-        l_all[t * (2 * m + 2) + lj_t] = (pln->u[j * d + t] + lj_t) % n[t];
-      lj[t] = 0;
-    }
-    t++;
-
-    phi_prod[0] = K(1.0);
-    ll_plain[0] = 0;
-
-    for (l_L = 0; l_L < lprod; l_L++) {
-      for (t2 = t; t2 < d; t2++) {
-        phi_prod[t2 + 1] =
-             phi_prod[t2] * psi[(j * d + t2) * (2 * m + 2) + lj[t2]];
-        ll_plain[t2 + 1] =
-             ll_plain[t2] * n[t2] + l_all[t2 * (2 * m + 2) + lj[t2]];
-      }
-
-      if (forward)
-        f[j] += phi_prod[d] * g[ll_plain[d]];
-      else
-        g[ll_plain[d]] += phi_prod[d] * f[j];
-
-      for (t = d - 1; (t > 0) && (lj[t] == 2 * m + 1); t--)
-        lj[t] = 0;
-      lj[t]++;
-    }
+    C r = Y(
+         conv_node_nd)(g, pln->psi + j * d * (2 * m + 2), pln->u + j * d, n, d,
+                       2 * m + 2, 0, n[0], forward ? K(0.0) : f[j], forward);
+    if (forward)
+      f[j] = r;
   }
 }
 

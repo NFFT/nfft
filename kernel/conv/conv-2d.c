@@ -100,40 +100,12 @@ static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward)
      * does not cover the grid, so the whole grid must start zeroed. */
     memset(g, 0, (size_t)(n0 * n1) * sizeof(C));
   for (j = 0; j < M; j++) {
-    const R *psi0 = pln->psi + (j * 2 + 0) * len;
-    const R *psi1 = pln->psi + (j * 2 + 1) * len;
-    INT tof0[2], gof0[2], rl0[2], tof1[2], gof1[2], rl1[2], i, k;
-    C acc = K(0.0);
-    C fj = forward ? K(0.0) : f[j];
-    int a;
-    Y(conv_runs)(pln->u[j * 2 + 0], n0, len, tof0, gof0, rl0);
-    Y(conv_runs)(pln->u[j * 2 + 1], n1, len, tof1, gof1, rl1);
-    { /* the inner axis' runs do not vary over the outer axes; hoist them */
-      const INT ka = rl1[0], kb = rl1[1], goa = gof1[0], gob = gof1[1];
-      const R *p1a = psi1 + tof1[0], *p1b = psi1 + tof1[1];
-      for (a = 0; a < 2; a++)
-        for (i = 0; i < rl0[a]; i++) {
-          const R p0 = psi0[tof0[a] + i];
-          C *grow = g + (gof0[a] + i) * n1;
-          C *ga = grow + goa, *gb = grow + gob;
-          if (forward) {
-            C sub = K(0.0);
-            for (k = 0; k < ka; k++)
-              sub += ga[k] * p1a[k];
-            for (k = 0; k < kb; k++)
-              sub += gb[k] * p1b[k];
-            acc += sub * p0;
-          } else {
-            const C fp = fj * p0;
-            for (k = 0; k < ka; k++)
-              ga[k] += fp * p1a[k];
-            for (k = 0; k < kb; k++)
-              gb[k] += fp * p1b[k];
-          }
-        }
-    }
+    C r = Y(conv_node_2d)(g, pln->psi + (j * 2 + 0) * len,
+                       pln->psi + (j * 2 + 1) * len, pln->u[j * 2 + 0],
+                       pln->u[j * 2 + 1], n0, n1, len, 0, n0,
+                       forward ? K(0.0) : f[j], forward);
     if (forward)
-      f[j] = acc;
+      f[j] = r;
   }
 }
 

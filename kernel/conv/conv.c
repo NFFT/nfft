@@ -118,3 +118,60 @@ INT Y(problem_conv_ntot)(const problem *p)
   const problem_conv *ego = (const problem_conv *)p;
   return Y(tensor_sz_in)(ego->sz);
 }
+
+/* One node's tap block, rank >= 4. Axis 0 runs outside the odometer so that it
+ * can be clipped to [lo, hi) and its psi factor hoisted; axes 1..d-1 keep the
+ * postfix odometer the nd solver has always used. */
+C Y(conv_node_nd)(C *g, const R *psi, const INT *u, const INT *n, int d, INT len,
+               INT lo, INT hi, C fj, int forward)
+{
+  INT tof0[2], gof0[2], rl0[2];
+  INT lj[d]; /* tap multi index over axes 1..d-1 */
+  INT ll[d + 1]; /* postfix plain index within a plane */
+  R pp[d + 1]; /* postfix product of psi over axes 1..d-1 */
+  INT l_all[d * len]; /* wrapped grid indices per axis/tap */
+  INT stride0 = 1, lprod = 1, i, t, t2, l_L;
+  C acc = K(0.0);
+  int a;
+
+  A((size_t)d * (size_t)len * sizeof(INT) <= (size_t)(64 * 1024));
+
+  for (t = 1; t < d; t++) {
+    stride0 *= n[t];
+    lprod *= len;
+    for (i = 0; i < len; i++)
+      l_all[t * len + i] = (u[t] + i) % n[t];
+  }
+
+  Y(conv_runs)(u[0], n[0], len, tof0, gof0, rl0);
+  for (a = 0; a < 2; a++) {
+    Y(conv_clip)(lo, hi, &tof0[a], &gof0[a], &rl0[a]);
+    for (i = 0; i < rl0[a]; i++) {
+      const R p0 = psi[tof0[a] + i];
+      C *gp = g + (gof0[a] + i) * stride0;
+      const C fp = fj * p0;
+      C sub = K(0.0);
+      for (t = 1; t < d; t++)
+        lj[t] = 0;
+      t = 1;
+      pp[1] = K(1.0);
+      ll[1] = 0;
+      for (l_L = 0; l_L < lprod; l_L++) {
+        for (t2 = t; t2 < d; t2++) {
+          pp[t2 + 1] = pp[t2] * psi[t2 * len + lj[t2]];
+          ll[t2 + 1] = ll[t2] * n[t2] + l_all[t2 * len + lj[t2]];
+        }
+        if (forward)
+          sub += pp[d] * gp[ll[d]];
+        else
+          gp[ll[d]] += pp[d] * fp;
+        for (t = d - 1; (t > 1) && (lj[t] == len - 1); t--)
+          lj[t] = 0;
+        lj[t]++;
+      }
+      if (forward)
+        acc += sub * p0;
+    }
+  }
+  return acc;
+}

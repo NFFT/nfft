@@ -82,20 +82,10 @@ static void apply(const plan *ego_, const problem *p)
   const C *g = pc->g;
   C *f = pc->f;
   INT j;
-  for (j = 0; j < M; j++) {
-    const R *psij = pln->psi + j * len;
-    INT tof[2], gof[2], rl[2], k;
-    C acc = K(0.0);
-    int r;
-    Y(conv_runs)(pln->u[j], n, len, tof, gof, rl);
-    for (r = 0; r < 2; r++) {
-      const R *ps = psij + tof[r];
-      const C *gr = g + gof[r];
-      for (k = 0; k < rl[r]; k++)
-        acc += gr[k] * ps[k];
-    }
-    f[j] = acc;
-  }
+  for (j = 0; j < M; j++)
+    f[j] = Y(
+         conv_node_1d)(g, pln->psi + j * len, pln->u[j], n, len, 0, n, K(0.0),
+                        1);
 }
 
 static void apply_adjoint(const plan *ego_, const problem *p)
@@ -109,19 +99,9 @@ static void apply_adjoint(const plan *ego_, const problem *p)
   /* The scatter accumulates (+=) into an overlapping, node-dependent set that
    * does not cover the grid, so the whole grid must start zeroed. */
   memset(g, 0, (size_t)n * sizeof(C));
-  for (j = 0; j < M; j++) {
-    const R *psij = pln->psi + j * len;
-    C fj = f[j];
-    INT tof[2], gof[2], rl[2], k;
-    int r;
-    Y(conv_runs)(pln->u[j], n, len, tof, gof, rl);
-    for (r = 0; r < 2; r++) {
-      const R *ps = psij + tof[r];
-      C *gr = g + gof[r];
-      for (k = 0; k < rl[r]; k++)
-        gr[k] += fj * ps[k];
-    }
-  }
+  for (j = 0; j < M; j++)
+    (void)Y(conv_node_1d)(g, pln->psi + j * len, pln->u[j], n, len, 0, n, f[j],
+                       0);
 }
 
 static void print(const plan *ego_, printer *pr)
