@@ -554,11 +554,17 @@ void Y(check_ng_omp_nfft_all_levels)(void)
                                        NFFT(get_window_id)(), x,
                               (FC *)f_hat, (FC *)f, 0u, levels[i]);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-    /* Below PATIENT the serial children cannot answer, so both threaded
-     * solvers must be in the tree. At PATIENT Task 7's race decides and this
-     * above both crossovers. */
-    CU_ASSERT_TRUE(plan_tree_has(p, "deconv_solver_threaded"));
-    CU_ASSERT_TRUE(plan_tree_has(p, "conv_solver_threaded"));
+    /* Below PATIENT, NO_NONTHREADED forces every serial DECONV/CONV solver to
+     * decline once nthr > 1, so both threaded solvers are structurally
+     * guaranteed to be in the tree -- this is checked below only for
+     * NFFT_ESTIMATE and NFFT_MEASURE. At NFFT_PATIENT the serial children
+     * compete again and Task 7's race picks a winner by real measured cost;
+     * either may legitimately win, so only correctness is checked there, not
+     * which solver answered. */
+    if (levels[i] != NFFT_PATIENT) {
+      CU_ASSERT_TRUE(plan_tree_has(p, "deconv_solver_threaded"));
+      CU_ASSERT_TRUE(plan_tree_has(p, "conv_solver_threaded"));
+    }
     for (j = 0; j < N; j++)
       f_hat[j] = (R)(j + 1) / (R)N;
     NFFT(precompute)(p);
