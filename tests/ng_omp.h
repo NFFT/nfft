@@ -21,11 +21,13 @@
 
 #include "infft.h"
 
-/* The add-on library's contract while its roster is empty: no threaded solver
- * to reach, no way to raise the thread count. */
-void Y(check_ng_omp_empty_roster)(void);
+/* The add-on library's roster contract now that it carries a threaded solver. */
+void Y(check_ng_omp_roster)(void);
 
-/* Planning still works at every patience level through the add-on library. */
-void Y(check_ng_omp_plans_serially)(void);
+/* The threaded DECONV solver agrees with the serial solver of the same rank. */
+void Y(check_ng_omp_deconv_1d)(void);
+
+/* A one-thread budget makes the threaded solver decline. */
+void Y(check_ng_omp_declines_serial_budget)(void);
 
 #endif /* NG_OMP_TEST_H */

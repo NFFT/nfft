@@ -530,10 +530,12 @@ void Y(nfft_solvers_register)(planner *pl);
 void Y(nfft_ensure_registered)(void);
 
 /* kernel/threads/conf.c, in the add-on library only: the threaded solver
- * roster, and whether it registered anything. Empty until the first threaded
- * solver exists. */
+ * roster, and how many solvers it registered. */
 void Y(nfft_threads_conf_standard)(planner *pl);
 int Y(nfft_threads_roster_size)(void);
+
+/* kernel/threads/deconv.c, in the add-on library only. */
+void Y(deconv_solver_threaded_register)(planner *pl);
 
 /* Zero-dimensional direct NDFT aka the constant function.
 * forward = broadcast, adjoint = reduce. */

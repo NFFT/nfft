@@ -19,18 +19,15 @@
 /* The threaded solver roster. This is the one place a threaded solver is
  * registered, and it exists only in the add-on library, so a program that does
  * not link that library has no threaded solvers and cannot raise the planner's
- * thread count. FFTW's threads/conf.c has the same job.
- *
- * The table is empty: no threaded solver has been written yet.
- * Y(init_threads) reports that by returning 0, so nothing can reach a state
- * with more than one thread and nothing to run on them. Adding the first entry
- * here is all that is needed to switch the machinery on. */
+ * thread count. FFTW's threads/conf.c has the same job. */
 
 #include "nfft3.h"
 #include "infft.h"
 #include "iplanner.h"
+#include "deconv.h"
 
-static const solvtab s = {SOLVTAB_END};
+static const solvtab s = {SOLVTAB(Y(deconv_solver_threaded_register)),
+                          SOLVTAB_END};
 
 void Y(nfft_threads_conf_standard)(planner *pl)
 {

@@ -53,6 +53,7 @@ checkall_ng_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit
 # checkall_ng_omp: the add-on threading library's own contract, linked against
 # libnfft3<suffix>_ng_omp in addition to libnfft3<suffix>.
 checkall_ng_omp_SOURCES = check_ng_omp.c ng_omp.c ng_omp.h
+checkall_ng_omp_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/kernel/deconv
 checkall_ng_omp_CFLAGS = $(OPENMP_CFLAGS)
 checkall_ng_omp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_ng_omp_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_ng_omp.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @fftw3_LIBS_omp@ @cunit_LIBS@
