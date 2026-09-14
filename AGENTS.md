@@ -57,8 +57,8 @@ Key rules:
   `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`.
 - Include order matters. `<complex.h>` must precede anything that pulls in
   `<fftw3.h>`, or `fftw_complex` and `NFFT_C` become a two-element array. The
-  canonical order is `<complex.h>`, `nfft3.h`, the precision macro,
-  `nfft3mp.h`, then `nfft3util.h`.
+  canonical order is `<complex.h>`, `nfft3.h`, `nfft3util.h`, the precision
+  macro, then `nfft3mp.h`.
 - Indentation is 2 spaces, BSD brace style. A `.clang-format` is provided.
 - New code must keep the float/double/long-double build matrix working.
 

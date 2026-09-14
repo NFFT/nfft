@@ -24,8 +24,9 @@
 #include <sys/time.h>
 #include <complex.h>
 #include "nfft3.h"
-#include "nfft3mp.h"
 #include "nfft3util.h"
+/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 int main(void)
 {
