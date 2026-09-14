@@ -31,6 +31,11 @@ problem *Y(mkproblem_nfft)(int d, const INT *N, const int *variant,
 `copy_x = 1` (top-level) copies `x` into a private buffer *and* gathers live-axis
 columns during unit-axis elision; `copy_x = 0` (a child) borrows a slice.
 
+`problem_nfft.x_sorted` records whether the copied `x` is already in CONV key
+order (1 also where `x` is never read). The fast solver passes it to
+`mkproblem_conv`, whose hash includes it, and the sorted CONV solvers decline
+when it is set.
+
 `problem_deconv` and `problem_conv` are the children (borrowed `f_hat`/`g`/`f`,
 own `sz`/`vecsz`/`N`). See `iplanner.h` for their exact fields and constructors
 (`Y(mkproblem_deconv)`, `Y(mkproblem_conv)`).
@@ -64,7 +69,10 @@ those were the removed wrapper roster.
 registered. It now holds two: `deconv_solver_threaded`
 (`kernel/threads/deconv.c`), covering every rank up to `THREADS_MAX_RANK`,
 and `conv_solver_threaded` (`kernel/threads/conv.c`), covering every rank
-uncapped. Both decline
+uncapped.
+Every CONV registrar, serial and threaded, registers two instances: caller
+order (`reg_id` 0) and sorted (`reg_id` 1, prints ` sorted`); see ADR-0008.
+Both decline
 below a two-thread budget (`pl->nthr < 2`), so linking the add-on and calling
 `X(plan_with_nthreads)` with a count of 1 changes no plan. Above that, both
 are gated the same way every serial DECONV/CONV solver is: below

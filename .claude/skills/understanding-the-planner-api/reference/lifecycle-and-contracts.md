@@ -27,6 +27,12 @@ period.
 - `AWAKE` is the real, correct state that `precompute()` moves the winner into.
 - `plan_destroy` first awakes a plan back to `SLEEPY` (releasing node tables),
   then runs its `destroy` hook, then frees.
+- Tables live only between a wake and the return to `SLEEPY` (ADR-0009):
+  `awake` allocates on leaving `SLEEPY` and frees on return, and `AWAKE_ZERO`
+  allocates too, with zeros where filling costs a window evaluation. Every
+  transition has `SLEEPY` on exactly one side; a direct `AWAKE_ZERO` to
+  `AWAKE` move asserts under `--enable-debug`. Exceptions: `fast_native`'s
+  grids `g1`/`g2` live from `mkplan` to `destroy`.
 
 ## The lifecycle, step by step
 
@@ -35,8 +41,8 @@ nfft_plan_ng_guru(...)     construct the bundle; if MEASURE, race candidates
                            SLEEPY -> AWAKE_ZERO (build ψ) -> measure -> SLEEPY.
                            The winner is returned SLEEPY.
         |
-nfft_precompute(p)         winner SLEEPY -> AWAKE. Rebuilds ψ once (the accepted
-                           one-extra build). MANDATORY. Idempotent.
+nfft_precompute(p)         winner SLEEPY -> AWAKE. Allocates and builds the
+                           winner's tables. MANDATORY. Idempotent.
         |
 nfft_execute(p)            asserts winner == PLNR_AWAKE, then apply().
 nfft_execute_adjoint(p)    asserts winner == PLNR_AWAKE, then apply_adjoint().

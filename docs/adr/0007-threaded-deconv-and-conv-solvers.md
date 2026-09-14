@@ -57,9 +57,7 @@ composer as part of the same change, since its own decline under
   `u[j*d] / band` is the part of that machinery this problem actually needs,
   and it is stable, so each band's list stays ascending in node index `j` —
   which is what lets the merge below reproduce the serial accumulation order.
-  Sorting nodes for cache locality is a separate, unstarted work item; a
-  rough measurement elsewhere on this branch put it at 1.1x-1.9x on the whole
-  transform, not attempted here.
+  Sorting nodes for cache locality is ADR-0008.
 - **Band ownership follows the `omp for`'s iteration variable, not the
   thread id.** `apply_adjoint`'s band loop indexes bands `0..nb-1` directly
   (`schedule(dynamic, 1)`); a team smaller than `nb` still visits every band
@@ -542,8 +540,6 @@ the race picks the serial solver in that regime automatically.
 - The internal FFTW child plan inside `nfft_solver_fast_native` still runs
   at one thread regardless of `pl->nthr` — nothing in this work touches
   FFTW's own thread count.
-- CONV has no locality (cache-friendly node order) sort yet — see the
-  counting-sort discussion above.
 - **Task 7's timelimit-division-among-survivors plumbing in
   `Y(planner_mkplan)` (the `budget / nsurvive` divide around the race loop)
   is currently a no-op for DECONV and CONV**, since both are leaf problem
@@ -576,8 +572,6 @@ the race picks the serial solver in that regime automatically.
 - Racing several thread counts against each other, or searching for a good
   one, rather than taking `pl->nthr` as an explicit, caller-given parameter
   (unchanged from ADR-0005).
-- A cache-locality node sort for CONV (measured elsewhere at 1.1x-1.9x on
-  the whole transform, not attempted on this branch).
 - Threading FFTW's own internal child plan inside `nfft_solver_fast_native`.
 - Per-direction solvers that would let the adjoint race on its own measured
   cost rather than inherit the forward winner (unchanged from ADR-0005 and
