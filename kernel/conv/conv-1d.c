@@ -32,9 +32,8 @@ typedef struct {
   INT n, N, M; /* geometry captured at mkplan */
   int m, window;
   const R *x; /* borrowed alias of the problem's nodes */
-  R *psi; /* length M*(2m+2): psi[j*(2m+2)+lj] */
-  INT *u; /* length M: wrapped window start per node */
-  int level; /* content of psi/u: SLEEPY (stale), AWAKE_ZERO or AWAKE */
+  R *psi; /* length M*(2m+2): psi[j*(2m+2)+lj]; NULL while SLEEPY */
+  INT *u; /* length M: wrapped window start per node; NULL while SLEEPY */
 } conv_plan;
 
 /* Window starts are indices: they steer which grid cells apply touches, so the
@@ -56,22 +55,29 @@ static void fill_psi(conv_plan *pln)
                         pln->psi, 2 * pln->m + 2);
 }
 
-/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
- * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
- * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
- * a later upgrade refills. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009). Window
+ * starts are indices: they steer which grid cells apply touches, so they hold
+ * true values at AWAKE_ZERO too. psi costs a window evaluation per tap and
+ * changes no address, so AWAKE_ZERO gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   conv_plan *pln = (conv_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
-    fill_u(pln);
-  if (wakefulness == PLNR_AWAKE) {
-    if (pln->level != PLNR_AWAKE)
-      fill_psi(pln);
-  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
-    memset(pln->psi, 0, (size_t)pln->M * (size_t)(2 * pln->m + 2) * sizeof(R));
+  const size_t M = (size_t)pln->M, len = (size_t)(2 * pln->m + 2);
+  if (wakefulness == PLNR_SLEEPY) {
+    Y(free)(pln->psi);
+    Y(free)(pln->u);
+    pln->psi = 0;
+    pln->u = 0;
+    return;
   }
-  pln->level = wakefulness;
+  A(pln->psi == 0 && pln->u == 0);
+  pln->u = (INT *)Y(malloc)(M * sizeof(INT));
+  pln->psi = (R *)Y(malloc)(M * len * sizeof(R));
+  fill_u(pln);
+  if (wakefulness == PLNR_AWAKE)
+    fill_psi(pln);
+  else
+    memset(pln->psi, 0, M * len * sizeof(R));
 }
 
 static void apply(const plan *ego_, const problem *p)
@@ -111,10 +117,7 @@ static void print(const plan *ego_, printer *pr)
 }
 static void destroy(plan *ego_)
 {
-  conv_plan *pln = (conv_plan *)ego_;
-  Y(free)(pln->psi);
-  Y(free)(pln->u);
-  /* x/g/f are borrowed caller arrays. */
+  (void)ego_; /* Y(plan_destroy) sleeps the plan first; x/g/f are borrowed */
 }
 static const plan_adt conv_plan_adt = {apply, awake, print, destroy,
                                        apply_adjoint};
@@ -142,10 +145,8 @@ static plan *mkplan_conv_1d(const solver *ego, const problem *p, planner *pl)
   pln->m = pc->m;
   pln->window = pc->window;
   pln->x = pc->x; /* borrowed */
-  pln->psi =
-       (R *)Y(malloc)((size_t)pln->M * (size_t)(2 * pln->m + 2) * sizeof(R));
-  pln->u = (INT *)Y(malloc)((size_t)pln->M * sizeof(INT));
-  pln->level = PLNR_SLEEPY;
+  pln->psi = 0;
+  pln->u = 0;
 
   /* Forward counts: taps = M * len^1, one complex-by-real accumulate per tap
    * (two loads: g, psi); other adds the per-axis conv_runs bookkeeping. */

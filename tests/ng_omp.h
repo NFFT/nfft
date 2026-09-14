@@ -56,6 +56,9 @@ void Y(check_ng_omp_conv_clustered)(void);
 /* A band count that does not divide the grid, wrapping at the boundary. */
 void Y(check_ng_omp_conv_wrap)(void);
 
+/* A measured CONV race holds one candidate's tables at a time. */
+void Y(check_ng_omp_race_memory)(void);
+
 /* With both rosters live and two threads, a child problem's two applicable
  * solvers are raced by measurement. */
 void Y(check_ng_omp_child_race)(void);

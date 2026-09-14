@@ -46,13 +46,13 @@ checkall_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
 # checkall_ng: new planner (plan_ng / planner-native) suites + shared util.
-checkall_ng_SOURCES = check_ng.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h planner.c planner.h nplan.c nplan.h nplan_data.c nplan_perm.c nfast.c nfast.h ops.c ops.h
+checkall_ng_SOURCES = check_ng.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h planner.c planner.h nplan.c nplan.h nplan_data.c nplan_perm.c nfast.c nfast.h ops.c ops.h alloc_count.h
 checkall_ng_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_ng_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 
 # checkall_ng_omp: the add-on threading library's own contract, linked against
 # libnfft3<suffix>_ng_omp in addition to libnfft3<suffix>.
-checkall_ng_omp_SOURCES = check_ng_omp.c ng_omp.c ng_omp.h
+checkall_ng_omp_SOURCES = check_ng_omp.c ng_omp.c ng_omp.h alloc_count.h
 checkall_ng_omp_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/kernel/deconv -I$(top_srcdir)/kernel/conv
 checkall_ng_omp_CFLAGS = $(OPENMP_CFLAGS)
 checkall_ng_omp_LDFLAGS = $(OPENMP_CFLAGS) @fftw3_LDFLAGS@ @cunit_LDFLAGS@

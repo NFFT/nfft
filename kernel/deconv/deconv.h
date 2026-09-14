@@ -22,6 +22,16 @@
 #ifndef NFFT_DECONV_H
 #define NFFT_DECONV_H
 
+/* 1/phi_hut over one axis' slots, k = ks - Nneg. */
+static inline void Y(deconv_inv_phi_hut)(int window, INT n, INT N, int m,
+                                      INT Nneg, R *out)
+{
+  INT ks;
+  Y(window_phi_hut_apply)(window, n, N, m, -Nneg, out, N);
+  for (ks = 0; ks < N; ks++)
+    out[ks] = K(1.0) / out[ks];
+}
+
 /* DECONV solvers */
 void Y(deconv_solver_1d_register)(planner *pl);
 void Y(deconv_solver_2d_register)(planner *pl);

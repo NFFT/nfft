@@ -36,37 +36,39 @@ typedef struct {
   R *phi_hut_inv0; /* length N0: 1/phi_hut(n0,N0,m, ks0 - Nneg0) */
   R *phi_hut_inv1; /* length N1: 1/phi_hut(n1,N1,m, ks1 - Nneg1) */
   R *phi_hut_inv2; /* length N2: 1/phi_hut(n2,N2,m, ks2 - Nneg2) */
-  int level; /* content of the tables: SLEEPY (stale), AWAKE_ZERO or AWAKE */
 } deconv_3d_plan;
 
-/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
- * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
- * upgrade refills. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009).
+ * AWAKE_ZERO must cost no window evaluation, so it gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   deconv_3d_plan *pln = (deconv_3d_plan *)ego_;
-  INT ks;
-  if (wakefulness == PLNR_AWAKE) {
-    if (pln->level != PLNR_AWAKE) {
-      Y(window_phi_hut_apply)(pln->window, pln->n0, pln->N0, pln->m, -pln->Nneg0,
-                           pln->phi_hut_inv0, pln->N0);
-      for (ks = 0; ks < pln->N0; ks++)
-        pln->phi_hut_inv0[ks] = K(1.0) / pln->phi_hut_inv0[ks];
-      Y(window_phi_hut_apply)(pln->window, pln->n1, pln->N1, pln->m, -pln->Nneg1,
-                           pln->phi_hut_inv1, pln->N1);
-      for (ks = 0; ks < pln->N1; ks++)
-        pln->phi_hut_inv1[ks] = K(1.0) / pln->phi_hut_inv1[ks];
-      Y(window_phi_hut_apply)(pln->window, pln->n2, pln->N2, pln->m, -pln->Nneg2,
-                           pln->phi_hut_inv2, pln->N2);
-      for (ks = 0; ks < pln->N2; ks++)
-        pln->phi_hut_inv2[ks] = K(1.0) / pln->phi_hut_inv2[ks];
-    }
-  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
-    memset(pln->phi_hut_inv0, 0, (size_t)pln->N0 * sizeof(R));
-    memset(pln->phi_hut_inv1, 0, (size_t)pln->N1 * sizeof(R));
-    memset(pln->phi_hut_inv2, 0, (size_t)pln->N2 * sizeof(R));
+  const size_t N0 = (size_t)pln->N0, N1 = (size_t)pln->N1,
+               N2 = (size_t)pln->N2;
+  if (wakefulness == PLNR_SLEEPY) {
+    Y(free)(pln->phi_hut_inv2);
+    Y(free)(pln->phi_hut_inv1);
+    Y(free)(pln->phi_hut_inv0);
+    pln->phi_hut_inv0 = pln->phi_hut_inv1 = pln->phi_hut_inv2 = 0;
+    return;
   }
-  pln->level = wakefulness;
+  A(pln->phi_hut_inv0 == 0 && pln->phi_hut_inv1 == 0
+    && pln->phi_hut_inv2 == 0);
+  pln->phi_hut_inv0 = (R *)Y(malloc)(N0 * sizeof(R));
+  pln->phi_hut_inv1 = (R *)Y(malloc)(N1 * sizeof(R));
+  pln->phi_hut_inv2 = (R *)Y(malloc)(N2 * sizeof(R));
+  if (wakefulness == PLNR_AWAKE_ZERO) {
+    memset(pln->phi_hut_inv0, 0, N0 * sizeof(R));
+    memset(pln->phi_hut_inv1, 0, N1 * sizeof(R));
+    memset(pln->phi_hut_inv2, 0, N2 * sizeof(R));
+    return;
+  }
+  Y(deconv_inv_phi_hut)(pln->window, pln->n0, pln->N0, pln->m, pln->Nneg0,
+                     pln->phi_hut_inv0);
+  Y(deconv_inv_phi_hut)(pln->window, pln->n1, pln->N1, pln->m, pln->Nneg1,
+                     pln->phi_hut_inv1);
+  Y(deconv_inv_phi_hut)(pln->window, pln->n2, pln->N2, pln->m, pln->Nneg2,
+                     pln->phi_hut_inv2);
 }
 
 /* Each axis splits into two contiguous runs of slots: the negative half maps to
@@ -151,10 +153,7 @@ static void print(const plan *ego_, printer *pr)
 }
 static void destroy(plan *ego_)
 {
-  deconv_3d_plan *pln = (deconv_3d_plan *)ego_;
-  Y(free)(pln->phi_hut_inv2);
-  Y(free)(pln->phi_hut_inv1);
-  Y(free)(pln->phi_hut_inv0);
+  (void)ego_; /* Y(plan_destroy) sleeps the plan first */
 }
 static const plan_adt deconv_3d_plan_adt = {apply, awake, print, destroy,
                                             apply_adjoint};
@@ -203,10 +202,7 @@ static plan *mkplan_deconv_3d(const solver *ego, const problem *p, planner *pl)
   pln->Npos2 = pln->N2 - pln->Nneg2;
   pln->m = pd->m;
   pln->window = pd->window;
-  pln->phi_hut_inv0 = (R *)Y(malloc)((size_t)pln->N0 * sizeof(R));
-  pln->phi_hut_inv1 = (R *)Y(malloc)((size_t)pln->N1 * sizeof(R));
-  pln->phi_hut_inv2 = (R *)Y(malloc)((size_t)pln->N2 * sizeof(R));
-  pln->level = PLNR_SLEEPY;
+  pln->phi_hut_inv0 = pln->phi_hut_inv1 = pln->phi_hut_inv2 = 0;
 
   /* Forward counts: plan_measure_cost times apply, so ops records the forward.
    * The adjoint differs only in needing no clear. other approximates the

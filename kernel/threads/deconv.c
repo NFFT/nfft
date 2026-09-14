@@ -46,29 +46,29 @@ typedef struct {
   int m, window;
   int nthr; /* team size: the budget, clamped to the row count */
   R **phi_hut_inv; /* owned array of d owned tables, phi_hut_inv[t][0..N[t]) */
-  int level; /* content of the tables: SLEEPY, AWAKE_ZERO or AWAKE */
 } deconv_omp_plan;
 
-/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
- * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
- * upgrade refills. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009).
+ * AWAKE_ZERO must cost no window evaluation, so it gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   deconv_omp_plan *pln = (deconv_omp_plan *)ego_;
   int t;
-  if (wakefulness == PLNR_AWAKE) {
-    if (pln->level != PLNR_AWAKE)
-      for (t = 0; t < pln->d; t++) {
-        INT Nt = pln->N[t], ks;
-        Y(window_phi_hut_apply)(pln->window, pln->n[t], Nt, pln->m, -pln->Nneg[t],
-                             pln->phi_hut_inv[t], Nt);
-        for (ks = 0; ks < Nt; ks++)
-          pln->phi_hut_inv[t][ks] = K(1.0) / pln->phi_hut_inv[t][ks];
-      }
-  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
-    for (t = 0; t < pln->d; t++)
-      memset(pln->phi_hut_inv[t], 0, (size_t)pln->N[t] * sizeof(R));
-  pln->level = wakefulness;
+  for (t = 0; t < pln->d; t++) {
+    const size_t Nt = (size_t)pln->N[t];
+    if (wakefulness == PLNR_SLEEPY) {
+      Y(free)(pln->phi_hut_inv[t]);
+      pln->phi_hut_inv[t] = 0;
+      continue;
+    }
+    A(pln->phi_hut_inv[t] == 0);
+    pln->phi_hut_inv[t] = (R *)Y(malloc)(Nt * sizeof(R));
+    if (wakefulness == PLNR_AWAKE_ZERO)
+      memset(pln->phi_hut_inv[t], 0, Nt * sizeof(R));
+    else
+      Y(deconv_inv_phi_hut)(pln->window, pln->n[t], pln->N[t], pln->m,
+                         pln->Nneg[t], pln->phi_hut_inv[t]);
+  }
 }
 
 static void run(const deconv_omp_plan *pln, const problem_deconv *pd,
@@ -177,9 +177,6 @@ static void print(const plan *ego_, printer *pr)
 static void destroy(plan *ego_)
 {
   deconv_omp_plan *pln = (deconv_omp_plan *)ego_;
-  int t;
-  for (t = 0; t < pln->d; t++)
-    Y(free)(pln->phi_hut_inv[t]);
   Y(free)(pln->phi_hut_inv);
   Y(free)(pln->Nneg);
   Y(free)(pln->n);
@@ -231,7 +228,7 @@ static plan *mkplan_deconv_omp(const solver *ego, const problem *p,
                    - (Y(problem_deconv_variant)(p, t) == NFFT_NDFT_TYPE_II ?
                            (INT)1 :
                            (INT)0);
-    pln->phi_hut_inv[t] = (R *)Y(malloc)((size_t)pln->N[t] * sizeof(R));
+    pln->phi_hut_inv[t] = 0;
     Ntot *= pln->N[t];
     if (t < d - 1)
       rows *= pln->N[t];
@@ -244,7 +241,6 @@ static plan *mkplan_deconv_omp(const solver *ego, const problem *p,
   pln->nthr = pl->nthr;
   if (d > 1 && (INT)pln->nthr > rows)
     pln->nthr = (int)rows;
-  pln->level = PLNR_SLEEPY;
   /* Copy of the serial mkplan's ops formula (kernel/deconv/deconv-1d.c,
    * deconv-nd.c): an op count cannot express a thread count. */
   Y(ops_zero)(&pln->super.ops);

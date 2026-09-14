@@ -33,27 +33,27 @@ typedef struct {
   INT n, N; /* geometry captured at mkplan */
   INT Nneg, Npos; /* slot split: k(ks) = ks - Nneg, Npos = N - Nneg */
   int m, window;
-  R *phi_hut_inv; /* length N: 1/phi_hut(ks - Nneg) */
-  int level; /* content of phi_hut_inv: SLEEPY (stale), AWAKE_ZERO or AWAKE */
+  R *phi_hut_inv; /* length N: 1/phi_hut(ks - Nneg); NULL while SLEEPY */
 } deconv_plan;
 
-/* AWAKE_ZERO must cost no window evaluation, so the table gets placeholder
- * zeros. AWAKE_ZERO reached by downgrade only drops the level, so a later
- * upgrade refills. */
+/* The table lives between a wake and the return to SLEEPY (ADR-0009).
+ * AWAKE_ZERO must cost no window evaluation, so it gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   deconv_plan *pln = (deconv_plan *)ego_;
-  INT N = pln->N, ks;
-  if (wakefulness == PLNR_AWAKE) {
-    if (pln->level != PLNR_AWAKE) {
-      Y(window_phi_hut_apply)(pln->window, pln->n, N, pln->m, -pln->Nneg,
-                           pln->phi_hut_inv, N);
-      for (ks = 0; ks < N; ks++)
-        pln->phi_hut_inv[ks] = K(1.0) / pln->phi_hut_inv[ks];
-    }
-  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY)
-    memset(pln->phi_hut_inv, 0, (size_t)N * sizeof(R));
-  pln->level = wakefulness;
+  const size_t N = (size_t)pln->N;
+  if (wakefulness == PLNR_SLEEPY) {
+    Y(free)(pln->phi_hut_inv);
+    pln->phi_hut_inv = 0;
+    return;
+  }
+  A(pln->phi_hut_inv == 0);
+  pln->phi_hut_inv = (R *)Y(malloc)(N * sizeof(R));
+  if (wakefulness == PLNR_AWAKE_ZERO)
+    memset(pln->phi_hut_inv, 0, N * sizeof(R));
+  else
+    Y(deconv_inv_phi_hut)(pln->window, pln->n, pln->N, pln->m, pln->Nneg,
+                       pln->phi_hut_inv);
 }
 
 static void apply(const plan *ego_, const problem *p)
@@ -96,8 +96,7 @@ static void print(const plan *ego_, printer *pr)
 
 static void destroy(plan *ego_)
 {
-  deconv_plan *pln = (deconv_plan *)ego_;
-  Y(free)(pln->phi_hut_inv);
+  (void)ego_; /* Y(plan_destroy) sleeps the plan first */
 }
 static const plan_adt deconv_plan_adt = {apply, awake, print, destroy,
                                          apply_adjoint};
@@ -129,8 +128,7 @@ static plan *mkplan_deconv_1d(const solver *ego, const problem *p, planner *pl)
        pln->N / 2
        - (Y(problem_deconv_variant)(p, 0) == NFFT_NDFT_TYPE_II ? (INT)1 : (INT)0);
   pln->Npos = pln->N - pln->Nneg;
-  pln->phi_hut_inv = (R *)Y(malloc)((size_t)pln->N * sizeof(R));
-  pln->level = PLNR_SLEEPY;
+  pln->phi_hut_inv = 0;
 
   /* Forward counts: plan_measure_cost times apply, so ops records the forward.
    * The adjoint differs only in needing no clear. */

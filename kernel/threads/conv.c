@@ -51,12 +51,12 @@ typedef struct {
   int nb; /* bands along axis 0, 1 <= nb <= nthr */
   INT band; /* band width in grid rows; band >= 2m+2 whenever nb > 1 */
   const R *x; /* borrowed alias of the problem's nodes */
-  R *psi; /* M*d*(2m+2) */
-  INT *u; /* M*d */
-  INT *bstart; /* nb+1 offsets into border */
-  INT *bcur; /* nb scratch cursors for the counting sort */
-  INT *border; /* M node indices, ascending within each band */
-  int level;
+  R *psi; /* M*d*(2m+2); NULL while SLEEPY */
+  INT *u; /* M*d; NULL while SLEEPY */
+  INT *bstart; /* nb+1 offsets into border; NULL while SLEEPY */
+  INT *bcur; /* nb scratch cursors for the counting sort; NULL while SLEEPY */
+  INT *border; /* M node indices, ascending within each band; NULL while
+                * SLEEPY */
 } conv_omp_plan;
 
 /* ponytail: the rank switch is per node, not hoisted out of the loop. At rank 1
@@ -145,26 +145,37 @@ static void fill_bands(conv_omp_plan *pln)
   }
 }
 
-/* AWAKE_ZERO must cost no window evaluation, so the tables get placeholder
- * zeros: u == 0 keeps every apply index in range and psi == 0 keeps every
- * apply flop finite. AWAKE_ZERO reached by downgrade only drops the level, so
- * a later upgrade refills. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009). Window
+ * starts and bands are indices: they steer which grid cells apply touches, so
+ * they hold true values at AWAKE_ZERO too. psi costs a window evaluation per
+ * tap and changes no address, so AWAKE_ZERO gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   conv_omp_plan *pln = (conv_omp_plan *)ego_;
-  if (wakefulness >= PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
-    fill_u(pln);
-    fill_bands(pln);
+  const size_t M = (size_t)pln->M, Md = M * (size_t)pln->d;
+  const size_t len = (size_t)(2 * pln->m + 2), nb = (size_t)pln->nb;
+  if (wakefulness == PLNR_SLEEPY) {
+    Y(free)(pln->border);
+    Y(free)(pln->bcur);
+    Y(free)(pln->bstart);
+    Y(free)(pln->u);
+    Y(free)(pln->psi);
+    pln->border = pln->bcur = pln->bstart = pln->u = 0;
+    pln->psi = 0;
+    return;
   }
-  if (wakefulness == PLNR_AWAKE) {
-    if (pln->level != PLNR_AWAKE)
-      fill_psi(pln);
-  } else if (wakefulness == PLNR_AWAKE_ZERO && pln->level == PLNR_SLEEPY) {
-    memset(pln->psi, 0,
-           (size_t)pln->M * (size_t)pln->d * (size_t)(2 * pln->m + 2)
-                * sizeof(R));
-  }
-  pln->level = wakefulness;
+  A(pln->psi == 0 && pln->u == 0 && pln->border == 0);
+  pln->psi = (R *)Y(malloc)(Md * len * sizeof(R));
+  pln->u = (INT *)Y(malloc)(Md * sizeof(INT));
+  pln->bstart = (INT *)Y(malloc)((nb + 1) * sizeof(INT));
+  pln->bcur = (INT *)Y(malloc)(nb * sizeof(INT));
+  pln->border = (INT *)Y(malloc)(M * sizeof(INT));
+  fill_u(pln);
+  fill_bands(pln);
+  if (wakefulness == PLNR_AWAKE)
+    fill_psi(pln);
+  else
+    memset(pln->psi, 0, Md * len * sizeof(R));
 }
 
 static void apply(const plan *ego_, const problem *p)
@@ -239,11 +250,6 @@ static void print(const plan *ego_, printer *pr)
 static void destroy(plan *ego_)
 {
   conv_omp_plan *pln = (conv_omp_plan *)ego_;
-  Y(free)(pln->border);
-  Y(free)(pln->bcur);
-  Y(free)(pln->bstart);
-  Y(free)(pln->u);
-  Y(free)(pln->psi);
   Y(free)(pln->N);
   Y(free)(pln->n);
 }
@@ -301,13 +307,8 @@ static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
   if (pln->nb < 1)
     pln->nb = 1;
   pln->band = pln->n[0] / pln->nb;
-  pln->psi = (R *)Y(
-       malloc)((size_t)pln->M * (size_t)d * (size_t)len * sizeof(R));
-  pln->u = (INT *)Y(malloc)((size_t)pln->M * (size_t)d * sizeof(INT));
-  pln->bstart = (INT *)Y(malloc)((size_t)(pln->nb + 1) * sizeof(INT));
-  pln->bcur = (INT *)Y(malloc)((size_t)pln->nb * sizeof(INT));
-  pln->border = (INT *)Y(malloc)((size_t)pln->M * sizeof(INT));
-  pln->level = PLNR_SLEEPY;
+  pln->psi = 0;
+  pln->u = pln->bstart = pln->bcur = pln->border = 0;
   /* One plan serves both directions and they scale differently -- the forward
    * over the whole team, the adjoint over nb bands -- so the model is the mean
    * of the two. */

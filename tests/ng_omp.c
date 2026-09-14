@@ -27,6 +27,7 @@
 #include "deconv.h"
 #include "conv.h"
 #include "ng_omp.h"
+#include "alloc_count.h"
 
 /* A private planner carrying both DECONV rosters, so a case can pick the
  * serial or the threaded solver by setting nthr and the impatience bound
@@ -320,6 +321,60 @@ static planner *both_conv_rosters(int nthr, int force_threaded)
   if (force_threaded)
     pl->flags.l |= PLNR_NO_NONTHREADED;
   return pl;
+}
+
+/* Tables live only between a wake and the return to SLEEPY (ADR-0009), so a
+ * measured race holds one candidate's tables at a time. Every CONV candidate
+ * this planner has, serial and threaded, races here. */
+void Y(check_ng_omp_race_memory)(void)
+{
+  const INT N[2] = {128, 128}, n[2] = {256, 256}, M = 65536;
+  const int w = Y(get_window_id)(), d = 2;
+  const size_t len = 14;
+  /* One candidate's M-sized tables at most: psi, u, the threaded solver's
+   * border, and a sorted solver's perm. */
+  const size_t tables = (size_t)M
+                        * ((size_t)d * len * sizeof(R)
+                           + (size_t)d * sizeof(INT) + 2 * sizeof(INT));
+  R *x = (R *)malloc((size_t)(M * d) * sizeof(R));
+  C *g = (C *)malloc((size_t)(n[0] * n[1]) * sizeof(C));
+  C *f = (C *)malloc((size_t)M * sizeof(C));
+  size_t peak;
+  unsigned nmeasured;
+  int planned;
+  INT i;
+
+  for (i = 0; i < M * d; i++)
+    x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
+  for (i = 0; i < n[0] * n[1]; i++)
+    g[i] = K(1.0);
+  for (i = 0; i < M; i++)
+    f[i] = K(0.0);
+
+  alloc_count_begin();
+  {
+    planner *pl = both_conv_rosters(4, 0);
+    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g, f);
+    plan *pln;
+    pl->nmeasured = 0;
+    pln = Y(planner_mkplan)(pl, p);
+    planned = pln != 0;
+    nmeasured = pl->nmeasured;
+    if (pln)
+      Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+    Y(planner_destroy)(pl);
+  }
+  peak = alloc_count_peak;
+  alloc_count_end();
+
+  CU_ASSERT_TRUE(planned);
+  CU_ASSERT(nmeasured >= 2u); /* a real race */
+  CU_ASSERT(peak < tables + tables / 2);
+
+  free(f);
+  free(g);
+  free(x);
 }
 
 /* The threaded CONV solver reproduces the serial one to the last bit: the same
