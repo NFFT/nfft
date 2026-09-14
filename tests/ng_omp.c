@@ -408,7 +408,11 @@ static int run_family(planner *pl, problem *p, int forward, int sorted)
  * kernels, the same per-node order. Anything less means an operation moved.
  * counts covers a team larger than the band count and one that is not a
  * divisor of it. clustered picks the node fill: spread across the whole axis,
- * or packed into a 2% slice of it. */
+ * or packed into a 2% slice of it.
+ *
+ * Both families are compared: caller order against caller order, sorted
+ * against sorted. Across families the adjoint accumulates in a different
+ * order, so only a tolerance holds there (check_nfast_conv_sorted). */
 static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
                               int forward, int clustered)
 {
@@ -417,7 +421,7 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
   INT ntot = 1, i;
   R *x;
   C *g_ref, *g_got, *f_ref, *f_got;
-  int t, c;
+  int t, c, fam;
 
   for (t = 0; t < d; t++)
     ntot *= n[t];
@@ -441,31 +445,33 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
   memcpy(g_got, g_ref, (size_t)ntot * sizeof(C));
   memcpy(f_got, f_ref, (size_t)M * sizeof(C));
 
-  {
-    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_ref, f_ref);
-    planner *pl = both_conv_rosters(1, 0);
-    CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, 0), 1);
-    Y(planner_destroy)(pl);
-    Y(problem_destroy)(p);
-  }
+  for (fam = 0; fam < 2; fam++) {
+    {
+      problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_ref, f_ref);
+      planner *pl = both_conv_rosters(1, 0);
+      CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, fam), 1);
+      Y(planner_destroy)(pl);
+      Y(problem_destroy)(p);
+    }
 
-  for (c = 0; c < 3; c++) {
-    problem *p;
-    planner *pl;
-    memcpy(g_got, g_ref, (size_t)ntot * sizeof(C));
-    if (!forward)
-      for (i = 0; i < ntot; i++)
-        g_got[i] = K(0.0);
-    p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_got, f_got);
-    pl = both_conv_rosters(counts[c], 1);
-    CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, 0), 1);
-    Y(planner_destroy)(pl);
-    Y(problem_destroy)(p);
+    for (c = 0; c < 3; c++) {
+      problem *p;
+      planner *pl;
+      memcpy(g_got, g_ref, (size_t)ntot * sizeof(C));
+      if (!forward)
+        for (i = 0; i < ntot; i++)
+          g_got[i] = K(0.0);
+      p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_got, f_got);
+      pl = both_conv_rosters(counts[c], 1);
+      CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, fam), 1);
+      Y(planner_destroy)(pl);
+      Y(problem_destroy)(p);
 
-    if (forward) {
-      CU_ASSERT_EQUAL(memcmp(f_got, f_ref, (size_t)M * sizeof(C)), 0);
-    } else {
-      CU_ASSERT_EQUAL(memcmp(g_got, g_ref, (size_t)ntot * sizeof(C)), 0);
+      if (forward) {
+        CU_ASSERT_EQUAL(memcmp(f_got, f_ref, (size_t)M * sizeof(C)), 0);
+      } else {
+        CU_ASSERT_EQUAL(memcmp(g_got, g_ref, (size_t)ntot * sizeof(C)), 0);
+      }
     }
   }
 
@@ -731,4 +737,30 @@ void Y(check_ng_omp_no_fast_native_refuses)(void)
   Y(free)(f);
   Y(free)(f_hat);
   Y(free)(x);
+}
+
+/* The sorted threaded solver steps aside on presorted nodes, and applies
+ * otherwise. */
+void Y(check_ng_omp_conv_sorted_declines)(void)
+{
+  const INT N[1] = {32}, n[1] = {64}, M = 16;
+  const int w = Y(get_window_id)();
+  R x[16];
+  C g[64], f[16];
+  planner *pl = both_conv_rosters(4, 1);
+  problem *p;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+  for (j = 0; j < n[0]; j++)
+    g[j] = K(1.0);
+  p = Y(mkproblem_conv)(1, n, N, M, 6, w, 1, 1, x, g, f);
+  CU_ASSERT_EQUAL(run_family(pl, p, 1, 1), 0);
+  CU_ASSERT_EQUAL(run_family(pl, p, 1, 0), 1);
+  Y(problem_destroy)(p);
+  p = Y(mkproblem_conv)(1, n, N, M, 6, w, 1, 0, x, g, f);
+  CU_ASSERT_EQUAL(run_family(pl, p, 1, 1), 1);
+  Y(problem_destroy)(p);
+  Y(planner_destroy)(pl);
 }

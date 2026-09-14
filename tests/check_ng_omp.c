@@ -47,6 +47,8 @@ int main(void)
   CU_add_test(ng_omp, "conv_clustered", Y(check_ng_omp_conv_clustered));
   CU_add_test(ng_omp, "conv_wrap", Y(check_ng_omp_conv_wrap));
   CU_add_test(ng_omp, "race_memory", Y(check_ng_omp_race_memory));
+  CU_add_test(ng_omp, "conv_sorted_declines",
+              Y(check_ng_omp_conv_sorted_declines));
   CU_add_test(ng_omp, "child_race", Y(check_ng_omp_child_race));
   CU_add_test(ng_omp, "nfft_all_levels", Y(check_ng_omp_nfft_all_levels));
   CU_add_test(ng_omp, "no_fast_native_refuses",

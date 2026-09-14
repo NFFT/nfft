@@ -70,4 +70,7 @@ void Y(check_ng_omp_nfft_all_levels)(void);
 /* NFFT_NO_FAST_NATIVE leaves nothing to plan below NFFT_PATIENT. */
 void Y(check_ng_omp_no_fast_native_refuses)(void);
 
+/* The sorted threaded CONV solver declines on presorted nodes. */
+void Y(check_ng_omp_conv_sorted_declines)(void);
+
 #endif /* NG_OMP_TEST_H */

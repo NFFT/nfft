@@ -29,7 +29,11 @@
  *
  * The arithmetic is the serial solvers' own, via the shared kernels in
  * kernel/conv/conv.h, so both directions reproduce the serial result to the
- * last bit at any thread count. */
+ * last bit at any thread count.
+ *
+ * The sorted instance builds u and psi in key order and reaches f through
+ * perm. Its band lists then hold rows, and the merge still gives each cell
+ * ascending rows, which is the serial sorted solver's order. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -57,6 +61,9 @@ typedef struct {
   INT *bcur; /* nb scratch cursors for the counting sort; NULL while SLEEPY */
   INT *border; /* M node indices, ascending within each band; NULL while
                 * SLEEPY */
+  INT *perm; /* M, node of row k in key order; NULL while SLEEPY and for
+              * caller order */
+  int sorted; /* this plan builds perm */
 } conv_omp_plan;
 
 /* ponytail: the rank switch is per node, not hoisted out of the loop. At rank 1
@@ -89,17 +96,17 @@ static inline C node(const conv_omp_plan *pln, C *g, INT j, INT lo, INT hi,
 
 static void fill_u(conv_omp_plan *pln)
 {
-  Y(conv_fill_u)(pln->x, 0, pln->n, pln->d, pln->m, pln->M, pln->u);
+  Y(conv_fill_u)(pln->x, pln->perm, pln->n, pln->d, pln->m, pln->M, pln->u);
 }
 
 static void fill_psi(conv_omp_plan *pln)
 {
-  Y(conv_fill_psi)(pln->window, pln->x, 0, pln->n, pln->N, pln->d, pln->m, pln->M,
-                pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, pln->n, pln->N, pln->d, pln->m,
+                pln->M, pln->psi);
 }
 
-/* Counting sort of the node indices by the band their window start falls in.
- * Stable, so each band's list is ascending in j -- which is what makes the
+/* Counting sort of the rows by the band their window start falls in. Stable,
+ * so each band's list is ascending in row -- which is what makes the
  * adjoint's accumulation order independent of the band count. */
 static void fill_bands(conv_omp_plan *pln)
 {
@@ -144,11 +151,17 @@ static void awake(plan *ego_, int wakefulness)
     Y(free)(pln->bstart);
     Y(free)(pln->u);
     Y(free)(pln->psi);
+    Y(free)(pln->perm);
     pln->border = pln->bcur = pln->bstart = pln->u = 0;
     pln->psi = 0;
+    pln->perm = 0;
     return;
   }
-  A(pln->psi == 0 && pln->u == 0 && pln->border == 0);
+  A(pln->psi == 0 && pln->u == 0 && pln->border == 0 && pln->perm == 0);
+  if (pln->sorted) {
+    pln->perm = (INT *)Y(malloc)(M * sizeof(INT));
+    Y(conv_sort_nodes)(pln->x, pln->n, pln->d, pln->M, pln->perm);
+  }
   pln->psi = (R *)Y(malloc)(Md * len * sizeof(R));
   pln->u = (INT *)Y(malloc)(Md * sizeof(INT));
   pln->bstart = (INT *)Y(malloc)((nb + 1) * sizeof(INT));
@@ -169,10 +182,12 @@ static void apply(const plan *ego_, const problem *p)
   C *g = (C *)pc->g;
   C *f = pc->f;
   const INT M = pln->M, n0 = pln->n[0];
-  INT j;
+  const INT *perm = pln->perm;
+  INT k;
+  /* perm is a permutation, so no two iterations write the same f slot. */
 #pragma omp parallel for num_threads(pln->nthr) schedule(static)
-  for (j = 0; j < M; j++)
-    f[j] = node(pln, g, j, 0, n0, K(0.0), 1);
+  for (k = 0; k < M; k++)
+    f[perm ? perm[k] : k] = node(pln, g, k, 0, n0, K(0.0), 1);
 }
 
 /* Bands, not nodes. Thread ownership follows the omp for, not the thread id,
@@ -219,7 +234,7 @@ static void apply_adjoint(const plan *ego_, const problem *p)
           j = pln->border[ia++];
         else
           j = pln->border[ib++];
-        (void)node(pln, g, j, lo, hi, f[j], 0);
+        (void)node(pln, g, j, lo, hi, f[pln->perm ? pln->perm[j] : j], 0);
       }
     }
   }
@@ -228,7 +243,8 @@ static void apply_adjoint(const plan *ego_, const problem *p)
 static void print(const plan *ego_, printer *pr)
 {
   const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
-  pr->print(pr, "(conv_solver_threaded nthr=%d nb=%d)", pln->nthr, pln->nb);
+  pr->print(pr, "(conv_solver_threaded%s nthr=%d nb=%d)",
+            pln->sorted ? " sorted" : "", pln->nthr, pln->nb);
 }
 
 static void destroy(plan *ego_)
@@ -241,13 +257,13 @@ static void destroy(plan *ego_)
 static const plan_adt conv_omp_plan_adt = {apply, awake, print, destroy,
                                            apply_adjoint};
 
-static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
+static plan *mkplan_conv_omp(const solver *ego_, const problem *p, planner *pl)
 {
+  const conv_solver *ego = (const conv_solver *)ego_;
   const problem_conv *pc = (const problem_conv *)p;
   conv_omp_plan *pln;
   const INT len = 2 * (INT)pc->m + 2;
   int t, d;
-  (void)ego;
 
   if (p->adt->kind != NFFT_PROBLEM_CONV)
     return 0;
@@ -259,6 +275,8 @@ static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
   if (pc->window < NFFT_WINDOW_KAISER_BESSEL
       || pc->window > NFFT_WINDOW_SINC_POWER)
     return 0;
+  if (ego->sorted && pc->x_sorted)
+    return 0; /* already in key order: nothing to sort */
 
   pln =
        (conv_omp_plan *)Y(
@@ -293,6 +311,8 @@ static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
   pln->band = pln->n[0] / pln->nb;
   pln->psi = 0;
   pln->u = pln->bstart = pln->bcur = pln->border = 0;
+  pln->perm = 0;
+  pln->sorted = ego->sorted;
   /* One plan serves both directions and they scale differently -- the forward
    * over the whole team, the adjoint over nb bands -- so the model is the mean
    * of the two. */
@@ -308,6 +328,8 @@ static plan *mkplan_conv_omp(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.other =
          2.0 * taps + 2.0 * (double)pln->M * (double)d * (1.0 + straddle);
   }
+  Y(conv_order_ops)(&pln->super.ops, pln->M, d, pln->m, pln->ntot, ego->sorted,
+                 pc->x_sorted);
   return &pln->super;
 }
 
@@ -315,5 +337,5 @@ static const solver_adt conv_omp_adt = {NFFT_PROBLEM_CONV, 0, mkplan_conv_omp};
 
 void Y(conv_solver_threaded_register)(planner *pl)
 {
-  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &conv_omp_adt));
+  Y(conv_register_both)(pl, &conv_omp_adt);
 }
