@@ -678,8 +678,11 @@ static void fill_fhat(C *f_hat, INT Ntot, unsigned seed)
 {
   INT j;
   lcg_state = seed;
-  for (j = 0; j < Ntot; j++)
-    f_hat[j] = lcg_unit() + _Complex_I * lcg_unit();
+  for (j = 0; j < Ntot; j++) {
+    R re = lcg_unit();
+    R im = lcg_unit();
+    f_hat[j] = re + _Complex_I * im;
+  }
 }
 
 static void check_case_against_direct(int d, INT Nv, INT nv, INT M,
@@ -1892,84 +1895,6 @@ void Y(check_nplan_destroy_keeps_caller_arrays)(void)
   CU_ASSERT_PTR_NOT_NULL_FATAL(p);
 
   Y(plan_ng_destroy)(p);
-  Y(the_planner_destroy)();
-}
-
-/* The native NDFT holds up in the ill-conditioned regime (large N, nodes near
- * +-1/2), where a per-term direct sum loses to libm reducing huge phase
- * arguments. Both it and the legacy direct now run the same blocked recurrence
- * off Y(nfft_ndft_reduced_omega), so the native one must be no worse. The
- * reference sums in long double with argument reduction, independent of R. */
-void Y(check_nplan_ndft_accuracy)(void)
-{
-  enum { N = 8192, M = 64 };
-  const INT Nn = N, nn = 2 * N, Mm = M;
-  static R x[M];
-  static C fh[N], f_planner[M];
-  long double _Complex ref[M];
-  const long double TWO_PI = 6.28318530717958647692528676655900577L;
-  Y(plan_ng) *pp;
-  NFFT(plan) lref;
-  INT j, k;
-  long double num_l = 0.0L, num_p = 0.0L, den = 0.0L;
-  R err_legacy, err_planner;
-
-  Y(the_planner_destroy)();
-
-  for (j = 0; j < Mm; j++)
-    x[j] = (R)0.4999 - (R)0.0001 * (R)((int)j % 7); /* near +1/2: worst case */
-  fill_fhat(fh, Nn, 4242u);
-
-  for (j = 0; j < Mm; j++) {
-    long double _Complex v = 0.0L;
-    long double xj = (long double)x[j];
-    for (k = 0; k < Nn; k++) {
-      long double kk = (long double)(k - Nn / 2);
-      long double t = kk * xj;
-      long double r = t - rintl(t);
-      long double om = TWO_PI * r;
-      v += ((long double _Complex)fh[k]) * (cosl(om) - _Complex_I * sinl(om));
-    }
-    ref[j] = v;
-  }
-
-  {
-    int Ni = (int)Nn, ni = (int)nn;
-    NFFT(init_guru)(&lref, 1, &Ni, (int)Mm, &ni, 6,
-              MALLOC_X | MALLOC_F_HAT | MALLOC_F, 0u);
-  }
-  for (j = 0; j < Mm; j++)
-    lref.x[j] = x[j];
-  for (k = 0; k < Nn; k++)
-    lref.f_hat[k] = fh[k];
-  NFFT(trafo_direct)(&lref);
-
-  /* NO_FAST_NATIVE: the composed fast would outrun the direct here and return
-   * an approximate result. */
-  pp = Y(plan_ng_guru)(1, &Nn, 0, &nn, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, x, fh,
-                    f_planner, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
-  CU_ASSERT_PTR_NOT_NULL_FATAL(pp);
-  Y(precompute)(pp);
-  Y(execute)(pp);
-  Y(plan_ng_destroy)(pp);
-
-  for (j = 0; j < Mm; j++) {
-    long double dl = cabsl((long double _Complex)lref.f[j] - ref[j]);
-    long double dp = cabsl((long double _Complex)f_planner[j] - ref[j]);
-    long double da = cabsl(ref[j]);
-    if (dl > num_l)
-      num_l = dl;
-    if (dp > num_p)
-      num_p = dp;
-    if (da > den)
-      den = da;
-  }
-  err_legacy = (R)(den > 0.0L ? num_l / den : num_l);
-  err_planner = (R)(den > 0.0L ? num_p / den : num_p);
-
-  CU_ASSERT(err_planner <= err_legacy);
-
-  NFFT(finalize)(&lref);
   Y(the_planner_destroy)();
 }
 

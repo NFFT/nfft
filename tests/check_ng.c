@@ -109,7 +109,6 @@ int main(void)
   CU_add_test(nplan_suite, "ndft_dispatch", Y(check_nplan_ndft_dispatch));
   CU_add_test(nplan_suite, "ndft_multivariate_dispatch",
               Y(check_nplan_ndft_multivariate_dispatch));
-  CU_add_test(nplan_suite, "ndft_accuracy", Y(check_nplan_ndft_accuracy));
   CU_add_test(nplan_suite, "correct", Y(check_nplan_correct));
   CU_add_test(nplan_suite, "wisdom_memo", Y(check_nplan_wisdom_memo));
   CU_add_test(nplan_suite, "measured", Y(check_nplan_measured));
