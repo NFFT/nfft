@@ -118,11 +118,9 @@ wisdom (harmless: it is a cache).
 
 The vocabulary tag exists so a `PLNR_*` bit change or a problem-hash field
 change also invalidates old wisdom, even when the solver roster itself is
-unchanged: bump the string whenever either changes. Adding the thread-aware
-key fields and `NFFT_PATIENT`'s restrictions bumped it to `v2`; a file
-exported before that (no `NO_NONTHREADED` bit, keys computed without FFTW's
-thread count, only top-level entries) fails the signature check and is
-rejected as a clean cache miss.
+unchanged: bump the string whenever either changes. Adding `x_sorted` to the
+CONV key bumped it from `"plnr-flags"` to `v2`; a file exported before that
+fails the signature check and is rejected as a clean cache miss.
 
 ## Three import guards (defense in depth)
 

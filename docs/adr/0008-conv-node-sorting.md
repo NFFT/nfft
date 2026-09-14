@@ -38,6 +38,8 @@ through the index.
   grid where that rank gains less than 1.10x in either direction, rounded up to
   a power of two; `HUGE_VAL` if it never gains. Rank 4 and up use rank 3.
 
+Times are ns per tap; gain is caller over sorted.
+
 | d | n/axis | grid MiB | M | fwd caller | fwd sorted | adj caller | adj sorted | fwd gain | adj gain |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | 16384 | 0.25 | 599186 | 0.354 | 0.503 | 0.450 | 0.568 | 0.70x | 0.79x |
@@ -109,6 +111,8 @@ committed, and agrees with run 1 on ranks 2 and 3.
   threaded stay bit-exact (`compare_conv`, `tests/ng_omp.c`).
 - **Wisdom for sorted and presorted nodes is separate.** A wisdom-only plan for
   presorted nodes misses on wisdom made from random ones, and the reverse.
+  The vocabulary tag in `config_signature` moves to `"plnr-flags-v2"`, because
+  the CONV hash gained `x_sorted`.
 - **Measured planning costs one more CONV wake and apply per family.** Peak
   table memory stays one candidate's (ADR-0009).
 - **No benchmark or accuracy report moves:** `plan_ng` is used by no benchmark
@@ -118,3 +122,6 @@ committed, and agrees with run 1 on ranks 2 and 3.
 ## Not decided here
 - Tiled or Morton keys, and grid axis reordering.
 - A public flag to force or forbid sorting.
+- A threshold in M or tap count. The threshold depends only on grid bytes, each
+  rank was calibrated at one M, and the rank-3 sweep is sparse; node density
+  also moves the gain. This waits for measurement.

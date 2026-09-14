@@ -59,8 +59,7 @@ typedef struct {
   INT *u; /* M*d; NULL while SLEEPY */
   INT *bstart; /* nb+1 offsets into border; NULL while SLEEPY */
   INT *bcur; /* nb scratch cursors for the counting sort; NULL while SLEEPY */
-  INT *border; /* M node indices, ascending within each band; NULL while
-                * SLEEPY */
+  INT *border; /* M rows, ascending within each band; NULL while SLEEPY */
   INT *perm; /* M, node of row k in key order; NULL while SLEEPY and for
               * caller order */
   int sorted; /* this plan builds perm */
@@ -196,8 +195,8 @@ static void apply(const plan *ego_, const problem *p)
  *
  * A node's support is at most len rows wide and every band is at least len
  * rows wide, so a node reaching band b starts in band b or in its cyclic
- * predecessor. Merging those two lists in ascending j gives each cell the same
- * accumulation order the serial solver produces, whatever nb is. */
+ * predecessor. Merging those two lists in ascending row gives each cell the
+ * same accumulation order the serial solver produces, whatever nb is. */
 static void apply_adjoint(const plan *ego_, const problem *p)
 {
   const conv_omp_plan *pln = (const conv_omp_plan *)ego_;
@@ -227,7 +226,7 @@ static void apply_adjoint(const plan *ego_, const problem *p)
       INT ib = pln->bstart[b], eb = pln->bstart[b + 1];
       if (nb == 1) /* one band: its own predecessor, so take the list once */
         ia = ea;
-      /* Two ascending lists merged into one ascending pass over j. */
+      /* Two ascending lists merged into one ascending pass over rows. */
       while (ia < ea || ib < eb) {
         INT j;
         if (ib >= eb || (ia < ea && pln->border[ia] < pln->border[ib]))
