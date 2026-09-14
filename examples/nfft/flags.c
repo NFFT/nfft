@@ -35,8 +35,6 @@
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
-/* The Gaussian window is the only one with a fast-Gaussian variant. Which
- * window the library was built with is a runtime query, not a build flag. */
 static unsigned test_fg = 0;
 
 #ifdef MEASURE_TIME_FFTW
