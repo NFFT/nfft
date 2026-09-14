@@ -78,6 +78,7 @@ def render_extra_dist():
         for kind in G.KINDS:
             for (d, N, M, variant) in G.GRIDS[module]:
                 files.append(G.basename(module, kind, d, N, M, variant) + ".txt")
+    files.append(G.basename("nfft", "trafo", *G.NFFT_NDFT_ACCURACY) + ".txt")
     files = sorted(set(files))
     body = "  \\\n".join(files)
     return "EXTRA_DIST = " + body + "\n"

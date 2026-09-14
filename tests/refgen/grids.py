@@ -43,6 +43,11 @@ GRIDS = {
     ),
 }
 
+# Ill-conditioned NDFT trafo case read by check_nplan_ndft_accuracy
+# (tests/nplan.c): large N, nodes near +1/2. Not in GRIDS, so neither the
+# legacy nor the native roster runs it with their loose tolerance.
+NFFT_NDFT_ACCURACY = (1, [8192], 64)
+
 KINDS = ("trafo", "adjoint")  # both forward and adjoint files for every grid entry
 
 

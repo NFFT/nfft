@@ -69,6 +69,29 @@ def _gen_module(module, precision, seed, data_dir):
             print("wrote", path)
 
 
+def _gen_ndft_accuracy(precision, seed, data_dir):
+    """The NFFT_NDFT_ACCURACY trafo case: nodes are the float rounding of
+    0.4999 - 0.0001*(j%7), f_hat float-drawn from the seeded RNG.
+
+    Working precision is precision + 24 digits. With |k x| <= 4096 the phase
+    2 pi k x has absolute error below 2.6e4 * 10^-dps, so each of the N = 8192
+    terms (|f_hat| <= sqrt(2)) is off by at most 3.7e4 * 10^-dps and the sum,
+    rounding included, by less than 5e8 * 10^-dps. That leaves 15 guard digits
+    above the printed precision for |f[j]| >= 1 (this case has min |f[j]| > 30)."""
+    d, N, M = G.NFFT_NDFT_ACCURACY
+    base = G.basename("nfft", "trafo", d, N, M)
+    rng = random.Random("%d:%s" % (seed, base))
+    x = [(mpmath.mpf(_f32(0.4999 - 0.0001 * (j % 7))),) for j in range(M)]
+    f_hat = [mpmath.mpc(_f32(rng.uniform(-1, 1)), _f32(rng.uniform(-1, 1)))
+             for _ in range(T.nn("nfft", N))]
+    with mpmath.workdps(precision + 24):
+        f = T.trafo("nfft", N, M, x, f_hat)
+    path = os.path.join(data_dir, base + ".txt")
+    IO.write_testcase(path, d, N, M, x, f_hat, f, is_complex=True,
+                      ndig=precision, input_is_f_hat=True)
+    print("wrote", path)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--module", choices=("nfft", "nfct", "nfst", "all"), default="all")
@@ -88,6 +111,7 @@ def main(argv=None):
             fp.write(REG.render_header(m))
         print("wrote", hpath)
         if m == "nfft":
+            _gen_ndft_accuracy(args.precision, args.seed, args.data_dir)
             npath = os.path.join(args.header_dir, "nfft_native_testcases.h")
             with open(npath, "w") as fp:
                 fp.write(REG.render_native_header())

@@ -101,6 +101,7 @@ nfft_1d_50_50.txt  \
 nfft_1d_5_10.txt  \
 nfft_1d_5_50.txt  \
 nfft_1d_8192_128.txt  \
+nfft_1d_8192_64.txt  \
 nfft_2d_10_10_20.txt  \
 nfft_2d_10_10_50.txt  \
 nfft_2d_10_20_20.txt  \
