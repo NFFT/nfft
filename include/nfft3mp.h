@@ -19,17 +19,15 @@
 #ifndef __NFFT3MP_H__
 #define __NFFT3MP_H__
 
-/* Canonical include order. <complex.h> must precede <fftw3.h> if the C99 complex 
- * type should be used. The header nfft3.h pulls it in. Otherwise, fftw_complex 
- * (and hence NFFT_C) is a 2-element real array instead. In a program:
+/* Include order:
  *
  *   #include <complex.h>
  *   #include <nfft3.h>
- *   #define NFFT_PRECISION_SINGLE  // or NFFT_PRECISION_DOUBLE/NFFT_PRECISION_LONG_DOUBLE, depending on desired type
+ *   #include <nfft3util.h>
+ *   #define NFFT_PRECISION_SINGLE  // or NFFT_PRECISION_DOUBLE, NFFT_PRECISION_LONG_DOUBLE
  *   #include <nfft3mp.h>
  *
- * NFFT_R/NFFT_C are then the real/complex types for the selected floating-point type
- * so code can be written type-agnostic.
+ * Without <complex.h> first, fftw_complex and NFFT_C are 2-element real arrays.
  */
 #ifndef FFTW3_H
 #error include nfft3.h (or <fftw3.h>) before nfft3mp.h
@@ -88,7 +86,6 @@ typedef double NFFT_R;
 #error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
 #endif
 
-/* math functions (C99/C11 <math.h> and <complex.h>), precision-dispatched */
 #if defined(NFFT_PRECISION_SINGLE)
 #define NFFT_MKNAN nanf
 #define NFFT_CEIL ceilf
@@ -199,7 +196,6 @@ typedef double NFFT_R;
 
 #define NFFT_II _Complex_I
 
-/** Radix of the floating-point representation. */
 #define NFFT_R_RADIX FLT_RADIX
 
 #define NFFT_UNUSED(x) (void)x

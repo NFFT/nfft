@@ -16,9 +16,8 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Helper functions (random data, printing, timing, error norms, ...) useful
- * to callers and to the example/application programs, but not themselves
- * part of any transform's API. See nfft3.h for the transform APIs. */
+/* Helpers that belong to no transform: random data, printing, timing, error
+ * norms, thread count. */
 
 #ifndef __NFFT3UTIL_H__
 #define __NFFT3UTIL_H__
@@ -30,12 +29,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-/* huge second-order macro that defines prototypes for all utility API functions.
- * We expand this macro for each supported precision.
- *   Y: nfft name-mangling macro
- *   R: real data type
- *   C: complex data type
- */
+/* Utility API prototypes, expanded once per precision. */
 #define NFFT_DEFINE_UTIL_API(Y,R,C) \
 /* rand.c */ \
 NFFT_EXTERN R Y(drand48)(void); \
@@ -62,9 +56,7 @@ NFFT_EXTERN NFFT_INT Y(get_num_threads)(void); \
 NFFT_EXTERN void Y(set_num_threads)(NFFT_INT nthreads); \
 NFFT_EXTERN NFFT_INT Y(has_threads_enabled)(void); \
 /* time.c */ \
-/** Monotonic wall clock in seconds. The origin is arbitrary; take \
- * differences to measure an interval. Always double: an absolute timestamp \
- * is not a transform datum, and float quantises it to tens of ms. */ \
+/** Wall clock in seconds, monotonic where available, arbitrary origin. */ \
 NFFT_EXTERN double Y(clock_gettime_seconds)(void); \
 /* error.c: */ \
 NFFT_EXTERN R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \

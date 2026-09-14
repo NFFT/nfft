@@ -36,9 +36,6 @@
 
 #define K4PI NFFT_K(12.5663706143591729538505735331180115367886775975004)
 
-/* Underflow and overflow thresholds for the Bessel routines below. R_TINY is
- * exactly LAPACK DLAMCH's rmin; R_HUGE is one ulp above its rmax, which only
- * makes an overflow guard marginally less conservative. */
 #if defined(NFFT_PRECISION_SINGLE)
 #define R_TINY FLT_MIN
 #define R_HUGE FLT_MAX

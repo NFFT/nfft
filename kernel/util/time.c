@@ -37,15 +37,8 @@ R Y(elapsed_seconds)(ticks t1, ticks t0)
   return (R)(elapsed(t1,t0)) / (R)(TICKS_PER_SECOND);
 }
 
-/* Monotonic wall clock, so an NTP step cannot corrupt an interval. The ladder
- * mirrors FFTW's timer.c: prefer a monotonic source, fall back to a
- * wall-clock one only where no monotonic source exists. The origin is
- * arbitrary and differs per branch; only differences are meaningful.
- *
- * No QueryPerformanceCounter branch: it needs <windows.h>, whose windef.h
- * typedefs INT as int and collides with infft.h's INT. FFTW disabled its own
- * Windows branch for the same reason (kernel/timer.c) and relies on MinGW,
- * which supplies clock_gettime and gettimeofday. */
+/* No QueryPerformanceCounter branch: <windows.h> typedefs INT, which collides
+ * with infft.h's INT. MinGW supplies clock_gettime. */
 double Y(clock_gettime_seconds)(void)
 {
 #if defined(HAVE_CLOCK_GETTIME) && defined(CLOCK_MONOTONIC)
