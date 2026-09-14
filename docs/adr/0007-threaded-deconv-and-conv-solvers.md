@@ -563,9 +563,10 @@ the race picks the serial solver in that regime automatically.
   long-double both pass this test cleanly in this task's matrix run; only
   float fails, and only this one assertion). This is a test-tolerance
   defect in Task 8's test, not a solver correctness defect, and parallel in
-  kind to the codegen-sensitivity that got `check_nplan_ndft_accuracy`
-  removed (ADR-0006): that test compared two implementations of the same
-  recurrence at round-off level and codegen flipped the comparison — but
+  kind to the codegen-sensitivity in `check_nplan_ndft_accuracy`
+  (ADR-0006): that test compared two implementations of the same recurrence
+  at round-off level and codegen flipped the comparison; it now checks the
+  native NDFT against a refgen reference with an absolute bound — but
   this is a *different* test, not previously documented, and this task's
   brief scopes only `docs/adr/` and `.claude/skills/` changes, so it is
   recorded here rather than fixed.

@@ -217,12 +217,13 @@ against.
   which holds the worst precision at 1.58 — 2.5x under the 4.0 gate; the
   re-check procedure, with per-precision numbers, is in
   `docs/agents/pcost-calibration.md`.
-- **`check_nplan_ndft_accuracy` has been removed.** It compared the
-  planner's native direct NDFT against legacy `X(trafo_direct)` at
-  round-off level, but both run the same recurrence, and codegen (FMA
+- **`check_nplan_ndft_accuracy` now uses a refgen reference.** It used to
+  compare the planner's native direct NDFT against legacy `X(trafo_direct)`
+  at round-off level, but both run the same recurrence, and codegen (FMA
   contraction in the OpenMP-outlined legacy loop) flipped the comparison in
-  float OpenMP and double `--enable-debug` builds. Native NDFT accuracy is
-  covered by the refgen file cases in `tests/nplan_data.c`.
+  float OpenMP and double `--enable-debug` builds. It now checks the native
+  NDFT against `tests/data/nfft_1d_8192_64.txt` with an absolute bound of
+  128 eps.
 - The measured-mode fallback leg of `Y(evaluate_plan)` has no deterministic
   unit test: reaching it needs a machine without a fine clock or an `apply`
   the clock cannot resolve. It is covered indirectly on clockless hosts by

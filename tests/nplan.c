@@ -1898,6 +1898,48 @@ void Y(check_nplan_destroy_keeps_caller_arrays)(void)
   Y(the_planner_destroy)();
 }
 
+/* Native NDFT accuracy at N = 8192 with nodes near +1/2, against the refgen
+ * file data/nfft_1d_8192_64.txt. Error max|f - ref| / max|ref| is round-off,
+ * 14 to 31 eps measured; an unreduced per-term phase gives about 1000 eps. */
+void Y(check_nplan_ndft_accuracy)(void)
+{
+  int d;
+  INT *N, NN, M, nn;
+  R *x;
+  C *f_hat, *f, *got;
+  Y(plan_ng) *pp;
+  R err;
+
+  Y(the_planner_destroy)();
+
+  if (!Y(test_read_case)("data/nfft_1d_8192_64.txt", &d, &N, &NN, &M, &x, &f_hat,
+                      &f)) {
+    CU_FAIL("test_read_case failed");
+    return;
+  }
+  nn = 2 * N[0];
+  got = (C *)Y(malloc)((size_t)M * sizeof(C));
+
+  /* NO_FAST_NATIVE: the composed fast would outrun the direct here and return
+   * an approximate result. */
+  pp = Y(plan_ng_guru)(d, N, 0, &nn, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat,
+                    got, 0u, NFFT_ESTIMATE | NFFT_NO_FAST_NATIVE);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(pp);
+  Y(precompute)(pp);
+  Y(execute)(pp);
+  Y(plan_ng_destroy)(pp);
+
+  err = Y(test_rel_max_err)(got, f, M);
+  CU_ASSERT(err <= K(128.0) * EPSILON);
+
+  Y(free)(N);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
+  Y(free)(got);
+  Y(the_planner_destroy)();
+}
+
 /* An NDFT-only bundle plans no FFTW, no phi_hut and no g1/g2, and still
  * executes correctly. */
 void Y(check_nplan_direct_only_bundle)(void)

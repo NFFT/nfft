@@ -245,26 +245,24 @@ int Y(test_read_case)(const char *rel, int *d, INT **N, INT *NN, INT *M, R **x,
   *x = (R *)Y(malloc)((size_t)(*d * *M) * sizeof(R));
   for (j = 0; j < *d * *M; j++)
   {
-    double dv;
-    if (fscanf(fp, "%lf", &dv) != 1)
+    if (fscanf(fp, __FI__, &(*x)[j]) != 1)
       goto fail;
-    (*x)[j] = (R)dv;
   }
   *f_hat = (C *)Y(malloc)((size_t)nn * sizeof(C));
   for (j = 0; j < nn; j++)
   {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2)
+    R re, im;
+    if (fscanf(fp, __FI__ " " __FI__, &re, &im) != 2)
       goto fail;
-    (*f_hat)[j] = (R)re + II * (R)im;
+    (*f_hat)[j] = re + II * im;
   }
   *f = (C *)Y(malloc)((size_t)*M * sizeof(C));
   for (j = 0; j < *M; j++)
   {
-    double re, im;
-    if (fscanf(fp, "%lf %lf", &re, &im) != 2)
+    R re, im;
+    if (fscanf(fp, __FI__ " " __FI__, &re, &im) != 2)
       goto fail;
-    (*f)[j] = (R)re + II * (R)im;
+    (*f)[j] = re + II * im;
   }
   fclose(fp);
   return 1;

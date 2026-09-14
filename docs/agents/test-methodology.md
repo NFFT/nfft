@@ -84,6 +84,10 @@ uv run --with mpmath==1.3.0 python -m tests.refgen.generate --module all --preci
 See [`tests/refgen/README.md`](../../tests/refgen/README.md) for all CLI options and
 the generator self-tests.
 
+Outside the grids, `NFFT_NDFT_ACCURACY` emits `nfft_1d_8192_64.txt` (nodes near
++1/2, output computed with 24 extra digits); `check_nplan_ndft_accuracy` in
+`tests/nplan.c` bounds the native NDFT against it at 128 eps.
+
 The committed `tests/data/*.txt` are now produced by this generator (regenerated with
 `--module all --precision 64 --seed 1`), replacing the original Mathematica-era data.
 

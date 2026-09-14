@@ -50,6 +50,9 @@ void Y(check_nplan_ndft_dispatch)(void);
 /* For d >= 2 the single generic native multivariate NDFT solver wins. */
 void Y(check_nplan_ndft_multivariate_dispatch)(void);
 
+/* Accuracy of the native NDFT against a refgen reference (large N, nodes near
+ * +1/2). */
+void Y(check_nplan_ndft_accuracy)(void);
 void Y(check_nplan_correct)(void);
 void Y(check_nplan_wisdom_memo)(void);
 void Y(check_nplan_measured)(void);
