@@ -227,3 +227,46 @@ void Y(conv_sort_nodes)(const R *x, const INT *n, int d, INT M, INT *perm)
     perm[j] = keys[2 * j + 1];
   Y(free)(keys);
 }
+
+void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,
+                 INT M, INT *u)
+{
+  INT k;
+  int t;
+  for (t = 0; t < d; t++) {
+    const INT nt = n[t];
+    for (k = 0; k < M; k++) {
+      const INT j = perm ? perm[k] : k;
+      INT c = LRINT(FLOOR(x[j * d + t] * (R)nt));
+      u[k * d + t] = (((c - m) % nt) + nt) % nt;
+    }
+  }
+}
+
+/* In key order the nodes are gathered a block at a time, so the window
+ * evaluation still runs over a contiguous array and no copy of x is kept. */
+#define CONV_PSI_BLOCK 256
+
+void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
+                   const INT *N, int d, int m, INT M, R *psi)
+{
+  const INT len = 2 * (INT)m + 2;
+  R xb[CONV_PSI_BLOCK];
+  INT k0, k, cnt;
+  int t;
+  if (!perm) {
+    for (t = 0; t < d; t++)
+      Y(window_phi_precompute)(window, n[t], N[t], m, x + t, d, M, psi + t * len,
+                            d * len);
+    return;
+  }
+  for (k0 = 0; k0 < M; k0 += cnt) {
+    cnt = (M - k0 < CONV_PSI_BLOCK) ? M - k0 : CONV_PSI_BLOCK;
+    for (t = 0; t < d; t++) {
+      for (k = 0; k < cnt; k++)
+        xb[k] = x[perm[k0 + k] * d + t];
+      Y(window_phi_precompute)(window, n[t], N[t], m, xb, 1, cnt,
+                            psi + (k0 * d + t) * len, d * len);
+    }
+  }
+}

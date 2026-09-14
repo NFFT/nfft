@@ -38,32 +38,17 @@ typedef struct {
   INT *u; /* length M*3: wrapped window start, u[j*3+t]; NULL while SLEEPY */
 } conv_3d_plan;
 
-/* Window starts are indices: they steer which grid cells apply touches, so the
- * true values are built for AWAKE_ZERO as well. Only the psi weights, which
- * cost a window evaluation each and change no address, get placeholders. */
 static void fill_u(conv_3d_plan *pln)
 {
   const INT nn[3] = {pln->n0, pln->n1, pln->n2};
-  const INT M = pln->M;
-  const int m = pln->m;
-  INT j;
-  int t;
-  for (t = 0; t < 3; t++)
-    for (j = 0; j < M; j++) {
-      INT c = LRINT(FLOOR(pln->x[j * 3 + t] * (R)nn[t]));
-      pln->u[j * 3 + t] = (((c - m) % nn[t]) + nn[t]) % nn[t];
-    }
+  Y(conv_fill_u)(pln->x, 0, nn, 3, pln->m, pln->M, pln->u);
 }
 
 static void fill_psi(conv_3d_plan *pln)
 {
   const INT nn[3] = {pln->n0, pln->n1, pln->n2};
   const INT NN[3] = {pln->N0, pln->N1, pln->N2};
-  const int m = pln->m;
-  int t;
-  for (t = 0; t < 3; t++)
-    Y(window_phi_precompute)(pln->window, nn[t], NN[t], m, pln->x + t, 3, pln->M,
-                          pln->psi + t * (2 * m + 2), 3 * (2 * m + 2));
+  Y(conv_fill_psi)(pln->window, pln->x, 0, nn, NN, 3, pln->m, pln->M, pln->psi);
 }
 
 /* The tables live between a wake and the return to SLEEPY (ADR-0009). Window

@@ -182,6 +182,14 @@ Y(conv_node_3d)(C *g, const R *psi0, const R *psi1, const R *psi2,
 C Y(conv_node_nd)(C *g, const R *psi, const INT *u, const INT *n, int d, INT len,
                INT lo, INT hi, C fj, int forward);
 
+/* Awake-time tables, shared by every CONV solver so serial and threaded plans
+ * build them through the same code. perm == NULL keeps caller order;
+ * otherwise row k belongs to node perm[k]. */
+void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,
+                 INT M, INT *u);
+void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
+                   const INT *N, int d, int m, INT M, R *psi);
+
 /* CONV solvers. */
 void Y(conv_solver_1d_register)(planner *pl);
 void Y(conv_solver_2d_register)(planner *pl);
