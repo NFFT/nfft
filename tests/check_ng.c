@@ -130,6 +130,7 @@ int main(void)
   CU_add_test(nplan_suite, "fftw_wisdom_only_declines",
               Y(check_nplan_fftw_wisdom_only_declines));
   CU_add_test(nplan_suite, "public_api", Y(check_nplan_public_api));
+  CU_add_test(nplan_suite, "conv_sorted", Y(check_nplan_conv_sorted));
   CU_add_test(nplan_suite, "print_includes_registrar_names",
               Y(check_nplan_print_includes_registrar_names));
   CU_add_test(nplan_suite, "forward_only_race",

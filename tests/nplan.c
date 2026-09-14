@@ -3267,3 +3267,124 @@ void Y(check_nplan_patience_levels)(void)
   Y(free)(f_hat);
   Y(free)(x);
 }
+
+/* Whether p's printed plan tree contains needle. */
+static int nplan_tree_has(Y(plan_ng) *p, const char *needle)
+{
+  FILE *tmp = tmpfile();
+  long len;
+  char *buf;
+  int found;
+
+  if (!tmp)
+    return 0;
+  Y(fprint_plan)(p, tmp);
+  fseek(tmp, 0, SEEK_END);
+  len = ftell(tmp);
+  if (len < 0)
+    len = 0;
+  rewind(tmp);
+  buf = (char *)Y(malloc)((size_t)len + 1);
+  if (len > 0 && fread(buf, 1, (size_t)len, tmp) != (size_t)len)
+    len = 0;
+  buf[len] = '\0';
+  found = strstr(buf, needle) != 0;
+  Y(free)(buf);
+  fclose(tmp);
+  return found;
+}
+
+/* Node sorting through the public API, on the first rank (2, 3, 1) that sorts
+ * at ESTIMATE. Over its threshold ESTIMATE sorts random nodes and keeps
+ * presorted ones in caller order; both agree with the direct oracle; the
+ * sorted winner replays from imported wisdom, and presorted nodes do not reuse
+ * that entry. */
+void Y(check_nplan_conv_sorted)(void)
+{
+  const int ranks[3] = {2, 3, 1};
+  const INT M = 64;
+  INT N[3], n[3], a = 2, Ntot = 1, j;
+  R *x;
+  C *f_hat, *f;
+  Y(plan_ng) *p;
+  char *s;
+  int d = 0, i, t;
+
+  for (i = 0; i < 3 && d == 0; i++)
+    if (Y(conv_sort_grid_bytes)(ranks[i]) != HUGE_VAL)
+      d = ranks[i];
+  if (d == 0) {
+    CU_PASS("no rank sorts at ESTIMATE on this build");
+    return;
+  }
+  for (;;) {
+    double bytes = (double)sizeof(C);
+    for (t = 0; t < d; t++)
+      bytes *= (double)a;
+    if (bytes > Y(conv_sort_grid_bytes)(d))
+      break;
+    a *= 2;
+  }
+  for (t = 0; t < d; t++) {
+    N[t] = a / 2;
+    n[t] = a;
+    Ntot *= a / 2;
+  }
+  x = (R *)Y(malloc)((size_t)(d * M) * sizeof(R));
+  f_hat = (C *)Y(malloc)((size_t)Ntot * sizeof(C));
+  f = (C *)Y(malloc)((size_t)M * sizeof(C));
+
+  Y(the_planner_destroy)();
+
+  /* correctness: over the threshold at ESTIMATE, and a MEASURE race */
+  check_case_against_direct(d, a / 2, a, M, 81u, NFFT_ESTIMATE);
+  check_case_against_direct(2, 64, 128, 512, 82u, NFFT_MEASURE);
+  Y(the_planner_destroy)();
+
+  /* random nodes: sorted */
+  fill_nodes(x, d, M, 83u);
+  p = Y(plan_ng_guru)(d, N, 0, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                   0u, NFFT_ESTIMATE);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  CU_ASSERT_TRUE(nplan_tree_has(p, " sorted"));
+  Y(plan_ng_destroy)(p);
+
+  /* export, drop NFFT's store (FFTW's own wisdom stays), import, replay */
+  s = Y(export_wisdom_to_string)();
+  CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+  Y(the_planner_destroy)();
+  CU_ASSERT(Y(import_wisdom_from_string)(s));
+  Y(free)(s);
+  p = Y(plan_ng_guru)(d, N, 0, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                   0u, NFFT_ESTIMATE | NFFT_WISDOM_ONLY);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  CU_ASSERT_TRUE(nplan_tree_has(p, " sorted"));
+  Y(plan_ng_destroy)(p);
+
+  /* presorted nodes: a row-major lattice of b points per axis */
+  {
+    const INT b = (d == 1) ? 64 : (d == 2) ? 8 : 4;
+    for (j = 0; j < M; j++) {
+      INT r = j;
+      for (t = d - 1; t >= 0; t--) {
+        x[j * d + t] = (R)(r % b) / (R)b - K(0.5);
+        r /= b;
+      }
+    }
+  }
+  p = Y(plan_ng_guru)(d, N, 0, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                   0u, NFFT_ESTIMATE | NFFT_WISDOM_ONLY);
+  CU_ASSERT_PTR_NULL(p);
+  if (p)
+    Y(plan_ng_destroy)(p);
+  p = Y(plan_ng_guru)(d, N, 0, n, M, 6, NFFT_WINDOW_KAISER_BESSEL, x, f_hat, f,
+                   0u, NFFT_ESTIMATE);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  CU_ASSERT_FALSE(nplan_tree_has(p, " sorted"));
+  Y(plan_ng_destroy)(p);
+
+  Y(the_planner_destroy)();
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}

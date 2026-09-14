@@ -188,4 +188,7 @@ void Y(check_nplan_patience_levels)(void);
  * contract lives in tests/ng_omp.c, which links the threaded solver). */
 void Y(check_nplan_child_race)(void);
 
+/* CONV node sorting through the guru: ESTIMATE choice, correctness, wisdom. */
+void Y(check_nplan_conv_sorted)(void);
+
 #endif
