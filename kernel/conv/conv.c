@@ -275,7 +275,7 @@ void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
 
 double Y(conv_sort_grid_bytes)(int d)
 {
-  static const double bytes[3] = {4194304.0, 4194304.0, 4194304.0};
+  static const double bytes[3] = {16777216.0, 131072.0, 8388608.0};
   A(d >= 1);
   return bytes[(d > 3 ? 3 : d) - 1];
 }
