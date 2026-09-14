@@ -2317,3 +2317,85 @@ void Y(check_nfast_composite_ops)(void)
   Y(free)(f_hat);
   Y(free)(x);
 }
+
+/* The CONV node key is the row-major index of the node's grid cell, each axis
+ * shifted by n_t/2; the sort is stable in node index. */
+void Y(check_nfast_conv_node_order)(void)
+{
+  { /* 1D: x = -0.5 is cell 0, x = 0.5 wraps to it */
+    const INT n = 16;
+    R x = K(-0.5);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(&x, &n, 1), (INT)0);
+    x = K(0.0);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(&x, &n, 1), (INT)8);
+    x = K(0.49);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(&x, &n, 1), (INT)15);
+    x = K(0.5);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(&x, &n, 1), (INT)0);
+  }
+  { /* row-major: axis 0 most significant */
+    const INT n2[2] = {8, 4}, n3[3] = {4, 4, 4};
+    const R a[2] = {K(0.0), K(-0.25)};
+    const R b[3] = {K(-0.5), K(-0.5), K(0.25)};
+    const R c[3] = {K(0.25), K(0.0), K(-0.5)};
+    CU_ASSERT_EQUAL(Y(conv_node_key)(a, n2, 2), (INT)17);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(b, n3, 3), (INT)3);
+    CU_ASSERT_EQUAL(Y(conv_node_key)(c, n3, 3), (INT)56);
+  }
+  { /* sortedness, 1D */
+    const INT n = 16;
+    const R xs[5] = {K(-0.5), K(-0.2), K(-0.2), K(0.1), K(0.45)};
+    const R xu[5] = {K(-0.5), K(0.1), K(-0.2), K(-0.2), K(0.45)};
+    const R x1 = K(0.3);
+    CU_ASSERT_EQUAL(Y(conv_nodes_sorted)(xs, &n, 1, 5), 1);
+    CU_ASSERT_EQUAL(Y(conv_nodes_sorted)(xu, &n, 1, 5), 0);
+    CU_ASSERT_EQUAL(Y(conv_nodes_sorted)(&x1, &n, 1, 1), 1);
+  }
+  { /* sorted by x0 alone is not sorted by cell once two nodes share a row */
+    const INT n[2] = {8, 8};
+    const R x[4] = {K(0.01), K(0.4), K(0.02), K(-0.4)};
+    CU_ASSERT_EQUAL(Y(conv_nodes_sorted)(x, n, 2, 2), 0);
+  }
+  { /* sort: keys 52, 5, 52, 24, 0, 52 */
+    const INT n[2] = {8, 8};
+    const R x[12] = {K(0.3),  K(0.1),  K(-0.5), K(0.2),  K(0.3), K(0.1),
+                     K(-0.1), K(-0.4), K(-0.5), K(-0.5), K(0.3), K(0.0)};
+    const INT expect[6] = {4, 1, 3, 0, 2, 5};
+    INT perm[6];
+    int k;
+    Y(conv_sort_nodes)(x, n, 2, 6, perm);
+    for (k = 0; k < 6; k++)
+      CU_ASSERT_EQUAL(perm[k], expect[k]);
+  }
+  { /* ntot = 2^21: three radix passes, and many ties */
+    const INT n[3] = {128, 128, 128};
+    const INT M = 5000;
+    R *x = (R *)Y(malloc)((size_t)(3 * M) * sizeof(R));
+    INT *perm = (INT *)Y(malloc)((size_t)M * sizeof(INT));
+    char *seen = (char *)Y(malloc)((size_t)M);
+    INT k, prev_key = -1, prev_j = -1;
+    int ok = 1;
+    for (k = 0; k < 3 * M; k++)
+      x[k] = (R)((k * 7919) % 1000) / K(1000.0) - K(0.5);
+    memset(seen, 0, (size_t)M);
+    Y(conv_sort_nodes)(x, n, 3, M, perm);
+    for (k = 0; k < M && ok; k++) {
+      const INT j = perm[k];
+      INT key;
+      if (j < 0 || j >= M || seen[j]) {
+        ok = 0;
+        break;
+      }
+      seen[j] = 1;
+      key = Y(conv_node_key)(x + j * 3, n, 3);
+      if (key < prev_key || (key == prev_key && j < prev_j))
+        ok = 0;
+      prev_key = key;
+      prev_j = j;
+    }
+    CU_ASSERT_TRUE(ok);
+    Y(free)(seen);
+    Y(free)(perm);
+    Y(free)(x);
+  }
+}

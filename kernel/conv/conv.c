@@ -175,3 +175,50 @@ C Y(conv_node_nd)(C *g, const R *psi, const INT *u, const INT *n, int d, INT len
   }
   return acc;
 }
+
+/* The wrapped window start u would show a sorted caller order as a rotation;
+ * the shifted cell does not. c matches fill_u's expression, so key and u
+ * agree on every node. */
+INT Y(conv_node_key)(const R *xj, const INT *n, int d)
+{
+  INT key = 0;
+  int t;
+  for (t = 0; t < d; t++) {
+    const INT c = LRINT(FLOOR(xj[t] * (R)n[t]));
+    key = key * n[t] + ((c + n[t] / 2) % n[t] + n[t]) % n[t];
+  }
+  return key;
+}
+
+int Y(conv_nodes_sorted)(const R *x, const INT *n, int d, INT M)
+{
+  INT j, prev = 0;
+  for (j = 0; j < M; j++) {
+    const INT key = Y(conv_node_key)(x + j * d, n, d);
+    if (key < prev)
+      return 0;
+    prev = key;
+  }
+  return 1;
+}
+
+/* Stable LSD radix sort of (key, node) pairs. The bit count is an integer
+ * count of ntot - 1; legacy sort0 takes it from a floating LOG2. */
+void Y(conv_sort_nodes)(const R *x, const INT *n, int d, INT M, INT *perm)
+{
+  INT *keys = (INT *)Y(malloc)(4 * (size_t)M * sizeof(INT));
+  INT ntot = 1, j, rhigh = -1;
+  int t;
+  for (t = 0; t < d; t++)
+    ntot *= n[t];
+  for (j = ntot - 1; j > 0; j >>= 1)
+    rhigh++;
+  for (j = 0; j < M; j++) {
+    keys[2 * j] = Y(conv_node_key)(x + j * d, n, d);
+    keys[2 * j + 1] = j;
+  }
+  Y(sort_node_indices_radix_lsdf)(M, keys, keys + 2 * M, rhigh);
+  for (j = 0; j < M; j++)
+    perm[j] = keys[2 * j + 1];
+  Y(free)(keys);
+}

@@ -639,6 +639,13 @@ INT Y(problem_conv_n)(const problem *p, int t);
 INT Y(problem_conv_N)(const problem *p, int t);
 INT Y(problem_conv_ntot)(const problem *p);
 
+/* CONV node order (kernel/conv/conv.c). The key is the row-major index of the
+ * node's grid cell, each axis shifted by n_t/2, so a caller order sorted by
+ * cell over [-0.5, 0.5) is a non-decreasing key sequence. */
+INT Y(conv_node_key)(const R *xj, const INT *n, int d);
+int Y(conv_nodes_sorted)(const R *x, const INT *n, int d, INT M);
+void Y(conv_sort_nodes)(const R *x, const INT *n, int d, INT M, INT *perm);
+
 /* CONV solver roster */
 void Y(conv_solvers_register)(planner *pl);
 void Y(conv_ensure_registered)(void);
