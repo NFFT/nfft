@@ -180,7 +180,7 @@ void Y(check_nfast_conv_problem)(void)
   char buf[160];
   printer *pr;
 
-  pf = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, &x0, &g0, &f0);
+  pf = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, 0, &x0, &g0, &f0);
   CU_ASSERT_EQUAL(pf->adt->kind, NFFT_PROBLEM_CONV);
   CU_ASSERT_EQUAL(Y(problem_conv_n)(pf, 0), (INT)32);
   CU_ASSERT_EQUAL(Y(problem_conv_N)(pf, 0), (INT)16);
@@ -190,7 +190,7 @@ void Y(check_nfast_conv_problem)(void)
   {
     INT n2[2] = {32, 16}, N2[2] = {16, 8};
     problem *pnd =
-         Y(mkproblem_conv)(2, n2, N2, (INT)1000, 6, w, 1, &x0, &g0, &f0);
+         Y(mkproblem_conv)(2, n2, N2, (INT)1000, 6, w, 1, 0, &x0, &g0, &f0);
     CU_ASSERT_EQUAL(Y(problem_conv_N)(pnd, 0), (INT)16);
     CU_ASSERT_EQUAL(Y(problem_conv_N)(pnd, 1), (INT)8);
     Y(problem_destroy)(pnd);
@@ -212,33 +212,41 @@ void Y(check_nfast_conv_problem)(void)
   /* key is data-blind: a different x pointer yields the same key */
   Y(problem_md5)(
        pl, pf, s1);
-  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, &x1, &g0, &f0);
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, 0, &x1, &g0, &f0);
   Y(problem_md5)(pl, p2, s2);
   CU_ASSERT(s1[0] == s2[0] && s1[1] == s2[1] && s1[2] == s2[2]
             && s1[3] == s2[3]);
   Y(problem_destroy)(p2);
 
   /* key is data-blind: different g/f pointers yield the same key */
-  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, &x0, &g1, &f1);
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, 0, &x0, &g1, &f1);
   Y(problem_md5)(pl, p2, s2);
   CU_ASSERT(s1[0] == s2[0] && s1[1] == s2[1] && s1[2] == s2[2]
             && s1[3] == s2[3]);
   Y(problem_destroy)(p2);
 
   /* M-bucketing (floor_log2): 1000 and 1023 share a bucket, 1024 does not */
-  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1023, 6, w, 1, &x0, &g0, &f0);
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1023, 6, w, 1, 0, &x0, &g0, &f0);
   Y(problem_md5)(pl, p2, s2);
   CU_ASSERT(s1[0] == s2[0] && s1[1] == s2[1] && s1[2] == s2[2]
             && s1[3] == s2[3]);
   Y(problem_destroy)(p2);
-  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1024, 6, w, 1, &x0, &g0, &f0);
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1024, 6, w, 1, 0, &x0, &g0, &f0);
   Y(problem_md5)(pl, p2, s2);
   CU_ASSERT(s1[0] != s2[0] || s1[1] != s2[1] || s1[2] != s2[2]
             || s1[3] != s2[3]);
   Y(problem_destroy)(p2);
 
   /* sign shifts the key */
-  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, -1, &x0, &g0, &f0);
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, -1, 0, &x0, &g0, &f0);
+  Y(problem_md5)(pl, p2, s2);
+  CU_ASSERT(s1[0] != s2[0] || s1[1] != s2[1] || s1[2] != s2[2]
+            || s1[3] != s2[3]);
+  Y(problem_destroy)(p2);
+
+  /* x_sorted shifts the key: it is the one property of x the key records */
+  p2 = Y(mkproblem_conv)(1, &n1, &N1, (INT)1000, 6, w, 1, 1, &x0, &g0, &f0);
+  CU_ASSERT_EQUAL(((problem_conv *)p2)->x_sorted, 1);
   Y(problem_md5)(pl, p2, s2);
   CU_ASSERT(s1[0] != s2[0] || s1[1] != s2[1] || s1[2] != s2[2]
             || s1[3] != s2[3]);
@@ -938,7 +946,7 @@ void Y(check_nfast_conv_solver)(void)
     g[0] = K(1.0);
   }
 
-  pf = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, x, g, f);
+  pf = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, 0, x, g, f);
   pln = Y(planner_mkplan)(Y(the_planner)(), pf);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
   Y(plan_awake)(pln, PLNR_AWAKE);
@@ -967,7 +975,7 @@ void Y(check_nfast_conv_solver)(void)
 
   /* B^H: a single node spike f[0] = 1 scatters node 0's psi weights onto its
    * wrapped neighbors. */
-  pa = Y(mkproblem_conv)(1, &n, &N, M, m, w, -1, x, g, f);
+  pa = Y(mkproblem_conv)(1, &n, &N, M, m, w, -1, 0, x, g, f);
   pln_adj = Y(planner_mkplan)(Y(the_planner)(), pa);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln_adj);
   Y(plan_awake)(pln_adj, PLNR_AWAKE);
@@ -1020,13 +1028,13 @@ void Y(check_nfast_conv_solver)(void)
     for (ks = 0; ks < n; ks++)
       g2[ks] = K(0.0);
     g2[0] = K(1.0);
-    pf2 = Y(mkproblem_conv)(1, &n, &N, (INT)1, m, w, 1, x1, g2, f2);
+    pf2 = Y(mkproblem_conv)(1, &n, &N, (INT)1, m, w, 1, 0, x1, g2, f2);
     plnf2 = Y(planner_mkplan)(Y(the_planner)(), pf2);
     CU_ASSERT_PTR_NOT_NULL_FATAL(plnf2);
     Y(plan_awake)(plnf2, PLNR_AWAKE);
     plnf2->adt->apply(plnf2, pf2);
 
-    pa2 = Y(mkproblem_conv)(1, &n, &N, (INT)1, m, w, -1, x1, g2, f2);
+    pa2 = Y(mkproblem_conv)(1, &n, &N, (INT)1, m, w, -1, 0, x1, g2, f2);
     plna2 = Y(planner_mkplan)(Y(the_planner)(), pa2);
     CU_ASSERT_PTR_NOT_NULL_FATAL(plna2);
     Y(plan_awake)(plna2, PLNR_AWAKE);
@@ -1058,7 +1066,7 @@ void Y(check_nfast_conv_solver)(void)
     plan *plz, *pld;
     for (ks = 0; ks < n; ks++)
       g[ks] = (R)(ks + 1);
-    pz = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, x, g, fz);
+    pz = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, 0, x, g, fz);
     plz = Y(planner_mkplan)(Y(the_planner)(), pz);
     CU_ASSERT_PTR_NOT_NULL_FATAL(plz);
     Y(plan_awake)(plz, PLNR_AWAKE_ZERO);
@@ -1067,7 +1075,7 @@ void Y(check_nfast_conv_solver)(void)
     Y(plan_awake)(plz, PLNR_AWAKE);
     plz->adt->apply(plz, pz);
 
-    pd = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, x, g, f);
+    pd = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, 0, x, g, f);
     pld = Y(planner_mkplan)(Y(the_planner)(), pd);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pld);
     Y(plan_awake)(pld, PLNR_AWAKE);
@@ -2168,9 +2176,11 @@ void Y(check_nfast_conv_ops)(void)
 
   Y(conv_solvers_register)(pl);
 
+  /* x_sorted = 1: x is a probe pointer. The sorted solver declines, so the
+   * caller-order solver is adopted untimed and nothing reads x. */
   { /* rank 1: taps = 140 -> mul 280, add 280, other 280 + 20 = 300 */
     const INT n = 8, N = 4, M = 10;
-    problem *p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, &x0, &g0, &f0);
+    problem *p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, 1, &x0, &g0, &f0);
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 280.0, 0.0);
@@ -2182,7 +2192,7 @@ void Y(check_nfast_conv_ops)(void)
   }
   { /* rank 2: taps = 1960 -> mul 3920, add 3920, other 3920 + 40 = 3960 */
     const INT n[2] = {8, 8}, N[2] = {4, 4}, M = 10;
-    problem *p = Y(mkproblem_conv)(2, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    problem *p = Y(mkproblem_conv)(2, n, N, M, 6, w, 1, 1, &x0, &g0, &f0);
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 3920.0, 0.0);
@@ -2194,7 +2204,7 @@ void Y(check_nfast_conv_ops)(void)
   }
   { /* rank 3: taps = 27440 -> mul 54880, add 54880, other 54880 + 60 = 54940 */
     const INT n[3] = {8, 8, 8}, N[3] = {4, 4, 4}, M = 10;
-    problem *p = Y(mkproblem_conv)(3, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    problem *p = Y(mkproblem_conv)(3, n, N, M, 6, w, 1, 1, &x0, &g0, &f0);
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 54880.0, 0.0);
@@ -2207,7 +2217,7 @@ void Y(check_nfast_conv_ops)(void)
   { /* rank 4 (nd): taps = 384160 -> mul 768320, add 768320,
      * other 768320 + 80 = 768400 */
     const INT n[4] = {8, 8, 8, 8}, N[4] = {4, 4, 4, 4}, M = 10;
-    problem *p = Y(mkproblem_conv)(4, n, N, M, 6, w, 1, &x0, &g0, &f0);
+    problem *p = Y(mkproblem_conv)(4, n, N, M, 6, w, 1, 1, &x0, &g0, &f0);
     plan *pln = Y(planner_mkplan)(pl, p);
     CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
     CU_ASSERT_DOUBLE_EQUAL(pln->ops.mul, 768320.0, 0.0);
@@ -2397,5 +2407,38 @@ void Y(check_nfast_conv_node_order)(void)
     Y(free)(seen);
     Y(free)(perm);
     Y(free)(x);
+  }
+}
+
+/* The guru's copy of x records whether the live axes are in CONV key order.
+ * Paths that never read x record 1. */
+void Y(check_nfast_nfft_x_sorted)(void)
+{
+  const int w = Y(get_window_id)();
+  C fh[16], f[4];
+  problem *p;
+
+  { /* 1D, copy_x = 1 */
+    const INT N = 16, n = 32;
+    R xs[4] = {K(-0.5), K(-0.25), K(0.0), K(0.25)};
+    R xu[4] = {K(0.25), K(-0.5), K(0.0), K(-0.25)};
+    p = Y(mkproblem_nfft)(1, &N, 0, &n, 4, 6, w, 1, 0u, xs, 1, fh, f);
+    CU_ASSERT_EQUAL(((problem_nfft *)p)->x_sorted, 1);
+    Y(problem_destroy)(p);
+    p = Y(mkproblem_nfft)(1, &N, 0, &n, 4, 6, w, 1, 0u, xu, 1, fh, f);
+    CU_ASSERT_EQUAL(((problem_nfft *)p)->x_sorted, 0);
+    Y(problem_destroy)(p);
+    /* borrowed: never read, so 1 */
+    p = Y(mkproblem_nfft)(1, &N, 0, &n, 4, 6, w, 1, 0u, xu, 0, fh, f);
+    CU_ASSERT_EQUAL(((problem_nfft *)p)->x_sorted, 1);
+    Y(problem_destroy)(p);
+  }
+  { /* a unit axis is elided first; axis 1 is out of order and ignored */
+    const INT N[2] = {16, 1}, n[2] = {32, 1};
+    R x[8] = {K(-0.5), K(0.4), K(-0.25), K(-0.4),
+              K(0.0),  K(0.1), K(0.25),  K(-0.1)};
+    p = Y(mkproblem_nfft)(2, N, 0, n, 4, 6, w, 1, 0u, x, 1, fh, f);
+    CU_ASSERT_EQUAL(((problem_nfft *)p)->x_sorted, 1);
+    Y(problem_destroy)(p);
   }
 }

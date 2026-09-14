@@ -180,22 +180,32 @@ Y(mkproblem_nfft)(int d, const INT *N, const int *variant, const INT *n,
   ego->fftw_flags = fftw_flags;
 
   /* The copy gathers only the live columns.  dl==0 (all axes unit) has no
-   * columns: leave x NULL/unowned (the rank-0 solver never reads x). */
+   * columns: leave x NULL/unowned (the rank-0 solver never reads x).
+   * x_sorted is decided on the copy, over the live axes. The paths that never
+   * read x record 1: tests hand the borrowed path probe pointers, and 1 keeps
+   * the sorted CONV solver, whose awake reads x, out of their races. */
   if (copy_x && dl > 0) {
     R *xc = (R *)Y(malloc)((size_t)dl * (size_t)M * sizeof(R));
+    INT *nl = (INT *)Y(malloc)((size_t)dl * sizeof(INT));
     INT jj;
     for (jj = 0; jj < M; jj++)
       for (t = 0; t < dl; t++)
         xc[jj * dl + t] = x[jj * d + live[t]];
+    for (t = 0; t < dl; t++)
+      nl[t] = n[live[t]];
     ego->x = xc;
     ego->x_owned = 1;
+    ego->x_sorted = Y(conv_nodes_sorted)(xc, nl, dl, M);
+    Y(free)(nl);
   } else if (copy_x) /* dl == 0 */
   {
     ego->x = 0;
     ego->x_owned = 0;
+    ego->x_sorted = 1;
   } else {
     ego->x = x;
     ego->x_owned = 0;
+    ego->x_sorted = 1;
   }
   ego->f_hat = f_hat;
   ego->f = f;

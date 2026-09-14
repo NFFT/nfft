@@ -354,7 +354,7 @@ void Y(check_ng_omp_race_memory)(void)
   alloc_count_begin();
   {
     planner *pl = both_conv_rosters(4, 0);
-    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g, f);
+    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g, f);
     plan *pln;
     pl->nmeasured = 0;
     pln = Y(planner_mkplan)(pl, p);
@@ -415,7 +415,7 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
   memcpy(f_got, f_ref, (size_t)M * sizeof(C));
 
   {
-    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g_ref, f_ref);
+    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_ref, f_ref);
     planner *pl = both_conv_rosters(1, 0);
     CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
     Y(planner_destroy)(pl);
@@ -429,7 +429,7 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
     if (!forward)
       for (i = 0; i < ntot; i++)
         g_got[i] = K(0.0);
-    p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, x, g_got, f_got);
+    p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_got, f_got);
     pl = both_conv_rosters(counts[c], 1);
     CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
     Y(planner_destroy)(pl);

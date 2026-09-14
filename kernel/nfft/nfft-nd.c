@@ -244,7 +244,7 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
     pln->deconv_child = Y(planner_mkplan)(pl, pln->deconv_prob);
     /* CONV child: g2 -> f (parent); x borrowed from parent's owned copy. */
     pln->conv_prob = Y(mkproblem_conv)(d, pln->nc, pln->Nc, M, m, window, +1,
-                                    pn->x, pln->g2, pn->f);
+                                    pn->x_sorted, pn->x, pln->g2, pn->f);
     pln->conv_child = Y(planner_mkplan)(pl, pln->conv_prob);
   }
   /* FFTW_WISDOM_ONLY can leave an FFTW plan NULL; a child solver can decline. */

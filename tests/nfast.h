@@ -64,6 +64,10 @@ void Y(check_nfast_conv_ops)(void);
 /* The CONV node key, the sortedness test and the stable sort. */
 void Y(check_nfast_conv_node_order)(void);
 
+/* problem_nfft.x_sorted: computed on the guru's copy of x, 1 where x is not
+ * read. */
+void Y(check_nfast_nfft_x_sorted)(void);
+
 /* The direct NDFT (rank 1 and rank >= 2) and rank-0 solvers: the forward op
  * counts, pinned against each solver's own apply loop. */
 void Y(check_nfast_ndft_ops)(void);

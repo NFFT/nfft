@@ -37,7 +37,11 @@ static void hash(const problem *p, md5 *ctx)
   for (t = 0; t < ego->sz->rnk; t++)
     Y(md5_put_INT)(ctx, ego->N[t]);
   Y(md5_put_int)(ctx, ego->window);
-  /* x is not hashed: the key is a size class, not the node data. */
+  /* x itself is not hashed: the key is a size class. Its one recorded
+   * property is whether the rows are already in key order, since a sorted
+   * winner blessed on random nodes must not replay on presorted ones, nor the
+   * reverse. */
+  Y(md5_put_int)(ctx, ego->x_sorted);
 }
 
 static void print(const problem *p, printer *pr)
@@ -60,7 +64,7 @@ static void destroy(problem *p)
 static const problem_adt conv_adt = {NFFT_PROBLEM_CONV, hash, print, destroy};
 
 problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
-                        int window, int sign, R *x, C *g, C *f)
+                        int window, int sign, int x_sorted, R *x, C *g, C *f)
 {
   problem_conv *ego;
   tensor *grid;
@@ -93,6 +97,7 @@ problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
   ego->m = m;
   ego->window = window;
   ego->sign = sign;
+  ego->x_sorted = x_sorted;
   ego->x = x; /* borrowed alias */
   ego->g = g; /* borrowed alias */
   ego->f = f; /* borrowed alias */

@@ -499,6 +499,8 @@ typedef struct {
                           so normalized to TYPE_I. */
   int x_owned; /* 1: x is this problem's private copy;
                           0: x is borrowed from a parent problem. */
+  int x_sorted; /* 1: the x rows are in CONV key order (Y(conv_nodes_sorted)),
+                 * or this problem never read x; enters the CONV child's key */
 } problem_nfft;
 
 problem *
@@ -628,13 +630,15 @@ typedef struct {
   int m; /* window cutoff */
   int window; /* NFFT_WINDOW_* ordinal */
   int sign; /* +1 = g->f, -1 = adjoint f->g */
+  int x_sorted; /* 1: x is already in CONV key order; hashed, so wisdom for
+                 * sorted and unsorted nodes never mixes */
   R *x; /* caller-owned nodes */
   C *g; /* borrowed in */
   C *f; /* borrowed out */
 } problem_conv;
 
 problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
-                        int window, int sign, R *x, C *g, C *f);
+                        int window, int sign, int x_sorted, R *x, C *g, C *f);
 INT Y(problem_conv_n)(const problem *p, int t);
 INT Y(problem_conv_N)(const problem *p, int t);
 INT Y(problem_conv_ntot)(const problem *p);
