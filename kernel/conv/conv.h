@@ -190,6 +190,29 @@ void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,
 void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
                    const INT *N, int d, int m, INT M, R *psi);
 
+/* A CONV solver instance. Every CONV registrar registers two, caller order
+ * (reg_id 0) and sorted (reg_id 1), so the planner races node order like any
+ * other choice and wisdom records the winner. */
+typedef struct {
+  solver super;
+  int sorted;
+} conv_solver;
+
+static inline void Y(conv_register_both)(planner *pl, const solver_adt *adt)
+{
+  int s;
+  for (s = 0; s < 2; s++) {
+    conv_solver *slv = (conv_solver *)Y(
+         solver_create)(sizeof(conv_solver), adt);
+    slv->sorted = s;
+    REGISTER_SOLVER(pl, &slv->super);
+  }
+}
+
+/* Node order's share of a CONV plan's counts; see Y(conv_sort_grid_bytes). */
+void Y(conv_order_ops)(opcnt *ops, INT M, int d, int m, INT ntot, int sorted,
+                    int x_sorted);
+
 /* CONV solvers. */
 void Y(conv_solver_1d_register)(planner *pl);
 void Y(conv_solver_2d_register)(planner *pl);

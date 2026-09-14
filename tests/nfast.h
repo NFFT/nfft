@@ -68,6 +68,16 @@ void Y(check_nfast_conv_node_order)(void);
  * read. */
 void Y(check_nfast_nfft_x_sorted)(void);
 
+/* The sorted CONV solver per rank: agreement with caller order, decline on
+ * presorted nodes, awake cycle. */
+void Y(check_nfast_conv_sorted)(void);
+
+/* Node order's share of the CONV counts, and the ESTIMATE choice it drives. */
+void Y(check_nfast_conv_order_ops)(void);
+
+/* A measured race between both CONV families holds one family's tables. */
+void Y(check_nfast_conv_race_memory)(void);
+
 /* The direct NDFT (rank 1 and rank >= 2) and rank-0 solvers: the forward op
  * counts, pinned against each solver's own apply loop. */
 void Y(check_nfast_ndft_ops)(void);

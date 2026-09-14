@@ -566,14 +566,15 @@ void Y(check_nplan_solvers)(void)
    * is not a valid generation check, since a recreated planner can reuse the
    * freed address. nslvdesc counts descriptors of every kind: the NFFT roster
    * in kernel/nfft/conf.c is 4 (composed native fast, native 1D direct,
-   * generic nD NDFT, rank-0 base case), plus the DECONV and CONV rosters of 4
-   * each, which ensure_registered installs first because the composed fast
-   * recurses into them. */
+   * generic nD NDFT, rank-0 base case), plus the DECONV roster of 4, plus the
+   * CONV roster of 8 (caller order and sorted at each of 4 ranks), which
+   * ensure_registered installs first because the composed fast recurses into
+   * them. */
   Y(nfft_ensure_registered)();
-  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 12u);
+  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 16u);
   Y(the_planner_destroy)();
   Y(nfft_ensure_registered)();
-  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 12u); /* fresh generation */
+  CU_ASSERT_EQUAL(Y(the_planner)()->nslvdesc, 16u); /* fresh generation */
   Y(the_planner_destroy)();
 }
 

@@ -29,6 +29,7 @@
 #include "plan_ng_test.h" /* test-only plan_ng_test_native_parts hook */
 #include "nfast.h"
 #include "util.h"
+#include "alloc_count.h"
 
 /* Native-fast and legacy-fast are the same algorithm, so they agree to
  * round-off: ~1e-12 in double/long-double, but only ~1e-4 in float, where
@@ -2441,4 +2442,323 @@ void Y(check_nfast_nfft_x_sorted)(void)
     CU_ASSERT_EQUAL(((problem_nfft *)p)->x_sorted, 1);
     Y(problem_destroy)(p);
   }
+}
+
+/* One CONV candidate by family: registration id 0 is caller order, 1 is
+ * sorted. Each rank's registrar registers both and ranks are disjoint, so the
+ * id picks one. NULL when that solver declines. */
+static plan *conv_family(planner *pl, const problem *p, int sorted)
+{
+  plan *cands[8];
+  unsigned slv[8];
+  plan *got = 0;
+  int nc = Y(planner_candidates)(pl, p, cands, slv, 8), i;
+  for (i = 0; i < nc; i++) {
+    if (got == 0 && pl->slvdescs[slv[i]].reg_id == sorted)
+      got = cands[i];
+    else
+      Y(plan_destroy)(cands[i]);
+  }
+  return got;
+}
+
+static int plan_prints(const plan *pln, const char *needle)
+{
+  char buf[256];
+  printer *pr = Y(printer_create_str)(buf);
+  pr->print(pr, "%p", pln);
+  Y(printer_destroy)(pr);
+  return strstr(buf, needle) != 0;
+}
+
+static void conv_sorted_case(int d, const INT *n, const INT *N, INT M)
+{
+  const int w = Y(get_window_id)(), m = 6;
+  planner *pl = Y(planner_create)();
+  INT ntot = 1, i;
+  int t;
+  R tol = K(1.0e-12);
+  R *x;
+  C *g_in, *g_ref, *g_got, *f_in, *f_ref, *f_got;
+  problem *pu, *ps, *pp;
+  plan *u, *s, *d0, *d1;
+
+  /* max(1e-12, 1e4*eps): the two orders reach psi through different blocks
+   * and accumulate the adjoint in a different node order. */
+  if ((R)1.0e4 * EPSILON > tol)
+    tol = (R)1.0e4 * EPSILON;
+  for (t = 0; t < d; t++)
+    ntot *= n[t];
+  x = (R *)Y(malloc)((size_t)(M * d) * sizeof(R));
+  g_in = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  g_ref = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  g_got = (C *)Y(malloc)((size_t)ntot * sizeof(C));
+  f_in = (C *)Y(malloc)((size_t)M * sizeof(C));
+  f_ref = (C *)Y(malloc)((size_t)M * sizeof(C));
+  f_got = (C *)Y(malloc)((size_t)M * sizeof(C));
+  for (i = 0; i < M * d; i++)
+    x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
+  CU_ASSERT_EQUAL_FATAL(Y(conv_nodes_sorted)(x, n, d, M), 0);
+  for (i = 0; i < ntot; i++)
+    g_in[i] = (R)(i + 1) / (R)ntot - K(0.25) * II;
+  for (i = 0; i < M; i++)
+    f_in[i] = (R)(M - i) / (R)M + K(0.75) * II;
+
+  Y(conv_solvers_register)(pl);
+  pu = Y(mkproblem_conv)(d, n, N, M, m, w, 1, 0, x, g_in, f_ref);
+  ps = Y(mkproblem_conv)(d, n, N, M, m, w, 1, 0, x, g_in, f_got);
+  u = conv_family(pl, pu, 0);
+  s = conv_family(pl, ps, 1);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+  CU_ASSERT_TRUE(plan_prints(s, " sorted"));
+  CU_ASSERT_FALSE(plan_prints(u, " sorted"));
+
+  /* forward */
+  Y(plan_awake)(u, PLNR_AWAKE);
+  Y(plan_awake)(s, PLNR_AWAKE);
+  u->adt->apply(u, pu);
+  s->adt->apply(s, ps);
+  for (i = 0; i < M; i++)
+    CU_ASSERT(CABS(f_got[i] - f_ref[i]) <= tol * (CABS(f_ref[i]) + K(1.0)));
+
+  /* adjoint, same plans */
+  ((problem_conv *)pu)->f = f_in;
+  ((problem_conv *)pu)->g = g_ref;
+  ((problem_conv *)ps)->f = f_in;
+  ((problem_conv *)ps)->g = g_got;
+  u->adt->apply_adjoint(u, pu);
+  s->adt->apply_adjoint(s, ps);
+  for (i = 0; i < ntot; i++)
+    CU_ASSERT(CABS(g_got[i] - g_ref[i]) <= tol * (CABS(g_ref[i]) + K(1.0)));
+
+  /* A full cycle through AWAKE_ZERO rebuilds perm, u and psi: the forward
+   * repeats exactly. f_in is scratch from here on. */
+  Y(plan_awake)(s, PLNR_SLEEPY);
+  Y(plan_awake)(s, PLNR_AWAKE_ZERO);
+  Y(plan_awake)(s, PLNR_SLEEPY);
+  Y(plan_awake)(s, PLNR_AWAKE);
+  ((problem_conv *)ps)->g = g_in;
+  ((problem_conv *)ps)->f = f_in;
+  s->adt->apply(s, ps);
+  for (i = 0; i < M; i++)
+    CU_ASSERT(f_in[i] == f_got[i]);
+
+  /* presorted: the sorted solver declines, caller order serves */
+  pp = Y(mkproblem_conv)(d, n, N, M, m, w, 1, 1, x, g_in, f_ref);
+  d0 = conv_family(pl, pp, 0);
+  d1 = conv_family(pl, pp, 1);
+  CU_ASSERT_PTR_NOT_NULL(d0);
+  CU_ASSERT_PTR_NULL(d1);
+  if (d0)
+    Y(plan_destroy)(d0);
+  if (d1)
+    Y(plan_destroy)(d1);
+
+  Y(plan_destroy)(u);
+  Y(plan_destroy)(s);
+  Y(problem_destroy)(pu);
+  Y(problem_destroy)(ps);
+  Y(problem_destroy)(pp);
+  Y(planner_destroy)(pl);
+  Y(free)(f_got);
+  Y(free)(f_ref);
+  Y(free)(f_in);
+  Y(free)(g_got);
+  Y(free)(g_ref);
+  Y(free)(g_in);
+  Y(free)(x);
+}
+
+/* The sorted CONV solver per rank: same results as caller order, declines on
+ * presorted nodes, survives a full awake cycle. */
+void Y(check_nfast_conv_sorted)(void)
+{
+  {
+    const INT n[1] = {128}, N[1] = {64};
+    conv_sorted_case(1, n, N, 500);
+  }
+  {
+    const INT n[2] = {48, 64}, N[2] = {16, 24};
+    conv_sorted_case(2, n, N, 300);
+  }
+  {
+    const INT n[3] = {32, 32, 32}, N[3] = {8, 10, 12};
+    conv_sorted_case(3, n, N, 200);
+  }
+  {
+    const INT n[4] = {24, 24, 24, 24}, N[4] = {6, 6, 8, 8};
+    conv_sorted_case(4, n, N, 60);
+  }
+}
+
+/* Smallest power-of-two axis whose rank-d grid exceeds that rank's sort
+ * threshold; 0 when the rank never sorts at ESTIMATE. */
+static INT conv_axis_over_threshold(int d)
+{
+  const double limit = Y(conv_sort_grid_bytes)(d);
+  INT a = 2;
+  if (limit == HUGE_VAL)
+    return 0;
+  for (;;) {
+    double bytes = (double)sizeof(C);
+    int t;
+    for (t = 0; t < d; t++)
+      bytes *= (double)a;
+    if (bytes > limit)
+      return a;
+    a *= 2;
+  }
+}
+
+/* Node order's share of the counts: sorted pays 2M for the permuted f access;
+ * caller order pays one cold fetch per tap once the grid exceeds the rank's
+ * threshold and the nodes are not presorted. Base counts as in
+ * check_nfast_conv_ops: m = 6, len = 14, M = 10. */
+void Y(check_nfast_conv_order_ops)(void)
+{
+  planner *pl = Y(planner_create)();
+  const int w = Y(get_window_id)();
+  const INT M = 10;
+  const INT a1 = conv_axis_over_threshold(1), a3 = conv_axis_over_threshold(3);
+  R x0 = K(0.0);
+  C g0 = K(0.0), f0 = K(0.0);
+  problem *p;
+  plan *u, *s;
+
+  Y(conv_solvers_register)(pl);
+
+  { /* rank 1, under: taps = 140, base other 300 */
+    const INT n = 8, N = 4;
+    p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
+    u = conv_family(pl, p, 0);
+    s = conv_family(pl, p, 1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 300.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 320.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(s->ops.mul, 280.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(s->ops.add, 280.0, 0.0);
+    Y(plan_destroy)(u);
+    Y(plan_destroy)(s);
+    Y(problem_destroy)(p);
+  }
+  if (a1) {
+    const INT N = 4;
+    /* over */
+    p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
+    u = conv_family(pl, p, 0);
+    s = conv_family(pl, p, 1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 440.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 320.0, 0.0);
+    Y(plan_destroy)(u);
+    Y(plan_destroy)(s);
+    Y(problem_destroy)(p);
+    /* over, presorted: no penalty, sorted declines */
+    p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 1, &x0, &g0, &f0);
+    u = conv_family(pl, p, 0);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 300.0, 0.0);
+    CU_ASSERT_PTR_NULL(conv_family(pl, p, 1));
+    Y(plan_destroy)(u);
+    Y(problem_destroy)(p);
+  }
+  if (a3) { /* rank 3, over: taps = 27440, base other 54940 */
+    const INT n[3] = {a3, a3, a3}, N[3] = {4, 4, 4};
+    p = Y(mkproblem_conv)(3, n, N, M, 6, w, 1, 0, &x0, &g0, &f0);
+    u = conv_family(pl, p, 0);
+    s = conv_family(pl, p, 1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 82380.0, 0.0);
+    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 54960.0, 0.0);
+    Y(plan_destroy)(u);
+    Y(plan_destroy)(s);
+    Y(problem_destroy)(p);
+  }
+  Y(planner_destroy)(pl);
+
+  /* ESTIMATE picks by these counts; no awake, so the probe x is never read */
+  pl = Y(planner_create)();
+  pl->flags.u |= PLNR_ESTIMATE;
+  Y(conv_solvers_register)(pl);
+  {
+    const INT n = 8, N = 4;
+    p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
+    u = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_FALSE(plan_prints(u, " sorted"));
+    Y(plan_destroy)(u);
+    Y(problem_destroy)(p);
+  }
+  if (a1) {
+    const INT N = 4;
+    p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
+    u = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_TRUE(plan_prints(u, " sorted"));
+    Y(plan_destroy)(u);
+    Y(problem_destroy)(p);
+    p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 1, &x0, &g0, &f0);
+    u = Y(planner_mkplan)(pl, p);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+    CU_ASSERT_FALSE(plan_prints(u, " sorted"));
+    Y(plan_destroy)(u);
+    Y(problem_destroy)(p);
+  }
+  Y(planner_destroy)(pl);
+}
+
+/* Both CONV families race here, one thread; tables live only while awake, so
+ * the race holds one family's tables at a time (ADR-0009). */
+void Y(check_nfast_conv_race_memory)(void)
+{
+  const INT N[2] = {128, 128}, n[2] = {256, 256}, M = 65536;
+  const int w = Y(get_window_id)(), d = 2;
+  const size_t len = 14;
+  const size_t tables = (size_t)M
+                        * ((size_t)d * len * sizeof(R)
+                           + (size_t)d * sizeof(INT) + 2 * sizeof(INT));
+  R *x = (R *)malloc((size_t)(M * d) * sizeof(R));
+  C *g = (C *)malloc((size_t)(n[0] * n[1]) * sizeof(C));
+  C *f = (C *)malloc((size_t)M * sizeof(C));
+  size_t peak;
+  unsigned nmeasured;
+  int planned;
+  INT i;
+
+  for (i = 0; i < M * d; i++)
+    x[i] = (R)((i * 7919) % 1000) / K(1000.0) - K(0.5);
+  for (i = 0; i < n[0] * n[1]; i++)
+    g[i] = K(1.0);
+  for (i = 0; i < M; i++)
+    f[i] = K(0.0);
+
+  alloc_count_begin();
+  {
+    planner *pl = Y(planner_create)();
+    problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g, f);
+    plan *pln;
+    Y(conv_solvers_register)(pl);
+    pl->nmeasured = 0;
+    pln = Y(planner_mkplan)(pl, p);
+    planned = pln != 0;
+    nmeasured = pl->nmeasured;
+    if (pln)
+      Y(plan_destroy)(pln);
+    Y(problem_destroy)(p);
+    Y(planner_destroy)(pl);
+  }
+  peak = alloc_count_peak;
+  alloc_count_end();
+
+  CU_ASSERT_TRUE(planned);
+  CU_ASSERT(nmeasured >= 2u);
+  CU_ASSERT(peak < tables + tables / 2);
+
+  free(f);
+  free(g);
+  free(x);
 }

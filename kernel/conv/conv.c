@@ -24,6 +24,8 @@
 #include "iplanner.h"
 #include "conv.h"
 
+#include <math.h> /* pow, HUGE_VAL */
+
 static void hash(const problem *p, md5 *ctx)
 {
   const problem_conv *ego = (const problem_conv *)p;
@@ -269,4 +271,25 @@ void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
                             psi + (k0 * d + t) * len, d * len);
     }
   }
+}
+
+double Y(conv_sort_grid_bytes)(int d)
+{
+  static const double bytes[3] = {4194304.0, 4194304.0, 4194304.0};
+  A(d >= 1);
+  return bytes[(d > 3 ? 3 : d) - 1];
+}
+
+/* Sorted: one load of perm and one access of f per node. Caller order on
+ * random nodes: every node fetches its tap block cold once the grid outgrows
+ * the cache, counted as one extra memory operation per tap. That under-counts
+ * the measured gain, but ESTIMATE only needs the two candidates ranked. */
+void Y(conv_order_ops)(opcnt *ops, INT M, int d, int m, INT ntot, int sorted,
+                    int x_sorted)
+{
+  if (sorted)
+    ops->other += 2.0 * (double)M;
+  else if (!x_sorted
+           && (double)ntot * (double)sizeof(C) > Y(conv_sort_grid_bytes)(d))
+    ops->other += (double)M * pow((double)(2 * m + 2), (double)d);
 }

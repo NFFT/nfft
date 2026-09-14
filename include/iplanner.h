@@ -650,6 +650,12 @@ INT Y(conv_node_key)(const R *xj, const INT *n, int d);
 int Y(conv_nodes_sorted)(const R *x, const INT *n, int d, INT M);
 void Y(conv_sort_nodes)(const R *x, const INT *n, int d, INT M, INT *perm);
 
+/* Grid size in bytes, by rank, above which a caller-order CONV plan is
+ * charged one cold fetch per tap in its estimate, so ESTIMATE prefers the
+ * sorted solver. HUGE_VAL: the rank never gained enough to sort. Rank 4 and up
+ * use rank 3. Calibration: ADR-0008. */
+double Y(conv_sort_grid_bytes)(int d);
+
 /* CONV solver roster */
 void Y(conv_solvers_register)(planner *pl);
 void Y(conv_ensure_registered)(void);

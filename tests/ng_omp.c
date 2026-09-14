@@ -377,6 +377,33 @@ void Y(check_ng_omp_race_memory)(void)
   free(x);
 }
 
+/* Plan and run one CONV family: registration id 0 is caller order, 1 is
+ * sorted. A planner here offers only serial or only threaded CONV candidates,
+ * so the id picks exactly one. Returns 0 when that family declines. A race
+ * between families would make the memcmp below depend on which one won. */
+static int run_family(planner *pl, problem *p, int forward, int sorted)
+{
+  plan *cands[8];
+  unsigned slv[8];
+  plan *pln = 0;
+  int nc = Y(planner_candidates)(pl, p, cands, slv, 8), i;
+  for (i = 0; i < nc; i++) {
+    if (pln == 0 && pl->slvdescs[slv[i]].reg_id == sorted)
+      pln = cands[i];
+    else
+      Y(plan_destroy)(cands[i]);
+  }
+  if (!pln)
+    return 0;
+  Y(plan_awake)(pln, PLNR_AWAKE);
+  if (forward)
+    pln->adt->apply(pln, p);
+  else
+    pln->adt->apply_adjoint(pln, p);
+  Y(plan_destroy)(pln);
+  return 1;
+}
+
 /* The threaded CONV solver reproduces the serial one to the last bit: the same
  * kernels, the same per-node order. Anything less means an operation moved.
  * counts covers a team larger than the band count and one that is not a
@@ -417,7 +444,7 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
   {
     problem *p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_ref, f_ref);
     planner *pl = both_conv_rosters(1, 0);
-    CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
+    CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, 0), 1);
     Y(planner_destroy)(pl);
     Y(problem_destroy)(p);
   }
@@ -431,7 +458,7 @@ static void compare_conv_body(int d, const INT *N, const INT *n, INT M,
         g_got[i] = K(0.0);
     p = Y(mkproblem_conv)(d, n, N, M, 6, w, 1, 0, x, g_got, f_got);
     pl = both_conv_rosters(counts[c], 1);
-    CU_ASSERT_EQUAL_FATAL(run_once(pl, p, forward), 1);
+    CU_ASSERT_EQUAL_FATAL(run_family(pl, p, forward, 0), 1);
     Y(planner_destroy)(pl);
     Y(problem_destroy)(p);
 

@@ -39,43 +39,53 @@ typedef struct {
   const R *x; /* borrowed alias of the problem's nodes, length d*M */
   R *psi; /* length M*d*(2m+2): psi[(j*d+t)*(2m+2)+lj]; NULL while SLEEPY */
   INT *u; /* length M*d: wrapped window start, u[j*d+t]; NULL while SLEEPY */
+  INT *perm; /* length M, node of row k in key order; NULL while SLEEPY and
+              * for caller order */
+  int sorted; /* this plan builds perm */
 } conv_nd_plan;
 
 static void fill_u(conv_nd_plan *pln)
 {
-  Y(conv_fill_u)(pln->x, 0, pln->n, pln->d, pln->m, pln->M, pln->u);
+  Y(conv_fill_u)(pln->x, pln->perm, pln->n, pln->d, pln->m, pln->M, pln->u);
 }
 
 static void fill_psi(conv_nd_plan *pln)
 {
-  Y(conv_fill_psi)(pln->window, pln->x, 0, pln->n, pln->N, pln->d, pln->m, pln->M,
-                pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, pln->n, pln->N, pln->d, pln->m,
+                pln->M, pln->psi);
 }
 
-/* The tables live between a wake and the return to SLEEPY (ADR-0009). Window
- * starts are indices: they steer which grid cells apply touches, so they hold
- * true values at AWAKE_ZERO too. psi costs a window evaluation per tap and
- * changes no address, so AWAKE_ZERO gets zeros. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009). Node
+ * order and window starts are indices: they steer which grid cells apply
+ * touches, so they hold true values at AWAKE_ZERO too, and the measured race
+ * sees the locality it is choosing between. psi costs a window evaluation per
+ * tap and changes no address, so AWAKE_ZERO gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   conv_nd_plan *pln = (conv_nd_plan *)ego_;
-  const size_t M = (size_t)pln->M * (size_t)pln->d,
-               len = (size_t)(2 * pln->m + 2);
+  const size_t M = (size_t)pln->M, d = (size_t)pln->d;
+  const size_t len = (size_t)(2 * pln->m + 2);
   if (wakefulness == PLNR_SLEEPY) {
     Y(free)(pln->psi);
     Y(free)(pln->u);
+    Y(free)(pln->perm);
     pln->psi = 0;
     pln->u = 0;
+    pln->perm = 0;
     return;
   }
-  A(pln->psi == 0 && pln->u == 0);
-  pln->u = (INT *)Y(malloc)(M * sizeof(INT));
-  pln->psi = (R *)Y(malloc)(M * len * sizeof(R));
+  A(pln->psi == 0 && pln->u == 0 && pln->perm == 0);
+  if (pln->sorted) {
+    pln->perm = (INT *)Y(malloc)(M * sizeof(INT));
+    Y(conv_sort_nodes)(pln->x, pln->n, pln->d, pln->M, pln->perm);
+  }
+  pln->u = (INT *)Y(malloc)(M * d * sizeof(INT));
+  pln->psi = (R *)Y(malloc)(M * d * len * sizeof(R));
   fill_u(pln);
   if (wakefulness == PLNR_AWAKE)
     fill_psi(pln);
   else
-    memset(pln->psi, 0, M * len * sizeof(R));
+    memset(pln->psi, 0, M * d * len * sizeof(R));
 }
 
 /* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). */
@@ -87,7 +97,7 @@ static void run(const conv_nd_plan *pln, const problem_conv *pc, int forward)
   const int m = pln->m;
   const R *psi = pln->psi;
   C *f, *g;
-  INT j;
+  INT k;
 
   if (forward) {
     f = pc->f;
@@ -100,9 +110,11 @@ static void run(const conv_nd_plan *pln, const problem_conv *pc, int forward)
     memset(g, 0, (size_t)pln->ntot * sizeof(C));
   }
 
-  for (j = 0; j < M; j++) {
+  /* Rows stream in order; only the f access goes through perm. */
+  for (k = 0; k < M; k++) {
+    const INT j = pln->perm ? pln->perm[k] : k;
     C r = Y(
-         conv_node_nd)(g, pln->psi + j * d * (2 * m + 2), pln->u + j * d, n, d,
+         conv_node_nd)(g, pln->psi + k * d * (2 * m + 2), pln->u + k * d, n, d,
                        2 * m + 2, 0, n[0], forward ? K(0.0) : f[j], forward);
     if (forward)
       f[j] = r;
@@ -122,7 +134,8 @@ static void apply_adjoint(const plan *ego_, const problem *p)
 static void print(const plan *ego_, printer *pr)
 {
   const conv_nd_plan *pln = (const conv_nd_plan *)ego_;
-  pr->print(pr, "(conv_solver_nd pcost=%D)", (INT)pln->super.pcost);
+  pr->print(pr, "(conv_solver_nd%s pcost=%D)", pln->sorted ? " sorted" : "",
+            (INT)pln->super.pcost);
 }
 static void destroy(plan *ego_)
 {
@@ -135,12 +148,12 @@ static const plan_adt conv_nd_plan_adt = {apply, awake, print, destroy,
                                           apply_adjoint};
 
 /* d >= 4 only. */
-static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
+static plan *mkplan_conv_nd(const solver *ego_, const problem *p, planner *pl)
 {
+  const conv_solver *ego = (const conv_solver *)ego_;
   const problem_conv *pc = (const problem_conv *)p;
   conv_nd_plan *pln;
   int t, d;
-  (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_CONV)
     return 0;
   if (NO_NONTHREADEDP(pl))
@@ -150,6 +163,8 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
   if (pc->window < NFFT_WINDOW_KAISER_BESSEL
       || pc->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* reject Dirac or other invalid ordinals */
+  if (ego->sorted && pc->x_sorted)
+    return 0; /* already in key order: nothing to sort */
 
   d = pc->sz->rnk;
   pln = (conv_nd_plan *)Y(
@@ -171,6 +186,8 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
   pln->x = pc->x; /* borrowed */
   pln->psi = 0;
   pln->u = 0;
+  pln->perm = 0;
+  pln->sorted = ego->sorted;
 
   /* Forward counts: taps = M * len^d, one complex-by-real accumulate per tap
    * (two loads: g, psi); other adds the per-axis wrapped-index setup.
@@ -185,11 +202,13 @@ static plan *mkplan_conv_nd(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.add = 2.0 * taps;
     pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * (double)d;
   }
+  Y(conv_order_ops)(&pln->super.ops, pln->M, d, pln->m, pln->ntot, ego->sorted,
+                 pc->x_sorted);
   return &pln->super;
 }
 
 static const solver_adt conv_nd_adt = {NFFT_PROBLEM_CONV, 0, mkplan_conv_nd};
 void Y(conv_solver_nd_register)(planner *pl)
 {
-  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &conv_nd_adt));
+  Y(conv_register_both)(pl, &conv_nd_adt);
 }

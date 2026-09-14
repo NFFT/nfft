@@ -36,44 +36,56 @@ typedef struct {
   const R *x; /* borrowed alias of the problem's nodes */
   R *psi; /* length M*2*(2m+2): psi[(j*2+t)*(2m+2)+lj]; NULL while SLEEPY */
   INT *u; /* length M*2: wrapped window start, u[j*2+t]; NULL while SLEEPY */
+  INT *perm; /* length M, node of row k in key order; NULL while SLEEPY and
+              * for caller order */
+  int sorted; /* this plan builds perm */
 } conv_2d_plan;
 
 static void fill_u(conv_2d_plan *pln)
 {
   const INT nn[2] = {pln->n0, pln->n1};
-  Y(conv_fill_u)(pln->x, 0, nn, 2, pln->m, pln->M, pln->u);
+  Y(conv_fill_u)(pln->x, pln->perm, nn, 2, pln->m, pln->M, pln->u);
 }
 
 static void fill_psi(conv_2d_plan *pln)
 {
   const INT nn[2] = {pln->n0, pln->n1};
   const INT NN[2] = {pln->N0, pln->N1};
-  Y(conv_fill_psi)(pln->window, pln->x, 0, nn, NN, 2, pln->m, pln->M, pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, nn, NN, 2, pln->m, pln->M,
+                pln->psi);
 }
 
-/* The tables live between a wake and the return to SLEEPY (ADR-0009). Window
- * starts are indices: they steer which grid cells apply touches, so they hold
- * true values at AWAKE_ZERO too. psi costs a window evaluation per tap and
- * changes no address, so AWAKE_ZERO gets zeros. */
+/* The tables live between a wake and the return to SLEEPY (ADR-0009). Node
+ * order and window starts are indices: they steer which grid cells apply
+ * touches, so they hold true values at AWAKE_ZERO too, and the measured race
+ * sees the locality it is choosing between. psi costs a window evaluation per
+ * tap and changes no address, so AWAKE_ZERO gets zeros. */
 static void awake(plan *ego_, int wakefulness)
 {
   conv_2d_plan *pln = (conv_2d_plan *)ego_;
-  const size_t M = (size_t)pln->M * 2, len = (size_t)(2 * pln->m + 2);
+  const size_t M = (size_t)pln->M, len = (size_t)(2 * pln->m + 2);
   if (wakefulness == PLNR_SLEEPY) {
     Y(free)(pln->psi);
     Y(free)(pln->u);
+    Y(free)(pln->perm);
     pln->psi = 0;
     pln->u = 0;
+    pln->perm = 0;
     return;
   }
-  A(pln->psi == 0 && pln->u == 0);
-  pln->u = (INT *)Y(malloc)(M * sizeof(INT));
-  pln->psi = (R *)Y(malloc)(M * len * sizeof(R));
+  A(pln->psi == 0 && pln->u == 0 && pln->perm == 0);
+  if (pln->sorted) {
+    const INT nn[2] = {pln->n0, pln->n1};
+    pln->perm = (INT *)Y(malloc)(M * sizeof(INT));
+    Y(conv_sort_nodes)(pln->x, nn, 2, pln->M, pln->perm);
+  }
+  pln->u = (INT *)Y(malloc)(M * 2 * sizeof(INT));
+  pln->psi = (R *)Y(malloc)(M * 2 * len * sizeof(R));
   fill_u(pln);
   if (wakefulness == PLNR_AWAKE)
     fill_psi(pln);
   else
-    memset(pln->psi, 0, M * len * sizeof(R));
+    memset(pln->psi, 0, M * 2 * len * sizeof(R));
 }
 
 /* Forward B (g -> f) / adjoint B^H (f -> g, scatter-add). Each axis splits into
@@ -82,17 +94,20 @@ static void run(const conv_2d_plan *pln, const problem_conv *pc, int forward)
 {
   const INT n0 = pln->n0, n1 = pln->n1, M = pln->M;
   const INT len = 2 * (INT)pln->m + 2;
+  const INT *perm = pln->perm;
   C *g = pc->g;
   C *f = pc->f;
-  INT j;
+  INT k;
   if (!forward)
     /* The scatter accumulates (+=) into an overlapping, node-dependent set that
      * does not cover the grid, so the whole grid must start zeroed. */
     memset(g, 0, (size_t)(n0 * n1) * sizeof(C));
-  for (j = 0; j < M; j++) {
-    C r = Y(conv_node_2d)(g, pln->psi + (j * 2 + 0) * len,
-                       pln->psi + (j * 2 + 1) * len, pln->u[j * 2 + 0],
-                       pln->u[j * 2 + 1], n0, n1, len, 0, n0,
+  /* Rows stream in order; only the f access goes through perm. */
+  for (k = 0; k < M; k++) {
+    const INT j = perm ? perm[k] : k;
+    C r = Y(conv_node_2d)(g, pln->psi + (k * 2 + 0) * len,
+                       pln->psi + (k * 2 + 1) * len, pln->u[k * 2 + 0],
+                       pln->u[k * 2 + 1], n0, n1, len, 0, n0,
                        forward ? K(0.0) : f[j], forward);
     if (forward)
       f[j] = r;
@@ -112,7 +127,8 @@ static void apply_adjoint(const plan *ego_, const problem *p)
 static void print(const plan *ego_, printer *pr)
 {
   const conv_2d_plan *pln = (const conv_2d_plan *)ego_;
-  pr->print(pr, "(conv_solver_2d pcost=%D)", (INT)pln->super.pcost);
+  pr->print(pr, "(conv_solver_2d%s pcost=%D)", pln->sorted ? " sorted" : "",
+            (INT)pln->super.pcost);
 }
 static void destroy(plan *ego_)
 {
@@ -122,11 +138,11 @@ static const plan_adt conv_2d_plan_adt = {apply, awake, print, destroy,
                                           apply_adjoint};
 
 /* d == 2 only */
-static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl)
+static plan *mkplan_conv_2d(const solver *ego_, const problem *p, planner *pl)
 {
+  const conv_solver *ego = (const conv_solver *)ego_;
   const problem_conv *pc = (const problem_conv *)p;
   conv_2d_plan *pln;
-  (void)ego;
   if (p->adt->kind != NFFT_PROBLEM_CONV)
     return 0;
   if (NO_NONTHREADEDP(pl))
@@ -136,6 +152,8 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl)
   if (pc->window < NFFT_WINDOW_KAISER_BESSEL
       || pc->window > NFFT_WINDOW_SINC_POWER)
     return 0; /* reject Dirac or other invalid ordinals */
+  if (ego->sorted && pc->x_sorted)
+    return 0; /* already in key order: nothing to sort */
 
   pln = (conv_2d_plan *)Y(
        plan_create)(sizeof(conv_2d_plan), &conv_2d_plan_adt);
@@ -149,6 +167,8 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl)
   pln->x = pc->x; /* borrowed */
   pln->psi = 0;
   pln->u = 0;
+  pln->perm = 0;
+  pln->sorted = ego->sorted;
 
   /* Forward counts: taps = M * len^2, one complex-by-real accumulate per tap
    * (two loads: g, psi); other adds the per-axis conv_runs bookkeeping.
@@ -162,11 +182,13 @@ static plan *mkplan_conv_2d(const solver *ego, const problem *p, planner *pl)
     pln->super.ops.add = 2.0 * taps;
     pln->super.ops.other = 2.0 * taps + 2.0 * (double)pln->M * 2.0;
   }
+  Y(conv_order_ops)(&pln->super.ops, pln->M, 2, pln->m, pln->n0 * pln->n1,
+                 ego->sorted, pc->x_sorted);
   return &pln->super;
 }
 
 static const solver_adt conv_2d_adt = {NFFT_PROBLEM_CONV, 0, mkplan_conv_2d};
 void Y(conv_solver_2d_register)(planner *pl)
 {
-  REGISTER_SOLVER(pl, Y(solver_create)(sizeof(solver), &conv_2d_adt));
+  Y(conv_register_both)(pl, &conv_2d_adt);
 }
