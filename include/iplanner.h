@@ -637,7 +637,8 @@ typedef struct {
   C *f; /* borrowed out */
 } problem_conv;
 
-problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
+problem *
+     Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
                         int window, int sign, int x_sorted, R *x, C *g, C *f);
 INT Y(problem_conv_n)(const problem *p, int t);
 INT Y(problem_conv_N)(const problem *p, int t);

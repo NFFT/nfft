@@ -135,11 +135,11 @@ recorded here because they change externally observable behaviour.
 
 ## Consequences
 - **Stored wisdom files are partitioned by a vocabulary tag.** The
-  configuration signature carries one (`"plnr-flags"` in `config_signature`,
+  configuration signature carries one (`config_signature`,
   `kernel/planner/planner.c`). Bump it whenever a `PLNR_*` bit or a
   problem-hash field changes; a mismatch is a clean import rejection, never a
-  wrong plan. The tag is still at its first value because no wisdom file has
-  been exported by a released build.
+  wrong plan. The tag is now `"plnr-flags-v2"`, bumped from `"plnr-flags"`
+  when the CONV problem hash gained `x_sorted` (see ADR-0008).
 - **Wisdom files grow roughly threefold.** Blessing now reaches DECONV and
   CONV children alongside the top-level NFFT solution, so a single measured
   win writes about three entries where it used to write one.

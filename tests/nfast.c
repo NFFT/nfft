@@ -2434,16 +2434,15 @@ static void sort_in_parallel_call(const R *x, const INT *n, INT M, INT *perm)
   {
     omp_set_num_threads(8);
     if (omp_get_thread_num() == 0)
+#endif
       Y(conv_sort_nodes)(x, n, 3, M, perm);
+#ifdef _OPENMP
   }
   omp_set_max_active_levels(levels);
 #endif
-#ifndef _OPENMP
-  Y(conv_sort_nodes)(x, n, 3, M, perm);
-#endif
 }
 
-/* Same node set as above (two radix passes, many ties), sorted from inside
+/* Same node set as above (three radix passes, many ties), sorted from inside
  * an active OpenMP region. */
 void Y(check_nfast_sort_in_parallel)(void)
 {
