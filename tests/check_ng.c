@@ -202,6 +202,8 @@ int main(void)
   CU_add_test(nfast_suite, "conv_solver", Y(check_nfast_conv_solver));
   CU_add_test(nfast_suite, "conv_ops", Y(check_nfast_conv_ops));
   CU_add_test(nfast_suite, "conv_node_order", Y(check_nfast_conv_node_order));
+  CU_add_test(nfast_suite, "sort_in_parallel",
+              Y(check_nfast_sort_in_parallel));
   CU_add_test(nfast_suite, "nfft_x_sorted", Y(check_nfast_nfft_x_sorted));
   CU_add_test(nfast_suite, "conv_sorted", Y(check_nfast_conv_sorted));
   CU_add_test(nfast_suite, "conv_order_ops", Y(check_nfast_conv_order_ops));

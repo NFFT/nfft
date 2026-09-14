@@ -21,6 +21,9 @@
 #include <string.h>
 #include <strings.h> /* strcasecmp */
 #include <CUnit/CUnit.h>
+#ifdef _OPENMP
+# include <omp.h>
+#endif
 
 #include "config.h" /* ABS_SRCDIR */
 #include "nfft3.h"
@@ -2329,6 +2332,33 @@ void Y(check_nfast_composite_ops)(void)
   Y(free)(x);
 }
 
+/* 1 when perm is a permutation of 0..M-1 in ascending CONV key, ties in
+ * ascending node index. */
+static int is_stable_key_order(const R *x, const INT *n, int d, INT M,
+                               const INT *perm)
+{
+  char *seen = (char *)Y(malloc)((size_t)M);
+  INT k, prev_key = -1, prev_j = -1;
+  int ok = 1;
+  memset(seen, 0, (size_t)M);
+  for (k = 0; k < M && ok; k++) {
+    const INT j = perm[k];
+    INT key;
+    if (j < 0 || j >= M || seen[j]) {
+      ok = 0;
+      break;
+    }
+    seen[j] = 1;
+    key = Y(conv_node_key)(x + j * d, n, d);
+    if (key < prev_key || (key == prev_key && j < prev_j))
+      ok = 0;
+    prev_key = key;
+    prev_j = j;
+  }
+  Y(free)(seen);
+  return ok;
+}
+
 /* The CONV node key is the row-major index of the node's grid cell, each axis
  * shifted by n_t/2; the sort is stable in node index. */
 void Y(check_nfast_conv_node_order)(void)
@@ -2383,32 +2413,51 @@ void Y(check_nfast_conv_node_order)(void)
     const INT M = 5000;
     R *x = (R *)Y(malloc)((size_t)(3 * M) * sizeof(R));
     INT *perm = (INT *)Y(malloc)((size_t)M * sizeof(INT));
-    char *seen = (char *)Y(malloc)((size_t)M);
-    INT k, prev_key = -1, prev_j = -1;
-    int ok = 1;
+    INT k;
     for (k = 0; k < 3 * M; k++)
       x[k] = (R)((k * 7919) % 1000) / K(1000.0) - K(0.5);
-    memset(seen, 0, (size_t)M);
     Y(conv_sort_nodes)(x, n, 3, M, perm);
-    for (k = 0; k < M && ok; k++) {
-      const INT j = perm[k];
-      INT key;
-      if (j < 0 || j >= M || seen[j]) {
-        ok = 0;
-        break;
-      }
-      seen[j] = 1;
-      key = Y(conv_node_key)(x + j * 3, n, 3);
-      if (key < prev_key || (key == prev_key && j < prev_j))
-        ok = 0;
-      prev_key = key;
-      prev_j = j;
-    }
-    CU_ASSERT_TRUE(ok);
-    Y(free)(seen);
+    CU_ASSERT_TRUE(is_stable_key_order(x, n, 3, M, perm));
     Y(free)(perm);
     Y(free)(x);
   }
+}
+
+/* Calls conv_sort_nodes from thread 0 of an active omp parallel region,
+ * nesting disabled and a higher thread count set inside. */
+static void sort_in_parallel_call(const R *x, const INT *n, INT M, INT *perm)
+{
+#ifdef _OPENMP
+  const int levels = omp_get_max_active_levels();
+  omp_set_max_active_levels(1);
+# pragma omp parallel num_threads(2)
+  {
+    omp_set_num_threads(8);
+    if (omp_get_thread_num() == 0)
+      Y(conv_sort_nodes)(x, n, 3, M, perm);
+  }
+  omp_set_max_active_levels(levels);
+#endif
+#ifndef _OPENMP
+  Y(conv_sort_nodes)(x, n, 3, M, perm);
+#endif
+}
+
+/* Same node set as above (two radix passes, many ties), sorted from inside
+ * an active OpenMP region. */
+void Y(check_nfast_sort_in_parallel)(void)
+{
+  const INT n[3] = {128, 128, 128};
+  const INT M = 5000;
+  R *x = (R *)Y(malloc)((size_t)(3 * M) * sizeof(R));
+  INT *perm = (INT *)Y(malloc)((size_t)M * sizeof(INT));
+  INT k;
+  for (k = 0; k < 3 * M; k++)
+    x[k] = (R)((k * 7919) % 1000) / K(1000.0) - K(0.5);
+  sort_in_parallel_call(x, n, M, perm);
+  CU_ASSERT_TRUE(is_stable_key_order(x, n, 3, M, perm));
+  Y(free)(perm);
+  Y(free)(x);
 }
 
 /* The guru's copy of x records whether the live axes are in CONV key order.

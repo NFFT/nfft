@@ -25,6 +25,7 @@
 #include "conv.h"
 
 #include <math.h> /* pow, HUGE_VAL */
+#include <string.h> /* memcpy */
 
 static void hash(const problem *p, md5 *ctx)
 {
@@ -209,25 +210,64 @@ int Y(conv_nodes_sorted)(const R *x, const INT *n, int d, INT M)
   return 1;
 }
 
-/* Stable LSD radix sort of (key, node) pairs. The bit count is an integer
- * count of ntot - 1; legacy sort0 takes it from a floating LOG2. */
+/* 9-bit radix digit: 512 counters fit on the stack, matching the width the
+ * legacy sort.c helper uses. */
+#define CONV_SORT_RADIX 512
+
+/* One stable LSD counting-sort pass of (key, index) pairs on the digit at
+ * bit offset shift, from -> to. */
+static void conv_sort_pass(INT M, const INT *from, INT *to, INT shift)
+{
+  INT count[CONV_SORT_RADIX];
+  const INT mask = (INT)(CONV_SORT_RADIX - 1);
+  INT j, sum = 0;
+  for (j = 0; j < CONV_SORT_RADIX; j++)
+    count[j] = 0;
+  for (j = 0; j < M; j++)
+    count[(from[2 * j] >> shift) & mask]++;
+  for (j = 0; j < CONV_SORT_RADIX; j++) {
+    const INT c = count[j];
+    count[j] = sum;
+    sum += c;
+  }
+  for (j = 0; j < M; j++) {
+    const INT dg = (from[2 * j] >> shift) & mask;
+    to[2 * count[dg]] = from[2 * j];
+    to[2 * count[dg] + 1] = from[2 * j + 1];
+    count[dg]++;
+  }
+}
+
+/* Stable LSD radix sort of (key, node) pairs, serial: callers may already be
+ * inside an OpenMP region, and the threaded solver's own u/psi fills are
+ * serial too. Bit count is an integer count of ntot - 1; legacy sort0 takes
+ * it from a floating LOG2. */
 void Y(conv_sort_nodes)(const R *x, const INT *n, int d, INT M, INT *perm)
 {
-  INT *keys = (INT *)Y(malloc)(4 * (size_t)M * sizeof(INT));
-  INT ntot = 1, j, rhigh = -1;
+  INT *pairs = (INT *)Y(malloc)(4 * (size_t)M * sizeof(INT));
+  INT *scratch = pairs + 2 * M, *from = pairs, *to = scratch;
+  INT ntot = 1, j, rhigh = -1, shift;
   int t;
   for (t = 0; t < d; t++)
     ntot *= n[t];
   for (j = ntot - 1; j > 0; j >>= 1)
     rhigh++;
   for (j = 0; j < M; j++) {
-    keys[2 * j] = Y(conv_node_key)(x + j * d, n, d);
-    keys[2 * j + 1] = j;
+    pairs[2 * j] = Y(conv_node_key)(x + j * d, n, d);
+    pairs[2 * j + 1] = j;
   }
-  Y(sort_node_indices_radix_lsdf)(M, keys, keys + 2 * M, rhigh);
+  for (shift = 0; shift <= rhigh; shift += 9) {
+    INT *tmp;
+    conv_sort_pass(M, from, to, shift);
+    tmp = from;
+    from = to;
+    to = tmp;
+  }
+  if (from != pairs)
+    memcpy(pairs, from, 2 * (size_t)M * sizeof(INT));
   for (j = 0; j < M; j++)
-    perm[j] = keys[2 * j + 1];
-  Y(free)(keys);
+    perm[j] = pairs[2 * j + 1];
+  Y(free)(pairs);
 }
 
 void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,

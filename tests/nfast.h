@@ -64,6 +64,9 @@ void Y(check_nfast_conv_ops)(void);
 /* The CONV node key, the sortedness test and the stable sort. */
 void Y(check_nfast_conv_node_order)(void);
 
+/* The stable sort called from inside an active OpenMP parallel region. */
+void Y(check_nfast_sort_in_parallel)(void);
+
 /* problem_nfft.x_sorted: computed on the guru's copy of x, 1 where x is not
  * read. */
 void Y(check_nfast_nfft_x_sorted)(void);

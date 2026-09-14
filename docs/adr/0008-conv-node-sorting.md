@@ -25,7 +25,10 @@ through the index.
   every wake (ADR-0009), then builds `u` and `psi` in key order. `apply` reads
   `psi`, `u` and `g` in order and uses `perm` only for `f`. Measured before this
   work at 3D, M = 2.1e6: 26.9 ms for the node data this way against 252.6 ms
-  through the index.
+  through the index. The radix sort is a serial copy local to
+  `kernel/conv/conv.c`, not the legacy `kernel/util/sort.c` helper: it opens no
+  OpenMP region and carries no dependency on legacy code. A threaded sort waits
+  until the `u`/`psi` fills themselves are threaded.
 - **Sortedness is part of the CONV key.** `mkproblem_nfft` tests key order on
   its copy of `x` and stores `x_sorted`; the CONV child hashes it and the sorted
   solver declines when it is set. Without the bit, a race on presorted nodes
