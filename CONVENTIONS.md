@@ -23,9 +23,9 @@ arithmetic works on. This is FFTW's contract, not ours. Canonical order:
 ```c
 #include <complex.h>
 #include <nfft3.h>
+#include <nfft3util.h>
 #define NFFT_PRECISION_SINGLE   /* or -DNFFT_PRECISION_* on the command line */
 #include <nfft3mp.h>
-#include <nfft3util.h>
 ```
 
 Autotools and CMake both pass the precision macro as `-D`, so in-tree sources
