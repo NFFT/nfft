@@ -3,11 +3,11 @@ evaluates it.
 
 Two ranges, split at S:
 
-  |x| <= S   log|sinc(x)| = y * Q(y),  y = x*x, Horner in y.
+  |x| <= S   log|sinc(x)| = y * Q(y),  y = x*x, summed by poly4.
              Q is fitted so that the *relative* error of y*Q(y) equioscillates.
              The leading y makes the form exact at x = 0, and the Taylor
              coefficients of log sinc are all negative
-             (-1/6, -1/180, -1/2835, ...), so the Horner chain cannot cancel.
+             (-1/6, -1/180, -1/2835, ...), so the sum cannot cancel.
 
   |x| >  S   log|sinc(x)| = LOG(FABS(SIN(x)/x)), evaluated directly.
              Past the split sinc is far enough from 1 that the logarithm keeps
@@ -66,8 +66,8 @@ def _horner(c, x):
 def verify_branch(Q, split, npts=1600):
     """Relative error of the shipped form y*Q(y), in exact arithmetic.
 
-    The fit runs in the Chebyshev basis but the runtime evaluates a monomial
-    Horner chain, so this is the error that matters; the fit's own residual
+    The fit runs in the Chebyshev basis but the runtime evaluates the monomial
+    coefficients, so this is the error that matters; the fit's own residual
     would hide any loss in the basis change.
     """
     worst = mp.mpf(0)
@@ -82,7 +82,8 @@ def verify_branch(Q, split, npts=1600):
 def horner_growth(Q, split, npts=800):
     """max sum|c_j| y^j / |sum c_j y^j| over the branch.
 
-    1 means the Horner chain cannot cancel. This is what pins the split: at
+    1 means the sum cannot cancel, whatever order it is summed in, so the
+    four-chain regrouping of poly4 is safe. This is what pins the split: at
     S = 2 the factor is 1, at S = 2.5 it is already about 53.
     """
     worst = mp.mpf(0)
