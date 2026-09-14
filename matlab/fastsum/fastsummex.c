@@ -23,8 +23,10 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <complex.h>
 #include "nfft3.h"
-#include "infft.h"
+#include "nfft3mp.h"
+#include "nfft3util.h"
 #include "imex.h"
 #include "fastsum.c"
 #include "kernels.c"
@@ -210,20 +212,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if(strcmp(cmd,"get_num_threads") == 0)
   {
-    INT nthreads = X(get_num_threads)();
+    NFFT_INT nthreads = NFFT(get_num_threads)();
     plhs[0] = mxCreateDoubleScalar((double) nthreads);
     return;
   }
   else if(strcmp(cmd,"set_num_threads") == 0)
   {
     int nthreads_new = nfft_mex_set_num_threads_check(nrhs, prhs, (void **) plans, plans_num_allocated);
-    X(set_num_threads)(nthreads_new);
+    NFFT(set_num_threads)(nthreads_new);
 
     return;
   }
   else if(strcmp(cmd,"has_threads_enabled") == 0)
   {
-    INT threads_enabled = X(has_threads_enabled)();
+    NFFT_INT threads_enabled = NFFT(has_threads_enabled)();
     plhs[0] = mxCreateDoubleScalar((double) threads_enabled);
     return;
   }
@@ -237,10 +239,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int n; /**< expansion degree        */
     int p; /**< degree of smoothness    */
     kernel ker; /**< kernel function         */
-    R *param; /**< parameter for kernel    */
-    R eps_I; /**< inner boundary          */
-    R eps_B; /**< outer boundary          */
-    param = NFFT(malloc)(sizeof(R));
+    NFFT_R *param; /**< parameter for kernel    */
+    NFFT_R eps_I; /**< inner boundary          */
+    NFFT_R eps_B; /**< outer boundary          */
+    param = NFFT(malloc)(sizeof(NFFT_R));
   
     d = nfft_mex_get_int(prhs[1],"fastsum init: Input argument d must be a scalar.");
     DM(if (d < 1)
