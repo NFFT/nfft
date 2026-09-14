@@ -369,7 +369,7 @@ void Y(check_ng_omp_race_memory)(void)
   alloc_count_end();
 
   CU_ASSERT_TRUE(planned);
-  CU_ASSERT(nmeasured >= 2u); /* a real race */
+  CU_ASSERT_EQUAL(nmeasured, 4u); /* both families, serial and threaded */
   CU_ASSERT(peak < tables + tables / 2);
 
   free(f);

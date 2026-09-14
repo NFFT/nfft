@@ -2611,16 +2611,45 @@ static INT conv_axis_over_threshold(int d)
   }
 }
 
+/* Both families' other count on a rank-d grid of axis a, N = 4, M = 10. */
+static void conv_order_case(planner *pl, int d, INT a, double u_other,
+                            double s_other)
+{
+  const int w = Y(get_window_id)();
+  INT n[4], N[4];
+  R x0 = K(0.0);
+  C g0 = K(0.0), f0 = K(0.0);
+  problem *p;
+  plan *u, *s;
+  int t;
+  for (t = 0; t < d; t++) {
+    n[t] = a;
+    N[t] = 4;
+  }
+  p = Y(mkproblem_conv)(d, n, N, 10, 6, w, 1, 0, &x0, &g0, &f0);
+  u = conv_family(pl, p, 0);
+  s = conv_family(pl, p, 1);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(u);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(s);
+  CU_ASSERT_DOUBLE_EQUAL(u->ops.other, u_other, 0.0);
+  CU_ASSERT_DOUBLE_EQUAL(s->ops.other, s_other, 0.0);
+  Y(plan_destroy)(u);
+  Y(plan_destroy)(s);
+  Y(problem_destroy)(p);
+}
+
 /* Node order's share of the counts: sorted pays 2M for the permuted f access;
  * caller order pays one cold fetch per tap once the grid exceeds the rank's
  * threshold and the nodes are not presorted. Base counts as in
- * check_nfast_conv_ops: m = 6, len = 14, M = 10. */
+ * check_nfast_conv_ops: m = 6, len = 14, M = 10. Under is half the smallest
+ * axis over the threshold. */
 void Y(check_nfast_conv_order_ops)(void)
 {
   planner *pl = Y(planner_create)();
   const int w = Y(get_window_id)();
   const INT M = 10;
-  const INT a1 = conv_axis_over_threshold(1), a3 = conv_axis_over_threshold(3);
+  const INT a1 = conv_axis_over_threshold(1), a2 = conv_axis_over_threshold(2),
+            a3 = conv_axis_over_threshold(3), a4 = conv_axis_over_threshold(4);
   R x0 = K(0.0);
   C g0 = K(0.0), f0 = K(0.0);
   problem *p;
@@ -2628,34 +2657,21 @@ void Y(check_nfast_conv_order_ops)(void)
 
   Y(conv_solvers_register)(pl);
 
-  { /* rank 1, under: taps = 140, base other 300 */
+  { /* rank 1, n = 8: taps = 140, base other 300 */
     const INT n = 8, N = 4;
     p = Y(mkproblem_conv)(1, &n, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
-    u = conv_family(pl, p, 0);
     s = conv_family(pl, p, 1);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
     CU_ASSERT_PTR_NOT_NULL_FATAL(s);
-    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 300.0, 0.0);
-    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 320.0, 0.0);
     CU_ASSERT_DOUBLE_EQUAL(s->ops.mul, 280.0, 0.0);
     CU_ASSERT_DOUBLE_EQUAL(s->ops.add, 280.0, 0.0);
-    Y(plan_destroy)(u);
     Y(plan_destroy)(s);
     Y(problem_destroy)(p);
+    conv_order_case(pl, 1, n, 300.0, 320.0);
   }
   if (a1) {
     const INT N = 4;
-    /* over */
-    p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 0, &x0, &g0, &f0);
-    u = conv_family(pl, p, 0);
-    s = conv_family(pl, p, 1);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(s);
-    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 440.0, 0.0);
-    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 320.0, 0.0);
-    Y(plan_destroy)(u);
-    Y(plan_destroy)(s);
-    Y(problem_destroy)(p);
+    conv_order_case(pl, 1, a1 / 2, 300.0, 320.0);
+    conv_order_case(pl, 1, a1, 440.0, 320.0);
     /* over, presorted: no penalty, sorted declines */
     p = Y(mkproblem_conv)(1, &a1, &N, M, 6, w, 1, 1, &x0, &g0, &f0);
     u = conv_family(pl, p, 0);
@@ -2665,18 +2681,21 @@ void Y(check_nfast_conv_order_ops)(void)
     Y(plan_destroy)(u);
     Y(problem_destroy)(p);
   }
-  if (a3) { /* rank 3, over: taps = 27440, base other 54940 */
-    const INT n[3] = {a3, a3, a3}, N[3] = {4, 4, 4};
-    p = Y(mkproblem_conv)(3, n, N, M, 6, w, 1, 0, &x0, &g0, &f0);
-    u = conv_family(pl, p, 0);
-    s = conv_family(pl, p, 1);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(u);
-    CU_ASSERT_PTR_NOT_NULL_FATAL(s);
-    CU_ASSERT_DOUBLE_EQUAL(u->ops.other, 82380.0, 0.0);
-    CU_ASSERT_DOUBLE_EQUAL(s->ops.other, 54960.0, 0.0);
-    Y(plan_destroy)(u);
-    Y(plan_destroy)(s);
-    Y(problem_destroy)(p);
+  if (a2) { /* taps = 1960, base other 3960 */
+    conv_order_case(pl, 2, a2 / 2, 3960.0, 3980.0);
+    conv_order_case(pl, 2, a2, 5920.0, 3980.0);
+  }
+  if (a3) { /* taps = 27440, base other 54940 */
+    conv_order_case(pl, 3, a3 / 2, 54940.0, 54960.0);
+    conv_order_case(pl, 3, a3, 82380.0, 54960.0);
+  }
+  /* rank 4 uses rank 3's value */
+  CU_ASSERT_DOUBLE_EQUAL(Y(conv_sort_grid_bytes)(4),
+                         Y(conv_sort_grid_bytes)(3),
+                         0.0);
+  if (a4) { /* taps = 384160, base other 768400 */
+    conv_order_case(pl, 4, a4 / 2, 768400.0, 768420.0);
+    conv_order_case(pl, 4, a4, 1152560.0, 768420.0);
   }
   Y(planner_destroy)(pl);
 
@@ -2755,7 +2774,7 @@ void Y(check_nfast_conv_race_memory)(void)
   alloc_count_end();
 
   CU_ASSERT_TRUE(planned);
-  CU_ASSERT(nmeasured >= 2u);
+  CU_ASSERT_EQUAL(nmeasured, 2u);
   CU_ASSERT(peak < tables + tables / 2);
 
   free(f);
