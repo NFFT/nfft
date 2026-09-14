@@ -512,8 +512,8 @@ void Y(check_nfast_deconv_solver)(void)
     Y(problem_destroy)(p2);
   }
 
-  /* AWAKE_ZERO holds placeholder values, so the upgrade to AWAKE must refill
-   * the table: SLEEPY -> AWAKE_ZERO -> AWAKE must match SLEEPY -> AWAKE. */
+  /* AWAKE_ZERO holds placeholder values. SLEEPY -> AWAKE_ZERO -> SLEEPY ->
+   * AWAKE must match SLEEPY -> AWAKE. */
   {
     C *gz = (C *)Y(malloc)((size_t)n * sizeof(C));
     problem *pz, *pd;
@@ -525,6 +525,7 @@ void Y(check_nfast_deconv_solver)(void)
     CU_ASSERT_PTR_NOT_NULL_FATAL(plz);
     Y(plan_awake)(plz, PLNR_AWAKE_ZERO);
     plz->adt->apply(plz, pz); /* placeholder tables: runnable, meaningless */
+    Y(plan_awake)(plz, PLNR_SLEEPY);
     Y(plan_awake)(plz, PLNR_AWAKE);
     plz->adt->apply(plz, pz);
 
@@ -1048,9 +1049,8 @@ void Y(check_nfast_conv_solver)(void)
     Y(free)(g2);
   }
 
-  /* AWAKE_ZERO holds placeholder psi and window starts, so the upgrade to AWAKE
-   * must refill both: SLEEPY -> AWAKE_ZERO -> AWAKE must match SLEEPY ->
-   * AWAKE. */
+  /* AWAKE_ZERO holds placeholder values. SLEEPY -> AWAKE_ZERO -> SLEEPY ->
+   * AWAKE must match SLEEPY -> AWAKE. */
   {
     INT ks;
     C *fz = (C *)Y(malloc)((size_t)M * sizeof(C));
@@ -1063,6 +1063,7 @@ void Y(check_nfast_conv_solver)(void)
     CU_ASSERT_PTR_NOT_NULL_FATAL(plz);
     Y(plan_awake)(plz, PLNR_AWAKE_ZERO);
     plz->adt->apply(plz, pz); /* placeholder tables: runnable, meaningless */
+    Y(plan_awake)(plz, PLNR_SLEEPY);
     Y(plan_awake)(plz, PLNR_AWAKE);
     plz->adt->apply(plz, pz);
 

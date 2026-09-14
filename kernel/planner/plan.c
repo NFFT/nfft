@@ -37,12 +37,15 @@ plan *Y(plan_create)(size_t size, const plan_adt *adt)
   return ego;
 }
 
-/* Idempotent awake hook */
+/* Idempotent per state. Every real change has SLEEPY on exactly one side, as
+ * in FFTW: tables are built on the way up and released on the way down, so no
+ * awake hook ever refills or resizes live tables (ADR-0009). */
 void Y(plan_awake)(plan *ego, int wakefulness)
 {
   A(ego != 0);
   if (ego->awake_state == wakefulness)
     return;
+  A((wakefulness == PLNR_SLEEPY) != (ego->awake_state == PLNR_SLEEPY));
   if (ego->adt->awake != 0)
     ego->adt->awake(ego, wakefulness);
   ego->awake_state = wakefulness;

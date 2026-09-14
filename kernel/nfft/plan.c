@@ -319,9 +319,9 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
     return 0;
   }
 
-  /* Measured race: a candidate is awoken SLEEPY -> AWAKE_ZERO, measured, and
-   * put back to SLEEPY. The running best stays AWAKE_ZERO, so the adopted
-   * winner's psi is built once and Y(precompute) only upgrades it to AWAKE. */
+  /* Measured race: each candidate is woken SLEEPY -> AWAKE_ZERO, measured, and
+   * put back to SLEEPY, the running best included, as in FFTW and
+   * Y(planner_mkplan). Y(precompute) wakes the winner (ADR-0009). */
   {
     double tl = Y(planner_timelimit)(pl);
     double t_start = (tl >= 0.0) ? Y(planner_clock_now)() : 0.0;
@@ -382,6 +382,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 
       for (ci = 0; ci < nc; ci++) {
         double cost;
+        int measured;
         if (est[ci] > prune_bound)
           continue;
         if (tl >= 0.0 && Y(planner_elapsed_seconds)(t_start) >= tl) {
@@ -390,22 +391,18 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         }
 
         Y(plan_awake)(cands[dirn][ci], PLNR_AWAKE_ZERO);
-        if (!Y(evaluate_plan)(pl, cands[dirn][ci], p->prob[dirn])) {
+        measured = Y(evaluate_plan)(pl, cands[dirn][ci], p->prob[dirn]);
+        Y(plan_awake)(cands[dirn][ci], PLNR_SLEEPY);
+        if (!measured) {
           /* This candidate's pcost is an op count, not seconds; the rest of
            * the race would compare the two. Stop and grade the direction. */
           graded_estimate = 1;
           break;
         }
         cost = cands[dirn][ci]->pcost;
-
-        /* Exactly one candidate is left awake: the running best. */
         if (winner_idx < 0 || cost < winner_cost) {
-          if (winner_idx >= 0)
-            Y(plan_awake)(cands[dirn][winner_idx], PLNR_SLEEPY);
           winner_idx = ci;
           winner_cost = cost;
-        } else {
-          Y(plan_awake)(cands[dirn][ci], PLNR_SLEEPY);
         }
       }
 
@@ -418,8 +415,7 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
         winner_idx = cheapest;
       }
 
-      /* The winner is never returned to SLEEPY, so the second whole-call
-       * check lands here, after adoption rather than at every transition. */
+      /* Every candidate is back at SLEEPY here, so x must be restored. */
       VERIFY_X;
 
       /* Destroy losers, adopt the winner. */
@@ -467,9 +463,8 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
 #undef VERIFY_X
 }
 
-/* Awaken every present direction plan to PLNR_AWAKE, which is what makes the
- * measured winner's placeholder tables hold true values. Mandatory lifecycle
- * step: execute asserts AWAKE. */
+/* Wake every present direction plan to PLNR_AWAKE, which builds its true
+ * tables. Mandatory lifecycle step: execute asserts AWAKE. */
 void Y(precompute)(Y(plan_ng) *p)
 {
   int i;

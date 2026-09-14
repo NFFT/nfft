@@ -2549,10 +2549,9 @@ void Y(check_nplan_in_race_guard_passes)(void)
   Y(free)(f);
 }
 
-/* An estimate-mode guru runs no race, so its winner is returned SLEEPY. A
- * measured race leaves its winner at AWAKE_ZERO, so precompute only upgrades
- * the placeholder tables to true values instead of rebuilding them. Either
- * way precompute leaves the plan AWAKE. */
+/* An estimate-mode guru runs no race, and a measured race puts every candidate
+ * back to SLEEPY, the best included (ADR-0009). The winner is returned SLEEPY
+ * either way, and precompute leaves it AWAKE. */
 void Y(check_nplan_awake_zero_internal)(void)
 {
   INT N = 32, n = 64, M = 128;
@@ -2585,10 +2584,7 @@ void Y(check_nplan_awake_zero_internal)(void)
          plan_ng_guru)(1, &Nm, 0, &nm, Mm, 6, NFFT_WINDOW_KAISER_BESSEL, xm, fhm,
                      fm, 0u, NFFT_MEASURE);
     CU_ASSERT_PTR_NOT_NULL_FATAL(p);
-    /* An empty blessed store means no usable clock: the race degraded to
-     * estimate-grade selection, which leaves the winner SLEEPY. */
-    if (Y(the_planner)()->htab_blessed.nelem != 0u)
-      CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE_ZERO);
+    CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_SLEEPY);
     Y(precompute)(p);
     CU_ASSERT_EQUAL(Y(plan_ng_test_awake_state)(p), PLNR_AWAKE);
     Y(plan_ng_destroy)(p);
