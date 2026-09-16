@@ -199,9 +199,13 @@ class FSFT:
 
         if not hasattr(self, "_fhat"):
             raise ValueError("fhat has not been set.")
-        self._f = np.ctypeslib.as_array(
-            _nfsftlib.jnfsft_trafo(self.plan), shape=(self.M * 2,)
-        ).view(np.complex128).copy()
+        self._f = (
+            np.ctypeslib.as_array(
+                _nfsftlib.jnfsft_trafo(self.plan), shape=(self.M * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def trafo(self):
         """
@@ -219,9 +223,13 @@ class FSFT:
 
         if self._fhat is None:
             raise ValueError("fhat has not been set.")
-        self._f = np.ctypeslib.as_array(
-            _nfsftlib.jnfsft_trafo_direct(self.plan), shape=(self.M * 2,)
-        ).view(np.complex128).copy()
+        self._f = (
+            np.ctypeslib.as_array(
+                _nfsftlib.jnfsft_trafo_direct(self.plan), shape=(self.M * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def trafo_direct(self):
         """
@@ -240,9 +248,13 @@ class FSFT:
 
         if not hasattr(self, "_f"):
             raise ValueError("f has not been set.")
-        self._fhat = np.ctypeslib.as_array(
-            _nfsftlib.jnfsft_adjoint(self.plan), shape=(N_total * 2,)
-        ).view(np.complex128).copy()
+        self._fhat = (
+            np.ctypeslib.as_array(
+                _nfsftlib.jnfsft_adjoint(self.plan), shape=(N_total * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def adjoint(self):
         """
@@ -261,9 +273,13 @@ class FSFT:
 
         if not hasattr(self, "_f"):
             raise ValueError("f has not been set.")
-        self._fhat = np.ctypeslib.as_array(
-            _nfsftlib.jnfsft_adjoint_direct(self.plan), shape=(N_total * 2,)
-        ).view(np.complex128).copy()
+        self._fhat = (
+            np.ctypeslib.as_array(
+                _nfsftlib.jnfsft_adjoint_direct(self.plan), shape=(N_total * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def adjoint_direct(self):
         """

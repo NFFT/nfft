@@ -248,7 +248,9 @@ class NFCT:
 
         if not hasattr(self, "_X"):
             raise ValueError("x has not been set.")
-        self._f = np.ctypeslib.as_array(_nfctlib.jnfct_trafo(self.plan), shape=(self.M,)).copy()
+        self._f = np.ctypeslib.as_array(
+            _nfctlib.jnfct_trafo(self.plan), shape=(self.M,)
+        ).copy()
 
     def trafo(self):
         """

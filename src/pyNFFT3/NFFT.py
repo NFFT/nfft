@@ -257,9 +257,11 @@ class NFFT:
 
         if not hasattr(self, "_X"):
             raise ValueError("x has not been set.")
-        self._f = np.ctypeslib.as_array(
-            _nfftlib.jnfft_trafo(self.plan), shape=(self.M * 2,)
-        ).view(np.complex128).copy()
+        self._f = (
+            np.ctypeslib.as_array(_nfftlib.jnfft_trafo(self.plan), shape=(self.M * 2,))
+            .view(np.complex128)
+            .copy()
+        )
 
     def trafo(self):
         """
@@ -281,9 +283,13 @@ class NFFT:
         if self._X is None:
             raise ValueError("x has not been set.")
 
-        self._f = np.ctypeslib.as_array(
-            _nfftlib.jnfft_trafo_direct(self.plan), shape=(self.M * 2,)
-        ).view(np.complex128).copy()
+        self._f = (
+            np.ctypeslib.as_array(
+                _nfftlib.jnfft_trafo_direct(self.plan), shape=(self.M * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def trafo_direct(self):
         """
@@ -306,9 +312,11 @@ class NFFT:
         if not hasattr(self, "_X"):
             raise ValueError("x has not been set.")
 
-        self._fhat = np.ctypeslib.as_array(
-            _nfftlib.jnfft_adjoint(self.plan), shape=(Ns * 2,)
-        ).view(np.complex128).copy()
+        self._fhat = (
+            np.ctypeslib.as_array(_nfftlib.jnfft_adjoint(self.plan), shape=(Ns * 2,))
+            .view(np.complex128)
+            .copy()
+        )
 
     def adjoint(self):
         """
@@ -331,9 +339,13 @@ class NFFT:
         if not hasattr(self, "_X"):
             raise ValueError("x has not been set.")
 
-        self._fhat = np.ctypeslib.as_array(
-            _nfftlib.jnfft_adjoint_direct(self.plan), shape=(Ns * 2,)
-        ).view(np.complex128).copy()
+        self._fhat = (
+            np.ctypeslib.as_array(
+                _nfftlib.jnfft_adjoint_direct(self.plan), shape=(Ns * 2,)
+            )
+            .view(np.complex128)
+            .copy()
+        )
 
     def adjoint_direct(self):
         """
