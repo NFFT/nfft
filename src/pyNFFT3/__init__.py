@@ -1,6 +1,7 @@
 import ctypes
 import io
 import os
+import platform
 import sys
 
 from cpuinfo import get_cpu_info
@@ -33,10 +34,15 @@ class fastsum_plan(ctypes.Structure):
 
 
 glibcver = ""
+is_macos = os.name != "nt" and os.uname().sysname == "Darwin"
+# Apple Silicon Macs ship a single NEON build; they have no AVX/AVX2/SSE2
+# instruction sets, so the x86 SIMD-level dispatch below does not apply.
+is_arm64_macos = is_macos and platform.machine() in ("arm64", "aarch64")
+
 # Determine the file extension for shared libraries based on the operating system
 if os.name == "nt":  # Windows
     ending = ".dll"
-elif os.uname().sysname == "Darwin":  # macOS
+elif is_macos:  # macOS
     ending = ".dylib"
 else:  # Linux
     ending = ".so"
@@ -44,7 +50,9 @@ else:  # Linux
     if Version(os.confstr("CS_GNU_LIBC_VERSION").split(" ")[1]) <= Version("2.35"):
         glibcver = "glibc2.22"
 
-if "avx2" in get_cpu_info()["flags"]:
+if is_arm64_macos:
+    flag = "arm64"
+elif "avx2" in get_cpu_info()["flags"]:
     flag = "AVX2"
 elif "avx" in get_cpu_info()["flags"]:
     flag = "AVX"
