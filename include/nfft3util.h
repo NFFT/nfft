@@ -17,7 +17,7 @@
  */
 
 /* Helpers that belong to no transform: random data, printing, timing, error
- * norms, thread count. */
+ * norms. */
 
 #ifndef __NFFT3UTIL_H__
 #define __NFFT3UTIL_H__
@@ -51,10 +51,6 @@ NFFT_EXTERN void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 \
 /** Print complex vector to standard output. */ \
 NFFT_EXTERN void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
-/* thread.c */ \
-NFFT_EXTERN NFFT_INT Y(get_num_threads)(void); \
-NFFT_EXTERN void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_EXTERN NFFT_INT Y(has_threads_enabled)(void); \
 /* time.c */ \
 /** Wall clock in seconds, monotonic where available, arbitrary origin. */ \
 NFFT_EXTERN double Y(clock_gettime_seconds)(void); \
@@ -75,14 +71,6 @@ NFFT_EXTERN void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
 NFFT_EXTERN void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
 NFFT_EXTERN void Y(fftshift_complex_int)(C *x, int d, int* N); \
-/** Return library version. */ \
-NFFT_EXTERN void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
-/** \
- * Return name of window function. \
- * \
- * The window function to be used is configured at compile time. \
- */ \
-NFFT_EXTERN const char *Y(get_window_name)(void); \
 NFFT_EXTERN NFFT_INT Y(get_default_window_cut_off)(void);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)

@@ -4,9 +4,9 @@
 
 Header            | Installed | Contents                                     | Who includes it
 :-----------------|:----------|:---------------------------------------------|:---------------
-`nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`    | anyone
+`nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`, thread count, version, window name | anyone
 `nfft3mp.h`       | yes       | precision-agnostic aliases: `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`, `FFTW(...)`, format strings | anyone writing precision-agnostic code
-`nfft3util.h`     | yes       | helpers that belong to no transform: random data, printing, timing, error norms, thread count | anyone
+`nfft3util.h`     | yes       | helpers that belong to no transform: random data, printing, timing, error norms | anyone
 `infft.h`         | no        | the internal names below (`R`, `C`, `Y`, `X`, `A`, `CK`, `DM`, window macros, `ticks`) | `kernel/` and `tests/` only
 
 Examples, applications and the Julia and Matlab bindings use the three
