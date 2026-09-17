@@ -21,6 +21,26 @@
 #include "infft.h"
 #include "imex.h"
 
+/* Lock this mex file in memory for the remaining lifetime of the Matlab
+ * session.
+ *
+ * Background: Some versions of the OpenMP runtime implement per-thread
+ * state via a pthread TSD key whose destructor lives inside the runtime's
+ * own shared library, including the thread that merely calls into
+ * an OpenMP region. This can be the Matlab interpreter thread itself.
+ *
+ * If the shared library is unmapped, e.g. when the MATLAB session's main 
+ * thread exits, it still holds a reference to the state in the now unmapped 
+ * library's region and the pthread tries to invoke the dangling destructor
+ * pointer and crashes. */
+void nfft_mex_lock_openmp_runtime(void)
+{
+#ifdef _OPENMP
+  if (!mexIsLocked())
+    mexLock();
+#endif
+}
+
 int nfft_mex_get_int(const mxArray *p, const char *errmsg)
 {
   DM(if (!mxIsDouble(p) || mxIsComplex(p) || mxGetM(p) != 1 || mxGetN(p) != 1)

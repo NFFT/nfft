@@ -44,6 +44,7 @@
 extern void *nfft_mex_malloc(size_t n);
 extern void nfft_mex_free(void *p);
 extern void nfft_mex_install_mem_hooks(void);
+extern void nfft_mex_lock_openmp_runtime(void);
 
 int nfft_mex_get_int(const mxArray *p, const char *errmsg);
 double nfft_mex_get_double(const mxArray *p, const char *errmsg);
