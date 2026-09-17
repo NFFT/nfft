@@ -163,3 +163,6 @@ nfft-*
 .vscode/*
 
 macos-build-mex/*
+
+# Python
+__pycache__/
