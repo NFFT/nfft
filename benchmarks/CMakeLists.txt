@@ -59,8 +59,8 @@ target_compile_definitions(codspeed PRIVATE
 
 add_executable(bench_nfft_direct bench_nfft_direct.cpp util.h)
 target_include_directories(bench_nfft_direct PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${NFFT_GENERATED_INCLUDE_DIR})              # config.h (with BENCHMARKS_PREFIX)
+  ${NFFT_GENERATED_INCLUDE_DIR}              # config.h (with BENCHMARKS_PREFIX)
+  ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(bench_nfft_direct PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
 if(UNIX)
   target_link_libraries(bench_nfft_direct PRIVATE m)
@@ -68,8 +68,8 @@ endif()
 
 add_executable(bench_nfft_fast bench_nfft_fast.cpp util.h)
 target_include_directories(bench_nfft_fast PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${NFFT_GENERATED_INCLUDE_DIR})              # config.h (with BENCHMARKS_PREFIX)
+  ${NFFT_GENERATED_INCLUDE_DIR}              # config.h (with BENCHMARKS_PREFIX)
+  ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(bench_nfft_fast PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
 if(UNIX)
   target_link_libraries(bench_nfft_fast PRIVATE m)
@@ -77,8 +77,8 @@ endif()
 
 add_executable(bench_nfct_direct bench_nfct_direct.cpp util.h)
 target_include_directories(bench_nfct_direct PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${NFFT_GENERATED_INCLUDE_DIR})              # config.h (with BENCHMARKS_PREFIX)
+  ${NFFT_GENERATED_INCLUDE_DIR}              # config.h (with BENCHMARKS_PREFIX)
+  ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(bench_nfct_direct PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
 if(UNIX)
   target_link_libraries(bench_nfct_direct PRIVATE m)
@@ -86,8 +86,8 @@ endif()
 
 add_executable(bench_nfst_direct bench_nfst_direct.cpp util.h)
 target_include_directories(bench_nfst_direct PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${NFFT_GENERATED_INCLUDE_DIR})              # config.h (with BENCHMARKS_PREFIX)
+  ${NFFT_GENERATED_INCLUDE_DIR}              # config.h (with BENCHMARKS_PREFIX)
+  ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(bench_nfst_direct PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
 if(UNIX)
   target_link_libraries(bench_nfst_direct PRIVATE m)
@@ -103,8 +103,8 @@ if(NFFT_ENABLE_OPENMP)
 
   add_executable(bench_nfft_direct_omp bench_nfft_direct.cpp util.h)
   target_include_directories(bench_nfft_direct_omp PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${NFFT_GENERATED_INCLUDE_DIR}            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${PROJECT_SOURCE_DIR}/include)
   target_link_libraries(bench_nfft_direct_omp PRIVATE
     nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
   if(FFTW3_OMP_FOUND)
@@ -118,8 +118,8 @@ if(NFFT_ENABLE_OPENMP)
 
   add_executable(bench_nfft_fast_omp bench_nfft_fast.cpp util.h)
   target_include_directories(bench_nfft_fast_omp PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${NFFT_GENERATED_INCLUDE_DIR}            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${PROJECT_SOURCE_DIR}/include)
   target_link_libraries(bench_nfft_fast_omp PRIVATE
     nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
   if(FFTW3_OMP_FOUND)
@@ -133,8 +133,8 @@ if(NFFT_ENABLE_OPENMP)
 
   add_executable(bench_nfct_direct_omp bench_nfct_direct.cpp util.h)
   target_include_directories(bench_nfct_direct_omp PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${NFFT_GENERATED_INCLUDE_DIR}            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${PROJECT_SOURCE_DIR}/include)
   target_link_libraries(bench_nfct_direct_omp PRIVATE
     nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
   if(FFTW3_OMP_FOUND)
@@ -148,8 +148,8 @@ if(NFFT_ENABLE_OPENMP)
 
   add_executable(bench_nfst_direct_omp bench_nfst_direct.cpp util.h)
   target_include_directories(bench_nfst_direct_omp PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
-    ${NFFT_GENERATED_INCLUDE_DIR})            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${NFFT_GENERATED_INCLUDE_DIR}            # config.h (BENCHMARKS_PREFIX, HAVE_FFTW_THREADS)
+    ${PROJECT_SOURCE_DIR}/include)
   target_link_libraries(bench_nfst_direct_omp PRIVATE
     nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
   if(FFTW3_OMP_FOUND)

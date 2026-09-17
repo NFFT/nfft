@@ -30,12 +30,13 @@ function(nfft_configure_library tgt outname)
     VERSION 4.0.3        # libtool -version-info 4:3:0 -> current.age.revision
     SOVERSION 0
     EXPORT_NAME "${outname}")
+  # Generated config.h in build directory always wins over in-tree config.h left in include/.
   target_include_directories(${tgt}
+    PRIVATE
+      ${NFFT_GENERATED_INCLUDE_DIR}    # build/: config.h + ticks.h
     PUBLIC
       $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    PRIVATE
-      ${NFFT_GENERATED_INCLUDE_DIR})   # build/: config.h + ticks.h
+      $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   if(UNIX)
     target_link_libraries(${tgt} PUBLIC m)  # Add math library.
   endif()
