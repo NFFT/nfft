@@ -147,11 +147,8 @@ doc/latex
 doc/doxygen_sqlite3.db
 doc/nfft.pdf
 doc/nfft.tag
-tests/checkall
-tests/checkall_threads
+tests/checkall*
 *.trs
-CUnitAutomated-Results.xml
-CUnitAutomated_threads-Results.xml
 matlab/tests/check_nf*t_matlab.sh
 matlab/tests/check_nf*t_octave.sh
 matlab/tests/nfftUnitTests.m
@@ -163,6 +160,9 @@ nfft-*
 .vscode/*
 
 macos-build-mex/*
+
+# CUnit output
+CUnitAutomated*-Results.xml
 
 # Python
 __pycache__/
