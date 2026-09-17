@@ -70,8 +70,7 @@ NFFT_EXTERN R Y(dot_complex)(C *x, NFFT_INT n); \
 NFFT_EXTERN void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
 NFFT_EXTERN void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-NFFT_EXTERN void Y(fftshift_complex_int)(C *x, int d, int* N); \
-NFFT_EXTERN NFFT_INT Y(get_default_window_cut_off)(void);
+NFFT_EXTERN void Y(fftshift_complex_int)(C *x, int d, int* N);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

@@ -814,6 +814,8 @@ NFFT_EXTERN void X(get_version)(unsigned *major, unsigned *minor, unsigned *patc
  * The window function to be used is configured at compile time. \
  */ \
 NFFT_EXTERN const char *X(get_window_name)(void); \
+/** Return a good default value for m for the configured window function. */ \
+NFFT_EXTERN NFFT_INT X(get_default_window_cut_off)(void); \
 /* our own memory allocation and exit functions */ \
 NFFT_EXTERN void *X(malloc)(size_t n); \
 NFFT_EXTERN void X(free)(void *p); \
