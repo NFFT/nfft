@@ -90,7 +90,7 @@ endif
 libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in doc macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
 
 if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
@@ -102,8 +102,8 @@ pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
 
 install-data-hook:
 	if test -f "$(abs_top_srcdir)/doc/html/index.html"; then \
-		$(MKDIR_P) $(DESTDIR)$(docdir); \
-		cp -Rf $(abs_top_srcdir)/doc/html $(DESTDIR)$(docdir)/; \
+		$(MKDIR_P) $(DESTDIR)$(docdir)/html; \
+		cp -Rf $(abs_top_srcdir)/doc/html/. $(DESTDIR)$(docdir)/html/; \
 	fi
 
 uninstall-hook:
@@ -129,7 +129,8 @@ doc: doxygen-doc
 dist-hook: doc
 	rm -f @DX_DOCDIR@/@PACKAGE@.tag
 	chmod -R u+w $(distdir)
-	cp -R $(abs_top_srcdir)/doc $(distdir)/
+	$(MKDIR_P) $(distdir)/doc/html $(distdir)/doc/assets
+	cp -Rf $(abs_top_srcdir)/doc/. $(distdir)/doc/
 endif
 
 # Flags to be passed to aclocal.
