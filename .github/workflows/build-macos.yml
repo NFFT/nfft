@@ -2,9 +2,9 @@ name: Build macOS
 
 on:
   push:
-    branches: [ main, develop, master ]
+    branches: [ main, master, develop, 'release/**' ]
   pull_request:
-    branches: [ main, develop, master ]
+    branches: [ main, master, develop ]
   workflow_dispatch:
 
 permissions:
