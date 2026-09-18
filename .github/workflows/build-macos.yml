@@ -446,3 +446,11 @@ jobs:
     
     - name: Distcheck
       run: make distcheck
+
+  macos-ok:  # Single required status check: all jobs above must succeed.
+    if: always()
+    needs: [ build, distcheck ]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
