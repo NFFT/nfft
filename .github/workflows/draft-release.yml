@@ -4,25 +4,54 @@ on:
   push:
     branches:
       - develop
+      - release/**
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-drafter
+  group: release-drafter-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  draft-release-publish:
-    name: Draft a new release
+  # Changes merged into "develop" accumulate in a placeholder draft named "next",
+  # which has no version number yet. It carries the prerelease flag, because that
+  # is what keeps release-drafter from touching the release branch draft below.
+  draft-next:
+    name: Draft the next release
+    if: github.ref == 'refs/heads/develop'
     permissions:
       contents: write  # Required to create GitHub release.
       pull-requests: read  # Required to read PR contents.
     runs-on: ubuntu-latest
     steps:
-      # Drafts your next Release notes as Pull Requests are merged into "develop"
       - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v6
         with:
           config-name: release-drafter-config.yml
+          name: next
+          tag: next
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Once a release branch exists, its draft takes the version from the branch
+  # name and is updated only by pushes to that branch.
+  draft-release:
+    name: Draft the release
+    if: startsWith(github.ref, 'refs/heads/release/')
+    permissions:
+      contents: write  # Required to create GitHub release.
+      pull-requests: read  # Required to read PR contents.
+    runs-on: ubuntu-latest
+    steps:
+      - id: version
+        run: echo "tag=${GITHUB_REF_NAME#release/}" >> "$GITHUB_OUTPUT"
+
+      - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v6
+        with:
+          config-name: release-drafter-config.yml
+          name: ${{ steps.version.outputs.tag }}
+          tag: ${{ steps.version.outputs.tag }}
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
