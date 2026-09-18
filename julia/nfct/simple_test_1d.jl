@@ -1,6 +1,10 @@
 push!(LOAD_PATH, pwd())
 using NFCT
 using LinearAlgebra
+using Random
+
+# Set random seed for reproducible results
+Random.seed!(1234)
 
 println("1d NFCT Test")
 
@@ -48,7 +52,7 @@ println( E_2 )
 println( "E_infty error:" )
 println( E_infty )
 
-if ( E_2 >= 1e-8 ) || ( E_infty >= 1e-8 )
+if ( E_2 >= 2.5e-7 ) || ( E_infty >= 2.5e-7 )
 	error( "Errors are too large." )
 end
 
@@ -70,6 +74,6 @@ println( E_2 )
 println( "E_infty error:" )
 println( E_infty )
 
-if ( E_2 >= 1e-8 ) || ( E_infty >= 1e-8 )
+if ( E_2 >= 2.5e-7 ) || ( E_infty >= 2.5e-7 )
 	error( "Errors are too large." )
 end

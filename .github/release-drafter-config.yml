@@ -1,0 +1,29 @@
+name-template: '$NEXT_PATCH_VERSION'
+tag-template: '$NEXT_PATCH_VERSION'
+categories:
+  - title: 'Added'
+    labels:
+      - 'feat'
+  - title: 'Changed'
+    labels:
+      - 'refactor'
+      - 'style'
+  - title: 'Removed'
+    labels:
+      - 'removal'
+  - title: 'Fixed'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: 'Deprecated'
+    labels:
+      - 'deprecation'
+  - title: Documentation
+    labels:
+      - 'docs'
+  - title: Chores
+    labels:
+      - 'chore'
+template: |
+  # What’s Changed
+  $CHANGES

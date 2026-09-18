@@ -32,22 +32,22 @@ exec > >(tee linux-build-mex.log)
 exec 2>&1
 
 FFTWVERSION=3.3.10
-GCCVERSION=11.2.0
+GCCVERSION=13.4.0
 GCCARCH=haswell
 BINARIES_ARCH_README='
 Please note that since the binaries were compiled with gcc flag -march=haswell,
 they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
 AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
 '
-MPFRVERSION=4.0.1
-MPCVERSION=1.1.0
+MPFRVERSION=4.2.2
+MPCVERSION=1.3.1
+GMPVERSION=6.3.0
 
-# default values (to be overwritten if respective parameters are set)
-OCTAVEDIR=/usr
+# OCTAVEDIR=/usr
 
-JULIA_BIN=julia/julia-1.6.2/bin/julia
-JULIA_ARCHIVE=julia-1.6.2-linux-x86_64.tar.gz
-JULIA_URL=https://julialang-s3.julialang.org/bin/linux/x64/1.6/$JULIA_ARCHIVE
+JULIA_BIN=julia/julia-1.12.4/bin/julia
+JULIA_ARCHIVE=julia-1.12.4-linux-x86_64.tar.gz
+JULIA_URL=https://julialang-s3.julialang.org/bin/linux/x64/1.12/$JULIA_ARCHIVE
 
 # read the options
 TEMP=`getopt -o o:m:f: --long octave:,matlab:,fftw: -n 'linux-build-mex.sh' -- "$@"`
@@ -113,6 +113,23 @@ if [ ! -f "$MPCINSTALLDIR/build-success" ]; then
   cd $HOMEDIR
 fi
 
+GMPBUILDDIR=$HOMEDIR/gmp-$GMPVERSION
+GMPINSTALLDIR=$HOMEDIR/gmp-$GMPVERSION-install
+# Build GMP for GCC
+if [ ! -f "$GMPINSTALLDIR/build-success" ]; then
+  rm -rf "$GMPBUILDDIR"
+  rm -rf "$GMPINSTALLDIR"
+  curl "https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.gz" --output "gmp-$GMPVERSION.tar.xz"
+  tar -zxf "gmp-$GMPVERSION.tar.xz"
+  rm "gmp-$GMPVERSION.tar.xz"
+  cd $GMPBUILDDIR
+  ./configure --prefix="$GMPINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR"
+  make -j4
+  make install
+  touch "$GMPINSTALLDIR/build-success"
+  cd $HOMEDIR
+fi
+
 export LD_LIBRARY_PATH="$MPCINSTALLDIR/lib:$MPFRINSTALLDIR/lib:$LD_LIBRARY_PATH"
 
 GCCBUILDDIR="$HOMEDIR/gcc-$GCCVERSION"
@@ -125,7 +142,7 @@ if [ ! -f "$GCCINSTALLDIR/build-success" ]; then
   tar -zxf "gcc-$GCCVERSION.tar.gz"
   rm "gcc-$GCCVERSION.tar.gz"
   cd $GCCBUILDDIR
-  CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS=-fPIC ./configure -enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --enable-languages=c,lto --disable-multilib --disable-nls --enable-bootstrap --prefix="$GCCINSTALLDIR" --with-mpc="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR" --program-suffix="-$GCCVERSION"
+  CFLAGS=-fPIC CXXFLAGS=-fPIC LDFLAGS=-fPIC ./configure -enable-threads=posix --enable-checking=release --with-system-zlib --enable-__cxa_atexit --enable-languages=c,lto --disable-multilib --disable-nls --enable-bootstrap --prefix="$GCCINSTALLDIR" --with-mpc="$MPCINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR" --with-gmp="$GMPINSTALLDIR" --program-suffix="-$GCCVERSION"
   make -j4
   make install
   touch "$GCCINSTALLDIR/build-success"
@@ -163,7 +180,7 @@ fi
 
 # Build NFFT
 READMECONTENT="
-$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
+$(sed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README.md) 
 "
 FFTWREADME='
 FFTW
@@ -201,7 +218,7 @@ cd "$NFFTBUILDDIR"
 
 LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
-CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared
+CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-gcc-arch="$GCCARCH" --disable-static --enable-shared $(if [ -n "$OCTAVEDIR" ]; then echo "--with-octave=$OCTAVEDIR"; fi)
 make
 make check
 
@@ -274,7 +291,7 @@ for SUBDIR in nfft nfsft nfsoft nnfft fastsum nfct nfst infft1d fpt ; do
   if [ -f simple_test.m ] ; then
   for TESTFILE in *test*.m
     do
-    if [ "$SUBDIR" != "infft1d" ] ; then
+    if [ "$SUBDIR" != "infft1d" ] && [ -n "$OCTAVEDIR" ]; then
       "$OCTAVEDIR"/bin/octave-cli --no-window-system --eval="run('$TESTFILE')"
     fi
      if [ -n "$MATLABDIR" ]; then
@@ -289,16 +306,16 @@ done
 cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
-echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
-and Matlab '$MATLABVERSION' and Octave '$OCTAVEVERSION'.
-'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
-else
-echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
-and Octave '$OCTAVEVERSION'.
-'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
+MATLABSTRING="and Matlab $MATLABVERSION";
 fi
+if [ -n "$OCTAVEDIR" ]; then
+OCTAVESTRING=" and Octave $OCTAVEVERSION";
+fi
+echo 'This archive contains the Matlab interface of NFFT '$NFFTVERSION'
+compiled for '$ARCH' Linux using GCC '$GCCVERSION' with -march='$GCCARCH'
+'"$MATLABSTRING""$OCTAVESTRING"'.
+'"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
+
 tar czf ../"$DIR".tar.gz --owner=0 --group=0 "$DIR"
 
 done

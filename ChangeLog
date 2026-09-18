@@ -1,5 +1,54 @@
 This file contains the version history for NFFT 3.x.x.
 
+Changes in version 3.6.0:
+
+    ## Added
+
+    - Add release drafter workflow. (#174) @jenskeiner
+    - Add macOS build workflow. (#168) @jenskeiner
+    - Add more compiler versions to CI and dev container. (#166) @jenskeiner
+    - Add Dependabot config. (#154) @jenskeiner
+    - Add dev container. (#153) @jenskeiner
+    - Add Linux build & test workflow. (#150) @jenskeiner
+    - Add CodSpeed benchmarks. (#148) @jenskeiner
+    - Add NFSFT interface for Julia and Python. (#143) @mnolander
+    - Add kernel `der_laplacian_rbf` (#138) @wagnertheresa
+    - Add kernels xx_gaussian and absx in fastsum. @FranziskaN
+
+    ## Changed
+
+    - Retry benchmarks up to three times. (#187) @jenskeiner
+    - Link against libatomic where required for OpenMP atomic operations on floating-point type. (#170) @jenskeiner
+    - Run benchmarks agnostic to certain parameters only for default values. (#162) @jenskeiner
+    - Refactor CUnit library detection and usage. (#160) @jenskeiner
+    - Improve threaded FFTW 3 library detection and usage as well as overall link-time behavior. (#158) @jenskeiner
+    - Improve direct adjoint NDFT transform performance. (#152) @jenskeiner
+    - Improve direct NDFT forward transform for d > 1. (#149) @jenskeiner
+    - Improve efficiency of NDFT forward transform for d = 1. (#142) @jenskeiner
+    - Allow configure to run on ARM. (#140) @ralfHielscher
+
+    ## Fixed
+
+    - Fix compilation errors with GCC 15 in cunit tests (#165) @michaelquellmalz
+    - Re-enable Julia interface. (#164) @jenskeiner
+    - Do not modify LIBS in the detection of CUnit. (#163) @michaelquellmalz
+    - Fix an issue where makedist would fail because doxygen always builds documentation in srcdir, not builddir. (#161) @jenskeiner
+    - Prevent autoreconf warning in `nfft_lib_codspeed.m4` (#157) @michaelquellmalz
+    - Fix build with GCC 15 (#146) @DarthGandalf
+    - Add missing get functions for odd n to imex.h. @michaelquellmalz
+
+    ## Chores
+
+    - Bump actions/upload-artifact from 4.6.2 to 6.0.0 (#186) @[dependabot[bot]](https://github.com/apps/dependabot)
+    - Bump actions/checkout from 5 to 6 (#179) @[dependabot[bot]](https://github.com/apps/dependabot)
+    - Harden workflows. (#184) @jenskeiner
+    - Bump actions/upload-artifact from 4 to 5 (#177) @[dependabot[bot]](https://github.com/apps/dependabot)
+    - Remove the softlink the README.md (#159) @michaelquellmalz
+    - Bump CodSpeedHQ/action from 3 to 4 (#155) @[dependabot[bot]](https://github.com/apps/dependabot)
+    - Bump actions/checkout from 4 to 5 (#156) @[dependabot[bot]](https://github.com/apps/dependabot)
+    - Add required software and reference in README. (#129) @michaelquellmalz
+    - Add Bibtex entry in README. @michaelquellmalz
+
 Changes in version 3.5.3:
 
     Bugfixes

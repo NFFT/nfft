@@ -11,28 +11,36 @@ noinst_PROGRAMS = \
   reconstruct_data_inh_nnfft
 
 construct_data_2d_SOURCES = construct_data_2d.c doxygen.h
-construct_data_2d_LDADD = $(top_builddir)/libnfft3.la -lm
+construct_data_2d_LDFLAGS = @fftw3_LDFLAGS@
+construct_data_2d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 construct_data_inh_2d1d_SOURCES = construct_data_inh_2d1d.c
-construct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3.la -lm
+construct_data_inh_2d1d_LDFLAGS = @fftw3_LDFLAGS@
+construct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 construct_data_inh_3d_SOURCES = construct_data_inh_3d.c
-construct_data_inh_3d_LDADD = $(top_builddir)/libnfft3.la -lm
+construct_data_inh_3d_LDFLAGS = @fftw3_LDFLAGS@
+construct_data_inh_3d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_gridding_SOURCES = reconstruct_data_gridding.c
-reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_gridding_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_gridding_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_2d_SOURCES = reconstruct_data_2d.c
-reconstruct_data_2d_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_2d_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_2d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_inh_3d_SOURCES = reconstruct_data_inh_3d.c
-reconstruct_data_inh_3d_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_inh_3d_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_inh_3d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_inh_2d1d_SOURCES = reconstruct_data_inh_2d1d.c
-reconstruct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_inh_2d1d_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_inh_2d1d_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 reconstruct_data_inh_nnfft_SOURCES = reconstruct_data_inh_nnfft.c
-reconstruct_data_inh_nnfft_LDADD = $(top_builddir)/libnfft3.la -lm
+reconstruct_data_inh_nnfft_LDFLAGS = @fftw3_LDFLAGS@
+reconstruct_data_inh_nnfft_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@
 
 EXTRA_DIST = 	construct_inh.m \
 		construct_readout_time.m \

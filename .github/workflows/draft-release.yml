@@ -1,0 +1,28 @@
+name: Draft Release
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-drafter
+  cancel-in-progress: false
+
+jobs:
+  draft-release-publish:
+    name: Draft a new release
+    permissions:
+      contents: write  # Required to create GitHub release.
+      pull-requests: read  # Required to read PR contents.
+    runs-on: ubuntu-latest
+    steps:
+      # Drafts your next Release notes as Pull Requests are merged into "develop"
+      - uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6
+        with:
+          config-name: release-drafter-config.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

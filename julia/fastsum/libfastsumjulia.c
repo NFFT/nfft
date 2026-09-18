@@ -22,7 +22,7 @@ fastsum_plan* jfastsum_alloc(){
 }
 // c wird von Julia als Float64-Pointer übergeben
 
-int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, float eps_I, float eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
+int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, double eps_I, double eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
 	C (*kernel)(R, int, const R *);
 	
 	if ( strcmp(s, "gaussian") == 0 )
@@ -55,6 +55,12 @@ int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, i
 		kernel = log_sin;
 	else if ( strcmp(s, "laplacian_rbf") == 0 )
 		kernel = laplacian_rbf;
+    else if ( strcmp(s, "der_laplacian_rbf") == 0 )
+		kernel = der_laplacian_rbf;
+	else if ( strcmp(s, "xx_gaussian") == 0 )
+		kernel = xx_gaussian;
+	else if ( strcmp(s, "absx") == 0 )
+		kernel = absx;
 	else {
 		return 1;
 	}

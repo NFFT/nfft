@@ -19,9 +19,9 @@
 ################################################################################
 
 m4_define([nfft_version_major], [3])
-m4_define([nfft_version_minor], [5])
-m4_define([nfft_version_patch], [3])
-m4_define([nfft_version_type], [alpha])
+m4_define([nfft_version_minor], [6])
+m4_define([nfft_version_patch], [0])
+m4_define([nfft_version_type], [])
 m4_append([NFFT_VERSION], m4_expand([nfft_version_major.nfft_version_minor.nfft_version_patch]))
 m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 ...
@@ -29,7 +29,7 @@ m4_append([NFFT_VERSION], m4_expand([nfft_version_type]))
 AC_INIT([NFFT],[NFFT_VERSION],[mail@nfft.org])
 
 # copyright notice
-AC_COPYRIGHT([2003, 2019, Jens Keiner, Stefan Kunis, Daniel Potts])
+AC_COPYRIGHT([2003, 2025, Jens Keiner, Stefan Kunis, Daniel Potts])
 
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MAJOR], [nfft_version_major], [Major version number.])
 AC_DEFINE_UNQUOTED([NFFT_VERSION_MINOR], [nfft_version_minor], [Minor version number.])
@@ -79,7 +79,8 @@ LT_INIT([win32-dll])
 AC_SUBST([LIBTOOL_DEPS])
 
 # version information for shared library
-SHARED_VERSION_INFO="4:3:0"
+SHARED_VERSION_INFO="4:4:0"
+# NFFT 3.6.0 is 4:4:0 (implementation changes only, no API changes)
 # NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
 # NFFT 3.5.2 was 4:2:0
 # NFFT 3.5.2 was 4:1:0
@@ -203,10 +204,7 @@ AX_NFFT_MODULE([fpt],[FPT],[fast polynomial transform],["no"],[],[],
   [test "x$ok" = "xyes" -o "x$need_fpt" = "xyes"])
 
 # multithreaded code
-#AC_ARG_ENABLE(openmp, [AC_HELP_STRING([--enable-openmp],
-#  [enable OpenMP multithreaded code])], [enable_threads=$enableval; AC_DEFINE(ENABLE_OPENMP, 1, ["Define to enable OpenMP code."])], enable_threads=no)
 AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp], [enable OpenMP multithreaded code])], enable_threads=$enableval, enable_threads=no)
-AM_CONDITIONAL(HAVE_THREADS, test "x$enable_threads" = "xyes" )
 
 # debug mode
 AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [compile with extra runtime checks for debugging])], enable_debug=$enableval,
@@ -267,8 +265,43 @@ if test "$ok" = "yes"; then
 fi
 AC_SUBST(matlab_exhaustive_unit_tests_flag)
 
+AC_ARG_ENABLE(benchmarks, [AS_HELP_STRING([--enable-benchmarks],[enable building benchmark programs])], enable_benchmarks=$enableval, enable_benchmarks=no)
+AC_ARG_WITH(benchmarks-prefix, [AS_HELP_STRING([--with-benchmarks-prefix=PREFIX],[prefix for benchmark names])], benchmarks_prefix=$withval, benchmarks_prefix="")
+AC_DEFINE_UNQUOTED(BENCHMARKS_PREFIX, "${benchmarks_prefix}", [Prefix for benchmark names])
+
+# Flags for benchmarks agnostic to certain parameters. Used only in CI.
+AC_ARG_WITH(agnostic-benchmarks, [AS_HELP_STRING([--with-agnostic-benchmarks=FLAGS],[specify which benchmarks should be built based on agnostic parameters. FLAGS should be a comma-separated list of parameter:flag pairs, e.g., window:1,openmp:0,precision:1,os:0,compiler:1])], agnostic_benchmarks=$withval, agnostic_benchmarks="")
+
+# Parse agnostic benchmarks flags.
+if test -z "$agnostic_benchmarks"; then
+  # All on by default.
+  BENCHMARK_AGNOSTIC_WINDOW=1 BENCHMARK_AGNOSTIC_OPENMP=1 BENCHMARK_AGNOSTIC_PRECISION=1
+else
+  # All off by default, unless specified otherwise.
+  BENCHMARK_AGNOSTIC_WINDOW=0 BENCHMARK_AGNOSTIC_OPENMP=0 BENCHMARK_AGNOSTIC_PRECISION=0
+  saved_IFS="$IFS"; IFS=','
+  for flag in $agnostic_benchmarks; do
+    case "$flag" in
+      precision:1) BENCHMARK_AGNOSTIC_PRECISION=1 ;;
+      precision:0) BENCHMARK_AGNOSTIC_PRECISION=0 ;;
+      window:1) BENCHMARK_AGNOSTIC_WINDOW=1 ;;
+      window:0) BENCHMARK_AGNOSTIC_WINDOW=0 ;;
+      openmp:1) BENCHMARK_AGNOSTIC_OPENMP=1 ;;
+      openmp:0) BENCHMARK_AGNOSTIC_OPENMP=0 ;;
+      '') ;;
+      *) AC_MSG_ERROR([Unknown agnostic benchmark flag "$flag". Valid flags are: precision:0/1, window:0/1, openmp:0/1]) ;;
+    esac
+  done
+  IFS="$saved_IFS"
+fi
+
+# Create automake conditionals for agnostic benchmark flags.
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_PRECISION, test "x$BENCHMARK_AGNOSTIC_PRECISION" = "x1")
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_WINDOW, test "x$BENCHMARK_AGNOSTIC_WINDOW" = "x1")
+AM_CONDITIONAL(BENCHMARK_AGNOSTIC_OPENMP, test "x$BENCHMARK_AGNOSTIC_OPENMP" = "x1")
+
 ################################################################################
-# compiler characteristis
+# C compiler characteristis
 ################################################################################
 
 # select programming language
@@ -278,7 +311,7 @@ AC_LANG(C)
 AX_COMPILER_VENDOR
 
 # check for C99 compliant mode (possibly with GNU extensions)
-AC_PROG_CC_C99
+AC_PROG_CC
 
 # per-target flags
 AM_PROG_CC_C_O
@@ -294,6 +327,32 @@ AC_C_INLINE
 
 # reset CC variable (the C99 option is added back below)
 CC="$ac_save_CC"
+
+# Determine mantissa width for selected floating-point type.
+AC_MSG_CHECKING([Mantissa width of floating-point type])
+
+# Extract MANT_DIG value
+AC_COMPUTE_INT([nfft_mant_dig], [MANT_DIG], [
+#include <float.h>
+#if defined(NFFT_LDOUBLE)
+  #define MANT_DIG LDBL_MANT_DIG
+#elif defined(NFFT_SINGLE)
+  #define MANT_DIG FLT_MANT_DIG
+#else
+  #define MANT_DIG DBL_MANT_DIG
+#endif
+], [AC_MSG_ERROR([Cannot determine MANT_DIG])])
+
+AC_MSG_RESULT([$nfft_mant_dig bits])
+
+if test "x$nfft_mant_dig" != "x113" -a "x$nfft_mant_dig" != "x64" -a "x$nfft_mant_dig" != "x53" -a "x$nfft_mant_dig" != "x24"; then
+  AC_MSG_WARN([Unknown floating-point type with unexpected mantissa width! Assuming IEEE 754 double precision which may lead to incorrect results.])
+fi
+
+################################################################################
+# C++ compiler characteristis
+################################################################################
+AC_PROG_CXX
 
 ################################################################################
 # program checks
@@ -315,64 +374,17 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
 ################################################################################
-# 3rd party libraries
-################################################################################
-
-# Check for fftw3.
-AX_LIB_FFTW3
-
-if test "x$ax_lib_fftw3" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the FFTW 3 library installed. You can ]#
-     [download it from http://www.fftw.org. If you have installed FFTW 3, ]#
-     [make sure that this configure script can find it. See ./configure ]#
-     [--help for more information.])
-fi
-
-if  test "x$enable_threads" = "xyes" -a "x$ax_lib_fftw3_threads" = "xno"; then
-  AC_MSG_ERROR([You don't seem to have the threaded FFTW 3 library installed.])
-fi
-
-AX_OPENMP
-AM_CONDITIONAL(HAVE_OPENMP, test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" != "xunknown" )
-AC_SUBST(OPENMP_CFLAGS)
-
-if  test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
-  AC_MSG_ERROR([You don't seem to have a C compiler with OpenMP support installed which is required for threaded NFFT.])
-fi
-
-# Check for MATLAB.
-AX_PROG_MATLAB
-
-if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd" -a "x$PRECISION" != "xs"; then
-  AC_MSG_ERROR([Building the Matlab interfaces requires double precision.])
-fi
-
-if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
-  AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with --enable-openmp.])
-fi
-
-
-################################################################################
 # compiler options
 ################################################################################
 
 # Try to choose good compiler options.
 if test "x$ac_test_CFLAGS" != "xset"; then
-  saved_CPPFLAGS="$CPPFLAGS"
-  saved_LDFLAGS="$LDFLAGS"
-  saved_LIBS="$LIBS"
-  CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
-  LIBS="$LIBS $fftw3_LIBS"
-  LDFLAGS="$LDFLAGS $fftw3_LDFLAGS"
   AX_CC_MAXOPT
-  CPPFLAGS="$saved_CPPFLAGS"
-  LDFLAGS="$saved_LDFLAGS"
-  LIBS="$saved_LIBS"
 fi
 
 # override CFLAGS selection when debugging
 if test "x${enable_debug}" = "xyes"; then
-  CFLAGS="-g"
+  CFLAGS="-g -O2 -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer -fno-sanitize-recover=all -v"
 #  if test "x$ax_cv_c_compiler_vendor" = "xapple"; then
 #    CFLAGS="$CFLAGS $ax_cv_apple_gcc_archflag"
 #  fi
@@ -398,12 +410,88 @@ if test "x${host_os}" = "xmingw32" -o "x${host_os}" = "xmingw64"; then
   CFLAGS="$CFLAGS -D__USE_MINGW_ANSI_STDIO=1"
 fi  
 
-CPPFLAGS="$CPPFLAGS $fftw3_CPPFLAGS"
+################################################################################
+# OpenMP support
+################################################################################
 
-# add Matlab CFLAGS
-if test "x$ax_prog_matlab" = "xyes"; then
-  CFLAGS="$CFLAGS $matlab_CFLAGS"
+# OpenMP compiler support
+AX_OPENMP
+
+if test "x$enable_threads" = "xyes" -a "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
+  AC_MSG_ERROR([You have enabled building NFFT with OpenMP multi-threading support, but your compiler does not seem to support OpenMP.])
 fi
+
+OPENMP_LIBS=""
+
+if test "x$enable_threads" = "xyes"; then
+  NFFT_OPENMP_ATOMIC_FLOAT
+  if test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "xunknown"; then
+    AC_MSG_ERROR([OpenMP atomic operations do not work.])
+  elif test "x$OPENMP_ATOMIC_FLOAT_LIBS" = "x"; then
+    # No additional flags required.
+    :
+  else
+    # Add additional flags.
+    OPENMP_LIBS="$OPENMP_ATOMIC_FLOAT_LIBS"
+  fi
+fi
+
+################################################################################
+# 3rd party libraries
+################################################################################
+
+# Check for fftw3.
+NFFT_LIB_FFTW3
+
+if test "x$nfft_fftw3_have_lib" != "xyes"; then
+  AC_MSG_ERROR([You don't seem to have the FFTW 3 library's developer sources installed.]
+[Use your OS' package manager to install the necessary packages. Alternatively, you can ]
+[download FFTW 3 from http://www.fftw.org and build it yourself. If you are sure you have]
+[FFTW 3 set up correctly, ensure that this configure script can find it, e.g. by setting]
+[CPPFLAGS/LDFLAGS environment variables, or by using --with-fftw3, --with-fftw3-includedir]
+[and/or --with-fftw3-libdir options; see ./configure --help.])
+fi
+
+if test "x$enable_threads" = "xyes"; then
+  # Check which FFTW3 threading variant is available and provide appropriate warnings.
+  if test "x$nfft_fftw3_have_lib_omp" = "xyes"; then
+    # FFTW3 OpenMP variant found - no warning needed (optimal case)
+    fftw3_LIBS_omp="$nfft_fftw3_LIBS_omp"
+    AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+  elif test "x$nfft_fftw3_have_lib_threads" = "xyes"; then
+    # Only generic multi-threaded FFTW3 found - warn about potential inefficiency
+    AC_MSG_WARN([Only generic multi-threaded FFTW3 library found. This may be less efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.])
+    fftw3_LIBS_omp="$nfft_fftw3_LIBS_threads"
+    AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+  else
+    # Only single-threaded FFTW3 found - warn that only NFFT code will be multi-threaded
+    AC_MSG_WARN([Only single-threaded FFTW3 library found. Multi-threading will only be used in NFFT code, not in FFTW3 computations.])
+    fftw3_LIBS_omp=""
+  fi
+fi
+
+AC_SUBST(fftw3_CPPFLAGS)
+AC_SUBST(fftw3_LDFLAGS)
+AC_SUBST(fftw3_LIBS)
+AC_SUBST(fftw3_LIBS_omp)
+
+AM_CONDITIONAL(ENABLE_OPENMP, test "x$enable_threads" = "xyes" )
+AC_SUBST(OPENMP_CFLAGS)
+AC_SUBST(OPENMP_LIBS)
+
+# Check for MATLAB.
+AX_PROG_MATLAB
+
+if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd" -a "x$PRECISION" != "xs"; then
+  AC_MSG_ERROR([Building the Matlab interfaces requires double precision.])
+fi
+
+if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
+  AC_MSG_ERROR([The NFFT Matlab interface with thread support requires the threaded NFFT to be built. Please re-run configure with --enable-openmp.])
+fi
+
+# Add FFTW preprocessor flags.
+CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
 
 ################################################################################
 # check if mex.h can be included without undefinition of
@@ -566,8 +654,39 @@ AC_CHECK_DECLS([copysignf, nextafterf, nanf, ceilf, floorf, nearbyintf, rintf, r
 fi
 
 # CUnit
-AX_CUNIT
-AM_CONDITIONAL(HAVE_CUNIT, test "x$ax_cv_cunit" = "xyes" )
+NFFT_LIB_CUNIT
+
+AM_CONDITIONAL(HAVE_CUNIT, test "x$cunit_have_lib" = "xyes" )
+AC_SUBST(cunit_CPPFLAGS)
+AC_SUBST(cunit_LDFLAGS)
+AC_SUBST(cunit_LIBS)
+
+nfft_cv_benchmarks="no"
+nfft_benchmarks_CPPFLAGS=""
+nfft_benchmarks_CXXFLAGS=""
+nfft_benchmarks_LDFLAGS=""
+nfft_benchmarks_LIBS=""
+
+if test "x$enable_benchmarks" = "xyes"; then
+  NFFT_LIB_CODSPEED
+  if test "x$nfft_cv_codspeed" = "xno"; then
+    AC_MSG_ERROR([You have enabled the build of benchmark programs, but the CodSpeed C++ integration library was not found.])
+  else
+    nfft_cv_benchmarks="yes"
+    nfft_benchmarks_CPPFLAGS="$nfft_codspeed_CPPFLAGS"
+    nfft_benchmarks_CXXFLAGS="$nfft_codspeed_CXXFLAGS"
+    nfft_benchmarks_LDFLAGS="$nfft_codspeed_LDFLAGS"
+    nfft_benchmarks_LIBS="$nfft_codspeed_LIBS"
+  fi
+else
+  nfft_cv_benchmarks="no"
+fi
+
+AM_CONDITIONAL(HAVE_BENCHMARKS, test "x$nfft_cv_benchmarks" = "xyes" )
+AC_SUBST(nfft_benchmarks_CPPFLAGS)
+AC_SUBST(nfft_benchmarks_CXXFLAGS)
+AC_SUBST(nfft_benchmarks_LDFLAGS)
+AC_SUBST(nfft_benchmarks_LIBS)
 
 # The output files to be generated
 AC_CONFIG_FILES(Makefile \
@@ -644,9 +763,11 @@ AC_CONFIG_FILES(Makefile \
 		matlab/tests/nfsftUnitTests.m \
 		julia/Makefile \
 		julia/nfft/Makefile \
-		julia/fastsum/Makefile \
+    julia/fastsum/Makefile \
 		julia/nfct/Makefile \
-		julia/nfst/Makefile \
+    julia/nfst/Makefile \
+    julia/nfsft/Makefile \
+                benchmarks/Makefile \
                 doxygen/Makefile \
                 support/Makefile)
 # temproarily removed:

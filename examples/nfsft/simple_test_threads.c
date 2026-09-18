@@ -119,7 +119,9 @@ int main(void)
   printf("nthreads = %d\n", nfft_get_num_threads());
 
   /* init */
-  fftw_init_threads();
+  #ifdef HAVE_FFTW_THREADS
+    FFTW(init_threads)();
+  #endif
 
   printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"
     "...\n\n");

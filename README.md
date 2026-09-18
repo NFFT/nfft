@@ -37,16 +37,16 @@ Some examples for application of these transforms are provided:
 Detailed API documentation in HTML format can be found in
 `doc/html/index.html`, if you are working from a release tarball.
 When working from a source repository, the documentation can be
-generated with Doxygen.
+generated with Doxygen (which requires the `doxygen-latex` and `perl` packages):
 ```
 make doc
 ```
 
 Building
 --------
-The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured with the flag `--enable-shared`.
+The NFFT depends on the [FFTW](https://fftw.org) library, which is available for many Linux distros, Homebrew on macOS and MSYS2 on Windows. If you compile the FFTW yourself, it should be configured with the flag `--enable-shared` (and `--enable-threads` for the multi-threaded version). Building the NFFT requires `make` and a C compiler such as `gcc`.
 
-When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided.
+When working from a source repository, you need to run libtoolize and autoreconf first. A bash script to do this is provided. This step requries the tools `autoconf`, `automake` and `libtool`.
 ```
 ./bootstrap.sh
 ```
@@ -65,7 +65,7 @@ Here are some useful optional flags for `./configure`:
 * `--enable-all` specifies that all modules should be compiled,
 * `--enable-openmp` enables the multicore support and
 * `--enable-julia` specifies that the julia interface will be compiled.
-* `--with-matlab=/path/to/matlab` specifies a path of Matlab, and
+* `--with-matlab=/path/to/matlab` specifies the path of a Matlab installation, and
 * `--with-octave=/path/to/octave` does the same for GNU Octave.
 * For a list of all available options, run `./configure --help`.
 
@@ -84,17 +84,39 @@ Optionally, install NFFT on your system.
 make install
 ```
 
+CodSpeed benchmarks
+-------------------
+Optionally, NFFT can build benchmark programs using the [CodSpeed](https://codspeed.io) C++ integration library.
+[CodSpeed](https://codspeed.io) is a continuous benchmarking service that can help with tracking performance 
+regressions and improvements.
+
+While these benchmarks can run locally, they are actually only intended to run in CI. They also require a build of the CodSpeed integration library from [source](https://github.com/CodSpeedHQ/codspeed-cpp).
+
+To enable building the benchmarks with the CodSpeed integration library, run `./configure --enable-benchmarks --with-codspeed=<path to codspeed-cpp source directory>`.
+
+After the build, the benchmrks can be found in the `benchmarks` directory.
+
 Citing
 ------
-The most current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
+The current general paper, the one that we recommend if you wish to cite NFFT, is *Keiner, J., Kunis, S., and Potts, D.
 ''Using NFFT 3 - a software library for various nonequispaced fast Fourier transforms''
-ACM Trans. Math. Software,36, Article 19, 1-30, 2009*.
+ACM Trans. Math. Software 36, Article 19, 1-30, 2009*. BibTeX entry:
+```
+@article{KeKuPo09,
+ author = {Jens Keiner and Stefan Kunis and Daniel Potts},
+ title = {Using {NFFT3} - a Software Library for Various Nonequispaced Fast {Fourier} Transforms},
+ journal = {{ACM} Trans. Math. Software},
+ year = {2009},
+ volume = {36},
+ pages = {Article 19, 1--30},
+ doi = {10.1145/1555386.1555388}}
+```
 
 Feedback
 --------
 Your comments are welcome! This is the third version of the library and may
 not be as robust or well documented as it should be. Please keep track of bugs
-or missing/confusing instructions and report them to
+or missing/confusing instructions and report them in our issue tracker or directly to
 [Daniel Potts](mailto:potts@mathematik.tu-chemnitz.de).
 The postal address is
 
@@ -146,6 +168,7 @@ File/Folder        | Purpose
 aclocal.m4		   | Macros for configure script
 applications (dir) | Application programs (see 4) above)
 AUTHORS			   | Information about the authors of NFFT
+benchmarks (dir)   | Benchmark programs
 bootstrap.sh       | Bootstrap shell script that call Autoconf and friends
 ChangeLog          | A short version history
 config (dir)       | Used by configure script

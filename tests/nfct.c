@@ -31,11 +31,13 @@
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
+#define SEED 1234567890L
+
 /* Testcase delegate. */
 typedef struct testcase_delegate_s testcase_delegate_t;
 
 typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
-typedef void (*destroy_t)(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
+typedef void (*destroy_t)(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 struct testcase_delegate_s
 {
@@ -51,7 +53,7 @@ typedef struct testcase_delegate_file_s
 } testcase_delegate_file_t;
 
 static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
-static void destroy_file(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
+static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 typedef struct testcase_delegate_online_s
 {
@@ -63,7 +65,7 @@ typedef struct testcase_delegate_online_s
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
-static void destroy_online(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f);
+static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 /* Initialization delegate. */
 typedef struct init_delegate_s init_delegate_t;
@@ -112,13 +114,13 @@ static R err_trafo_direct(X(plan) *p);
 
 /* Check single test case.*/
 static int check_single(const testcase_delegate_t *testcase,
-    init_delegate_t *init_delegate, check_delegate_t *check_delegate,
-    trafo_delegate_t *trafo_delegate);
+    const init_delegate_t *init_delegate, check_delegate_t *check_delegate,
+    const trafo_delegate_t *trafo_delegate);
 
 /* Check multiple test cases.*/
 static void check_many(const size_t nf, const size_t ni, const size_t nt,
-  const testcase_delegate_t **testcases, init_delegate_t **initializers,
-  check_delegate_t *check_delegate, trafo_delegate_t **trafos);
+  const testcase_delegate_t **testcases, const init_delegate_t **initializers,
+  check_delegate_t *check_delegate, const trafo_delegate_t **trafos);
 
 /* Initializers. */
 static void init_1d_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M);
@@ -225,59 +227,104 @@ static R err_trafo(X(plan) *p)
   for (i = 0, s = ((R)p->sigma[0]); i < p->d; i++)
     s = FMIN(s, ((R)p->sigma[i]));
 #if defined(GAUSSIAN)
-#if defined(NFFT_LDOUBLE)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(3.0);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(9500.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(3.0);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.9);
     b = K(50.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(9500.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.9);
+    b = K(50.0);
+  #endif
     err = EXP(-m*KPI*(K(1.0)-K(1.0)/(K(2.0)*K(2.0) - K(1.0))));
 #elif defined(B_SPLINE)
-    //printf("m = %E, s = %E, a1 = %E, a2 = %E, z = %E\n", m, s, K(1.0)/(K(2.0)*s-K(1.0)), K(2.0)*m, K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m));
-    //printf("\n<s = %E>\n", s);
-    //fflush(stdout);
-#if defined(NFFT_LDOUBLE)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(0.3);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(0.3);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.0);
     b = K(4100.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(4800.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.0);
+    b = K(4100.0);
+  #endif
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
-  #elif defined(SINC_POWER)
-#if defined(NFFT_LDOUBLE)
+#elif defined(SINC_POWER)
+  #if MANT_DIG == 113
+    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
     a = K(0.3);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.4);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(0.3);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(1.0);
     b = K(4100.0);
-#endif
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.4);
+    b = K(4800.0);
+  #else
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(1.0);
+    b = K(4100.0);
+  #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
-  #elif defined(KAISER_BESSEL)
-#if defined(NFFT_LDOUBLE)
+#elif defined(KAISER_BESSEL)
+  #if MANT_DIG == 113
+    // TODO: Set good values for IEEE 754 quadruple precision, 128 bits.
     a = K(2.9);
     b = K(50.0);
-#elif defined(NFFT_SINGLE)
-    a = K(0.95);
-    b = K(4800.0);
-#else
+  #elif MANT_DIG == 64
+    // Intel double extended, 80 bits.
+    a = K(3.0);
+    b = K(50.0);
+  #elif MANT_DIG == 53
+    // IEEE 754 double precision, 64 bits.
     a = K(0.3);
     b = K(5050.0);
-#endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+  #elif MANT_DIG == 24
+    // IEEE 754 single precision, 32 bits.
+    a = K(0.95);
+    b = K(4800.0);
   #else
-    #error Unsupported window function.
+    // Unknown floating-point type.
+    // Assume IEEE 754 double precision, 64 bits.
+    a = K(0.3);
+    b = K(5050.0);
   #endif
+    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+#else
+  #error Unsupported window function.
+#endif
 
   return FMAX(FMAX(a * err, b * eps), err_trafo_direct(p));
 }
@@ -285,8 +332,8 @@ static R err_trafo(X(plan) *p)
 #define MAX_SECONDS 0.1
 
 static int check_single(const testcase_delegate_t *testcase,
-  init_delegate_t *init_delegate, check_delegate_t *check_delegate,
-  trafo_delegate_t *trafo_delegate)
+  const init_delegate_t *init_delegate, check_delegate_t *check_delegate,
+  const trafo_delegate_t *trafo_delegate)
 {
   int ok = 0;
   X(plan) p;
@@ -349,15 +396,15 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
 cleanup:
-  testcase->destroy(testcase, x, f_hat, f);
+  testcase->destroy(testcase, N, x, f_hat, f);
   X(finalize)(&p);
 
   return ok;
 }
 
 static void check_many(const size_t nf, const size_t ni, const size_t nt,
-  const testcase_delegate_t **testcases, init_delegate_t **initializers,
-  check_delegate_t *check_delegate, trafo_delegate_t **trafos)
+  const testcase_delegate_t **testcases, const init_delegate_t **initializers,
+  check_delegate_t *check_delegate, const trafo_delegate_t **trafos)
 {
   size_t i, j, k;
   int ok = 1, r;
@@ -442,9 +489,10 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   fclose(file);
 }
 
-static void destroy_file(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f)
+static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
+  Y(free)(N);
   Y(free)(x);
   Y(free)(f_hat);
   Y(free)(f);
@@ -454,6 +502,8 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
+
+  Y(srand48)(SEED);
 
   /* Dimensions. */
   *d = ego->d;
@@ -536,6 +586,8 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
 
+  Y(srand48)(SEED);
+
   /* Dimensions. */
   *d = ego->d;
 
@@ -617,9 +669,10 @@ static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **
   }
 }
 
-static void destroy_online(const testcase_delegate_t *ego_, R *x, R *f_hat, R *f)
+static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f)
 {
   UNUSED(ego_);
+  Y(free)(N);
   Y(free)(x);
   Y(free)(f_hat);
   Y(free)(f);
@@ -751,13 +804,13 @@ static R compare_adjoint(check_delegate_t *ego, X(plan) *p, const int NN, const 
 static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
 static check_delegate_t check_adjoint = {prepare_adjoint, compare_adjoint};
 
-static trafo_delegate_t trafo_direct = {"trafo_direct", X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
+static trafo_delegate_t trafo_direct = {"trafo_direct", (trafo_t)X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t trafo = {"trafo", X(trafo), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), X(check), 0, err_trafo};
 //static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), X(check), 0, err_trafo};
 
-static trafo_delegate_t adjoint_direct = {"adjoint_direct", X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
+static trafo_delegate_t adjoint_direct = {"adjoint_direct", (trafo_t)X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
 static trafo_delegate_t adjoint = {"adjoint", X(adjoint), X(check), 0, err_trafo};
 //static trafo_delegate_t adjoint_1d = {"adjoint_1d", adjoint_1d, X(check), 0, err_trafo};
 //static trafo_delegate_t adjoint_2d = {"adjoint_2d", adjoint_2d, X(check), 0, err_trafo};
@@ -836,13 +889,15 @@ static const testcase_delegate_file_t *testcases_1d_file[] =
     &nfct_1d_50_50,
 };
 
+static const testcase_delegate_t **testcases_1d_file_ = (const testcase_delegate_t**)testcases_1d_file;
+
 static const trafo_delegate_t* trafos_1d_direct_file[] = {&trafo_direct};
 
 void X(check_1d_direct_file)(void)
 {
   printf("check_1d_direct_file:\n");
   check_many(SIZE(testcases_1d_file), SIZE(initializers_direct), SIZE(trafos_1d_direct_file),
-    testcases_1d_file, initializers_direct, &check_trafo, trafos_1d_direct_file);
+    testcases_1d_file_, initializers_direct, &check_trafo, trafos_1d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_1d_fast_file[] = {&trafo/*, &trafo_1d*/};
@@ -851,7 +906,7 @@ void X(check_1d_fast_file)(void)
 {
   printf("check_1d_fast_file:\n");
   check_many(SIZE(testcases_1d_file), SIZE(initializers_1d), SIZE(trafos_1d_fast_file),
-    testcases_1d_file, initializers_1d, &check_trafo, trafos_1d_fast_file);
+    testcases_1d_file_, initializers_1d, &check_trafo, trafos_1d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_1d_1_1 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_1d_1_1.txt")};
@@ -907,13 +962,15 @@ static const testcase_delegate_file_t *testcases_adjoint_1d_file[] =
   &nfct_adjoint_1d_50_50,
 };
 
+static const testcase_delegate_t **testcases_adjoint_1d_file_ = (const testcase_delegate_t**)testcases_adjoint_1d_file;
+
 static const trafo_delegate_t* trafos_adjoint_direct_1d_file[] = {&adjoint_direct};
 
 void X(check_adjoint_1d_direct_file)(void)
 {
   printf("check_adjoint_1d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_direct_1d_file),
-    testcases_adjoint_1d_file, initializers_direct, &check_adjoint, trafos_adjoint_direct_1d_file);
+    testcases_adjoint_1d_file_, initializers_direct, &check_adjoint, trafos_adjoint_direct_1d_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_fast_1d_file[] = {&adjoint/*, &adjoint_1d*/};
@@ -922,7 +979,7 @@ void X(check_adjoint_1d_fast_file)(void)
 {
   printf("check_adjoint_1d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_1d_file), SIZE(initializers_1d), SIZE(trafos_adjoint_fast_1d_file),
-    testcases_adjoint_1d_file, initializers_1d, &check_adjoint, trafos_adjoint_fast_1d_file);
+    testcases_adjoint_1d_file_, initializers_1d, &check_adjoint, trafos_adjoint_fast_1d_file);
 }
 
 static const testcase_delegate_online_t nfct_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
@@ -948,12 +1005,14 @@ static const testcase_delegate_online_t *testcases_1d_online[] =
 #endif
 };
 
+static const testcase_delegate_t **testcases_1d_online_ = (const testcase_delegate_t**)testcases_1d_online;
+
 static const trafo_delegate_t* trafos_1d_online[] = {&trafo/*, &trafo_1d*/};
 
 void X(check_1d_online)(void)
 {
   check_many(SIZE(testcases_1d_online), SIZE(initializers_1d), SIZE(trafos_1d_online),
-    testcases_1d_online, initializers_1d, &check_trafo, trafos_1d_online);
+    testcases_1d_online_, initializers_1d, &check_trafo, trafos_1d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
@@ -979,12 +1038,14 @@ static const testcase_delegate_online_t *testcases_adjoint_1d_online[] =
 #endif
 };
 
+static const testcase_delegate_t **testcases_adjoint_1d_online_ = (const testcase_delegate_t**)testcases_adjoint_1d_online;
+
 static const trafo_delegate_t* trafos_adjoint_1d_online[] = {&adjoint/*, &adjoint_1d*/};
 
 void X(check_adjoint_1d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_1d_online), SIZE(initializers_1d), SIZE(trafos_adjoint_1d_online),
-    testcases_adjoint_1d_online, initializers_1d, &check_adjoint, trafos_adjoint_1d_online);
+    testcases_adjoint_1d_online_, initializers_1d, &check_adjoint, trafos_adjoint_1d_online);
 }
 
 /* 2D */
@@ -1023,13 +1084,15 @@ static const testcase_delegate_file_t *testcases_2d_file[] =
   &nfct_2d_25_25_50,
 };
 
+static const testcase_delegate_t **testcases_2d_file_ = (const testcase_delegate_t**)testcases_2d_file;
+
 static const trafo_delegate_t* trafos_2d_direct_file[] = {&trafo_direct};
 
 void X(check_2d_direct_file)(void)
 {
   printf("check_2d_direct_file:\n");
   check_many(SIZE(testcases_2d_file), SIZE(initializers_direct), SIZE(trafos_2d_direct_file),
-    testcases_2d_file, initializers_direct, &check_trafo, trafos_2d_direct_file);
+    testcases_2d_file_, initializers_direct, &check_trafo, trafos_2d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_2d_fast_file[] = {&trafo/*, &trafo_2d*/};
@@ -1038,7 +1101,7 @@ void X(check_2d_fast_file)(void)
 {
   printf("check_2d_fast_file:\n");
   check_many(SIZE(testcases_2d_file), SIZE(initializers_2d), SIZE(trafos_2d_fast_file),
-    testcases_2d_file, initializers_2d, &check_trafo, trafos_2d_fast_file);
+    testcases_2d_file_, initializers_2d, &check_trafo, trafos_2d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_2d_10_10_25 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_2d_10_10_25.txt")};
@@ -1062,13 +1125,15 @@ static const testcase_delegate_file_t *testcases_adjoint_2d_file[] =
   &nfct_adjoint_2d_25_25_50,
 };
 
+static const testcase_delegate_t **testcases_adjoint_2d_file_ = (const testcase_delegate_t**)testcases_adjoint_2d_file;
+
 static const trafo_delegate_t* trafos_adjoint_2d_direct_file[] = {&adjoint_direct};
 
 void X(check_adjoint_2d_direct_file)(void)
 {
   printf("check_adjoint_2d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_2d_direct_file),
-    testcases_adjoint_2d_file, initializers_direct, &check_adjoint, trafos_adjoint_2d_direct_file);
+    testcases_adjoint_2d_file_, initializers_direct, &check_adjoint, trafos_adjoint_2d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_2d_fast_file[] = {&adjoint/*, &adjoint_2d*/};
@@ -1077,7 +1142,7 @@ void X(check_adjoint_2d_fast_file)(void)
 {
   printf("check_adjoint_2d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_2d_file), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_fast_file),
-    testcases_adjoint_2d_file, initializers_2d, &check_adjoint, trafos_adjoint_2d_fast_file);
+    testcases_adjoint_2d_file_, initializers_2d, &check_adjoint, trafos_adjoint_2d_fast_file);
 }
 
 static const testcase_delegate_online_t nfct_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
@@ -1097,12 +1162,14 @@ static const testcase_delegate_online_t *testcases_2d_online[] =
 #endif
 };
 
+static const testcase_delegate_t **testcases_2d_online_ = (const testcase_delegate_t**)testcases_2d_online;
+
 static const trafo_delegate_t* trafos_2d_online[] = {&trafo/*, &trafo_2d*/};
 
 void X(check_2d_online)(void)
 {
   check_many(SIZE(testcases_2d_online), SIZE(initializers_2d), SIZE(trafos_2d_online),
-    testcases_2d_online, initializers_2d, &check_trafo, trafos_2d_online);
+    testcases_2d_online_, initializers_2d, &check_trafo, trafos_2d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
@@ -1122,12 +1189,14 @@ static const testcase_delegate_online_t *testcases_adjoint_2d_online[] =
 #endif
 };
 
+static const testcase_delegate_t **testcases_adjoint_2d_online_ = (const testcase_delegate_t**) testcases_adjoint_2d_online;
+
 static const trafo_delegate_t* trafos_adjoint_2d_online[] = {&adjoint/*, &adjoint_2d*/};
 
 void X(check_adjoint_2d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_2d_online), SIZE(initializers_2d), SIZE(trafos_adjoint_2d_online),
-    testcases_adjoint_2d_online, initializers_2d, &check_adjoint, trafos_adjoint_2d_online);
+    testcases_adjoint_2d_online_, initializers_2d, &check_adjoint, trafos_adjoint_2d_online);
 }
 
 /* 3D */
@@ -1152,13 +1221,15 @@ static const testcase_delegate_file_t *testcases_3d_file[] =
   &nfct_3d_10_10_10_10,
 };
 
+static const testcase_delegate_t **testcases_3d_file_ = (const testcase_delegate_t**) testcases_3d_file;
+
 static const trafo_delegate_t* trafos_3d_direct_file[] = {&trafo_direct};
 
 void X(check_3d_direct_file)(void)
 {
   printf("check_3d_direct_file:\n");
   check_many(SIZE(testcases_3d_file), SIZE(initializers_direct), SIZE(trafos_3d_direct_file),
-    testcases_3d_file, initializers_direct, &check_trafo, trafos_3d_direct_file);
+    testcases_3d_file_, initializers_direct, &check_trafo, trafos_3d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_3d_fast_file[] = {&trafo/*, &trafo_3d*/};
@@ -1167,7 +1238,7 @@ void X(check_3d_fast_file)(void)
 {
   printf("check_3d_fast_file:\n");
   check_many(SIZE(testcases_3d_file), SIZE(initializers_3d), SIZE(trafos_3d_fast_file),
-    testcases_3d_file, initializers_3d, &check_trafo, trafos_3d_fast_file);
+    testcases_3d_file_, initializers_3d, &check_trafo, trafos_3d_fast_file);
 }
 
 static const testcase_delegate_file_t nfct_adjoint_3d_10_10_10_10 = {setup_file,destroy_file,ABSPATH("data/nfct_adjoint_3d_10_10_10_10.txt")};
@@ -1177,13 +1248,15 @@ static const testcase_delegate_file_t *testcases_adjoint_3d_file[] =
   &nfct_adjoint_3d_10_10_10_10,
 };
 
+static const testcase_delegate_t **testcases_adjoint_3d_file_ = (const testcase_delegate_t**) testcases_adjoint_3d_file;
+
 static const trafo_delegate_t* trafos_adjoint_3d_direct_file[] = {&adjoint_direct};
 
 void X(check_adjoint_3d_direct_file)(void)
 {
   printf("check_adjoint_3d_direct_file:\n");
   check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_direct), SIZE(trafos_adjoint_3d_direct_file),
-    testcases_adjoint_3d_file, initializers_direct, &check_adjoint, trafos_adjoint_3d_direct_file);
+    testcases_adjoint_3d_file_, initializers_direct, &check_adjoint, trafos_adjoint_3d_direct_file);
 }
 
 static const trafo_delegate_t* trafos_adjoint_3d_fast_file[] = {&adjoint/*, &adjoint_3d*/};
@@ -1192,7 +1265,7 @@ void X(check_adjoint_3d_fast_file)(void)
 {
   printf("check_adjoint_3d_fast_file:\n");
   check_many(SIZE(testcases_adjoint_3d_file), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_fast_file),
-    testcases_adjoint_3d_file, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
+    testcases_adjoint_3d_file_, initializers_3d, &check_adjoint, trafos_adjoint_3d_fast_file);
 }
 
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
@@ -1203,12 +1276,14 @@ static const testcase_delegate_online_t *testcases_3d_online[] =
   &nfct_online_3d_50_50,
 };
 
+static const testcase_delegate_t **testcases_3d_online_ = (const testcase_delegate_t**)testcases_3d_online;
+
 static const trafo_delegate_t* trafos_3d_online[] = {&trafo/*, &trafo_3d*/};
 
 void X(check_3d_online)(void)
 {
   check_many(SIZE(testcases_3d_online), SIZE(initializers_3d), SIZE(trafos_3d_online),
-    testcases_3d_online, initializers_3d, &check_trafo, trafos_3d_online);
+    testcases_3d_online_, initializers_3d, &check_trafo, trafos_3d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
@@ -1218,12 +1293,14 @@ static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
   &nfct_adjoint_online_3d_50_50,
 };
 
+static const testcase_delegate_t **testcases_adjoint_3d_online_ = (const testcase_delegate_t**)testcases_adjoint_3d_online;
+
 static const trafo_delegate_t* trafos_adjoint_3d_online[] = {&adjoint/*, &adjoint_3d*/};
 
 void X(check_adjoint_3d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_3d_online), SIZE(initializers_3d), SIZE(trafos_adjoint_3d_online),
-    testcases_adjoint_3d_online, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
+    testcases_adjoint_3d_online_, initializers_3d, &check_adjoint, trafos_adjoint_3d_online);
 }
 #endif
 
@@ -1249,12 +1326,14 @@ static const testcase_delegate_online_t *testcases_4d_online[] =
   &nfct_online_4d_28_50,
 };
 
+static const testcase_delegate_t **testcases_4d_online_ = (const testcase_delegate_t**)testcases_4d_online;
+
 static const trafo_delegate_t* trafos_4d_online[] = {&trafo};
 
 void X(check_4d_online)(void)
 {
   check_many(SIZE(testcases_4d_online), SIZE(initializers_4d), SIZE(trafos_4d_online),
-    testcases_4d_online, initializers_4d, &check_trafo, trafos_4d_online);
+    testcases_4d_online_, initializers_4d, &check_trafo, trafos_4d_online);
 }
 
 static const testcase_delegate_online_t nfct_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
@@ -1264,11 +1343,13 @@ static const testcase_delegate_online_t *testcases_adjoint_4d_online[] =
   &nfct_adjoint_online_4d_28_50,
 };
 
+static const testcase_delegate_t **testcases_adjoint_4d_online_ = (const testcase_delegate_t**)testcases_adjoint_4d_online;
+
 static const trafo_delegate_t* trafos_adjoint_4d_online[] = {&adjoint};
 
 void X(check_adjoint_4d_online)(void)
 {
   check_many(SIZE(testcases_adjoint_4d_online), SIZE(initializers_4d), SIZE(trafos_adjoint_4d_online),
-    testcases_adjoint_4d_online, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
+    testcases_adjoint_4d_online_, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }
 #endif
