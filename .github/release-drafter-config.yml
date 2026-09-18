@@ -1,5 +1,5 @@
-name-template: '$NEXT_PATCH_VERSION'
-tag-template: '$NEXT_PATCH_VERSION'
+# The workflow passes an explicit name and tag per draft, so no template here.
+filter-by-commitish: true
 categories:
   - title: 'Added'
     labels:

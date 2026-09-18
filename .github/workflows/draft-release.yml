@@ -4,25 +4,75 @@ on:
   push:
     branches:
       - develop
+      - release/**
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-drafter
+  group: release-drafter-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  draft-release-publish:
-    name: Draft a new release
+  # Changes merged into "develop" accumulate in a placeholder draft named "next",
+  # which has no version number yet.
+  draft-next:
+    name: Draft the next release
+    if: github.ref == 'refs/heads/develop'
     permissions:
       contents: write  # Required to create GitHub release.
       pull-requests: read  # Required to read PR contents.
     runs-on: ubuntu-latest
     steps:
-      # Drafts your next Release notes as Pull Requests are merged into "develop"
-      - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v6
+      - id: base
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Changes already on a cut release branch belong to that release, so
+          # "next" starts where the release branch left develop.
+          branch=$(gh api "repos/$GITHUB_REPOSITORY/branches" --paginate \
+            --jq '.[].name | select(startswith("release/"))' | sort -V | tail -1)
+          if [ -z "$branch" ]; then
+            tag=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+            echo "from=refs/tags/$tag" >> "$GITHUB_OUTPUT"
+          else
+            echo "from=refs/heads/$branch" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: release-drafter/release-drafter@fbfd371f645664a1d67e6bbf56a4a47d38eb7e6e # main
         with:
           config-name: release-drafter-config.yml
+          name: next
+          tag: next
+          from: ${{ steps.base.outputs.from }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # On a release branch, take the version from the branch name update only 
+  # by pushes to that branch.
+  draft-release:
+    name: Draft the release
+    if: startsWith(github.ref, 'refs/heads/release/')
+    permissions:
+      contents: write  # Required to create GitHub release.
+      pull-requests: read  # Required to read PR contents.
+    runs-on: ubuntu-latest
+    steps:
+      - id: base
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # The release notes cover the full cycle, so they start at the last
+          # stable release, not at a release candidate of this cycle.
+          tag=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+          echo "from=refs/tags/$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${GITHUB_REF_NAME#release/}" >> "$GITHUB_OUTPUT"
+
+      - uses: release-drafter/release-drafter@fbfd371f645664a1d67e6bbf56a4a47d38eb7e6e # main
+        with:
+          config-name: release-drafter-config.yml
+          name: ${{ steps.base.outputs.version }}
+          tag: ${{ steps.base.outputs.version }}
+          from: ${{ steps.base.outputs.from }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
