@@ -7,9 +7,8 @@
 # The script is known to work on macOS 11 Big Sur with Homebrew.
 #
 # At least the following packages are required:
-# octave gnu-sed cunit
+# fftw automake autoconf gcc@12 gnu-sed cunit gnu-sed julia octave
 #
-# 
 # Example call:
 # ./macos-build-mex.sh --matlab=/path/to/matlab
 # 
@@ -17,37 +16,115 @@
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
 
-GCCARCH=haswell
-FFTWDIR=/usr/local
-GCC="gcc-11"
+# Determine Homebrew prefix
+HOMEBREW_PREFIX=$(brew --prefix)
+
+# Pin the macOS deployment target to the running OS version.
+# Homebrew GCC derives the deployment target from the Darwin kernel version.
+# Since the macOS 15 -> 26 renumbering (Darwin 25), GCC 12 mis-derives this as
+# "16.0", stamping objects with minos 16.0 while the SDK and the prebuilt
+# Homebrew FFTW/Octave archives are stamped 26.0. The linker then rejects the
+# mismatch ("object file was built for newer macOS version than being linked").
+# Forcing the real major version keeps objects and libraries in sync, and is a
+# no-op on macOS 15 and earlier where GCC already derives it correctly.
+export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1).0"
+
+# Architecture-dependent settings, auto-detected from the host CPU.
+# The x86_64 path keeps the original Haswell baseline; the arm64 path mirrors it
+# with apple-m1, the floor for all Apple Silicon Macs. Note that -march/-malign-double
+# are x86-only: on arm64 GCC they are hard errors, so the arm64 branch uses -mcpu and
+# drops -malign-double. MEXARCH/MATLABBIN follow MathWorks' per-arch naming.
+HOSTARCH=$(uname -m)
+if [ "$HOSTARCH" = "arm64" ]; then
+  GCCARCH=apple-m1
+  ARCHFLAGS="-mcpu=$GCCARCH"
+  MEXARCH=mexmaca64
+  MATLABBIN=maca64
+  BINARIES_ARCH_NOTE='
+Please note that the binaries were compiled with gcc flag -mcpu=apple-m1 and
+therefore require an Apple Silicon (M1 or newer) Mac.
+'
+else
+  GCCARCH=haswell
+  ARCHFLAGS="-march=$GCCARCH -malign-double"
+  MEXARCH=mexmaci64
+  MATLABBIN=maci64
+  BINARIES_ARCH_NOTE='
+Please note that since the binaries were compiled with gcc flag -march=haswell,
+they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
+AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
+'
+fi
+
+FFTWDIR="$HOMEBREW_PREFIX"
+GCC="gcc-12"
 
 # default values (to be overwritten if respective parameters are set)
-OCTAVEDIR=/usr/local
+OCTAVEDIR="$HOMEBREW_PREFIX"
 MATLABDIR=/Applications/MATLAB_R2021b.app
-# read the options
-TEMP=`getopt -o o:m:f:v: --long octave:,matlab:,matlab-version:,fftw: -n 'macos-build-mex.sh' -- "$@"`
-eval set -- "$TEMP"
-
-# extract options and their arguments into variables.
-while true ; do
+# read the options (pure POSIX)
+while [ $# -gt 0 ]; do
+    echo "opt: $1"
     case "$1" in
         -o|--octave)
-            case "$2" in
-                "")  shift 2 ;;
-                *) OCTAVEDIR=$2; shift 2 ;;
-            esac ;;
+            if [ -n "$2" ]; then
+                OCTAVEDIR="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        -o=*|--octave=*)
+            OCTAVEDIR="${1#*=}"
+            shift
+            ;;
         -m|--matlab)
-            case "$2" in
-                "")  shift 2 ;;
-                *) MATLABDIR=$2; shift 2 ;;
-            esac ;;
+            if [ -n "$2" ]; then
+                MATLABDIR="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        -m=*|--matlab=*)
+            MATLABDIR="${1#*=}"
+            shift
+            ;;
         -v|--matlab-version)
-            case "$2" in
-                "")  shift 2 ;;
-                *) MATLABVERSION=$2; shift 2 ;;
-            esac ;;
-        --) shift ; break ;;
-        *) echo "Internal error!" ; exit 1 ;;
+            if [ -n "$2" ]; then
+                MATLABVERSION="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        -v=*|--matlab-version=*)
+            MATLABVERSION="${1#*=}"
+            shift
+            ;;
+        -f|--fftw)
+            if [ -n "$2" ]; then
+                FFTWDIR="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        -f=*|--fftw=*)
+            FFTWDIR="${1#*=}"
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "Internal error!"
+            exit 1
+            ;;
+        *)
+            break
+            ;;
     esac
 done
 
@@ -61,7 +138,7 @@ OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n'
 
 # Build NFFT
 READMECONTENT="
-$(gsed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README) 
+$(gsed -e '/^\[!/d' -e '/Directory structure/Q' $NFFTDIR/README.md) 
 "
 FFTWREADME='
 FFTW
@@ -69,11 +146,7 @@ FFTW
 The compiled NFFT files contain parts of the FFTW library (http://www.fftw.org)
 Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology'
-BINARIES_ARCH_README='
-Please note that since the binaries were compiled with gcc flag -march=haswell,
-they may not work on older CPUs (below Intel i3/i5/i7-4xxx or
-AMD Excavator/4th gen Bulldozer) as well as on some Intel Atom/Pentium CPUs.
-'
+BINARIES_ARCH_README="$BINARIES_ARCH_NOTE"
 
 cd "$NFFTDIR"
 make distclean || true
@@ -111,12 +184,12 @@ cd julia
 for LIB in nf*t
 do
   cd "$LIB"
-  $GCC -dynamiclib -o lib"$LIB"julia.dylib .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+  $GCC -dynamiclib -o lib"$LIB"julia.dylib .libs/lib"$LIB"julia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -lm -O3 $ARCHFLAGS $OMPLIBS
   cd ..
 done
 
 cd fastsum
-$GCC -dynamiclib -o libfastsumjulia.dylib .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 -malign-double -march=$GCCARCH $OMPLIBS
+$GCC -dynamiclib -o libfastsumjulia.dylib .libs/libfastsumjulia.o -Wl,-force_load,../../.libs/libnfft3_julia.a $FFTW_LINK_COMMAND -Wl,-force_load,../../applications/fastsum/.libs/libfastsum$THREADSSUFFIX.a -Wl,-force_load,../../applications/fastsum/.libs/libkernels.a -lm -O3 $ARCHFLAGS $OMPLIBS
 cd ..
 
 cd "$NFFTBUILDDIR"
@@ -131,7 +204,7 @@ for DIR in $JULIADIR/nf*t $JULIADIR/fastsum; do cd $DIR; for NAME in simple_test
 
 echo 'This archive contains the NFFT' $NFFTVERSION 'Julia interface.
 The NFFT library was compiled with double precision support for '$ARCH' macOS
-using GCC '$GCCVERSION' with -march='$GCCARCH' and FFTW '$FFTWVERSION'.
+using GCC '$GCCVERSION' with flags '$ARCHFLAGS' and FFTW '$FFTWVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$JULIADIR"/readme-julia.txt
 zip -9 -r ../"$JULIADIR".zip "$JULIADIR"
 # End of Julia interface
@@ -141,16 +214,29 @@ zip -9 -r ../"$JULIADIR".zip "$JULIADIR"
 for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
 do
   cd matlab/"$LIB"
-  $GCC -o .libs/lib"$LIB".mex -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 -malign-double -march=$GCCARCH $OMPLIBS
+  # The MEX entry points (mexFunction, mxGetPr, ...) live in Octave's liboctmex and
+  # are resolved at load time from the host Octave process. The modern macOS linker no
+  # longer tolerates undefined symbols in a -bundle by default, so make it explicit.
+  $GCC -o .libs/lib"$LIB".mex -bundle -Wl,-undefined,dynamic_lookup  .libs/lib"$LIB"_la-"$LIB"mex.o -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a -L"$OCTAVEDIR"/lib/octave/"$OCTAVEVERSION" $FFTW_LINK_COMMAND -lm -loctinterp -loctave -O3 $ARCHFLAGS $OMPLIBS
   cd ../..
 done
 
-DIR=nfft-$NFFTVERSION-mexmaci64$OMPSUFFIX
+DIR=nfft-$NFFTVERSION-$MEXARCH$OMPSUFFIX
 mkdir $DIR
 rsync -rLt --exclude='Makefile*' --exclude='doxygen*' --exclude='*.c.in' --exclude='*.c' --exclude='*.h' "$NFFTDIR/matlab/" "$DIR"
 rsync -rLt --exclude='Makefile*' --exclude='.deps' --exclude='.libs' --exclude='*.la' --exclude='*.lo' --exclude='*.o' --exclude='*.c' "matlab/" "$DIR"
 
 # Compile with Matlab
+# Guard: the MEX must link against MATLAB libraries of the build architecture.
+# MathWorks ships those under bin/<arch> (maca64 for Apple Silicon, maci64 for
+# Intel). If the matching libdir is missing, skip the MATLAB build (and its 
+# tests/readme) instead of failing, leaving the Octave interface intact.
+if [ -n "$MATLABDIR" ] && [ ! -d "$MATLABDIR/bin/$MATLABBIN" ]; then
+  echo "WARNING: $MATLABDIR has no bin/$MATLABBIN ($HOSTARCH) libraries;" \
+       "skipping the MATLAB interface. Use an Apple Silicon MATLAB (R2023b+)" \
+       "to build it, or pass --matlab to point at one." >&2
+  MATLABDIR=""
+fi
 if [ -n "$MATLABDIR" ]; then
   if [ -z "$MATLABVERSION" ]; then
     MATLABVERSION=`"$MATLABDIR"/bin/matlab -wait -nodesktop -nosplash -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | gsed 's/.*(//' | gsed 's/)//'`
@@ -164,7 +250,7 @@ if [ -n "$MATLABDIR" ]; then
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt
   do
     cd matlab/"$LIB"
-    $GCC -o .libs/lib"$LIB".mexmaci64 -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o   -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a  -L"$MATLABDIR"/bin/maci64 -lm -lmwfftw3 -lmx -lmex -lmat -O3 -malign-double -march=$GCCARCH $OMPLIBS
+    $GCC -o .libs/lib"$LIB".$MEXARCH -bundle  .libs/lib"$LIB"_la-"$LIB"mex.o   -Wl,-force_load,../../.libs/libnfft3_matlab.a -Wl,-force_load,../../matlab/.libs/libmatlab.a  -L"$MATLABDIR"/bin/$MATLABBIN -lm -lmwfftw3 -lmx -lmex -lmat -O3 $ARCHFLAGS $OMPLIBS
     cd ../..
   done
 fi
@@ -194,12 +280,12 @@ cd "$NFFTBUILDDIR"
 cp "$NFFTDIR"/COPYING "$DIR"/COPYING
 if [ -n "$MATLABDIR" ]; then
 echo 'This archive contains the Matlab and Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' with flags '$ARCHFLAGS'
 '$MATLABSTRING'and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 else
 echo 'This archive contains the Octave interface of NFFT '$NFFTVERSION'
-compiled for '$ARCH' macOS using GCC '$GCCVERSION' with -march='$GCCARCH'
+compiled for '$ARCH' macOS using GCC '$GCCVERSION' with flags '$ARCHFLAGS'
 and Octave '$OCTAVEVERSION'.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DIR"/readme-matlab.txt
 fi
