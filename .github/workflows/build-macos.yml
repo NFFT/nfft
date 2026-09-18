@@ -18,17 +18,16 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}_${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+      BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
       CPPFLAGS: "-I/opt/homebrew/include"
       LDFLAGS: "-L/opt/homebrew/lib"
-    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}-${{ matrix.openmp == 1 && 'openmp' || 'singlethread' }}"
+    name: "${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.window }}-${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
     strategy:
       matrix:
         os: ["macos-26"]
         compiler: ["gcc"]
         window: ["kaiserbessel"]
         precision_opt: ["", "--enable-float", "--enable-long-double"]
-        openmp: [0]
         build_octave: [0] # TODO: Re-activate Octave build and tests.
         build_julia: [1]
         include:
@@ -37,7 +36,6 @@ jobs:
             compiler: "clang"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 0
             build_octave: 0
             build_julia: 1
           # Homebrew's Clang
@@ -45,7 +43,6 @@ jobs:
             compiler: "clang-homebrew"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 1
             build_octave: 0
             build_julia: 1
           # GCC 13
@@ -53,7 +50,6 @@ jobs:
             compiler: "gcc-13"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 0
             build_octave: 0
             build_julia: 1
           # GCC 14
@@ -61,7 +57,6 @@ jobs:
             compiler: "gcc-14"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 0
             build_octave: 0
             build_julia: 1
           # GCC 15
@@ -69,7 +64,6 @@ jobs:
             compiler: "gcc-15"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 0
             build_octave: 0
             build_julia: 1
           # GCC 16
@@ -77,39 +71,6 @@ jobs:
             compiler: "gcc-16"
             window: "kaiserbessel"
             precision_opt: ""
-            openmp: 0
-            build_octave: 0
-            build_julia: 1
-          # GCC 13, OpenMP
-          - os: "macos-26"
-            compiler: "gcc-13"
-            window: "kaiserbessel"
-            precision_opt: ""
-            openmp: 1
-            build_octave: 0
-            build_julia: 1
-          # GCC 14, OpenMP
-          - os: "macos-26"
-            compiler: "gcc-14"
-            window: "kaiserbessel"
-            precision_opt: ""
-            openmp: 1
-            build_octave: 0
-            build_julia: 1
-          # GCC 15, OpenMP
-          - os: "macos-26"
-            compiler: "gcc-15"
-            window: "kaiserbessel"
-            precision_opt: ""
-            openmp: 1
-            build_octave: 0
-            build_julia: 1
-          # GCC 16, OpenMP
-          - os: "macos-26"
-            compiler: "gcc-16"
-            window: "kaiserbessel"
-            precision_opt: ""
-            openmp: 1
             build_octave: 0
             build_julia: 1
     steps:    
@@ -126,6 +87,7 @@ jobs:
           libtool
           cmake
           fftw
+          libomp
           cunit
           octave
           llvm
@@ -148,12 +110,13 @@ jobs:
       env:
         COMPILER: ${{ matrix.compiler }}
       run: |
-        if [ "${COMPILER}" = "clang" ]; then
+        if [ "${COMPILER}" = "clang" ] || [ "${COMPILER}" = "gcc" ]; then
+          # Apple clang (also behind gcc) has no OpenMP runtime; use Homebrew's libomp, as FFTW does.
           echo "CC=${COMPILER}" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
-        elif [ "${COMPILER}" = "gcc" ]; then
-          echo "CC=${COMPILER}" >> $GITHUB_ENV
-          echo "CXX=g++" >> $GITHUB_ENV
+          [ "${COMPILER}" = "clang" ] && echo "CXX=clang++" >> $GITHUB_ENV || echo "CXX=g++" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/opt/homebrew/opt/libomp/include $CPPFLAGS" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/opt/homebrew/opt/libomp/lib $LDFLAGS" >> $GITHUB_ENV
+          echo "OPENMP_CFLAGS=-Xpreprocessor -fopenmp -lomp" >> $GITHUB_ENV
         elif [ "${COMPILER}" = "clang-homebrew" ]; then
           echo "CC=/opt/homebrew/opt/llvm/bin/clang" >> $GITHUB_ENV
           echo "CXX=/opt/homebrew/opt/llvm/bin/clang++" >> $GITHUB_ENV
@@ -209,17 +172,14 @@ jobs:
       shell: bash
       env:
         WINDOW: ${{ matrix.window }}
-        OPENMP: ${{ matrix.openmp }}
         PRECISION_OPT: ${{ matrix.precision_opt }}
         BUILD_OCTAVE: ${{ matrix.build_octave }}
         BUILD_JULIA: ${{ matrix.build_julia }}
       run: |
         AGNOSTIC_FLAGS=""
         [ "${WINDOW}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
-        [ "${OPENMP}" = "0" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,openmp:0"
         [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-exhaustive-unit-tests \
-        $(if [ "${OPENMP}" = "1" ]; then echo "--enable-openmp"; else echo ""; fi) \
+        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-openmp --enable-exhaustive-unit-tests \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
       # --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG}/ --with-codspeed=$(pwd)/codspeed-cpp \
