@@ -516,3 +516,11 @@ jobs:
           set -o pipefail
           ctest --test-dir build-cmake -L octave --output-on-failure 2>&1 \
             | tee build-cmake/ctest-octave.log
+
+  linux-ok:  # Single required status check: all jobs above must succeed.
+    if: always()
+    needs: [ build, distcheck, cmake-octave ]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1

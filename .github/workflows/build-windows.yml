@@ -70,3 +70,11 @@ jobs:
           cmake --build build-consumer -j
           # libnfft3 from the staging prefix; libfftw3 is already on the MINGW64 PATH.
           PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3.exe
+
+  windows-ok:  # Single required status check: all jobs above must succeed.
+    if: always()
+    needs: [ cmake-windows ]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+        run: exit 1
