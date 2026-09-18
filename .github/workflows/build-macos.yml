@@ -191,26 +191,19 @@ jobs:
       id: test
       run: make check
 
-    - name: Run tests again to reproduce failure
-      if: steps.test.outcome == 'failure'
-      shell: bash
-      env:
-        OPENMP: ${{ matrix.openmp }}
-      run: |
-        tests/checkall > checkall.log
-        if [ "${OPENMP}" = "1" ]; then tests/checkall_threads > checkall_threads.log; fi
-
     - name: Upload test failure logs
-      if: steps.test.outcome == 'failure'
+      if: failure() && steps.test.outcome == 'failure'
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
       with:
-        name: test-failure-logs-${BUILD_CONFIG}
+        name: test-failure-logs-${{ env.BUILD_CONFIG }}
         path: |
-          checkall.log
-          checkall_threads.log
+          tests/*.log
+          tests/*.trs
+          tests/CUnitAutomated*-Results.xml
         if-no-files-found: ignore
 
     - name: Convert CUnit test report to JUnit
+      if: ${{ !cancelled() && hashFiles('tests/CUnitAutomated-Results.xml') != '' }}
       run: |
         uv run --with lxml python -c "from lxml import etree; doc = etree.parse('tests/CUnitAutomated-Results.xml'); xslt = etree.XSLT(etree.parse('tests/cunit2junit.xsl')); result = xslt(doc); open('tests/junit.xml', 'wb').write(etree.tostring(result, pretty_print=True))" 
 
