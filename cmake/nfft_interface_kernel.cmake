@@ -14,8 +14,8 @@ function(nfft_define_interface_kernels)
   # include path, but on macOS (Homebrew /opt/homebrew/include) the kernel sources fail 
   # to compile without this, since CMake does not consume CPPFLAGS.
   target_include_directories(nfft3_iface
-    PUBLIC ${PROJECT_SOURCE_DIR}/include
-    PRIVATE ${NFFT_GENERATED_INCLUDE_DIR} ${FFTW3_INCLUDE_DIR})
+    PRIVATE ${NFFT_GENERATED_INCLUDE_DIR} ${FFTW3_INCLUDE_DIR}
+    PUBLIC ${PROJECT_SOURCE_DIR}/include)
   target_compile_options(nfft3_iface PRIVATE ${NFFT_MAXOPT_C_FLAGS})
   if(UNIX)
     target_link_libraries(nfft3_iface PUBLIC m)
@@ -25,8 +25,8 @@ function(nfft_define_interface_kernels)
     add_library(nfft3_iface_omp STATIC ${NFFT_KERNEL_SOURCES_ABS})
     set_target_properties(nfft3_iface_omp PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_include_directories(nfft3_iface_omp
-      PUBLIC ${PROJECT_SOURCE_DIR}/include
-      PRIVATE ${NFFT_GENERATED_INCLUDE_DIR} ${FFTW3_INCLUDE_DIR})
+      PRIVATE ${NFFT_GENERATED_INCLUDE_DIR} ${FFTW3_INCLUDE_DIR}
+      PUBLIC ${PROJECT_SOURCE_DIR}/include)
     target_compile_options(nfft3_iface_omp PRIVATE ${NFFT_MAXOPT_C_FLAGS})
     target_link_libraries(nfft3_iface_omp
       PUBLIC OpenMP::OpenMP_C ${NFFT_OPENMP_ATOMIC_LIBS})
