@@ -59,35 +59,14 @@ typedef ptrdiff_t NFFT_INT;
   void (*mv_trafo)(void*); /**< Transform. */\
   void (*mv_adjoint)(void*); /**< Adjoint transform. */
 
-/* nfft */
+/* NFFT */
 
 /* Name mangling macros. */
 #define NFFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfft_, name)
 #define NFFT_MANGLE_FLOAT(name) NFFT_CONCAT(nfftf_, name)
 #define NFFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfftl_, name)
 
-#define NFFT_DEFINE_MALLOC_API(X) \
-/* our own memory allocation and exit functions */ \
-NFFT_EXTERN void *X(malloc)(size_t n); \
-NFFT_EXTERN void X(free)(void *p); \
-NFFT_EXTERN void X(die)(const char *s); \
-\
-/* You can replace the hooks with your own functions, if necessary. We */ \
-/* need this for the Matlab interface. */ \
-typedef void *(*X(malloc_type_function)) (size_t n); \
-typedef void  (*X(free_type_function)) (void *p); \
-typedef void  (*X(die_type_function)) (const char *errString); \
-NFFT_EXTERN X(malloc_type_function) X(malloc_hook); \
-NFFT_EXTERN X(free_type_function) X(free_hook); \
-NFFT_EXTERN X(die_type_function) X(die_hook);
-
-/* Nfft module API. */
-NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_FLOAT)
-NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_DOUBLE)
-NFFT_DEFINE_MALLOC_API(NFFT_MANGLE_LONG_DOUBLE)
-
-/* Macro to define prototypes for all NFFT API functions.
- * We expand this macro for each supported precision.
+/* Macro to define prototypes for the NFFT API functions in a given floating-point type.
  *   X: NFFT name-mangling macro
  *   Y: FFTW name-mangling macro
  *   R: Real float type
@@ -186,7 +165,7 @@ NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
-/* Nfft module API. */
+/* NFFT module API. */
 NFFT_DEFINE_API(NFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_API(NFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -207,19 +186,18 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
-/* nfct */
+/* NFCT */
 
 /* name mangling macros */
 #define NFCT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfct_, name)
 #define NFCT_MANGLE_FLOAT(name) NFFT_CONCAT(nfctf_, name)
 #define NFCT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfctl_, name)
 
-/* huge second-order macro that defines prototypes for all nfct API functions.
- * We expand this macro for each supported precision.
- *   X: nfct name-mangling macro
- *   Y: fftw name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NFCT API functions in a given floating-point type.
+ *   X: NFCT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NFCT_DEFINE_API(X,Y,R,C) \
 /** data structure for an NFCT (nonequispaced fast cosine transform) plan with R precision */ \
@@ -282,24 +260,23 @@ NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 
-/* nfct api */
+/* NFCT API */
 NFCT_DEFINE_API(NFCT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFCT_DEFINE_API(NFCT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFCT_DEFINE_API(NFCT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
-/* nfst */
+/* NFST */
 
 /* name mangling macros */
 #define NFST_MANGLE_DOUBLE(name) NFFT_CONCAT(nfst_, name)
 #define NFST_MANGLE_FLOAT(name) NFFT_CONCAT(nfstf_, name)
 #define NFST_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfstl_, name)
 
-/* huge second-order macro that defines prototypes for all nfct API functions.
- * We expand this macro for each supported precision.
- *   X: nfst name-mangling macro
- *   Y: fftw name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NFST API functions in a given floating-point type.
+ *   X: NSFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NFST_DEFINE_API(X,Y,R,C) \
 /** data structure for an NFST (nonequispaced fast sine transform) plan with R precision */ \
@@ -364,25 +341,24 @@ NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan); \
 
-/* nfst api */
+/* NSFT API */
 NFST_DEFINE_API(NFST_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 NFST_DEFINE_API(NFST_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 NFST_DEFINE_API(NFST_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
-/* nnfft */
+/* NNFFT */
 
 /* name mangling macros */
 #define NNFFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nnfft_, name)
 #define NNFFT_MANGLE_FLOAT(name) NFFT_CONCAT(nnfftf_, name)
 #define NNFFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nnfftl_, name)
 
-/* huge second-order macro that defines prototypes for all nfst API functions.
- * We expand this macro for each supported precision.
- *   X: nnfft name-mangling macro
- *   Y: fftw name-mangling macro
- *   Z: nfft name mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NNFFT API functions in a given floating-point type.
+ *   X: NNFFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   Z: NFFT name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NNFFT_DEFINE_API(X,Y,Z,R,C) \
 /** data structure for an NNFFT (nonequispaced in time and frequency fast Fourier transform) plan with R precision */ \
@@ -430,7 +406,7 @@ NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan);
 
-/* nnfft api */
+/* NNFFT API */
 NNFFT_DEFINE_API(NNFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NNFFT_DEFINE_API(NNFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NNFFT_DEFINE_API(NNFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -438,19 +414,17 @@ NNFFT_DEFINE_API(NNFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LO
 /* additional init flags */
 #define MALLOC_V         (1U<< 11)
 
-/* nsfft */
+/* NSFFT */
 
 #define NSFFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nsfft_, name)
 #define NSFFT_MANGLE_FLOAT(name) NFFT_CONCAT(nsfftf_, name)
 #define NSFFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nsfftl_, name)
 
-/* huge second-order macro that defines prototypes for all nnfft API functions.
- * We expand this macro for each supported precision.
- *   X: nnfft name-mangling macro
- *   Y: fftw name-mangling macro
- *   Z: nfft name mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NSFFT API functions in a given floating-point type.
+ *   X: NSFFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NSFFT_DEFINE_API(X,Y,Z,R,C) \
 /** data structure for an NSFFT (nonequispaced sparse fast Fourier transform) plan with R precision */ \
@@ -485,7 +459,7 @@ NFFT_EXTERN void X(init_random_nodes_coeffs)(X(plan) *ths); \
 NFFT_EXTERN void X(init)(X(plan) *ths, int d, int J, int M, int m, unsigned flags); \
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
-/* nsfft api */
+/* NSFFT API */
 NSFFT_DEFINE_API(NSFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NSFFT_DEFINE_API(NSFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NSFFT_DEFINE_API(NSFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -493,19 +467,18 @@ NSFFT_DEFINE_API(NSFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LO
 /* additional init flags */
 #define NSDFT            (1U<< 12)
 
-/* mri */
+/* MRI */
 
 /* name mangling macros */
 #define MRI_MANGLE_DOUBLE(name) NFFT_CONCAT(mri_, name)
 #define MRI_MANGLE_FLOAT(name) NFFT_CONCAT(mrif_, name)
 #define MRI_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(mril_, name)
 
-/* huge second-order macro that defines prototypes for all mri API functions.
- * We expand this macro for each supported precision.
- *   X: mri name-mangling macro
- *   Z: nfft name mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the MRI API functions in a given floating-point type.
+ *   X: MRI name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define MRI_DEFINE_API(X,Z,R,C) \
 typedef struct\
@@ -539,24 +512,23 @@ void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
 void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
 
-  /* mri api */
+/* MRI API */
 MRI_DEFINE_API(MRI_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 MRI_DEFINE_API(MRI_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 MRI_DEFINE_API(MRI_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
-/* nfsft */
+/* NFSFT */
 
 /* name mangling macros */
 #define NFSFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfsft_, name)
 #define NFSFT_MANGLE_FLOAT(name) NFFT_CONCAT(nfsftf_, name)
 #define NFSFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfsftl_, name)
 
-/* huge second-order macro that defines prototypes for all nfsft API functions.
- * We expand this macro for each supported precision.
- *   X: nfsft name-mangling macro
- *   Z: nfft name mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NFSFT API functions in a given floating-point type.
+ *   X: NFSFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NFSFT_DEFINE_API(X,Z,R,C) \
 /** data structure for an NFSFT (nonequispaced fast spherical Fourier transform) plan with R precision */ \
@@ -592,7 +564,7 @@ NFFT_EXTERN void X(adjoint)(X(plan)* plan); \
 NFFT_EXTERN void X(finalize)(X(plan) *plan); \
 NFFT_EXTERN void X(precompute_x)(X(plan) *plan);
 
-/* nfsft api */
+/* NFSFT API */
 NFSFT_DEFINE_API(NFSFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFSFT_DEFINE_API(NFSFT_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -621,18 +593,18 @@ NFSFT_DEFINE_API(NFSFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,ff
 #define NFSFT_INDEX(k,n,plan) ((2*(plan)->N+2)*((plan)->N-n+1)+(plan)->N+k+1)
 #define NFSFT_F_HAT_SIZE(N) ((2*N+2)*(2*N+2))
 
-/* fpt */
+/* FPT */
 
 /* name mangling macros */
 #define FPT_MANGLE_DOUBLE(name) NFFT_CONCAT(fpt_, name)
 #define FPT_MANGLE_FLOAT(name) NFFT_CONCAT(fptf_, name)
 #define FPT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(fptl_, name)
 
-/* huge second-order macro that defines prototypes for all fpt API functions.
- * We expand this macro for each supported precision.
- *   X: fpt name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the FPT API functions in a given floating-point type.
+ *   X: FPT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define FPT_DEFINE_API(X,Y,R,C) \
 typedef struct X(set_s_) *X(set); /**< A set of precomputed data for a set of
@@ -651,7 +623,7 @@ NFFT_EXTERN void X(transposed)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
 NFFT_EXTERN void X(finalize)(X(set) set);
 
-/* fpt api */
+/* FPT API */
 FPT_DEFINE_API(FPT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
 FPT_DEFINE_API(FPT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
 FPT_DEFINE_API(FPT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -667,20 +639,18 @@ FPT_DEFINE_API(FPT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_
 #define FPT_FUNCTION_VALUES     (1U << 5)
 #define FPT_AL_SYMMETRY         (1U << 6)
 
-/* nfsoft*/
+/* NFSOFT*/
 
 /* name mangling macros */
 #define NFSOFT_MANGLE_DOUBLE(name) NFFT_CONCAT(nfsoft_, name)
 #define NFSOFT_MANGLE_FLOAT(name) NFFT_CONCAT(nfsoftf_, name)
 #define NFSOFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(nfsoftl_, name)
 
-/* huge second-order macro that defines prototypes for all nfsoft API functions.
- * We expand this macro for each supported precision.
- *   X: nfsoft name-mangling macro
- *   Y: nfft name-mangling macro
- *   Z: fpt name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the NFSOFT API functions in a given floating-point type.
+ *   X: NFSOFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define NFSOFT_DEFINE_API(X,Y,Z,R,C) \
 typedef struct X(plan_)\
@@ -708,10 +678,9 @@ NFFT_EXTERN void X(init_guru)(X(plan) *plan, int N, int M,unsigned int nfsoft_fl
 NFFT_EXTERN void X(init_guru_advanced)(X(plan) *plan, int N, int M,unsigned int nfsoft_flags,unsigned int nfft_flags,int nfft_cutoff,int fpt_kappa, int nn_oversampled); \
 NFFT_EXTERN void X(trafo)(X(plan) *plan_nfsoft); \
 NFFT_EXTERN void X(adjoint)(X(plan) *plan_nfsoft); \
-NFFT_EXTERN void X(finalize)(X(plan) *plan); \
-NFFT_EXTERN int X(posN)(int n,int m, int B);
+NFFT_EXTERN void X(finalize)(X(plan) *plan);
 
-/* nfsoft api */
+/* NFSOFT API */
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,FPT_MANGLE_FLOAT,float,fftwf_complex)
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,FPT_MANGLE_DOUBLE,double,fftw_complex)
 NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -741,19 +710,18 @@ NFSOFT_DEFINE_API(NFSOFT_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,FPT_MANGLE_L
 #define NFSOFT_INDEX(m,n,l,B) (((l)+((B)+1))+(2*(B)+2)*(((n)+((B)+1))+(2*(B)+2)*((m)+((B)+1))))
 #define NFSOFT_F_HAT_SIZE(B) (((B)+1)*(4*((B)+1)*((B)+1)-1)/3)
 
-/* solver */
+/* Solver */
 
 /* name mangling macros */
 #define SOLVER_MANGLE_DOUBLE(name) NFFT_CONCAT(solver_, name)
 #define SOLVER_MANGLE_FLOAT(name) NFFT_CONCAT(solverf_, name)
 #define SOLVER_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(solverl_, name)
 
-/* huge second-order macro that defines prototypes for all nfsoft API functions.
- * We expand this macro for each supported precision.
- *   X: nfsoft name-mangling macro
- *   Y: nfft name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for the Solver API functions in a given floating-point type.
+ *   X: Solver name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
  */
 #define SOLVER_DEFINE_API(X,Y,R,C)\
 /** data structure for an inverse NFFT plan with R precision */ \
@@ -814,7 +782,7 @@ NFFT_EXTERN void X(before_loop_double)(X(plan_double)* ths);\
 NFFT_EXTERN void X(loop_one_step_double)(X(plan_double) *ths);\
 NFFT_EXTERN void X(finalize_double)(X(plan_double) *ths);
 
-/* solver api */
+/* Solver API */
 SOLVER_DEFINE_API(SOLVER_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
 SOLVER_DEFINE_API(SOLVER_MANGLE_DOUBLE,NFFT_MANGLE_DOUBLE,double,fftw_complex)
 SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
@@ -828,70 +796,43 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 #define PRECOMPUTE_WEIGHT     (1U<< 5)
 #define PRECOMPUTE_DAMP       (1U<< 6)
 
-/* util */
+/* common */
 
-/* huge second-order macro that defines prototypes for all utility API functions.
- * We expand this macro for each supported precision.
- *   Y: nfft name-mangling macro
- *   R: real data type
- *   C: complex data type
+/* Macro to define prototypes for common API functions. Independent of floating-point type, but mangled nevertheless.
+ *   X: Common name-mangling macro
  */
-#define NFFT_DEFINE_UTIL_API(Y,R,C) \
-/* rand.c */ \
-R Y(drand48)(void); \
-void Y(srand48)(long int seed); \
-\
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
- */ \
-void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
-\
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
- */ \
-void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
-\
-void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
-\
-/* print.c */ \
-/** Print real vector to standard output. */ \
-void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
-\
-/** Print complex vector to standard output. */ \
-void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
+#define NFFT_DEFINE_COMMON_API(X) \
 /* thread.c */ \
-NFFT_INT Y(get_num_threads)(void); \
-void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_INT Y(has_threads_enabled)(void); \
-/* time.c */ \
-R Y(clock_gettime_seconds)(void); \
-/* error.c: */ \
-R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
-  const C *z, const NFFT_INT m); \
-/* int.c: */ \
-NFFT_INT Y(exp2i)(const NFFT_INT a); \
-NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
-/* vector1.c */ \
-/** Computes the inner/dot product \f$x^H x\f$. */ \
-R Y(dot_complex)(C *x, NFFT_INT n); \
-/* vector3.c */ \
-/** Updates \f$x \leftarrow a x + y\f$. */ \
-void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
-/** Swaps each half over N[d]/2. */ \
-void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-void Y(fftshift_complex_int)(C *x, int d, int* N); \
+NFFT_EXTERN NFFT_INT X(get_num_threads)(void); \
+NFFT_EXTERN void X(set_num_threads)(NFFT_INT nthreads); \
+NFFT_EXTERN NFFT_INT X(has_threads_enabled)(void); \
 /** Return library version. */ \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
+NFFT_EXTERN void X(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
 /** \
  * Return name of window function. \
  * \
  * The window function to be used is configured at compile time. \
  */ \
-const char *Y(get_window_name)(); \
-NFFT_INT Y(get_default_window_cut_off)();
+NFFT_EXTERN const char *X(get_window_name)(void); \
+/** Return a good default value for m for the configured window function. */ \
+NFFT_EXTERN NFFT_INT X(get_default_window_cut_off)(void); \
+/* our own memory allocation and exit functions */ \
+NFFT_EXTERN void *X(malloc)(size_t n); \
+NFFT_EXTERN void X(free)(void *p); \
+NFFT_EXTERN void X(die)(const char *s); \
+\
+/* You can replace the hooks with your own functions, if necessary. We */ \
+/* need this for the Matlab interface. */ \
+typedef void *(*X(malloc_type_function)) (size_t n); \
+typedef void  (*X(free_type_function)) (void *p); \
+typedef void  (*X(die_type_function)) (const char *errString); \
+NFFT_EXTERN X(malloc_type_function) X(malloc_hook); \
+NFFT_EXTERN X(free_type_function) X(free_hook); \
+NFFT_EXTERN X(die_type_function) X(die_hook);
 
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
-NFFT_DEFINE_UTIL_API(NFFT_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_FLOAT)
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_DOUBLE)
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_LONG_DOUBLE)
 
 #ifdef __cplusplus
 }  /* extern "C" */

@@ -20,6 +20,13 @@ if(NFFT_ENABLE_APPLICATIONS)
       EXTRA_INC ${PROJECT_SOURCE_DIR}/applications/fastsum
       EXTRA_LINK fastsum_lib fastsum_kernels)
   endif()
+  # fastsum.h uses NFFT_R/NFFT_C from nfft3mp.h. Matlab and Octave build
+  # double or float, never long double.
+  if(NFFT_WITH_OCTAVE)
+    target_compile_definitions(octave_fastsummex PRIVATE ${NFFT_PRECISION_MACRO})
+  elseif(NFFT_WITH_MATLAB)
+    target_compile_definitions(matlab_fastsummex PRIVATE ${NFFT_PRECISION_MACRO})
+  endif()
 endif()
 if(HAVE_NFSFT)
   cmake_language(CALL ${_mex} nfsft nfsftmex.c)

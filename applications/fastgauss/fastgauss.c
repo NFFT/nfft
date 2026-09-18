@@ -26,6 +26,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
+#include "nfft3.h"
+#include "nfft3util.h"
+/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /**
@@ -335,7 +338,7 @@ static void fgt_test_init_rand(fgt_plan *ths)
 static NFFT_R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
-  NFFT_R t0, t1, time_diff;
+  double t0, t1, time_diff;
   NFFT_R t_out;
   NFFT_R tau = NFFT_K(0.01);
 
