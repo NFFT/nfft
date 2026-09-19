@@ -85,10 +85,10 @@ static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weig
   {
     for(j=0;j<N;j++){
       for(k=0;k<N;k++) {
-        for(z=0;z<N;z++) {
+        for(z=0;z<Z;z++) {
         int j2= j-N/2;
         int k2= k-N/2;
-        int z2= z-N/2;
+        int z2= z-Z/2;
         double r=sqrt(j2*j2+k2*k2+z2*z2);
         if(r>(double) N/2)
           my_iplan.w_hat[z*N*N+j*N+k]=0.0;
