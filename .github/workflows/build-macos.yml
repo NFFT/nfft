@@ -179,7 +179,7 @@ jobs:
         AGNOSTIC_FLAGS=""
         [ "${WINDOW}" = "kaiserbessel" ] && AGNOSTIC_FLAGS="window:1" || AGNOSTIC_FLAGS="window:0"
         [ "${PRECISION_OPT}" = "" ] && AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:1" || AGNOSTIC_FLAGS="$AGNOSTIC_FLAGS,precision:0"
-        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-openmp --enable-exhaustive-unit-tests \
+        ./configure --with-window=${WINDOW} ${PRECISION_OPT} --enable-all --enable-openmp --enable-tests --enable-exhaustive-unit-tests \
         $(if [ "${BUILD_OCTAVE}" = "1" ]; then echo "--with-octave=$OCTAVEDIR"; else echo ""; fi) \
         $(if [ "${BUILD_JULIA}" = "1" ] && [ "${PRECISION_OPT}" = "" ]; then echo "--enable-julia"; else echo ""; fi)
       # --enable-benchmarks --with-benchmarks-prefix=${BUILD_CONFIG}/ --with-codspeed=$(pwd)/codspeed-cpp \
@@ -236,9 +236,9 @@ jobs:
           -DNFFT_WINDOW=kaiserbessel ${CMAKE_PREC} ${CMAKE_JULIA} \
           -DNFFT_ENABLE_OPENMP=ON \
           -DOpenMP_ROOT=/opt/homebrew/opt/libomp \
-          -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
+          -DNFFT_ENABLE_TESTS=ON -DNFFT_ENABLE_EXHAUSTIVE_UNIT_TESTS=ON \
           -DNFFT_ENABLE_EXAMPLES=ON -DNFFT_ENABLE_APPLICATIONS=ON \
-          -DFFTW3_ROOT=/opt/homebrew
+          -DFFTW3_ROOT=/opt/homebrew -DCUnit_ROOT=/opt/homebrew
         # CC/CXX from the "Set up compiler" step are honored by CMake automatically.
 
     - name: CMake — build

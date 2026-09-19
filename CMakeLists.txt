@@ -15,7 +15,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs on Windows)" ON)
 # Options
 option(NFFT_ENABLE_FLOAT       "Build single (float) precision"   OFF)
 option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
-option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
+option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  OFF)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
 option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
 
