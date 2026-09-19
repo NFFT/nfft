@@ -12,8 +12,7 @@ nfft_add_serial_program(example_nfft_nfft_times   nfft nfft_times   nfft/nfft_ti
 # nfft (OpenMP)
 # nfft_benchomp_detail.c is built TWICE: serial (_single) and OpenMP (_threads),
 # so the two can be compared — do not collapse them. The serial helpers link the
-# serial library but still need the OpenMP RUNTIME lib (they call omp_* without
-# -fopenmp): add ${OpenMP_C_LIBRARIES} only (no flags), mirroring $(OPENMP_LIBS).
+# serial library plus the atomic libs, mirroring $(OPENMP_LIBS).
 if(NFFT_ENABLE_OPENMP)
   nfft_add_omp_program(example_nfft_simple_test_threads nfft simple_test_threads
     nfft/simple_test_threads.c)
@@ -23,10 +22,10 @@ if(NFFT_ENABLE_OPENMP)
     nfft_benchomp_detail_threads nfft/nfft_benchomp_detail.c)
   nfft_add_serial_program(example_nfft_benchomp_createdataset nfft
     nfft_benchomp_createdataset nfft/nfft_benchomp_createdataset.c)
-  target_link_libraries(example_nfft_benchomp_createdataset PRIVATE ${OpenMP_C_LIBRARIES})
+  target_link_libraries(example_nfft_benchomp_createdataset PRIVATE ${NFFT_OPENMP_ATOMIC_LIBS})
   nfft_add_serial_program(example_nfft_benchomp_detail_single nfft
     nfft_benchomp_detail_single nfft/nfft_benchomp_detail.c)
-  target_link_libraries(example_nfft_benchomp_detail_single PRIVATE ${OpenMP_C_LIBRARIES})
+  target_link_libraries(example_nfft_benchomp_detail_single PRIVATE ${NFFT_OPENMP_ATOMIC_LIBS})
 endif()
 
 # nfct/nfst (all precisions)
