@@ -633,6 +633,8 @@ int main (int argc, char **argv)
     {
       /* TODO remove this */
       /* Set dummy values. */
+      use_nfft = NO;
+      use_fpt = NO;
       cutoff = 3;
       threshold = 1000000000000.0;
     }
