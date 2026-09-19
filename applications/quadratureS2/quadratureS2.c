@@ -155,7 +155,7 @@ int main (int argc, char **argv)
     {
       /* Check if the NFFT shall be used. */
       fscanf(stdin,"nfft=%d\n",&use_nfft);
-      fprintf(stdout,"%d\n",use_nfsft);
+      fprintf(stdout,"%d\n",use_nfft);
       if (use_nfft != NO)
       {
         /* Read the cut-off parameter. */
