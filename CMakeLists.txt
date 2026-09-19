@@ -143,6 +143,16 @@ if(NFFT_ENABLE_OPENMP AND (FFTW3_OMP_FOUND OR FFTW3_THREADS_FOUND))
                  ${PROJECT_BINARY_DIR}/config.h @ONLY)
 endif()
 
+if(NFFT_ENABLE_OPENMP AND NOT FFTW3_OMP_FOUND)
+  if(FFTW3_THREADS_FOUND)
+    message(WARNING "Only generic multi-threaded FFTW3 library found. This may be less "
+      "efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.")
+  else()
+    message(WARNING "Only single-threaded FFTW3 library found. Multi-threading will only "
+      "be used in NFFT code, not in FFTW3 computations.")
+  endif()
+endif()
+
 if(NFFT_ENABLE_OPENMP)
   # On macOS, two libomp.dylib copies at different paths can both load into one
   # process and abort with "OMP: Error #15" (e.g. Homebrew's llvm ships its own,
@@ -201,17 +211,14 @@ if(NFFT_ENABLE_OPENMP)
     set(CMAKE_REQUIRED_DEFINITIONS "")
   endif()
 
-  set(CMAKE_REQUIRED_FLAGS "${OpenMP_C_FLAGS}")
-  set(CMAKE_REQUIRED_LINK_OPTIONS "${OpenMP_C_FLAGS}")
-
   # Try with no extra lib first, then with -latomic.
-  set(CMAKE_REQUIRED_LIBRARIES "${OpenMP_C_LIBRARIES}")
+  set(CMAKE_REQUIRED_LIBRARIES OpenMP::OpenMP_C)
   unset(NFFT_OPENMP_ATOMIC_NONE CACHE)
   check_c_source_compiles("${_nfft_atomic_test}" NFFT_OPENMP_ATOMIC_NONE)
   if(NFFT_OPENMP_ATOMIC_NONE)
     set(NFFT_OPENMP_ATOMIC_LIBS "" CACHE INTERNAL "Extra libs for OpenMP atomic on the real type")
   else()
-    set(CMAKE_REQUIRED_LIBRARIES "${OpenMP_C_LIBRARIES};atomic")
+    set(CMAKE_REQUIRED_LIBRARIES OpenMP::OpenMP_C atomic)
     unset(NFFT_OPENMP_ATOMIC_LATOMIC CACHE)
     check_c_source_compiles("${_nfft_atomic_test}" NFFT_OPENMP_ATOMIC_LATOMIC)
     if(NFFT_OPENMP_ATOMIC_LATOMIC)
@@ -223,8 +230,6 @@ if(NFFT_ENABLE_OPENMP)
   endif()
 
   unset(CMAKE_REQUIRED_DEFINITIONS)
-  unset(CMAKE_REQUIRED_FLAGS)
-  unset(CMAKE_REQUIRED_LINK_OPTIONS)
   unset(CMAKE_REQUIRED_LIBRARIES)
   unset(_nfft_atomic_test)
   message(STATUS "OpenMP atomic on real type: extra libs = '${NFFT_OPENMP_ATOMIC_LIBS}'")
