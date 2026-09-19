@@ -210,6 +210,6 @@ int main(int argc, char **argv)
   /* free memory */
   nfft_free(mem);
   fftw_destroy_plan(plan);
-  return 1;
+  return 0;
 }
 /* \} */
