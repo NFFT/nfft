@@ -1091,14 +1091,9 @@ int main (int argc, char **argv)
 
         //fprintf(stderr,"Calculating the error\n");
         //fflush(stderr);
-        /* Calculate average time needed. */
-        t_avg = t_avg/((double)repetitions);
-
-        /* Calculate the average error. */
-        err_infty_avg = err_infty_avg/((double)repetitions);
-
-        /* Calculate the average error. */
-        err_2_avg = err_2_avg/((double)repetitions);
+        /* The loop above runs once, whatever the parameter repetitions says: it
+         * frees the weights and scales the grid values in place, so it cannot
+         * be repeated. The sums are therefore already the values to report. */
 
         /* Print out the error measurements. */
         fprintf(stdout,"%+le %+le %+le\n", t_avg, err_infty_avg, err_2_avg);
