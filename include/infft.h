@@ -1687,13 +1687,17 @@ static inline R Y(kb_phi_in)(R b, R lg_tail, R peak_inv, R m, R nx)
  * With E = exp(b ra - m b - lg_tail) the second exponential is redundant:
  * exp(-2 b ra) = peak_inv^2 / E^2, so 1 - exp(-2 b ra) costs one reciprocal
  * instead of an EXPM1, and E - peak_inv^2/E cannot cancel while b ra is bounded
- * away from zero. peak_inv^2 underflows only past m b ~ 357, where exp(-2 b ra)
- * is already far below the format epsilon and zero is the right value. */
+ * away from zero. */
 static inline R Y(kb_phi_in_interior)(R b, R lg_tail, R peak_inv_sq, R m, R nx)
 {
   const R ra = SQRT((m - nx) * (m + nx));
   const R w = K(1.0) / (ra * (ra + m));
   const R e = EXP(-b * (nx * nx) * (w * ra) - lg_tail);
+
+  /* Far enough out, e and peak_inv_sq underflow. The window is below the format 
+   * minimum there, so zero is the correct value to return. */
+  if (e == K(0.0))
+    return K(0.0);
 
   return (e - peak_inv_sq / e) * (w * (ra + m)) * (K(0.5) / KPI);
 }
