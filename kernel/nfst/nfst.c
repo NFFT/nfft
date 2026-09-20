@@ -86,9 +86,12 @@ static inline R X(reduced_omega)(const R k, const R x)
 #define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
 #define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
-#define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), ((ths->x[(j) * ths->d + t]) \
-  - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)NN(ths->n[t])))), t)
-#define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), (NODE(j,t) - ((R)(lj[t] + u[t])) / (K(2.0) * ((R)NN(ths->n[t])))), t)
+#define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), \
+  NX_SUB((2 * NN(ths->n[t])), ths->x[(j) * ths->d + t], lj[t] + u[t]) \
+  / ((R)(2 * NN(ths->n[t]))), t)
+#define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), \
+  NX_SUB((2 * NN(ths->n[t])), NODE(j,t), lj[t] + u[t]) \
+  / ((R)(2 * NN(ths->n[t]))), t)
 
 /**
  * Direct computation of non equispaced sine transforms
@@ -681,8 +684,12 @@ static inline void B_ ## which_one (X(plan) *ths) \
       { \
         const INT fg_c = u[t] + ths->m; \
         FG_RUN(fg_psi[t] + 1, ths->m, \
-            (PHI((2 * NN(ths->n[t])), (ths->x[j*ths->d+t] - ((R)fg_c)/(2 * NN(ths->n[t]))),(t))), \
-            EXP(K(2.0) * ((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - fg_c) / ths->b[t]), \
+            (PHI((2 * NN(ths->n[t])), \
+                 NX_SUB((2 * NN(ths->n[t])), ths->x[j*ths->d+t], fg_c) \
+                 / ((R)(2 * NN(ths->n[t]))), (t))), \
+            EXP(K(2.0) \
+                * NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], fg_c) \
+                / ths->b[t]), \
             fg_e[t], fg_q[t]); \
       } \
   \
@@ -706,7 +713,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   \
       for (t = 0; t < ths->d; t++) \
       { \
-        y[t] = (((2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - (R)u[t]) \
+        y[t] = ((NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], u[t])) \
                 * ((R)ths->K))/(ths->m + 2); \
         ip_u  = LRINT(FLOOR(y[t])); \
         ip_w  = y[t]-ip_u; \
@@ -889,8 +896,11 @@ void X(precompute_fg_psi)(X(plan) *ths)
        * index m */
       c = u + ths->m;
 
-      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),(ths->x[j * ths->d + t] - ((R)c) / (2 * NN(ths->n[t]))),(t)));
-      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0) * ( (2 * NN(ths->n[t])) * ths->x[j * ths->d + t] - c) / ths->b[t]);
+      ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),
+          NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], c)
+          / ((R)(2 * NN(ths->n[t]))), (t)));
+      ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0)
+          * NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], c) / ths->b[t]);
       } /* for(j) */
   }
   /* for(t) */
