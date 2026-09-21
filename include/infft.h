@@ -340,16 +340,16 @@ typedef ptrdiff_t INT;
   #define KB_I0E_PEAK_INV(ax) (ths->b[2 * (ths->d) + (ax)])
   #define KB_PEAK_INV(ax) (ths->b[3 * (ths->d) + (ax)])
   #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_I0E_PEAK_INV(ax), \
-                             (R)(ths->m), (R)(n), (R)(k)))
+                             WINDOW_STENCIL_REACH, (R)(n), (R)(k)))
   #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
-                         (R)(ths->m), (R)(n) * (R)(x)))
+                         WINDOW_STENCIL_REACH, (R)(n) * (R)(x)))
   /* Fills dst[0 .. 2m+1] with phi(x - (u + l)/n), the run every psi table is
    * built from. The window sees the whole run, so it can hoist its constants,
    * step the argument by one grid cell rather than dividing per point, and put
    * the points that need the guarded evaluation in their own branch. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
-        (R)(ths->m), (ths->m), NX_SUB(n, x, u))
+        WINDOW_STENCIL_REACH, (ths->m), NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -357,7 +357,7 @@ typedef ptrdiff_t INT;
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
       { \
         R WINDOW_b = (KPI * (K(2.0) - K(1.0) / ths->sigma[WINDOW_idx])); \
-        R WINDOW_xpk = ((R)(ths->m)) * WINDOW_b; \
+        R WINDOW_xpk = WINDOW_STENCIL_REACH * WINDOW_b; \
         R WINDOW_lg = Y(bessel_i0_logtail)(WINDOW_xpk); \
         ths->b[WINDOW_idx] = WINDOW_b; \
         ths->b[ths->d + WINDOW_idx] = WINDOW_lg; \
