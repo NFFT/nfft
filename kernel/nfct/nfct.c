@@ -720,9 +720,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
         ip_w  = y[t]-ip_u; \
         for (l_fg = u[t], lj_fg = 0; l_fg <= o[t]; l_fg++, lj_fg++) \
         { \
-          fg_psi[t][lj_fg] = ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
+          fg_psi[t][lj_fg] = Y(lin_psi)(ths->psi + (ths->K+1)*t, \
+              ip_u-lj_fg*ip_s, ip_w); \
         } \
       } \
   \

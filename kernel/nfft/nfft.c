@@ -1121,9 +1121,8 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         ip_w  = y[t2]-ip_u; \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
         { \
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
+          fg_psi[t2][lj_fg] = Y(lin_psi)(ths->psi + (ths->K+1)*t2, \
+              ip_u-lj_fg*ip_s, ip_w); \
         } \
       } \
  \
@@ -1202,9 +1201,8 @@ MACRO_B(A)
         ip_w  = y[t2]-ip_u; \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
         { \
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
+          fg_psi[t2][lj_fg] = Y(lin_psi)(ths->psi + (ths->K+1)*t2, \
+              ip_u-lj_fg*ip_s, ip_w); \
         } \
       }
 #define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_LIN_PSI \
@@ -1791,9 +1789,8 @@ MACRO_B(T)
         ip_w  = y[t2]-ip_u; \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
         { \
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
+          fg_psi[t2][lj_fg] = Y(lin_psi)(ths->psi + (ths->K+1)*t2, \
+              ip_u-lj_fg*ip_s, ip_w); \
         } \
       }
 #define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_with_PRE_LIN_PSI \
@@ -2532,8 +2529,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
       ip_w = ip_y - (R)(ip_u);
 
       for (l = 0; l < m2p2; l++)
-        psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
-          + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);
+        psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
@@ -2628,8 +2624,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
             ip_w = ip_y - ip_u; \
             for (l = 0; l < 2 * m + 2; l++) \
               psij_const[l] \
-                  = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w) \
-                      + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w); \
+                  = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w); \
  \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, \
                 ths->x + j, n, m, my_u0, my_o0); \
@@ -2848,8 +2843,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
       ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2 * m + 2; l++)
         psij_const[l]
-            = ths->psi[ABS(ip_u-l*ip_s)] * (K(1.0) - ip_w)
-                + ths->psi[ABS(ip_u-l*ip_s+1)] * (ip_w);
+            = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
 #ifdef _OPENMP
       nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
@@ -3460,14 +3454,14 @@ static void nfft_trafo_2d_B(X(plan) *ths)
       ip_u = (INT)LRINT(FLOOR(ip_y));
       ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2*m+2; l++)
-        psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
       ip_y = FABS(NX_SUB(n1, ths->x[2*j+1], u)) * ((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for (l = 0; l < 2*m+2; l++)
-        psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), ip_u-l*ip_s, ip_w);
 
       nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
     }
@@ -3568,16 +3562,15 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
-              psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
-                ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w); \
+              psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w); \
  \
             uo(ths,j,&u,&o,(INT)1); \
             ip_y = FABS(NX_SUB(((R)n1), (ths->x[2*j+1]), u))*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
-              psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
-                ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w); \
+              psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), \
+                  ip_u-l*ip_s, ip_w); \
  \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, \
@@ -3820,16 +3813,14 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
       ip_y = FABS(NX_SUB(n1, (ths->x[2*j+1]), u)) * ((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), ip_u-l*ip_s, ip_w);
 
 #ifdef _OPENMP
       nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
@@ -4896,24 +4887,22 @@ static void nfft_trafo_3d_B(X(plan) *ths)
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
       ip_y = FABS(NX_SUB(n1, ths->x[3*j+1], u)) * ((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)2);
       ip_y = FABS(NX_SUB(n2, ths->x[3*j+2], u)) * ((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*(2*m+2)+l] = Y(lin_psi)(ths->psi + 2*(K+1),
+            ip_u-l*ip_s, ip_w);
 
       nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
     }
@@ -5039,24 +5028,23 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
-              psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
-                ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w); \
+              psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w); \
  \
             uo(ths,j,&u,&o,(INT)1); \
             ip_y = FABS(NX_SUB(((R)n1), ths->x[3*j+1], u))*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
-              psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
-                ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w); \
+              psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), \
+                  ip_u-l*ip_s, ip_w); \
  \
             uo(ths,j,&u,&o,(INT)2); \
             ip_y = FABS(NX_SUB(((R)n2), ths->x[3*j+2], u))*((R)ip_s); \
             ip_u = LRINT(FLOOR(ip_y)); \
             ip_w = ip_y-ip_u; \
             for(l=0; l < 2*m+2; l++) \
-              psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) + \
-                ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w); \
+              psij_const[2*(2*m+2)+l] = Y(lin_psi)(ths->psi + 2*(K+1), \
+                  ip_u-l*ip_s, ip_w); \
  \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, \
@@ -5323,24 +5311,22 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[l] = ths->psi[ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[l] = Y(lin_psi)(ths->psi, ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)1);
       ip_y = FABS(NX_SUB(n1, ths->x[3*j+1], u)) * ((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[2*m+2+l] = ths->psi[(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*m+2+l] = Y(lin_psi)(ths->psi + (K+1), ip_u-l*ip_s, ip_w);
 
       uo(ths,j,&u,&o,(INT)2);
       ip_y = FABS(NX_SUB(n2, ths->x[3*j+2], u))*((R)ip_s);
       ip_u = (INT)(LRINT(FLOOR(ip_y)));
       ip_w = ip_y - (R)(ip_u);
       for(l=0; l < 2*m+2; l++)
-        psij_const[2*(2*m+2)+l] = ths->psi[2*(K+1)+ABS(ip_u-l*ip_s)]*(K(1.0)-ip_w) +
-          ths->psi[2*(K+1)+ABS(ip_u-l*ip_s+1)]*(ip_w);
+        psij_const[2*(2*m+2)+l] = Y(lin_psi)(ths->psi + 2*(K+1),
+            ip_u-l*ip_s, ip_w);
 
 #ifdef _OPENMP
       nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);

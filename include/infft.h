@@ -436,6 +436,21 @@ typedef ptrdiff_t INT;
  * sign of d serves, such as the seed nfft_precompute_fg_psi() stores. */
 #define FG_RUN_START(buf,d) ((buf) + ((d) < K(0.0) ? 0 : 1))
 
+/* One tap of the PRE_LIN_PSI table, linearly interpolated between the two
+ * entries around index i. The window is even, so the entries are tab[|i|] and
+ * tab[|i+1|].
+ *
+ * (1 - w) y0 + w y1 would cost two multiplies and form 1 - w, which drops the
+ * low bits of a small w and puts the result off the endpoints. The
+ * multiply-add form below costs one operation less, contracts to a fused
+ * multiply-add where the target has one, and is exact at w = 0 and w = 1. */
+static inline R Y(lin_psi)(const R *tab, const INT i, const R w)
+{
+  const R y0 = tab[ABS(i)];
+
+  return (tab[ABS(i + 1)] - y0) * w + y0;
+}
+
 /* window.c */
 INT Y(m2K)(const INT m);
 
