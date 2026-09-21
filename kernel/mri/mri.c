@@ -81,6 +81,11 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
       /* PHI has compact support */
 			if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0]))
       {
+        /* t[j] - l/n loses the low bits of n*t[j] once that product passes the
+         * mantissa. NX_SUB (include/infft.h) forms the offset with one
+         * rounding; all four PHI calls in this file take the same form:
+         *   PHI(ths->n[0], NX_SUB(ths->n[0], that->t[j], l)/((R)ths->n[0]), 0)
+         * Switch once MRI has accuracy tests that can back the change. */
         double phi_val = PHI(ths->n[0],that->t[j]-((double)l)/((double)ths->n[0]),0);
         f[j]+=that->f[j]*phi_val;
 // the line below causes internal compiler error for gcc 4.7.1
@@ -127,6 +132,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->M_total;j++) {
       /* PHI has compact support */
       if(fabs(that->t[j]-((double)l)/((double)ths->n[0]))<that->plan.m/((double)ths->n[0]))
+        /* NX_SUB form, see the note at mri_inh_2d1d_trafo. */
         that->f[j]*=PHI(ths->n[0],that->t[j]-((double)l)/((double)ths->n[0]),0);
       else
       	that->f[j]=0.0;
@@ -201,6 +207,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
     {
       /* PHI has compact support */
       if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0]))
+        /* NX_SUB form, see the note at mri_inh_2d1d_trafo. */
         that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]= that->f_hat[j]*PHI(ths->n[0],that->w[j]-((double)l)/((double)ths->n[0]),0);
       else
 	      that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]=0.0;
@@ -239,6 +246,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
     {
       /* PHI has compact support */
       if(fabs(that->w[j]-((double)l)/((double)ths->n[0]))<ths->m/((double)ths->n[0]))
+        /* NX_SUB form, see the note at mri_inh_2d1d_trafo. */
         that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI(ths->n[0],that->w[j]-((double)l)/((double)ths->n[0]),0);
     }
   }

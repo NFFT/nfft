@@ -175,6 +175,12 @@ typedef ptrdiff_t INT;
   #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
 #endif
 
+/* n x - c, the node's offset from grid point c, with a single rounding.
+ * Rounding the product first would drop its low bits as soon as n x passes the
+ * mantissa, and since every consumer of the run sees the same rounded value,
+ * that displaces the node by up to |x| eps -- an error growing with N. */
+#define NX_SUB(n,x,c) FFMA((R)(n), (R)(x), -(R)(c))
+
 #if defined(DIRAC_DELTA)
   #define PHI_HUT(n,k,d) K(1.0)
   #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
@@ -231,7 +237,7 @@ typedef ptrdiff_t INT;
                           (x) * (R)(n) + (R)ths->m) / (R)(n))
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(bspline_phi_run)((dst), ths->b, (ths->m), \
-        (R)(n) * (x) - (R)(u) + (R)ths->m, K(1.0) / (R)(n))
+        NX_SUB(n, x, u) + (R)ths->m, K(1.0) / (R)(n))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -280,7 +286,7 @@ typedef ptrdiff_t INT;
   /* The sinc arguments across a run are one step of KPI * w apart. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(sincpow_phi_run)((dst), SP_W(ax), (R)ths->m, (ths->m), \
-        KPI * SP_W(ax), (R)(n) * (x) - (R)(u))
+        KPI * SP_W(ax), NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -343,7 +349,7 @@ typedef ptrdiff_t INT;
    * the points that need the guarded evaluation in their own branch. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
-        (R)(ths->m), (ths->m), (R)(n) * (R)(x) - (R)(u))
+        (R)(ths->m), (ths->m), NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -388,7 +394,7 @@ typedef ptrdiff_t INT;
       INT PHI_RUN_l; \
       for (PHI_RUN_l = 0; PHI_RUN_l < 2 * ths->m + 2; PHI_RUN_l++) \
         (dst)[PHI_RUN_l] = PHI((n), \
-            (x) - ((R)(PHI_RUN_l + (u))) / ((R)(n)), (ax)); \
+            NX_SUB(n, x, PHI_RUN_l + (u)) / ((R)(n)), (ax)); \
     } while (0)
 #endif
 

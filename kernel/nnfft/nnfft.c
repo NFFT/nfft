@@ -128,6 +128,14 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
                                 ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
                                 (y[t2]-y_u[t2]))
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
+/* The offset below loses the low bits of the product once it passes the
+ * mantissa. NX_SUB (include/infft.h) forms it with one rounding:
+ *
+ *   PHI(ths->n[t2],
+ *       -NX_SUB(ths->n[t2], ths->v[j*ths->d+t2], l[t2]) / ((R)ths->n[t2]), t2)
+ *
+ * Note this also reads n[t2] where the line below reads N1[t2]; the two differ
+ * here. Switch once NNFFT has accuracy tests that can back the change. */
 #define MACRO_without_PRE_PSI  PHI(ths->n[t2], -ths->v[j*ths->d+t2]+                      \
                                ((double)l[t2])/ths->N1[t2], t2)
 
@@ -141,6 +149,10 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
   t++;                                                                        \
 }
 
+/* Same single-rounding option as above:
+ *   y[t2] = fabs((NX_SUB(ths->n[t2], ths->v[j*ths->d+t2], l[t2])
+ *       * ((double)ths->K))/(ths->m+1));
+ * again with n[t2] in place of N1[t2]. */
 #define MACRO_update_with_PRE_PSI_LIN {                                       \
   for(t2=t; t2<ths->d; t2++)                                                  \
     {                                                                         \
@@ -395,6 +407,9 @@ void nnfft_precompute_psi(nnfft_plan *ths)
       {
         nnfft_uo(ths,j,&u,&o,t);
 
+        /* Single-rounding option, see MACRO_without_PRE_PSI above:
+         *   PHI(ths->n[t],
+         *       -NX_SUB(ths->n[t], ths->v[j*ths->d+t], l) / ((R)ths->n[t]), t) */
         for(l=u, lj=0; l <= o; l++, lj++)
           ths->psi[(j*ths->d+t)*(2*ths->m+2)+lj]=
             (PHI(ths->n[t],(-ths->v[j*ths->d+t]+((double)l)/((double)ths->N1[t])),t));
