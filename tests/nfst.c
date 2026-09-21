@@ -112,6 +112,22 @@ typedef struct trafo_delegate_s
 static R trafo_direct_cost(X(plan) *p);
 
 static R err_trafo(X(plan) *p);
+
+/* Check if plan admissible for test. */
+static const char* check_plan(X(plan) *p)
+{
+  const char *reason = X(check)(p);
+  INT t;
+
+  if (reason)
+    return reason;
+
+  for (t = 0; t < p->d; t++)
+    if (p->m >= p->N[t])
+      return "Cut-off m not below N";
+
+  return 0;
+}
 static R err_trafo_direct(X(plan) *p);
 
 /* Check single test case.*/
@@ -734,6 +750,8 @@ static init_delegate_t init_2d = {"init_2d", init_2d_, 0, 0, 0};
 static init_delegate_t init_3d = {"init_3d", init_3d_, 0, 0, 0};
 static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+/* Default m gives errors around the round-off floor, so test a half that m to see the approximation error. */
+static init_delegate_t init_advanced_pre_psi_m_half = {"init_guru (PRE PSI, m=half)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m / 2, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
@@ -748,8 +766,8 @@ static R err_trafo_gaussian_m(X(plan) *p)
 {
   return FMAX(K(4.0) * EXP(-((R)p->m) * KPI * (K(1.0) - K(1.0) / K(3.0))), err_trafo(p));
 }
-static trafo_delegate_t trafo_gaussian_m = {"trafo", X(trafo), X(check), 0, err_trafo_gaussian_m};
-static trafo_delegate_t adjoint_gaussian_m = {"adjoint", X(adjoint), X(check), 0, err_trafo_gaussian_m};
+static trafo_delegate_t trafo_gaussian_m = {"trafo", X(trafo), check_plan, 0, err_trafo_gaussian_m};
+static trafo_delegate_t adjoint_gaussian_m = {"adjoint", X(adjoint), check_plan, 0, err_trafo_gaussian_m};
 static const trafo_delegate_t* trafos_gaussian_m[] = {&trafo_gaussian_m};
 static const trafo_delegate_t* trafos_adjoint_gaussian_m[] = {&adjoint_gaussian_m};
 #define GAUSSIAN_M_DELEGATE(mm) \
@@ -858,16 +876,16 @@ static check_delegate_t check_trafo = {prepare_trafo, compare_trafo};
 static check_delegate_t check_adjoint = {prepare_adjoint, compare_adjoint};
 
 static trafo_delegate_t trafo_direct = {"trafo_direct", (trafo_t)X(trafo_direct), 0, trafo_direct_cost, err_trafo_direct};
-static trafo_delegate_t trafo = {"trafo", X(trafo), X(check), 0, err_trafo};
-//static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), X(check), 0, err_trafo};
-//static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), X(check), 0, err_trafo};
-//static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), X(check), 0, err_trafo};
+static trafo_delegate_t trafo = {"trafo", X(trafo), check_plan, 0, err_trafo};
+//static trafo_delegate_t trafo_1d = {"trafo_1d", X(trafo_1d), check_plan, 0, err_trafo};
+//static trafo_delegate_t trafo_2d = {"trafo_2d", X(trafo_2d), check_plan, 0, err_trafo};
+//static trafo_delegate_t trafo_3d = {"trafo_3d", X(trafo_3d), check_plan, 0, err_trafo};
 
 static trafo_delegate_t adjoint_direct = {"adjoint_direct", (trafo_t)X(adjoint_direct), 0, trafo_direct_cost, err_trafo_direct};
-static trafo_delegate_t adjoint = {"adjoint", X(adjoint), X(check), 0, err_trafo};
-//static trafo_delegate_t adjoint_1d = {"adjoint_1d", adjoint_1d, X(check), 0, err_trafo};
-//static trafo_delegate_t adjoint_2d = {"adjoint_2d", adjoint_2d, X(check), 0, err_trafo};
-//static trafo_delegate_t adjoint_3d = {"adjoint_3d", adjoint_3d, X(check), 0, err_trafo};
+static trafo_delegate_t adjoint = {"adjoint", X(adjoint), check_plan, 0, err_trafo};
+//static trafo_delegate_t adjoint_1d = {"adjoint_1d", adjoint_1d, check_plan, 0, err_trafo};
+//static trafo_delegate_t adjoint_2d = {"adjoint_2d", adjoint_2d, check_plan, 0, err_trafo};
+//static trafo_delegate_t adjoint_3d = {"adjoint_3d", adjoint_3d, check_plan, 0, err_trafo};
 
 /* 1D */
 
@@ -882,6 +900,7 @@ static const init_delegate_t* initializers_1d[] =
   &init_1d,
   &init,
   &init_advanced_pre_psi,
+  &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
@@ -1019,6 +1038,7 @@ static const init_delegate_t* initializers_2d[] =
   &init_2d,
   &init,
   &init_advanced_pre_psi,
+  &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
@@ -1142,6 +1162,7 @@ static const init_delegate_t* initializers_3d[] =
   &init_3d,
   &init,
   &init_advanced_pre_psi,
+  &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
@@ -1246,6 +1267,7 @@ static const init_delegate_t* initializers_4d[] =
 {
   &init,
   &init_advanced_pre_psi,
+  &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
