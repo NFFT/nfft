@@ -61,8 +61,12 @@ int Y(init_threads)(void)
   Y(nfft_ensure_registered)();
   Y(nfft_threads_conf_standard)(pl);
 
-  /* Let the main library observe FFTW's thread count for the wisdom key. */
+  /* Let the main library observe FFTW's thread count for the wisdom key and
+   * set it for the child FFTs. FFTW requires its threading to be initialised
+   * before either call. */
+  FFTW(init_threads)();
   Y(fftw_nthreads_hook) = FFTW(planner_nthreads);
+  Y(fftw_plan_with_nthreads_hook) = FFTW(plan_with_nthreads);
 
   registered_gen = Y(the_planner_generation)();
   return 1;
@@ -73,6 +77,7 @@ void Y(cleanup_threads)(void)
   if (registered_gen == 0)
     return;
   Y(fftw_nthreads_hook) = 0;
+  Y(fftw_plan_with_nthreads_hook) = 0;
   Y(the_planner_destroy)();
   registered_gen = 0;
 }

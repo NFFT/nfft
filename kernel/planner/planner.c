@@ -436,6 +436,7 @@ malformed:
 }
 
 int (*Y(fftw_nthreads_hook))(void) = 0;
+void (*Y(fftw_plan_with_nthreads_hook))(int) = 0;
 
 planner *Y(planner_create)(void)
 {

@@ -219,11 +219,21 @@ static plan *mkplan_native_fast(const solver *ego, const problem *p,
   {
     unsigned ff = (pn->fftw_flags & ~(unsigned)FFTW_PRESERVE_INPUT)
                   | (unsigned)FFTW_DESTROY_INPUT;
+    /* The child FFT gets the same thread budget as the NFFT plan. FFTW's
+     * count is planner-global, so it is restored afterwards; pl->nthr is
+     * already part of the wisdom key, so the two plans stay distinguishable.
+     * Without the add-on threading library both hooks are null and the child
+     * FFT is serial, as before. */
+    int fftw_nthr_saved = Y(fftw_nthreads_hook) ? Y(fftw_nthreads_hook)() : 1;
+    if (Y(fftw_plan_with_nthreads_hook))
+      Y(fftw_plan_with_nthreads_hook)(pl->nthr);
     pln->pfwd = FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g1, (FC *)pln->g2,
                          FFTW_FORWARD, ff);
     pln->pback =
          FFTW(plan_dft)((int)d, pln->narr, (FC *)pln->g2, (FC *)pln->g1,
                           FFTW_BACKWARD, ff);
+    if (Y(fftw_plan_with_nthreads_hook))
+      Y(fftw_plan_with_nthreads_hook)(fftw_nthr_saved);
   }
 
   /* Children are measured on their own, so the forward's CONV child would

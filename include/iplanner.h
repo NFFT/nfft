@@ -347,6 +347,12 @@ void Y(planner_hinsert)(planner *pl, const md5sig s, const flags_t *f,
  * threads/api.c mksolver_ct_hook. */
 extern int (*Y(fftw_nthreads_hook))(void);
 
+/* Sets FFTW's planner thread count, so a child FFT is planned with the same
+ * budget the NFFT plan was given. Lives in FFTW's threads library for the same
+ * reason as the observer above. Null means the count cannot be changed and the
+ * child FFT stays serial. */
+extern void (*Y(fftw_plan_with_nthreads_hook))(int);
+
 /* the planner's current impatience bounds */
 #define PLNR_L(pl) ((pl)->flags.l)
 #define PLNR_U(pl) ((pl)->flags.u)

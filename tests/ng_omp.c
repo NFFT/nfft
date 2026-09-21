@@ -764,3 +764,59 @@ void Y(check_ng_omp_conv_sorted_declines)(void)
   Y(problem_destroy)(p);
   Y(planner_destroy)(pl);
 }
+
+/* Stand-in for FFTW's plan_with_nthreads, so the counts the solver asks for
+ * are observable without depending on which plan FFTW then builds. */
+static int fftw_nthr_first, fftw_nthr_last, fftw_nthr_calls;
+
+static void record_fftw_nthreads(int nthr)
+{
+  if (fftw_nthr_calls++ == 0)
+    fftw_nthr_first = nthr;
+  fftw_nthr_last = nthr;
+}
+
+/* The child FFT is planned with the plan's thread budget, and FFTW's own
+ * count is left as it was found. */
+void Y(check_ng_omp_child_fft_nthreads)(void)
+{
+  const INT N = 256, n = 512, M = 64;
+  const int nthr = 4;
+  R *x = (R *)Y(malloc)((size_t)M * sizeof(R));
+  C *f_hat = (C *)Y(malloc)((size_t)N * sizeof(C));
+  C *f = (C *)Y(malloc)((size_t)M * sizeof(C));
+  void (*saved)(int);
+  Y(plan_ng) *p;
+  int ambient;
+  INT j;
+
+  for (j = 0; j < M; j++)
+    x[j] = (R)j / (R)M - K(0.5);
+
+  NFFT(plan_with_nthreads)(nthr);
+  CU_ASSERT_PTR_NOT_NULL_FATAL(Y(fftw_nthreads_hook));
+  CU_ASSERT_PTR_NOT_NULL_FATAL(Y(fftw_plan_with_nthreads_hook));
+  ambient = Y(fftw_nthreads_hook)();
+
+  saved = Y(fftw_plan_with_nthreads_hook);
+  fftw_nthr_first = fftw_nthr_last = fftw_nthr_calls = 0;
+  Y(fftw_plan_with_nthreads_hook) = record_fftw_nthreads;
+
+  p = NFFT(plan_ng_guru)(1, &N, 0, &n, M, 6,
+                         NFFT(get_window_id)(), x, (FC *)f_hat,
+                   (FC *)f, 0u, NFFT_ESTIMATE);
+  Y(fftw_plan_with_nthreads_hook) = saved;
+  CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+  NFFT(plan_ng_destroy)(p);
+
+  /* Set before the two FFTW plans and put back after them. A blessing pass
+   * may repeat the pair, so the count is a lower bound. */
+  CU_ASSERT_TRUE(fftw_nthr_calls >= 2);
+  CU_ASSERT_EQUAL(fftw_nthr_first, nthr);
+  CU_ASSERT_EQUAL(fftw_nthr_last, ambient);
+
+  NFFT(plan_with_nthreads)(1);
+  Y(free)(f);
+  Y(free)(f_hat);
+  Y(free)(x);
+}

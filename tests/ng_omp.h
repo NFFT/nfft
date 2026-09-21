@@ -73,4 +73,8 @@ void Y(check_ng_omp_no_fast_native_refuses)(void);
 /* The sorted threaded CONV solver declines on presorted nodes. */
 void Y(check_ng_omp_conv_sorted_declines)(void);
 
+/* The child FFT is planned with the plan's thread budget, and FFTW's own
+ * count is left as it was found. */
+void Y(check_ng_omp_child_fft_nthreads)(void);
+
 #endif /* NG_OMP_TEST_H */
