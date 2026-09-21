@@ -84,13 +84,24 @@ Optionally, install NFFT on your system.
 make install
 ```
 
-CodSpeed benchmarks
+Benchmarks
 -------------------
-Optionally, NFFT can build benchmark programs using the [CodSpeed](https://codspeed.io) C++ integration library.
-[CodSpeed](https://codspeed.io) is a continuous benchmarking service that can help with tracking performance 
-regressions and improvements.
 
-The benchmarks are built with the CMake build, which fetches and builds the CodSpeed integration library
+<a href="https://codspeed.io/?utm_source=NFFT&utm_medium=readme">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://codspeed.io/codspeed-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://codspeed.io/codspeed-logo-light.svg">
+    <img alt="CodSpeed logo" src="https://codspeed.io/codspeed-logo-light.svg" width="400px">
+  </picture>
+</a>
+
+We are grateful for [CodSpeed](https://codspeed.io)'s generous support that helps us run benchmarks on dedicated [Macro runners](https://codspeed.io/docs/features/macro-runners) in CI.
+
+NFFT can build benchmark programs using the [CodSpeed](https://codspeed.io) C++ integration library.
+[CodSpeed](https://codspeed.io) is a continuous benchmarking service to track performance 
+improvements and regressions.
+
+Benchmarks are built with the CMake build, which fetches and builds the CodSpeed integration library
 automatically. The option `-DNFFT_BENCHMARK_MODE=` enables the benchmarks and selects the measurement mode
 at build time:
 
@@ -109,9 +120,6 @@ After the build, the benchmarks can be found in the `build-cmake/benchmarks` dir
 reconfigure the tree with a different `-DNFFT_BENCHMARK_MODE` or use a second build directory.
 
 While these benchmarks can run locally, they are mainly intended to run in CI.
-
-> The Autotools benchmark path (`./configure --enable-benchmarks --with-codspeed=<path>`) is legacy. It needs
-> a hand-built copy of [codspeed-cpp](https://github.com/CodSpeedHQ/codspeed-cpp) and prints no measurements.
 
 Citing
 ------
