@@ -90,11 +90,28 @@ Optionally, NFFT can build benchmark programs using the [CodSpeed](https://codsp
 [CodSpeed](https://codspeed.io) is a continuous benchmarking service that can help with tracking performance 
 regressions and improvements.
 
-While these benchmarks can run locally, they are actually only intended to run in CI. They also require a build of the CodSpeed integration library from [source](https://github.com/CodSpeedHQ/codspeed-cpp).
+The benchmarks are built with the CMake build, which fetches and builds the CodSpeed integration library
+automatically. The option `-DNFFT_BENCHMARK_MODE=` enables the benchmarks and selects the measurement mode
+at build time:
 
-To enable building the benchmarks with the CodSpeed integration library, run `./configure --enable-benchmarks --with-codspeed=<path to codspeed-cpp source directory>`.
+* `off` (default): benchmarks are not built.
+* `simulation`: instruction counts, the metric used in CI. The binary only measures under callgrind
+  (`valgrind --tool=callgrind ...`); run directly, it does nothing.
+* `walltime`: wall-clock timing. The binary writes a JSON result to `$CODSPEED_PROFILE_FOLDER/results/`.
 
-After the build, the benchmrks can be found in the `benchmarks` directory.
+```
+cmake -S . -B build-cmake -DNFFT_BENCHMARK_MODE=walltime -DNFFT_ENABLE_OPENMP=ON
+cmake --build build-cmake -j
+CODSPEED_PROFILE_FOLDER=/tmp/wt build-cmake/benchmarks/bench_nfft_direct
+```
+
+After the build, the benchmarks can be found in the `build-cmake/benchmarks` directory. To change the mode,
+reconfigure the tree with a different `-DNFFT_BENCHMARK_MODE` or use a second build directory.
+
+While these benchmarks can run locally, they are mainly intended to run in CI.
+
+> The Autotools benchmark path (`./configure --enable-benchmarks --with-codspeed=<path>`) is legacy. It needs
+> a hand-built copy of [codspeed-cpp](https://github.com/CodSpeedHQ/codspeed-cpp) and prints no measurements.
 
 Citing
 ------
