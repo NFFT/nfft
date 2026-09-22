@@ -59,20 +59,32 @@ static inline void nfft_bench_cap_threads(void)
 //
 // Costs a little memory and measures a slightly better aligned configuration
 // than a caller who uses nfft_malloc directly gets.
+//
+// A cache line is not enough for the larger arrays. An array of a megabyte or
+// more comes from mmap, whose placement moves with the state of the allocator,
+// so the cache sets the array lands on change when an unrelated allocation
+// changes size. That decides how much of the array stays resident and moves a
+// benchmark at the cache boundary by more than ten percent. Each array is
+// therefore aligned to its own size, rounded down to a power of two and capped
+// at the large page size, which fixes where in the cache it sits.
 #define NFFT_BENCH_ALIGNMENT 64
+#define NFFT_BENCH_MAX_ALIGNMENT ((size_t)2 * 1024 * 1024)
 
 static inline void *nfft_bench_aligned_malloc(size_t n)
 {
+    size_t a = NFFT_BENCH_ALIGNMENT;
     void *p = NULL;
 
     if (n == 0)
         n = 1;
-    n = (n + (NFFT_BENCH_ALIGNMENT - 1)) & ~(size_t)(NFFT_BENCH_ALIGNMENT - 1);
+    while (a < NFFT_BENCH_MAX_ALIGNMENT && a * 2 <= n)
+        a *= 2;
+    n = (n + (a - 1)) & ~(a - 1);
 
 #ifdef _WIN32
-    p = _aligned_malloc(n, NFFT_BENCH_ALIGNMENT);
+    p = _aligned_malloc(n, a);
 #else
-    if (posix_memalign(&p, NFFT_BENCH_ALIGNMENT, n) != 0)
+    if (posix_memalign(&p, a, n) != 0)
         p = NULL;
 #endif
     if (p == NULL)
