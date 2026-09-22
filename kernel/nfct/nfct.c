@@ -85,7 +85,7 @@ static inline R X(reduced_omega)(const R k, const R x)
  * which FG_RUN puts at buffer index m + 2 for a fill based at fg_psi[t] + 1 */
 #define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
 #define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
-#define MACRO_with_PRE_PSI psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
+#define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), \
   NX_SUB((2 * NN(ths->n[t])), ths->x[(j) * ths->d + t], lj[t] + u[t]) \
   / ((R)(2 * NN(ths->n[t]))), t)
@@ -461,13 +461,13 @@ MACRO_D(T)
 
 #define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
-  (*fj) += psi[ix] * g[psi_index_g[ix]]; \
+  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
 }
 
 #define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
   R factor = K(1.0); \
-  INT d = psi_index_g[ix]; \
+  INT d = ths->psi_index_g[ix]; \
   for (t = ths->d - 1; t >= 0; t--) \
   { \
     INT m = d % ths->n[t]; \
@@ -475,7 +475,7 @@ MACRO_D(T)
       factor *= K(0.5); \
     d = d / ths->n[t]; \
   } \
-  g[psi_index_g[ix]] += factor * psi[ix] * (*fj); \
+  g[ths->psi_index_g[ix]] += factor * ths->psi[ix] * (*fj); \
 }
 
 #define MACRO_B_compute_A \
@@ -584,7 +584,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
   INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
-  R *restrict f, *restrict g; /* local copy */ \
+  R *f, *g; /* local copy */ \
   R *fj; /* local copy */ \
   R y[ths->d]; \
   /* 2m+4, not the 2m+3 FG_RUN fills: an even row stride and an even offset \
@@ -600,8 +600,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
   f = (R*)ths->f; g = (R*)ths->g; \
-  const R *restrict psi = (const R*)ths->psi; \
-  const INT *restrict psi_index_g = (const INT*)ths->psi_index_g; \
 \
   MACRO_B_init_result_ ## which_one \
 \
