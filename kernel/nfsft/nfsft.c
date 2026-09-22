@@ -327,8 +327,8 @@ void nfsft_init_guru(nfsft_plan *plan, int N, int M, unsigned int flags,
       for (int i=0; i<2*plan->N+2; i++)
         for (int j=0; j<plan->N+2; j++)
         {
-          plan->x[2*(i*(plan->N+1) + j)] = ((double)i-plan->N-1)/(2.0*plan->N+2);
-          plan->x[2*(i*(plan->N+1) + j) + 1] = ((double)j)/(2.0*plan->N+2);
+          plan->x[2*(i*(plan->N+2) + j)] = ((double)i-plan->N-1)/(2.0*plan->N+2);
+          plan->x[2*(i*(plan->N+2) + j) + 1] = ((double)j)/(2.0*plan->N+2);
         }
   }
 
