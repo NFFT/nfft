@@ -27,6 +27,7 @@
 #include "bspline.h"
 #include "bessel.h"
 #include "window.h"
+#include "kbpoly.h"
 #include "nfft.h"
 #include "nfct.h"
 #include "nfst.h"
@@ -52,6 +53,7 @@ int main(void)
   CU_add_test(util, "kaiser_bessel_cancellation", X(check_kaiser_bessel_cancellation));
   CU_add_test(util, "kaiser_bessel_nfft", X(check_kaiser_bessel_nfft));
   CU_add_test(util, "kaiser_bessel_run", X(check_kaiser_bessel_run));
+  CU_add_test(util, "kaiser_bessel_poly", X(check_kaiser_bessel_poly));
   CU_add_test(util, "kaiser_bessel_phi", X(check_kaiser_bessel_phi));
   CU_add_test(util, "log_sinc", X(check_log_sinc));
   CU_add_test(util, "log_sinc_exp", X(check_log_sinc_exp));
