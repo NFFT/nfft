@@ -76,10 +76,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake libfftw3-dev libatomic1
+        sudo apt-get install -y --no-install-recommends \
+          build-essential cmake libfftw3-dev libatomic1
 
     - name: Cache CodSpeed integration library
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -146,9 +145,15 @@ jobs:
           export OMP_PLACES=cores
           export OMP_DYNAMIC=false
           ARGS="--benchmark_min_time=0.1s"
+          # bench_nfft_fast states its own iteration count per case, so min time
+          # does not reach it. Each round rebuilds its plan at a different heap
+          # placement, and the codspeed walltime default of 5 is too few to
+          # average.
+          FAST_ARGS="--benchmark_repetitions=25"
           for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct; do
-            ./build-cmake/benchmarks/$b $ARGS
+            [ "$b" = bench_nfft_fast ] && A="$ARGS $FAST_ARGS" || A="$ARGS"
+            ./build-cmake/benchmarks/$b $A
             if [ -x ./build-cmake/benchmarks/${b}_omp ]; then
-              ./build-cmake/benchmarks/${b}_omp $ARGS
+              ./build-cmake/benchmarks/${b}_omp $A
             fi
           done
