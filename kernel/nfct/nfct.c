@@ -1184,6 +1184,10 @@ const char* X(check)(X(plan) *ths)
   if (!ths->f_hat)
       return "Member f_hat not initialized.";
 
+  if (ths->flags & PRE_POLY_PSI)
+    return "PRE_POLY_PSI is an NFFT flag; this transform has no polynomial "
+      "window.";
+
   for (j = 0; j < ths->M_total * ths->d; j++)
   {
     if ((ths->x[j] < K(0.0)) || (ths->x[j] >= K(0.5)))
