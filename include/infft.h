@@ -1777,12 +1777,37 @@ static inline INT Y(kb_poly_degree)(const INT m)
   return IF(deg > (INT)KB_POLY_DEG_MAX, (INT)KB_POLY_DEG_MAX, deg);
 }
 
+/* The lane count is the vectorised dimension, so it is worth having at compile
+ * time; the degree stays a runtime bound because the precision cap moves it. */
+#define KB_POLY_RUN_LANES(W) \
+  { \
+    INT j, l; \
+    for (l = 0; l < (W); l++) \
+      dst[l] = coef[deg * (W) + l]; \
+    for (j = deg - 1; j >= 0; j--) \
+      for (l = 0; l < (W); l++) \
+        dst[l] = dst[l] * t + coef[j * (W) + l]; \
+    return; \
+  }
+
 static inline void Y(kb_poly_run)(R *dst, const R *coef,
     const INT m, const INT deg, const R nx0)
 {
   const INT w = 2 * m + 2;
   const R t = nx0 - (R)m;
   INT j, l;
+
+  switch (w)
+  {
+  case 6: KB_POLY_RUN_LANES(6)
+  case 8: KB_POLY_RUN_LANES(8)
+  case 10: KB_POLY_RUN_LANES(10)
+  case 12: KB_POLY_RUN_LANES(12)
+  case 14: KB_POLY_RUN_LANES(14)
+  case 16: KB_POLY_RUN_LANES(16)
+  case 18: KB_POLY_RUN_LANES(18)
+  default: break;
+  }
 
   for (l = 0; l < w; l++)
     dst[l] = coef[deg * w + l];
