@@ -5981,6 +5981,8 @@ static void init_help(X(plan) *ths)
 
   WINDOW_HELP_INIT;
 
+  ths->spline_coeffs = NULL;
+
 #if defined(WINDOW_IS_KAISER_BESSEL)
   if (ths->flags & PRE_POLY_PSI)
   {
