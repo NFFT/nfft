@@ -914,35 +914,35 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.48086654399874
+      "value": 16.48106140469842
     },
     "bound-digits": {
       "value": 12.55636021533802
     },
     "max-error": {
-      "value": 3.304710771480867e-17
+      "value": 3.303228335403674e-17
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
     "accuracy-digits": {
-      "value": 7.669164282987685
+      "value": 7.6691642829876265
     },
     "bound-digits": {
       "value": 3.767635097462398
     },
     "max-error": {
-      "value": 2.1420801512775125e-08
+      "value": 2.1420801512778046e-08
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.48086654399874
+      "value": 16.48106140469842
     },
     "bound-digits": {
       "value": 12.55636021533802
     },
     "max-error": {
-      "value": 3.304710771480867e-17
+      "value": 3.303228335403674e-17
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_guru_PRE_PSI_m_half": {
