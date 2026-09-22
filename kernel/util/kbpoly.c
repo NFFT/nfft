@@ -34,12 +34,33 @@
 #include "nfft3.h"
 #include "infft.h"
 
+/* Past the optimum the error grows with the degree instead of shrinking: the
+ * fit sum runs over deg + 1 terms and the monomial form's own conditioning
+ * costs a few bits more, so a mantissa runs out before the approximation does.
+ * Measured in float over m = 5 to 9: the error is flat at three to five eps
+ * from degree 8 to 11, then rises about tenfold per degree, 3E-6 at 12 and
+ * 6E-5 at 13. The cap sits inside the flat region rather than on its edge.
+ * Double tolerates far more, 2.8E-15 at degree 14 against 4.1E-15 at 16, and
+ * since the error falls with m at fixed degree a cap never costs accuracy at
+ * large m. */
+#if MANT_DIG == 113
+  #define KB_POLY_DEG_MAX 24
+#elif MANT_DIG == 64
+  #define KB_POLY_DEG_MAX 20
+#elif MANT_DIG == 53
+  #define KB_POLY_DEG_MAX 14
+#elif MANT_DIG == 24
+  #define KB_POLY_DEG_MAX 10
+#else
+  #define KB_POLY_DEG_MAX 14
+#endif
+
 INT Y(kb_poly_degree)(const INT m)
 {
-  /* Measured in double against the transform's own error at each m. The fit
-   * sum carries (deg + 1) * eps, so the useful degree is bounded by the
-   * precision as well as by m; issue 05 measures the cap per precision. */
-  return m + 6;
+  /* m + 6 clears the transform's own error at every m measured in double. */
+  const INT deg = m + 6;
+
+  return IF(deg > (INT)KB_POLY_DEG_MAX, (INT)KB_POLY_DEG_MAX, deg);
 }
 
 void Y(kb_poly_run)(R *dst, const R *coef, const INT m, const INT deg,
