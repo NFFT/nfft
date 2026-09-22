@@ -205,6 +205,9 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FFTW_INIT                  (1U<<10)
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
+/* Selects how the window is evaluated, not what is stored per node, so it is
+ * orthogonal to the PRE_ONE_PSI flags and deliberately not one of them. */
+#define PRE_POLY_PSI               (1U<<13)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 /* nfct */
