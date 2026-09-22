@@ -1,6 +1,7 @@
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include(CheckSymbolExists)
+include(CheckCSourceCompiles)
 include(CheckTypeSize)
 
 # Window function
@@ -72,9 +73,15 @@ endforeach()
 
 # Declaration checks
 # AC_CHECK_DECLS sets HAVE_DECL_X to 0 or 1 (always defined). We emit the same
-# via #define lines accumulated into NFFT_HAVE_DECLS.
+# via #define lines accumulated into NFFT_HAVE_DECLS. infft.h declares a
+# function itself wherever its HAVE_DECL_ reads 0.
 set(_nfft_decl_defs "")
 set(CMAKE_REQUIRED_QUIET ON)
+
+# check_symbol_exists takes the symbol's address and links the result, so the
+# math library has to be on the link line or every math name reports absent.
+set(_nfft_saved_required_libs "${CMAKE_REQUIRED_LIBRARIES}")
+list(APPEND CMAKE_REQUIRED_LIBRARIES m)
 
 # Base (double) math family
 set(_math_base
@@ -87,21 +94,57 @@ set(_math_base
   catanh)
 
 # Build double/float/long-double variants
-set(_decl_names memalign posix_memalign sleep nanosleep drand48 srand48)
+set(_decl_math_names "")
 foreach(m IN LISTS _math_base)
-  list(APPEND _decl_names "${m}" "${m}f" "${m}l")
+  list(APPEND _decl_math_names "${m}" "${m}f" "${m}l")
 endforeach()
 
-foreach(name IN LISTS _decl_names)
-  string(TOUPPER "${name}" NAME)
-  check_symbol_exists("${name}" "math.h;complex.h;stdlib.h;unistd.h;time.h" _decl_${name})
-  if(_decl_${name})
-    string(APPEND _nfft_decl_defs "#define HAVE_DECL_${NAME} 1\n")
-  else()
-    string(APPEND _nfft_decl_defs "#define HAVE_DECL_${NAME} 0\n")
-  endif()
-  unset(_decl_${name} CACHE)
+# glibc no longer declares memalign in stdlib.h, so these are probed singly:
+# one genuine absence must not push 240 math names onto the slow path.
+set(_decl_single_names memalign posix_memalign sleep nanosleep drand48 srand48)
+
+# One check_symbol_exists per name is about 250 compiles. The math matrix is
+# all or nothing on any real toolchain, so settle it in one. The probe mirrors
+# what check_symbol_exists emits, guard included, so a name that is a macro
+# passes without having its address taken.
+set(_nfft_decl_probe
+  "#include <math.h>\n#include <complex.h>\n#include <stdlib.h>\n#include <unistd.h>\n#include <time.h>\nint main(int argc, char **argv)\n{\n  (void)argv;\n  int r = 0;\n")
+foreach(name IN LISTS _decl_math_names)
+  string(APPEND _nfft_decl_probe
+    "#ifndef ${name}\n  r += ((int *)(&${name}))[argc];\n#endif\n")
 endforeach()
+string(APPEND _nfft_decl_probe "  return r;\n}\n")
+check_c_source_compiles("${_nfft_decl_probe}" NFFT_HAVE_ALL_MATH_DECLS)
+
+function(nfft_probe_decls out)
+  set(defs "")
+  foreach(name IN LISTS ARGN)
+    string(TOUPPER "${name}" NAME)
+    check_symbol_exists("${name}" "math.h;complex.h;stdlib.h;unistd.h;time.h" _decl_${name})
+    if(_decl_${name})
+      string(APPEND defs "#define HAVE_DECL_${NAME} 1\n")
+    else()
+      string(APPEND defs "#define HAVE_DECL_${NAME} 0\n")
+    endif()
+    unset(_decl_${name} CACHE)
+  endforeach()
+  set(${out} "${defs}" PARENT_SCOPE)
+endfunction()
+
+nfft_probe_decls(_nfft_decl_defs ${_decl_single_names})
+
+if(NFFT_HAVE_ALL_MATH_DECLS)
+  foreach(name IN LISTS _decl_math_names)
+    string(TOUPPER "${name}" NAME)
+    string(APPEND _nfft_decl_defs "#define HAVE_DECL_${NAME} 1\n")
+  endforeach()
+else()
+  message(STATUS "Some math declarations are absent; probing one at a time")
+  nfft_probe_decls(_nfft_math_defs ${_decl_math_names})
+  string(APPEND _nfft_decl_defs "${_nfft_math_defs}")
+endif()
+
+set(CMAKE_REQUIRED_LIBRARIES "${_nfft_saved_required_libs}")
 unset(CMAKE_REQUIRED_QUIET)
 set(NFFT_HAVE_DECLS "${_nfft_decl_defs}")
 

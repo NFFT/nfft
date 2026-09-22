@@ -17,9 +17,12 @@
  */
 
 /* Benchmarks for the fast NFFT with the standard PRE_PSI precomputation
- * scheme. Precomputation and transform are measured by separate benchmarks;
- * the transform benchmarks reuse the psi table left behind by the
- * precomputation benchmark for the same geometry. */
+ * scheme. Precomputation and transform are measured by separate benchmarks.
+ *
+ * Every round builds its own plan behind a spacer of varying size, so buffer
+ * placement varies across the rounds of one run and lands inside the reported
+ * spread. Placement moves these transforms by up to 17%, far more than the
+ * noise within one placement. */
 
 #include <benchmark/benchmark.h>
 #include "config.h"
@@ -65,10 +68,7 @@ static bool same_geometry(const Geometry& a, const Geometry& b) {
     return true;
 }
 
-/* Plan cache. At most one plan is alive at any time: requesting a
- * different geometry finalizes the previous one. Benchmarks are registered
- * grouped by geometry, so precomputation and both transforms for one geometry
- * share a single init. */
+/* At most one plan is alive at any time: each acquire finalizes the previous. */
 
 /* Which benchmark last seeded f_hat and f. Neither transform modifies its own
  * input so repeated entries into one benchmark need no reseeding. Moving between the
@@ -85,6 +85,18 @@ struct PlanSlot {
 
 static PlanSlot slot;
 static bool fftw_threads_started = false;
+
+/* Rebuilding a plan of the same geometry hands back the same addresses, so the
+ * spacer must stay alive across the round. The size sequence is fixed, so both
+ * sides of a comparison walk the same placements. */
+static void *layout_spacer = NULL;
+static unsigned long spacer_state = 1UL;
+
+static void shift_layout(void) {
+    free(layout_spacer);
+    spacer_state = spacer_state * 1103515245UL + 12345UL;
+    layout_spacer = malloc(64 + (size_t)((spacer_state >> 13) & 0x3fff) * 64);
+}
 
 static void release_plan(void) {
     if (slot.valid) {
@@ -216,9 +228,14 @@ static void prefault_psi(NFFT(plan)* plan) {
     memset(plan->psi, 0, len * sizeof(R));
 }
 
+/* Manual warm-up, untimed: Iterations() excludes MinTime(), which
+ * MinWarmUpTime() requires. Two faults in the fresh buffers. */
+#define BENCH_WARMUP_ITERS 2
+
 /* Times nfft_precompute_one_psi on a plan built here, so init and allocation
  * stay out of the measurement. */
 static void run_precompute(benchmark::State& state, int d) {
+    shift_layout();
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
     prefault_psi(plan);
 
@@ -231,9 +248,13 @@ static void run_precompute(benchmark::State& state, int d) {
 }
 
 static void run_trafo(benchmark::State& state, int d) {
-    NFFT(plan)* plan = acquire_plan(geometry_from(state, d));
+    shift_layout();
+    NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
     ensure_psi(plan);
     ensure_data(plan, DATA_TRAFO);
+
+    for (int w = 0; w < BENCH_WARMUP_ITERS; w++)
+        NFFT(trafo)(plan);
 
     for (auto _ : state) {
         NFFT(trafo)(plan);
@@ -242,9 +263,13 @@ static void run_trafo(benchmark::State& state, int d) {
 }
 
 static void run_adjoint(benchmark::State& state, int d) {
-    NFFT(plan)* plan = acquire_plan(geometry_from(state, d));
+    shift_layout();
+    NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
     ensure_psi(plan);
     ensure_data(plan, DATA_ADJOINT);
+
+    for (int w = 0; w < BENCH_WARMUP_ITERS; w++)
+        NFFT(adjoint)(plan);
 
     for (auto _ : state) {
         NFFT(adjoint)(plan);
@@ -268,47 +293,97 @@ DEFINE_DIM(2d, 2)
 DEFINE_DIM(3d, 3)
 DEFINE_DIM(4d, 4)
 
-/* MinWarmUpTime is dropped unless the same benchmark also sets MinTime. Without the warm-up, 
- * the CPU frequency ramp and the OpenMP team wake-up land inside the measured rounds of
- * whicheve benchmark runs first in the process. BENCH_MIN_TIME tracks the
- * --benchmark_min_time in .github/workflows/bench-linux.yml. */
-#define BENCH_MIN_TIME 0.1
-#define BENCH_WARMUP_TIME 0.1
+#define BENCH_BUDGET(name, iters) \
+    BENCH(name, SUFFIX)->Iterations(iters)->Setup(DoSetup)
 
-#define BENCH_BUDGET(name) \
-    BENCH(name, SUFFIX)->MinTime(BENCH_MIN_TIME) \
-        ->MinWarmUpTime(BENCH_WARMUP_TIME)->Setup(DoSetup)
+/* Iterations per round, stated per case as precompute, trafo, adjoint. Fixed
+ * rather than derived from a time budget, so both sides of a comparison run
+ * the same shape. Each entry is worth about 20 ms per round before
+ * BENCH_ITER_DIV.
+ *
+ * Per precision, because the default cutoff is not. Long double takes the
+ * double counts.
+ *
+ * Re-derive after changing a geometry or the window: configure a walltime tree
+ * of that precision, run
+ *   bench_nfft_fast --benchmark_min_time=0.02s --benchmark_repetitions=3
+ * and read the iteration column, with a floor of 4. */
+#if defined(NFFT_SINGLE)
+#define IT_1D_1024        400, 3200, 3400
+#define IT_1D_8192         48,  230,  230
+#define IT_1D_65536         6,   12,   13
+#define IT_1D_8192_M1024  400,  330,  300
+#define IT_1D_8192_M65536   6,   62,   67
+#define IT_1D_SMALL_M      64,  260,  240
+#define IT_1D_LARGE_M      35,  170,  190
+#define IT_2D_32          190,  300,  480
+#define IT_2D_128          12,    8,   10
+#define IT_2D_256          12,    4,    4
+#define IT_3D_8           260,   38,  100
+#define IT_3D_16           64,   10,   20
+#define IT_3D_32          124,    6,    7
+#define IT_4D_8           420,    7,   13
+#else
+#define IT_1D_1024        320, 1600, 1450
+#define IT_1D_8192         43,   51,   50
+#define IT_1D_65536         5,    4,    4
+#define IT_1D_8192_M1024  350,   66,   58
+#define IT_1D_8192_M65536   5,   23,   20
+#define IT_1D_SMALL_M      57,   57,   51
+#define IT_1D_LARGE_M      29,   45,   42
+#define IT_2D_32          170,   69,  120
+#define IT_2D_128          10,    4,    4
+#define IT_2D_256          10,    4,    4
+#define IT_3D_8           230,   21,   13
+#define IT_3D_16           57,    4,    4
+#define IT_3D_32          115,    4,    4
+#define IT_4D_8           350,    5,    4
+#endif
 
-/* Args are N[0..d-1], M, m. */
-#define REGISTER_CASE(tag, ...) \
-    BENCH_BUDGET(nfft_fast_precompute_psi_##tag)->Args({__VA_ARGS__}); \
-    BENCH_BUDGET(nfft_fast_trafo_##tag)->Args({__VA_ARGS__}); \
-    BENCH_BUDGET(nfft_fast_adjoint_##tag)->Args({__VA_ARGS__});
+/* A round only has to be long enough to time cleanly. Raise the divisor to buy
+ * CI time, raise --benchmark_repetitions in .github/workflows/bench-linux.yml
+ * to buy accuracy. */
+#define BENCH_ITER_DIV 5
+#define BENCH_MIN_ITERS 2
+
+#define BENCH_ITERS(n) \
+    ((n) / BENCH_ITER_DIV < BENCH_MIN_ITERS ? BENCH_MIN_ITERS \
+                                            : (n) / BENCH_ITER_DIV)
+
+#define REGISTER_CASE(tag, iters, ...) REGISTER_CASE_(tag, iters, __VA_ARGS__)
+
+/* Trailing args are N[0..d-1], M, m. */
+#define REGISTER_CASE_(tag, ipre, itrafo, iadj, ...) \
+    BENCH_BUDGET(nfft_fast_precompute_psi_##tag, BENCH_ITERS(ipre))->Args({__VA_ARGS__}); \
+    BENCH_BUDGET(nfft_fast_trafo_##tag, BENCH_ITERS(itrafo))->Args({__VA_ARGS__}); \
+    BENCH_BUDGET(nfft_fast_adjoint_##tag, BENCH_ITERS(iadj))->Args({__VA_ARGS__});
 
 /* 1d size sweep. */
-REGISTER_CASE(1d, 1024, 1024, DEFAULT_M)
-REGISTER_CASE(1d, 8192, 8192, DEFAULT_M)
-REGISTER_CASE(1d, 65536, 65536, DEFAULT_M)
+REGISTER_CASE(1d, IT_1D_1024,       1024,         1024, DEFAULT_M)
+REGISTER_CASE(1d, IT_1D_8192,       8192,         8192, DEFAULT_M)
+REGISTER_CASE(1d, IT_1D_65536,      65536,       65536, DEFAULT_M)
 
 /* 1d, off the M = N_total diagonal: separates FFT-phase from B-phase cost. */
-REGISTER_CASE(1d, 8192, 1024, DEFAULT_M)
-REGISTER_CASE(1d, 8192, 65536, DEFAULT_M)
+REGISTER_CASE(1d, IT_1D_8192_M1024, 8192,         1024, DEFAULT_M)
+REGISTER_CASE(1d, IT_1D_8192_M65536, 8192,       65536, DEFAULT_M)
 
 /* 1d cutoff sweep: B-phase cost scales as (2m+2)^d. */
-REGISTER_CASE(1d, 8192, 8192, SMALL_M)
-REGISTER_CASE(1d, 8192, 8192, LARGE_M)
+REGISTER_CASE(1d, IT_1D_SMALL_M,    8192,         8192, SMALL_M)
+REGISTER_CASE(1d, IT_1D_LARGE_M,    8192,         8192, LARGE_M)
 
 /* 2d size sweep. */
-REGISTER_CASE(2d, 32, 32, 1024, DEFAULT_M)
-REGISTER_CASE(2d, 128, 128, 16384, DEFAULT_M)
-REGISTER_CASE(2d, 256, 256, 65536, DEFAULT_M)
+REGISTER_CASE(2d, IT_2D_32,         32, 32,       1024, DEFAULT_M)
+REGISTER_CASE(2d, IT_2D_128,        128, 128,    16384, DEFAULT_M)
+/* M is a quarter of the grid: at M = N_total one transform is too slow to time
+ * in a short round. */
+REGISTER_CASE(2d, IT_2D_256,        256, 256,    16384, DEFAULT_M)
 
 /* 3d size sweep. */
-REGISTER_CASE(3d, 8, 8, 8, 512, DEFAULT_M)
-REGISTER_CASE(3d, 16, 16, 16, 2048, DEFAULT_M)
-REGISTER_CASE(3d, 32, 32, 32, 4096, DEFAULT_M)
+REGISTER_CASE(3d, IT_3D_8,          8, 8, 8,       512, DEFAULT_M)
+REGISTER_CASE(3d, IT_3D_16,         16, 16, 16,   2048, DEFAULT_M)
+REGISTER_CASE(3d, IT_3D_32,         32, 32, 32,   1024, DEFAULT_M)
 
 /* d = 4 uses the generic path instead of the specialized 1d/2d/3d kernels. */
-REGISTER_CASE(4d, 8, 8, 8, 8, 256, DEFAULT_M)
+REGISTER_CASE(4d, IT_4D_8,          8, 8, 8, 8,    256, DEFAULT_M)
 
 BENCHMARK_MAIN();
