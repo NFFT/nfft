@@ -1266,13 +1266,13 @@
   },
   "nfft/omp/online/fast/adjoint/3d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.57196924293097
+      "value": 16.571998774664774
     },
     "bound-digits": {
       "value": 6.975143525126454
     },
     "max-error": {
-      "value": 2.679358072298096e-17
+      "value": 2.679175883938683e-17
     }
   },
   "nfft/omp/online/fast/adjoint/3d/init_guru_PRE_PSI_m_half": {
@@ -1288,13 +1288,13 @@
   },
   "nfft/omp/online/fast/adjoint/3d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.57196924293097
+      "value": 16.571998774664774
     },
     "bound-digits": {
       "value": 6.975143525126454
     },
     "max-error": {
-      "value": 2.679358072298096e-17
+      "value": 2.679175883938683e-17
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init": {
@@ -1310,24 +1310,24 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.229776209874274
+      "value": 16.22928849312692
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 5.891471622136312e-17
+      "value": 5.898091516035254e-17
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.21007630032224
+      "value": 16.18036724093466
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 6.164866830437381e-17
+      "value": 6.601349994607169e-17
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI_m_half": {
@@ -1343,13 +1343,13 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.21023434083342
+      "value": 16.211509455272687
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 6.162623832902672e-17
+      "value": 6.144556538958915e-17
     }
   },
   "nfft/omp/online/fast/forward/1d/init": {
