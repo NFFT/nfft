@@ -1746,6 +1746,20 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
     dst[l] = Y(kb_phi)(b, lg_tail, peak_inv, m, nx0 - (R)l);
 }
 
+/* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
+
+/* Coefficients per tap, minus one. */
+INT Y(kb_poly_degree)(const INT m);
+
+/* Fill coef, (deg + 1) * (2m + 2) reals, coef[j * (2m+2) + l] being the
+ * coefficient of t^j for tap l, t = nx0 - m in [0, 1). */
+void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
+    const R mr, const INT m, const INT deg);
+
+/* Same contract as Y(kb_phi_run): dst[0 .. 2m+1] = phi(nx0 - l). */
+void Y(kb_poly_run)(R *dst, const R *coef, const INT m, const INT deg,
+    const R nx0);
+
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed
  * without the cancellation, so nothing overflows at any m b.
