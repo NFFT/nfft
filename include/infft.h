@@ -1797,7 +1797,7 @@ static inline INT Y(kb_poly_degree)(const INT m)
     return; \
   }
 
-static inline void Y(kb_poly_run)(R *dst, const R *coef,
+static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict coef,
     const INT m, const INT deg, const R nx0)
 {
   const INT w = 2 * m + 2;
