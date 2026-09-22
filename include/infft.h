@@ -1748,17 +1748,56 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
 
 /* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
 
-/* Coefficients per tap, minus one. */
-INT Y(kb_poly_degree)(const INT m);
+/* Past the optimum the error grows with the degree instead of shrinking: the
+ * fit sum runs over deg + 1 terms and the monomial form's own conditioning
+ * costs a few bits more, so a mantissa runs out before the approximation does.
+ * Measured in float over m = 5 to 9: the error is flat at three to five eps
+ * from degree 8 to 11, then rises about tenfold per degree, 3E-6 at 12 and
+ * 6E-5 at 13. The cap sits inside the flat region rather than on its edge.
+ * Double tolerates far more, 2.8E-15 at degree 14 against 4.1E-15 at 16, and
+ * since the error falls with m at fixed degree a cap never costs accuracy at
+ * large m. */
+#if MANT_DIG == 113
+  #define KB_POLY_DEG_MAX 24
+#elif MANT_DIG == 64
+  #define KB_POLY_DEG_MAX 20
+#elif MANT_DIG == 53
+  #define KB_POLY_DEG_MAX 14
+#elif MANT_DIG == 24
+  #define KB_POLY_DEG_MAX 10
+#else
+  #define KB_POLY_DEG_MAX 14
+#endif
+
+static inline INT Y(kb_poly_degree)(const INT m)
+{
+  /* m + 6 clears the transform's own error at every m measured in double. */
+  const INT deg = m + 6;
+
+  return IF(deg > (INT)KB_POLY_DEG_MAX, (INT)KB_POLY_DEG_MAX, deg);
+}
+
+static inline void Y(kb_poly_run)(R *dst, const R *coef,
+    const INT m, const INT deg, const R nx0)
+{
+  const INT w = 2 * m + 2;
+  const R t = nx0 - (R)m;
+  INT j, l;
+
+  for (l = 0; l < w; l++)
+    dst[l] = coef[deg * w + l];
+
+  for (j = deg - 1; j >= 0; j--)
+    for (l = 0; l < w; l++)
+      dst[l] = dst[l] * t + coef[j * w + l];
+}
+
 
 /* Fill coef, (deg + 1) * (2m + 2) reals, coef[j * (2m+2) + l] being the
  * coefficient of t^j for tap l, t = nx0 - m in [0, 1). */
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R mr, const INT m, const INT deg);
 
-/* Same contract as Y(kb_phi_run): dst[0 .. 2m+1] = phi(nx0 - l). */
-void Y(kb_poly_run)(R *dst, const R *coef, const INT m, const INT deg,
-    const R nx0);
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed

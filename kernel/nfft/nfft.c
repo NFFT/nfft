@@ -32,6 +32,27 @@
 #include "nfft3.h"
 #include "infft.h"
 
+#if defined(WINDOW_IS_KAISER_BESSEL)
+/* The polynomial form shares the run contract with PHI_RUN, so one selector
+ * serves the precompute and the on-the-fly paths alike. The coefficients ride
+ * in spline_coeffs, the de Boor scratch that only the B-spline and sinc-power
+ * windows use and that PRE_POLY_PSI is rejected alongside. */
+#define PHI_RUN_PLAN(dst,n,x,u,ax) \
+  do { \
+    if (ths->flags & PRE_POLY_PSI) \
+    { \
+      const INT PHI_RUN_deg = Y(kb_poly_degree)(ths->m); \
+      Y(kb_poly_run)((dst), ths->spline_coeffs \
+          + (ax) * (PHI_RUN_deg + 1) * (2 * ths->m + 2), ths->m, \
+          PHI_RUN_deg, NX_SUB(n, x, u)); \
+    } \
+    else \
+      PHI_RUN(dst,n,x,u,ax); \
+  } while (0)
+#else
+#define PHI_RUN_PLAN(dst,n,x,u,ax) PHI_RUN(dst,n,x,u,ax)
+#endif
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1140,7 +1161,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
  \
     for (t2 = 0; t2 < ths->d; t2++) \
     { \
-      PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
+      PHI_RUN_PLAN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
           ths->x[j*ths->d+t2], u[t2], t2); \
     } \
  \
@@ -1208,7 +1229,7 @@ MACRO_B(A)
 #define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_without_PRE_PSI \
     for (t2 = 0; t2 < ths->d; t2++) \
     { \
-      PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
+      PHI_RUN_PLAN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
           ths->x[j*ths->d+t2], u[t2], t2); \
     }
 #define MACRO_B_openmp_A_COMPUTE_UPDATE_without_PRE_PSI \
@@ -1798,7 +1819,7 @@ MACRO_B(T)
       R psij_const[ths->d * (2*ths->m+2)]; \
       for (t2 = 0; t2 < ths->d; t2++) \
       { \
-        PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
+        PHI_RUN_PLAN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
             ths->x[j*ths->d+t2], u[t2], t2); \
       }
 #define MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_without_PRE_PSI \
@@ -2558,7 +2579,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 
       uo(ths, (INT)j, &u, &o, (INT)0);
 
-      PHI_RUN(psij_const, ths->n[0], ths->x[j], u, 0);
+      PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[j], u, 0);
 
       nfft_trafo_1d_compute(&ths->f[j], g, psij_const, &ths->x[j], n, m);
     }
@@ -2637,7 +2658,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
  \
             uo(ths, j, &u, &o, (INT)0); \
  \
-            PHI_RUN(psij_const, ths->n[0], ths->x[j], u, 0); \
+            PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[j], u, 0); \
  \
             nfft_adjoint_1d_compute_omp_blockwise(ths->f[j], g, psij_const, \
                 ths->x + j, n, m, my_u0, my_o0); \
@@ -2873,7 +2894,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
 
     uo(ths, j, &u, &o, (INT)0);
 
-    PHI_RUN(psij_const, ths->n[0], ths->x[j], u, 0);
+    PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[j], u, 0);
 
 #ifdef _OPENMP
     nfft_adjoint_1d_compute_omp_atomic(ths->f[j], g, psij_const, ths->x + j, n, m);
@@ -3483,10 +3504,10 @@ static void nfft_trafo_2d_B(X(plan) *ths)
     INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
     uo(ths,j,&u,&o,(INT)0);
-    PHI_RUN(psij_const, ths->n[0], ths->x[2*j], u, 0);
+    PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[2*j], u, 0);
 
     uo(ths,j,&u,&o,(INT)1);
-    PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1);
+    PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1);
 
     nfft_trafo_2d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
   }
@@ -3585,10 +3606,10 @@ static void nfft_trafo_2d_B(X(plan) *ths)
             INT u, o, l; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            PHI_RUN(psij_const, ths->n[0], ths->x[2*j], u, 0); \
+            PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[2*j], u, 0); \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1); \
+            PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1); \
  \
             nfft_adjoint_2d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, \
@@ -3852,10 +3873,10 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
     uo(ths,j,&u,&o,(INT)0);
-    PHI_RUN(psij_const, ths->n[0], ths->x[2*j], u, 0);
+    PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[2*j], u, 0);
 
     uo(ths,j,&u,&o,(INT)1);
-    PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1);
+    PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[2*j+1], u, 1);
 
 #ifdef _OPENMP
     nfft_adjoint_2d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, ths->x+2*j, ths->x+2*j+1, n0, n1, m);
@@ -4929,13 +4950,13 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
     uo(ths,j,&u,&o,(INT)0);
-    PHI_RUN(psij_const, ths->n[0], ths->x[3*j], u, 0);
+    PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[3*j], u, 0);
 
     uo(ths,j,&u,&o,(INT)1);
-    PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1);
+    PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1);
 
     uo(ths,j,&u,&o,(INT)2);
-    PHI_RUN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2);
+    PHI_RUN_PLAN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2);
 
     nfft_trafo_3d_compute(ths->f+j, g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
   }
@@ -5065,13 +5086,13 @@ static void nfft_trafo_3d_B(X(plan) *ths)
             R psij_const[3*(2*m+2)]; \
  \
             uo(ths,j,&u,&o,(INT)0); \
-            PHI_RUN(psij_const, ths->n[0], ths->x[3*j], u, 0); \
+            PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[3*j], u, 0); \
  \
             uo(ths,j,&u,&o,(INT)1); \
-            PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1); \
+            PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1); \
  \
             uo(ths,j,&u,&o,(INT)2); \
-            PHI_RUN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2); \
+            PHI_RUN_PLAN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2); \
  \
             nfft_adjoint_3d_compute_omp_blockwise(ths->f[j], g, \
                 psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, \
@@ -5363,13 +5384,13 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
 
     uo(ths,j,&u,&o,(INT)0);
-    PHI_RUN(psij_const, ths->n[0], ths->x[3*j], u, 0);
+    PHI_RUN_PLAN(psij_const, ths->n[0], ths->x[3*j], u, 0);
 
     uo(ths,j,&u,&o,(INT)1);
-    PHI_RUN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1);
+    PHI_RUN_PLAN(psij_const+2*m+2, ths->n[1], ths->x[3*j+1], u, 1);
 
     uo(ths,j,&u,&o,(INT)2);
-    PHI_RUN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2);
+    PHI_RUN_PLAN(psij_const+2*(2*m+2), ths->n[2], ths->x[3*j+2], u, 2);
 
 #ifdef _OPENMP
     nfft_adjoint_3d_compute_omp_atomic(ths->f[j], g, psij_const, psij_const+2*m+2, psij_const+(2*m+2)*2, ths->x+3*j, ths->x+3*j+1, ths->x+3*j+2, n0, n1, n2, m);
@@ -5831,7 +5852,7 @@ void X(precompute_psi)(X(plan) *ths)
     {
       uo(ths,j,&u,&o,t);
 
-      PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2), ths->n[t],
+      PHI_RUN_PLAN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2), ths->n[t],
           ths->x[j*ths->d+t], u, t);
     } /* for(j) */
   }
@@ -5959,6 +5980,21 @@ static void init_help(X(plan) *ths)
     ths->sigma[t] = ((R)ths->n[t]) / (R)(ths->N[t]);
 
   WINDOW_HELP_INIT;
+
+#if defined(WINDOW_IS_KAISER_BESSEL)
+  if (ths->flags & PRE_POLY_PSI)
+  {
+    const INT deg = Y(kb_poly_degree)(ths->m);
+    const INT stride = (deg + 1) * (2 * ths->m + 2);
+
+    ths->spline_coeffs =
+        (R*) Y(malloc)((size_t)(stride * ths->d) * sizeof(R));
+
+    for (t = 0; t < ths->d; t++)
+      Y(kb_poly_fit)(ths->spline_coeffs + t * stride, KB_B(t), KB_LG_TAIL(t),
+          KB_PEAK_INV(t), (R)ths->m, ths->m, deg);
+  }
+#endif
 
   if(ths->flags & MALLOC_X)
     ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));
@@ -6261,6 +6297,11 @@ void X(finalize)(X(plan) *ths)
 
   if(ths->flags & MALLOC_X)
     Y(free)(ths->x);
+
+#if defined(WINDOW_IS_KAISER_BESSEL)
+  if (ths->flags & PRE_POLY_PSI)
+    Y(free)(ths->spline_coeffs);
+#endif
 
   WINDOW_HELP_FINALIZE;
 
