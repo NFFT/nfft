@@ -1334,14 +1334,19 @@ static inline void B_openmp_A (X(plan) *ths)
 
   if (ths->flags & PRE_FULL_PSI)
   {
+    C *restrict f = ths->f;
+    const R *restrict psi = ths->psi;
+    const INT *restrict psi_index_g = ths->psi_index_g;
+    const C *restrict g = (const C *)ths->g;
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < ths->M_total; k++)
     {
       INT l;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-      ths->f[j] = K(0.0);
+      C fj = K(0.0);
       for (l = 0; l < lprod; l++)
-        ths->f[j] += ths->psi[j*lprod+l] * ths->g[ths->psi_index_g[j*lprod+l]];
+        fj += psi[j*lprod+l] * g[psi_index_g[j*lprod+l]];
+      f[j] = fj;
     }
     return;
   }
@@ -1579,9 +1584,10 @@ static void nfft_adjoint_B_omp_blockwise_init(INT *my_u0, INT *my_o0,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
-    const R *psi, const C *f, const INT M, const INT d, const INT *n,
-    const INT m, const unsigned flags, const INT *index_x)
+static void nfft_adjoint_B_compute_full_psi(C *restrict g,
+    const INT *restrict psi_index_g, const R *restrict psi,
+    const C *restrict f, const INT M, const INT d, const INT *restrict n,
+    const INT m, const unsigned flags, const INT *restrict index_x)
 {
   INT k;
   INT lprod;
@@ -2403,11 +2409,14 @@ static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *restrict g,
 static void nfft_trafo_1d_B(X(plan) *ths)
 {
   const INT n = ths->n[0], M = ths->M_total, m = ths->m, m2p2 = 2*m+2;
-  const C *g = (C*)ths->g;
+  const C *restrict g = (const C*)ths->g;
 
   if (ths->flags & PRE_FULL_PSI)
   {
     INT k;
+    C *restrict f = ths->f;
+    const R *restrict psi = ths->psi;
+    const INT *restrict psi_index_g = ths->psi_index_g;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
@@ -2415,9 +2424,10 @@ static void nfft_trafo_1d_B(X(plan) *ths)
     {
       INT l;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-      ths->f[j] = K(0.0);
+      C fj = K(0.0);
       for (l = 0; l < m2p2; l++)
-        ths->f[j] += ths->psi[j*m2p2+l] * g[ths->psi_index_g[j*m2p2+l]];
+        fj += psi[j*m2p2+l] * g[psi_index_g[j*m2p2+l]];
+      f[j] = fj;
     }
     return;
   } /* if(PRE_FULL_PSI) */
@@ -3330,7 +3340,7 @@ static void nfft_adjoint_2d_compute_serial(const C *restrict fj,
 
 static void nfft_trafo_2d_B(X(plan) *ths)
 {
-  const C *g = (C*)ths->g;
+  const C *restrict g = (const C*)ths->g;
   const INT n0 = ths->n[0];
   const INT n1 = ths->n[1];
   const INT M = ths->M_total;
@@ -3341,6 +3351,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2);
+    C *restrict f = ths->f;
+    const R *restrict psi = ths->psi;
+    const INT *restrict psi_index_g = ths->psi_index_g;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
@@ -3348,9 +3361,10 @@ static void nfft_trafo_2d_B(X(plan) *ths)
     {
       INT l;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-      ths->f[j] = K(0.0);
+      C fj = K(0.0);
       for (l = 0; l < lprod; l++)
-        ths->f[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
+        fj += psi[j*lprod+l] * g[psi_index_g[j*lprod+l]];
+      f[j] = fj;
     }
     return;
   } /* if(PRE_FULL_PSI) */
@@ -4756,13 +4770,16 @@ static void nfft_trafo_3d_B(X(plan) *ths)
   const INT M = ths->M_total;
   const INT m = ths->m;
 
-  const C* g = (C*) ths->g;
+  const C* restrict g = (const C*) ths->g;
 
   INT k;
 
   if(ths->flags & PRE_FULL_PSI)
   {
     const INT lprod = (2*m+2) * (2*m+2) * (2*m+2);
+    C *restrict f = ths->f;
+    const R *restrict psi = ths->psi;
+    const INT *restrict psi_index_g = ths->psi_index_g;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
 #endif
@@ -4770,9 +4787,10 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     {
       INT l;
       INT j = (ths->flags & NFFT_SORT_NODES) ? ths->index_x[2*k+1] : k;
-      ths->f[j] = K(0.0);
+      C fj = K(0.0);
       for (l = 0; l < lprod; l++)
-        ths->f[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
+        fj += psi[j*lprod+l] * g[psi_index_g[j*lprod+l]];
+      f[j] = fj;
     }
     return;
   } /* if(PRE_FULL_PSI) */
