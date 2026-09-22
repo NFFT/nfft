@@ -193,13 +193,6 @@ if(NOT NFFT_ENABLE_FLOAT AND NOT NFFT_ENABLE_LONG_DOUBLE)
   set(HAVE_NFSOFT 1)
 endif()
 
-# FFTW threads default when OpenMP is enabled
-if(NFFT_ENABLE_OPENMP)
-  if(NOT DEFINED HAVE_FFTW_THREADS)
-    set(HAVE_FFTW_THREADS 1)
-  endif()
-endif()
-
 # MATLAB argument checks
 set(MATLAB_ARGCHECKS 1)
 

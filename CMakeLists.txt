@@ -15,7 +15,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries (DLLs on Windows)" ON)
 # Options
 option(NFFT_ENABLE_FLOAT       "Build single (float) precision"   OFF)
 option(NFFT_ENABLE_LONG_DOUBLE "Build long double precision"      OFF)
-option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  ON)
+option(NFFT_ENABLE_OPENMP      "Build the OpenMP (_omp) library"  OFF)
 option(NFFT_ENABLE_MAXOPT      "Use aggressive compiler flags"    ON)
 option(NFFT_ENABLE_TESTS       "Build the CUnit test suite"       OFF)
 
@@ -143,7 +143,39 @@ if(NFFT_ENABLE_OPENMP AND (FFTW3_OMP_FOUND OR FFTW3_THREADS_FOUND))
                  ${PROJECT_BINARY_DIR}/config.h @ONLY)
 endif()
 
+if(NFFT_ENABLE_OPENMP AND NOT FFTW3_OMP_FOUND)
+  if(FFTW3_THREADS_FOUND)
+    message(WARNING "Only generic multi-threaded FFTW3 library found. This may be less "
+      "efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.")
+  else()
+    message(WARNING "Only single-threaded FFTW3 library found. Multi-threading will only "
+      "be used in NFFT code, not in FFTW3 computations.")
+  endif()
+endif()
+
 if(NFFT_ENABLE_OPENMP)
+  # On macOS, two libomp.dylib copies at different paths can both load into one
+  # process and abort with "OMP: Error #15" (e.g. Homebrew's llvm ships its own,
+  # Homebrew's fftw uses the libomp formula). Preset FindOpenMP's library to the
+  # libomp that FFTW3's OpenMP library uses. OpenMP_omp_LIBRARY is used for
+  # clang, OpenMP_libomp_LIBRARY for AppleClang.
+  if(APPLE AND FFTW3_OMP_FOUND AND NOT OpenMP_omp_LIBRARY AND NOT OpenMP_libomp_LIBRARY)
+    find_program(NFFT_OTOOL otool)
+    mark_as_advanced(NFFT_OTOOL)
+    if(NFFT_OTOOL)
+      execute_process(COMMAND ${NFFT_OTOOL} -L ${FFTW3_OMP_LIBRARY}
+                      OUTPUT_VARIABLE _nfft_fftw_deps ERROR_QUIET)
+      string(REGEX MATCH "[^ \t\n]*/libomp\\.dylib" _nfft_fftw_omp "${_nfft_fftw_deps}")
+      if(_nfft_fftw_omp AND EXISTS "${_nfft_fftw_omp}")
+        set(OpenMP_omp_LIBRARY "${_nfft_fftw_omp}" CACHE FILEPATH "OpenMP runtime used by FFTW3")
+        set(OpenMP_libomp_LIBRARY "${_nfft_fftw_omp}" CACHE FILEPATH "OpenMP runtime used by FFTW3")
+        message(STATUS "Using the OpenMP runtime of FFTW3: ${_nfft_fftw_omp}")
+      endif()
+      unset(_nfft_fftw_deps)
+      unset(_nfft_fftw_omp)
+    endif()
+  endif()
+
   find_package(OpenMP COMPONENTS C REQUIRED)
   include(CheckCSourceCompiles)
 
@@ -179,17 +211,14 @@ if(NFFT_ENABLE_OPENMP)
     set(CMAKE_REQUIRED_DEFINITIONS "")
   endif()
 
-  set(CMAKE_REQUIRED_FLAGS "${OpenMP_C_FLAGS}")
-  set(CMAKE_REQUIRED_LINK_OPTIONS "${OpenMP_C_FLAGS}")
-
   # Try with no extra lib first, then with -latomic.
-  set(CMAKE_REQUIRED_LIBRARIES "${OpenMP_C_LIBRARIES}")
+  set(CMAKE_REQUIRED_LIBRARIES OpenMP::OpenMP_C)
   unset(NFFT_OPENMP_ATOMIC_NONE CACHE)
   check_c_source_compiles("${_nfft_atomic_test}" NFFT_OPENMP_ATOMIC_NONE)
   if(NFFT_OPENMP_ATOMIC_NONE)
     set(NFFT_OPENMP_ATOMIC_LIBS "" CACHE INTERNAL "Extra libs for OpenMP atomic on the real type")
   else()
-    set(CMAKE_REQUIRED_LIBRARIES "${OpenMP_C_LIBRARIES};atomic")
+    set(CMAKE_REQUIRED_LIBRARIES OpenMP::OpenMP_C atomic)
     unset(NFFT_OPENMP_ATOMIC_LATOMIC CACHE)
     check_c_source_compiles("${_nfft_atomic_test}" NFFT_OPENMP_ATOMIC_LATOMIC)
     if(NFFT_OPENMP_ATOMIC_LATOMIC)
@@ -201,11 +230,48 @@ if(NFFT_ENABLE_OPENMP)
   endif()
 
   unset(CMAKE_REQUIRED_DEFINITIONS)
-  unset(CMAKE_REQUIRED_FLAGS)
-  unset(CMAKE_REQUIRED_LINK_OPTIONS)
   unset(CMAKE_REQUIRED_LIBRARIES)
   unset(_nfft_atomic_test)
   message(STATUS "OpenMP atomic on real type: extra libs = '${NFFT_OPENMP_ATOMIC_LIBS}'")
+
+  # Start NFFT's and FFTW3's OpenMP code in one process. Fails if two OpenMP
+  # runtimes get loaded.
+  if(FFTW3_OMP_FOUND AND NOT CMAKE_CROSSCOMPILING)
+    include(CheckCSourceRuns)
+    set(_f "fftw${NFFT_PREC_SUFFIX}")
+    set(CMAKE_REQUIRED_LIBRARIES OpenMP::OpenMP_C FFTW3::fftw3_omp FFTW3::fftw3)
+    unset(NFFT_OPENMP_FFTW3_RUNS CACHE)
+    check_c_source_runs("
+      #include <omp.h>
+      #include <fftw3.h>
+      int main(void){
+        int n = 0;
+        ${_f}_complex *x;
+        ${_f}_plan p;
+        #pragma omp parallel reduction(+:n)
+        n += 1;
+        if (n < 1 || !${_f}_init_threads())
+          return 1;
+        ${_f}_plan_with_nthreads(2);
+        x = ${_f}_alloc_complex(64);
+        p = ${_f}_plan_dft_1d(64, x, x, FFTW_FORWARD, FFTW_ESTIMATE);
+        ${_f}_execute(p);
+        ${_f}_destroy_plan(p);
+        ${_f}_free(x);
+        ${_f}_cleanup_threads();
+        return 0;
+      }" NFFT_OPENMP_FFTW3_RUNS)
+    unset(CMAKE_REQUIRED_LIBRARIES)
+    unset(_f)
+    if(NOT NFFT_OPENMP_FFTW3_RUNS)
+      message(FATAL_ERROR
+        "A program that uses both OpenMP and the OpenMP FFTW3 library failed to run. "
+        "This is most likely because two different OpenMP runtimes were loaded, e.g. "
+        "libomp from Homebrew's llvm and from Homebrew's libomp formula. Set "
+        "OpenMP_omp_LIBRARY (clang) or OpenMP_libomp_LIBRARY (AppleClang) to the "
+        "OpenMP runtime that FFTW3 uses.")
+    endif()
+  endif()
 endif()
 
 include(nfft_maxopt)   # Aggressive compiler options.
