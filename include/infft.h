@@ -326,6 +326,7 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #else /* Kaiser-Bessel is the default. */
+  #define WINDOW_IS_KAISER_BESSEL 1
   /* PHI and PHI_HUT both carry the factor exp(-log I0(m b)) so that PHI_HUT(n,0,ax) 
    * is normalized to 1. Deconvolution divides by PHI_HUT and convolution multiplies 
    * by PHI, so the factor cancels and the transform is unchanged.

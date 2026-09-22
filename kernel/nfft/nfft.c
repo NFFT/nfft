@@ -6177,6 +6177,11 @@ const char* X(check)(X(plan) *ths)
   if ((ths->flags & PRE_LIN_PSI) && ths->K < ths->M_total)
     return "Number of nodes too small to use PRE_LIN_PSI.";
 
+#ifndef WINDOW_IS_KAISER_BESSEL
+  if (ths->flags & PRE_POLY_PSI)
+    return "PRE_POLY_PSI needs the Kaiser-Bessel window.";
+#endif
+
   for (j = 0; j < ths->M_total * ths->d; j++)
   {
     if ((ths->x[j]<-K(0.5)) || (ths->x[j]>= K(0.5)))
