@@ -823,27 +823,27 @@ static void D_T(X(plan) *ths)
 }
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_B_init_result_A memset(ths->f, 0, (size_t)(ths->M_total) * sizeof(C));
-#define MACRO_B_init_result_T memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(C));
+#define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
 #define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
+  (*fj) += psi[ix] * g[psi_index_g[ix]]; \
 }
 
 #define MACRO_B_PRE_FULL_PSI_compute_T \
 { \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
+  g[psi_index_g[ix]] += psi[ix] * (*fj); \
 }
 
 #define MACRO_B_compute_A \
 { \
-  ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+  f[j] += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
 }
 
 #define MACRO_B_compute_T \
 { \
-  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+  g[ll_plain[ths->d]] += phi_prod[ths->d] * f[j]; \
 }
 
 #define MACRO_with_FG_PSI fg_p[t2][lj[t2]]
@@ -1003,15 +1003,17 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
   R ip_w; \
   INT ip_u; \
   INT ip_s = ths->K/(ths->m+2); \
+  C *restrict f = (C*)ths->f; \
+  C *restrict g = (C*)ths->g; \
+  const R *restrict psi = (const R*)ths->psi; \
+  const INT *restrict psi_index_g = (const INT*)ths->psi_index_g; \
  \
   MACRO_B_init_result_ ## which_one; \
  \
   if (ths->flags & PRE_FULL_PSI) \
   { \
     INT j; \
-    C *f, *g; /* local copy */ \
     C *fj; /* local copy */ \
-    f = (C*)ths->f; g = (C*)ths->g; \
  \
     for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
     { \
@@ -1263,7 +1265,7 @@ MACRO_B(A)
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
                 ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
-                ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+                f[j] += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
               } \
             } \
           } \
@@ -1303,7 +1305,7 @@ MACRO_B(A)
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
                   ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
-                  ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+                  f[j] += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
                 } \
               } \
             } \
@@ -1315,7 +1317,7 @@ MACRO_B(A)
         { \
           MACRO_B_openmp_A_COMPUTE_UPDATE_ ##whichone \
  \
-          ths->f[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
+          f[j] += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
  \
           MACRO_count_uo_l_lj_t; \
         } /* for(l_L) */ \
@@ -1326,18 +1328,18 @@ static inline void B_openmp_A (X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
+  C *restrict f = (C*)ths->f;
+  const C *restrict g = (const C*)ths->g;
+  const R *restrict psi = (const R*)ths->psi;
+  const INT *restrict psi_index_g = (const INT*)ths->psi_index_g;
 
-  memset(ths->f, 0, ths->M_total * sizeof(C));
+  memset(f, 0, ths->M_total * sizeof(C));
 
   for (k = 0, lprod = 1; k < ths->d; k++)
     lprod *= (2*ths->m+2);
 
   if (ths->flags & PRE_FULL_PSI)
   {
-    C *restrict f = ths->f;
-    const R *restrict psi = ths->psi;
-    const INT *restrict psi_index_g = ths->psi_index_g;
-    const C *restrict g = (const C *)ths->g;
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < ths->M_total; k++)
     {
@@ -1861,7 +1863,7 @@ MACRO_B(T)
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
                 ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
-                ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+                g[ll_plain[ths->d]] += phi_prod[ths->d] * f[j]; \
               } \
             } \
           } \
@@ -1903,7 +1905,7 @@ MACRO_B(T)
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
                   ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
-                  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+                  g[ll_plain[ths->d]] += phi_prod[ths->d] * f[j]; \
                 } \
               } \
             } \
@@ -1921,7 +1923,7 @@ MACRO_B(T)
             continue; \
           } \
           MACRO_adjoint_nd_B_OMP_COMPUTE_UPDATE_ ##whichone \
-          ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * ths->f[j]; \
+          g[ll_plain[ths->d]] += phi_prod[ths->d] * f[j]; \
           MACRO_count_uo_l_lj_t; \
           l_L++; \
         } /* for(l_L) */ \
@@ -2121,8 +2123,10 @@ static inline void B_openmp_T(X(plan) *ths)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
+  C *restrict g = (C*)ths->g;
+  const C *restrict f = (const C*)ths->f;
 
-  memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
 
   for (k = 0, lprod = 1; k < ths->d; k++)
     lprod *= (2*ths->m+2);
