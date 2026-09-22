@@ -1748,15 +1748,22 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
 
 /* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
 
-/* Past the optimum the error grows with the degree instead of shrinking: the
- * fit sum runs over deg + 1 terms and the monomial form's own conditioning
- * costs a few bits more, so a mantissa runs out before the approximation does.
- * Measured in float over m = 5 to 9: the error is flat at three to five eps
- * from degree 8 to 11, then rises about tenfold per degree, 3E-6 at 12 and
- * 6E-5 at 13. The cap sits inside the flat region rather than on its edge.
- * Double tolerates far more, 2.8E-15 at degree 14 against 4.1E-15 at 16, and
- * since the error falls with m at fixed degree a cap never costs accuracy at
- * large m. */
+/* The degree cap is per precision, and each one is there for a different
+ * reason. Swept over m against degree with the shipped fit:
+ *
+ *   float, eps 1.2E-7: flat at three to five eps from degree 8 to 11, then a
+ *     cliff, 3E-6 at 12 and 6E-5 at 13. The cap is an accuracy guard and sits
+ *     inside the flat region rather than on its edge.
+ *   double, eps 2.2E-16: flat at about 8E-16 from degree 12 to 22 for every m
+ *     tested, no cliff, because the refinement step absorbs what used to
+ *     degrade past the optimum. The cap is a work guard, not an accuracy one:
+ *     degree 22 costs half again as much Horner for nothing.
+ *   long double, eps 1.9E-34: still improving at 24, where it reaches about
+ *     four eps. The cap is that floor, and it never binds in practice, since
+ *     m + 6 would need m > 18.
+ *
+ * The 80-bit entry is untested here: this container carries binary128, so only
+ * CI exercises it. */
 #if MANT_DIG == 113
   #define KB_POLY_DEG_MAX 24
 #elif MANT_DIG == 64
