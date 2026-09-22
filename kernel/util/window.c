@@ -185,6 +185,8 @@ void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
     out[i] = Y(window_phi_hut)(window, n, N, m, k0 + i);
 }
 
+/* The run's offsets come from NX_SUB, as the PHI_RUN macros form them: one
+ * rounding, so a node past the mantissa of n x is not displaced. */
 void Y(window_phi_precompute)(int window, INT n, INT N, int m,
                               const R *x, INT x_stride, INT num_nodes,
                               R *out, INT out_stride)
@@ -202,7 +204,7 @@ void Y(window_phi_precompute)(int window, INT n, INT N, int m,
       const INT u = LRINT(FLOOR((R)n * xj)) - (INT)m;
 
       Y(kb_phi_run)(out + (size_t)j * (size_t)out_stride, b, lg_tail, peak_inv,
-          (R)m, (INT)m, (R)n * xj - (R)u);
+          (R)m, (INT)m, NX_SUB(n, xj, u));
     }
 
     return;
@@ -216,6 +218,6 @@ void Y(window_phi_precompute)(int window, INT n, INT N, int m,
 
     for (l = 0; l <= 2 * m + 1; l++)
       out[(size_t)j * (size_t)out_stride + (size_t)l] =
-          Y(window_phi)(window, n, N, m, xj - (R)(u + (INT)l) / (R)n);
+          Y(window_phi)(window, n, N, m, NX_SUB(n, xj, u + (INT)l) / (R)n);
   }
 }
