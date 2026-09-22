@@ -430,6 +430,7 @@ if test "x$enable_threads" = "xyes"; then
     # FFTW3 OpenMP variant found - no warning needed (optimal case)
     fftw3_LIBS_omp="$nfft_fftw3_LIBS_omp"
     AC_DEFINE([HAVE_FFTW_THREADS],[1],[Define to 1 if multi-threaded FFTW can be used.])
+    NFFT_OPENMP_MATCH_FFTW3
   elif test "x$nfft_fftw3_have_lib_threads" = "xyes"; then
     # Only generic multi-threaded FFTW3 found - warn about potential inefficiency
     AC_MSG_WARN([Only generic multi-threaded FFTW3 library found. This may be less efficient because NFFT will use OpenMP threads while FFTW3 uses its own threading mechanism.])

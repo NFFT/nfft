@@ -79,11 +79,25 @@ ax_cv_[]_AC_LANG_ABBREV[]_openmp=unknown
 #                -xopenmp (Sun), -omp (Tru64),
 #                -qsmp=omp (AIX),
 #                none
-ax_openmp_flags="-fopenmp -openmp -qopenmp -mp -xopenmp -omp -qsmp=omp none"
+# One candidate per line, so that a preset OPENMP_CFLAGS such as
+# "-Xpreprocessor -fopenmp -lomp" (Apple clang) is tried as a whole.
+ax_openmp_flags="-fopenmp
+-openmp
+-qopenmp
+-mp
+-xopenmp
+-omp
+-qsmp=omp
+none"
 if test "x$OPENMP_[]_AC_LANG_PREFIX[]FLAGS" != x; then
-  ax_openmp_flags="$OPENMP_[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flags"
+  ax_openmp_flags="$OPENMP_[]_AC_LANG_PREFIX[]FLAGS
+$ax_openmp_flags"
 fi
+ax_openmp_save_IFS=$IFS
+IFS='
+'
 for ax_openmp_flag in $ax_openmp_flags; do
+  IFS=$ax_openmp_save_IFS
   case $ax_openmp_flag in
     none) []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[] ;;
     *) []_AC_LANG_PREFIX[]FLAGS="$save[]_AC_LANG_PREFIX[]FLAGS $ax_openmp_flag" ;;
@@ -110,6 +124,7 @@ main(void)
 }
 ]])],[ax_cv_[]_AC_LANG_ABBREV[]_openmp=$ax_openmp_flag; break],[])
 done
+IFS=$ax_openmp_save_IFS
 []_AC_LANG_PREFIX[]FLAGS=$save[]_AC_LANG_PREFIX[]FLAGS
 ])
 if test "x$ax_cv_[]_AC_LANG_ABBREV[]_openmp" = "xunknown"; then
