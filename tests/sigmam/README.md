@@ -63,6 +63,7 @@ beyond it the smaller smooth size.
 | `costprobe.c`, `data/cost-configs.txt` | transform timings |
 | `costplot.py` | cost landscape plot |
 | `data/` | the sweeps and timings the constants were fitted to |
+| `hostcheck/` | helper grid against the legacy grid on any host: `hostcheck/run.sh quick` |
 
 ## Refit
 
