@@ -123,16 +123,19 @@ typedef ptrdiff_t INT;
   #define MANT_DIG LDBL_MANT_DIG
   #define MIN_EXP LDBL_MIN_EXP
   #define MAX_EXP LDBL_MAX_EXP
+  #define MIN_NORM LDBL_MIN
   #define EPSILON LDBL_EPSILON
 #elif defined(NFFT_SINGLE)
   #define MANT_DIG FLT_MANT_DIG
   #define MIN_EXP FLT_MIN_EXP
   #define MAX_EXP FLT_MAX_EXP
+  #define MIN_NORM FLT_MIN
   #define EPSILON FLT_EPSILON
 #else
   #define MANT_DIG DBL_MANT_DIG
   #define MIN_EXP DBL_MIN_EXP
   #define MAX_EXP DBL_MAX_EXP
+  #define MIN_NORM DBL_MIN
   #define EPSILON DBL_EPSILON
 #endif
 
@@ -1694,12 +1697,10 @@ static inline R Y(kb_phi_in_interior)(R b, R lg_tail, R peak_inv_sq, R m, R nx)
   const R w = K(1.0) / (ra * (ra + m));
   const R e = EXP(-b * (nx * nx) * (w * ra) - lg_tail);
 
-  /* Far enough out, e and peak_inv_sq underflow. The window is below the format 
-   * minimum there, so zero is the correct value to return. */
-  if (e == K(0.0))
-    return K(0.0);
-
-  return (e - peak_inv_sq / e) * (w * (ra + m)) * (K(0.5) / KPI);
+  /* e and peak_inv_sq can underflow for larger m, especially in float. If that happens, 
+   * then the floor MIN_NORM makes the quotient 0 instead of 0/0 and this is the correct 
+   * value to return. */
+  return (e - peak_inv_sq / MAX(e, MIN_NORM)) * (w * (ra + m)) * (K(0.5) / KPI);
 }
 
 static inline R Y(kb_phi)(R b, R lg_tail, R peak_inv, R m, R nx)
