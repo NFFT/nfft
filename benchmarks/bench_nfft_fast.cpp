@@ -18,6 +18,8 @@
 
 /* Benchmarks for the fast NFFT with the standard PRE_PSI precomputation
  * scheme. Precomputation and transform are measured by separate benchmarks.
+ * The _otf transforms run without PRE_PSI and evaluate the window per node,
+ * on one geometry per B kernel: 1d, 2d and 3d, and the generic path at 4d.
  *
  * Every round builds its own plan behind a spacer of varying size, so buffer
  * placement varies across the rounds of one run and lands inside the reported
@@ -57,10 +59,11 @@ struct Geometry {
     int N[BENCH_MAX_D];
     int M;
     int m;
+    bool otf;
 };
 
 static bool same_geometry(const Geometry& a, const Geometry& b) {
-    if (a.d != b.d || a.M != b.M || a.m != b.m)
+    if (a.d != b.d || a.M != b.M || a.m != b.m || a.otf != b.otf)
         return false;
     for (int t = 0; t < a.d; t++)
         if (a.N[t] != b.N[t])
@@ -174,8 +177,8 @@ static NFFT(plan)* acquire_plan(const Geometry& geom, bool fresh = false) {
     }
 
     NFFT(init_guru)(&slot.plan, geom.d, N, geom.M, n, geom.m,
-        PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F
-        | FFTW_INIT | FFT_OUT_OF_PLACE,
+        PRE_PHI_HUT | (geom.otf ? 0U : PRE_PSI) | MALLOC_X | MALLOC_F_HAT
+        | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
         FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
     NFFT(vrand_shifted_unit_double)(slot.plan.x, slot.plan.d * slot.plan.M_total);
@@ -209,9 +212,11 @@ static void ensure_psi(NFFT(plan)* plan) {
     }
 }
 
-static Geometry geometry_from(const benchmark::State& state, int d) {
+static Geometry geometry_from(const benchmark::State& state, int d,
+    bool otf = false) {
     Geometry geom = {};
     geom.d = d;
+    geom.otf = otf;
     for (int t = 0; t < d; t++)
         geom.N[t] = (int)state.range(t);
     geom.M = (int)state.range(d);
@@ -247,9 +252,10 @@ static void run_precompute(benchmark::State& state, int d) {
     slot.psi_ready = true;
 }
 
-static void run_trafo(benchmark::State& state, int d) {
+static void run_trafo(benchmark::State& state, int d, bool otf = false) {
     shift_layout();
-    NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
+    NFFT(plan)* plan = acquire_plan(geometry_from(state, d, otf),
+        /*fresh=*/true);
     ensure_psi(plan);
     ensure_data(plan, DATA_TRAFO);
 
@@ -262,9 +268,10 @@ static void run_trafo(benchmark::State& state, int d) {
     }
 }
 
-static void run_adjoint(benchmark::State& state, int d) {
+static void run_adjoint(benchmark::State& state, int d, bool otf = false) {
     shift_layout();
-    NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
+    NFFT(plan)* plan = acquire_plan(geometry_from(state, d, otf),
+        /*fresh=*/true);
     ensure_psi(plan);
     ensure_data(plan, DATA_ADJOINT);
 
@@ -286,6 +293,12 @@ static void run_adjoint(benchmark::State& state, int d) {
     } \
     static void nfft_fast_adjoint_##tag(benchmark::State& state) { \
         run_adjoint(state, dim); \
+    } \
+    static void nfft_fast_trafo_otf_##tag(benchmark::State& state) { \
+        run_trafo(state, dim, true); \
+    } \
+    static void nfft_fast_adjoint_otf_##tag(benchmark::State& state) { \
+        run_adjoint(state, dim, true); \
     }
 
 DEFINE_DIM(1d, 1)
@@ -296,9 +309,9 @@ DEFINE_DIM(4d, 4)
 #define BENCH_BUDGET(name, iters) \
     BENCH(name, SUFFIX)->Iterations(iters)->Setup(DoSetup)
 
-/* Iterations per round, stated per case as precompute, trafo, adjoint. Fixed
- * rather than derived from a time budget, so both sides of a comparison run
- * the same shape. Each entry is worth about 20 ms per round before
+/* Iterations per round, stated per case as precompute, trafo, adjoint, or as
+ * trafo, adjoint for an _otf case. Fixed rather than derived from a time
+ * budget, so both sides of a comparison run the same shape. Each entry is worth about 20 ms per round before
  * BENCH_ITER_DIV.
  *
  * Per precision, because the default cutoff is not. Long double takes the
@@ -323,6 +336,10 @@ DEFINE_DIM(4d, 4)
 #define IT_3D_16           64,   10,   20
 #define IT_3D_32          124,    6,    7
 #define IT_4D_8           420,    7,   13
+#define IT_OTF_1D_8192           39,   38
+#define IT_OTF_2D_32            108,  135
+#define IT_OTF_3D_8              30,   72
+#define IT_OTF_4D_8               7,   12
 #else
 #define IT_1D_1024        320, 1600, 1450
 #define IT_1D_8192         43,   51,   50
@@ -338,6 +355,10 @@ DEFINE_DIM(4d, 4)
 #define IT_3D_16           57,    4,    4
 #define IT_3D_32          115,    4,    4
 #define IT_4D_8           350,    5,    4
+#define IT_OTF_1D_8192           19,   21
+#define IT_OTF_2D_32             43,   71
+#define IT_OTF_3D_8              20,   13
+#define IT_OTF_4D_8               5,    4
 #endif
 
 /* A round only has to be long enough to time cleanly. Raise the divisor to buy
@@ -357,6 +378,14 @@ DEFINE_DIM(4d, 4)
     BENCH_BUDGET(nfft_fast_precompute_psi_##tag, BENCH_ITERS(ipre))->Args({__VA_ARGS__}); \
     BENCH_BUDGET(nfft_fast_trafo_##tag, BENCH_ITERS(itrafo))->Args({__VA_ARGS__}); \
     BENCH_BUDGET(nfft_fast_adjoint_##tag, BENCH_ITERS(iadj))->Args({__VA_ARGS__});
+
+#define REGISTER_OTF_CASE(tag, iters, ...) \
+    REGISTER_OTF_CASE_(tag, iters, __VA_ARGS__)
+
+/* Trailing args are N[0..d-1], M, m. */
+#define REGISTER_OTF_CASE_(tag, itrafo, iadj, ...) \
+    BENCH_BUDGET(nfft_fast_trafo_otf_##tag, BENCH_ITERS(itrafo))->Args({__VA_ARGS__}); \
+    BENCH_BUDGET(nfft_fast_adjoint_otf_##tag, BENCH_ITERS(iadj))->Args({__VA_ARGS__});
 
 /* 1d size sweep. */
 REGISTER_CASE(1d, IT_1D_1024,       1024,         1024, DEFAULT_M)
@@ -385,5 +414,11 @@ REGISTER_CASE(3d, IT_3D_32,         32, 32, 32,   1024, DEFAULT_M)
 
 /* d = 4 uses the generic path instead of the specialized 1d/2d/3d kernels. */
 REGISTER_CASE(4d, IT_4D_8,          8, 8, 8, 8,    256, DEFAULT_M)
+
+/* Window evaluated per node, one geometry per B kernel. */
+REGISTER_OTF_CASE(1d, IT_OTF_1D_8192, 8192,       8192, DEFAULT_M)
+REGISTER_OTF_CASE(2d, IT_OTF_2D_32,   32, 32,     1024, DEFAULT_M)
+REGISTER_OTF_CASE(3d, IT_OTF_3D_8,    8, 8, 8,     512, DEFAULT_M)
+REGISTER_OTF_CASE(4d, IT_OTF_4D_8,    8, 8, 8, 8,  256, DEFAULT_M)
 
 BENCHMARK_MAIN();
