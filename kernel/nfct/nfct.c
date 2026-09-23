@@ -918,13 +918,20 @@ void X(precompute_psi)(X(plan) *ths)
   {
     INT j;
 
-    for (j = 0; j < ths->M_total; j++)
-    {
-      uo(ths, j, &u, &o, t);
-
-      PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
-          (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
-    } /* for (j) */
+    if (ths->spline_coeffs)
+      for (j = 0; j < ths->M_total; j++)
+      {
+        uo(ths, j, &u, &o, t);
+        PHI_RUN_POLY(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
+            (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
+      }
+    else
+      for (j = 0; j < ths->M_total; j++)
+      {
+        uo(ths, j, &u, &o, t);
+        PHI_RUN_CLOSED(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
+            (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
+      }
   } /* for (t) */
 } /* precompute_psi */
 
@@ -1012,6 +1019,7 @@ static inline void init_help(X(plan) *ths)
     ths->r2r_kind[t] = FOURIER_TRAFO;
 
   WINDOW_HELP_INIT;
+  WINDOW_HELP_POLY_INIT(ths->flags);
 
   if (ths->flags & MALLOC_X)
     ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));
@@ -1183,10 +1191,6 @@ const char* X(check)(X(plan) *ths)
 
   if (!ths->f_hat)
       return "Member f_hat not initialized.";
-
-  if (ths->flags & PRE_POLY_PSI)
-    return "PRE_POLY_PSI is an NFFT flag; this transform has no polynomial "
-      "window.";
 
   for (j = 0; j < ths->M_total * ths->d; j++)
   {

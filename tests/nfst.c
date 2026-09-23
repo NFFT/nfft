@@ -156,6 +156,7 @@ static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
 static init_delegate_t init_advanced_pre_full_psi;
+static init_delegate_t init_advanced_analytic_psi;
 static init_delegate_t init_advanced_pre_lin_psi;
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi;
@@ -753,6 +754,7 @@ static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_adva
 /* Default m gives errors around the round-off floor, so test a half that m to see the approximation error. */
 static init_delegate_t init_advanced_pre_psi_m_half = {"init_guru (PRE PSI, m=half)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m / 2, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_advanced_analytic_psi = {"init_guru (PRE PSI, analytic)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | ANALYTIC_WINDOW | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
@@ -902,6 +904,7 @@ static const init_delegate_t* initializers_1d[] =
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
+  &init_advanced_analytic_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
@@ -1040,6 +1043,7 @@ static const init_delegate_t* initializers_2d[] =
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
+  &init_advanced_analytic_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
@@ -1164,6 +1168,7 @@ static const init_delegate_t* initializers_3d[] =
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
+  &init_advanced_analytic_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
@@ -1269,6 +1274,7 @@ static const init_delegate_t* initializers_4d[] =
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
+  &init_advanced_analytic_psi,
 //  &init_advanced_pre_lin_psi,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,

@@ -37,17 +37,20 @@ typedef struct window_funct_plan_ {
 	int n[1];
 	double sigma[1];
 	double *b;
+	double *spline_coeffs;
 } window_funct_plan;
 
 /**
  * init the window_funct_plan
  */
-static void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
+static void window_funct_init(window_funct_plan* ths, int m, int n, double sigma,
+    unsigned flags) {
 	ths->d=1;
 	ths->m=m;
 	ths->n[0]=n;
 	ths->sigma[0]=sigma;
   WINDOW_HELP_INIT
+  WINDOW_HELP_POLY_INIT(flags);
 }
 
 /*
@@ -60,7 +63,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   double _Complex *f_hat = (double _Complex*) nfft_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
@@ -112,7 +115,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   double _Complex *f_hat = (double _Complex*) nfft_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	memset(f_hat,0,that->N_total*sizeof(double _Complex));
 
@@ -195,7 +198,7 @@ void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths) {
 void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
   int l,j;
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;
@@ -228,7 +231,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
   int l,j;
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;

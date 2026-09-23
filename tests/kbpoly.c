@@ -84,9 +84,10 @@ void X(check_kaiser_bessel_poly)(void)
       const R pki = EXP(-(R)m * b - lt);
       const R peak = kb_peak(b, lt, pki, (R)m);
       const INT deg = Y(kb_poly_degree)(m), w = 2 * m + 2;
+      const INT cols = KB_POLY_COLS(m);
       const R bound = IF(approx_bound(m) > eps_floor(deg), approx_bound(m),
           eps_floor(deg));
-      R *coef = (R*) Y(malloc)((size_t)((deg + 1) * w) * sizeof(R));
+      R *coef = (R*) Y(malloc)((size_t)((deg + 1) * cols) * sizeof(R));
       R *got = (R*) Y(malloc)((size_t)w * sizeof(R));
       R worst = K(0.0);
       INT i, l;
@@ -94,22 +95,32 @@ void X(check_kaiser_bessel_poly)(void)
 
       Y(kb_poly_fit)(coef, b, lt, pki, (R)m, m, deg);
 
-      /* 257 offsets across the cell, so the check does not sit on the
-       * interpolation nodes where the residual is zero by construction. */
-      for (i = 0; i <= 256; i++)
+      /* 513 offsets, off the interpolation nodes where the residual is zero
+       * by construction. Runs start in [m - 1, m + 1], the reach of both run
+       * anchors; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
+      for (i = 0; i <= 512; i++)
       {
-        const R t = (R)i / K(256.0);
+        const R nx0 = (R)(m - 1) + (R)i / K(256.0);
+        const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
+        R err;
 
-        Y(kb_poly_run)(got, coef, m, deg, t + (R)m);
+        Y(kb_poly_run)(got, coef, m, deg, nx0);
 
         for (l = 0; l < w; l++)
         {
-          const R ref = Y(kb_phi)(b, lt, pki, (R)m, t + (R)m - (R)l);
-          const R err = ABS(got[l] - ref) / peak;
+          const R ref = Y(kb_phi)(b, lt, pki, (R)m, nx0 - (R)l);
+
+          err = ABS(got[l] - ref) / peak;
 
           if (err > worst)
             worst = err;
         }
+
+        err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
+            - Y(kb_phi)(b, lt, pki, (R)m, nx)) / peak;
+
+        if (err > worst)
+          worst = err;
       }
 
       ok = IF(worst < bound, 1, 0);

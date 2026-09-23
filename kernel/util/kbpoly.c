@@ -18,13 +18,12 @@
 
 /* Polynomial form of the Kaiser-Bessel window.
  *
- * uo2 puts the run's first tap at u = floor(n x) - m, so the argument
- * Y(kb_phi_run) sees is nx0 = frac(n x) + m and every tap l is the fixed
- * function phi(t + m - l) of one offset t = nx0 - m in [0, 1). Each of those
- * is analytic in t: both branches of the window are even in the radical and
- * ra^2 is a polynomial in t, so there is no branch point and a Chebyshev
- * interpolant converges geometrically. One polynomial per tap, all evaluated
- * from the same t, replaces 2m+2 calls to EXP, EXPM1 and SIN.
+ * One polynomial per unit cell of the window argument, in the offset t in
+ * [0, 1) into the cell. A run of 2m + 2 taps spans 2m + 2 cells at one t, so
+ * it is one Horner sweep over 2m + 2 columns, in place of 2m + 2 calls to
+ * EXP, EXPM1 and SIN. Each column is analytic in t: both branches of the
+ * window are even in the radical and ra^2 is a polynomial in t, so there is no
+ * branch point and a Chebyshev interpolant converges geometrically.
  *
  * The interpolant is built from the window itself, not from a rewrite of it:
  * a plain sinh(b ra)/ra ratio carries 20 times the error of Y(kb_phi) and that
@@ -34,7 +33,7 @@
 #include "nfft3.h"
 #include "infft.h"
 
-/* Chebyshev coefficients of the values in val, into dst, one column per tap.
+/* Chebyshev coefficients of the values in val, into dst, one column per cell.
  * dst[0] comes out already halved, so the series is sum_j dst[j] T_j. */
 static void cheb_of(R *dst, const R *val, const R *cm, const INT w,
     const INT deg)
@@ -98,7 +97,7 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R mr, const INT m, const INT deg)
 {
-  const INT w = 2 * m + 2, n = deg + 1;
+  const INT w = KB_POLY_COLS(m), n = deg + 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n; out is w. */
   R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n + w) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
@@ -115,7 +114,7 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
       val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, mr,
-          node[k] + mr - (R)l);
+          node[k] + mr + K(1.0) - (R)l);
 
   cheb_of(cheb, val, cm, w, deg);
   cheb_to_monomial(coef, cheb, tp, w, deg);
@@ -127,7 +126,12 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
    * fit costs eps of something tiny. A second step changes nothing. */
   for (k = 0; k < n; k++)
   {
-    Y(kb_poly_run)(out, coef, m, deg, node[k] + mr);
+    for (l = 0; l < w; l++)
+      out[l] = coef[deg * w + l];
+
+    for (j = deg - 1; j >= 0; j--)
+      for (l = 0; l < w; l++)
+        out[l] = out[l] * node[k] + coef[j * w + l];
 
     for (l = 0; l < w; l++)
       res[k * w + l] = val[k * w + l] - out[l];
@@ -141,4 +145,18 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
       coef[j * w + l] += res[j * w + l];
 
   Y(free)(mem);
+}
+
+R *Y(kb_poly_init)(const R *b, const INT d, const INT m)
+{
+  const INT deg = Y(kb_poly_degree)(m);
+  const INT stride = (deg + 1) * KB_POLY_COLS(m);
+  R *tab = (R*) Y(malloc)((size_t)(stride * d) * sizeof(R));
+  INT t;
+
+  for (t = 0; t < d; t++)
+    Y(kb_poly_fit)(tab + t * stride, b[t], b[d + t], b[3 * d + t], (R)m, m,
+        deg);
+
+  return tab;
 }

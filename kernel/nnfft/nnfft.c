@@ -541,6 +541,7 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
   }
 
   WINDOW_HELP_INIT
+  WINDOW_HELP_POLY_INIT(ths->nnfft_flags);
 
   if(ths->nnfft_flags & MALLOC_X)
     ths->x = (double*)nfft_malloc(ths->d*ths->M_total*sizeof(double));
@@ -614,6 +615,9 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
 
   if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_flags = nfft_flags | PRE_LIN_PSI;
+
+  if(ths->nnfft_flags & ANALYTIC_WINDOW)
+    nfft_flags = nfft_flags | ANALYTIC_WINDOW;
 
   ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));
@@ -705,4 +709,6 @@ void nnfft_finalize(nnfft_plan *ths)
 
   if(ths->nnfft_flags & MALLOC_V)
     nfft_free(ths->v);
+
+  WINDOW_HELP_FINALIZE
 }
