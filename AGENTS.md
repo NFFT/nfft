@@ -215,6 +215,11 @@ The generators' own notes are in `gen/besselgen/README.md`,
 `gen/sincgen/README.md` and `gen/kbpolygen/README.md`. `gen/sincgen`
 reuses the minimax fitter in `gen/besselgen/remez.py`.
 
+**sigma/m model** (`kernel/nfft/sigma_m.c`, `nfft_sigma_m_1d`). Its error and
+cost constants are fitted in `tests/sigmam`; `python3 tests/sigmam/kbmodel.py --c`
+prints the `#define` block. Refit after changing the window, the transform, or
+the precision paths: see `tests/sigmam/README.md`.
+
 ## Quick reference
 
 | Task | Command |
@@ -233,6 +238,7 @@ reuses the minimax fitter in `gen/besselgen/remez.py`.
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m gen.sincgen.generate` (§5) |
 | Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |
+| Refit sigma/m model constants | `tests/sigmam/README.md` (§5) |
 
 CI mirrors these steps in `.github/workflows/build-linux.yml`, `bench-linux.yml`,
 `build-macos.yml`, and `build-windows.yml` across different window × precision × OpenMP 
