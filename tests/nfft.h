@@ -24,6 +24,7 @@
 void X(check_1d_direct_file)(void);
 void X(check_1d_fast_file)(void);
 void X(check_1d_online)(void);
+void X(check_sigma_m_1d)(void);
 void X(check_2d_direct_file)(void);
 void X(check_2d_fast_file)(void);
 void X(check_2d_online)(void);

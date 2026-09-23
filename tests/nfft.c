@@ -1600,3 +1600,68 @@ CHECK_ONLINE_EDGE(check_adjoint_4d_online_edge, testcases_adjoint_4d_online_edge
 #undef ADJOINT_ONLINE_EDGE
 #undef CHECK_ONLINE_EDGE
 #endif
+
+/* The sup over f_hat of max_j |f_j - s_j| / ||f_hat||_1 is attained at
+ * f_hat = e_k, so every k is probed. Nodes are multiples of 2^-12, so k x
+ * reduces exactly in the reference. One M per regime. */
+void X(check_sigma_m_1d)(void)
+{
+#if !defined(DIRAC_DELTA) && !defined(GAUSSIAN) && !defined(B_SPLINE) \
+    && !defined(SINC_POWER)
+  static const int Ns[] = {64, 150};
+  static const int Mf[][2] = {{1, 8}, {1, 1}, {16, 1}}; /* M = N * a / b */
+  const R eps = Y(float_property)(NFFT_EPSILON);
+  const R goals[] = {POW(eps, K(0.25)), SQRT(eps), POW(eps, K(0.75))};
+  const INT q = 4096;
+  unsigned int iN, iM, ig;
+
+  printf("SIGMA/M 1D\n----------\n");
+  for (iN = 0; iN < SIZE(Ns); iN++)
+    for (iM = 0; iM < SIZE(Mf); iM++)
+      for (ig = 0; ig < SIZE(goals); ig++)
+      {
+        const int N = Ns[iN], M = N * Mf[iM][0] / Mf[iM][1];
+        int n, m, j, k, ok;
+        INT *num = (INT*)Y(malloc)((size_t)M * sizeof(INT));
+        R err = K(0.0);
+        Y(plan) p;
+
+        Y(sigma_m_1d)(N, M, goals[ig], K(1.25), K(2.5), &n, &m);
+        Y(init_guru)(&p, 1, (int[]){N}, M, (int[]){n}, m,
+            PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F
+              | FFTW_INIT | FFT_OUT_OF_PLACE,
+            FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+        for (j = 0; j < M; j++)
+        {
+          num[j] = (INT)(rand() % q) - q / 2;
+          p.x[j] = (R)num[j] / (R)q;
+        }
+        Y(precompute_one_psi)(&p);
+
+        for (k = -N / 2; k < N / 2; k++)
+        {
+          for (j = 0; j < N; j++)
+            p.f_hat[j] = K(0.0);
+          p.f_hat[k + N / 2] = K(1.0);
+          X(trafo)(&p);
+          for (j = 0; j < M; j++)
+          {
+            const INT r = ((((INT)k * num[j]) % q) + q) % q;
+            const R a = -K2PI * (R)r / (R)q;
+            const R e = CABS(p.f[j] - (COS(a) + II * SIN(a)));
+            if (e > err)
+              err = e;
+          }
+        }
+
+        ok = IF(err <= goals[ig] && n >= K(1.25) * N && n <= K(2.5) * N, 1, 0);
+        printf("N=%3d M=%4d goal " __FE__ ": n=%3d m=%2d err " __FE__ " -> %s\n",
+          N, M, goals[ig], n, m, err, IF(ok == 0, "FAIL", "OK"));
+        CU_ASSERT(ok == 1);
+        Y(free)(num);
+        X(finalize)(&p);
+      }
+#else
+  printf("SIGMA/M 1D\n----------\nskipped: %s window\n", Y(get_window_name)());
+#endif
+}

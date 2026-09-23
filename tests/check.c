@@ -79,6 +79,7 @@ int main(void)
   CU_add_test(nfft, "nfft_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfft, "nfft_1d_online", X(check_1d_online));
   CU_add_test(nfft, "nfft_adjoint_1d_online", X(check_adjoint_1d_online));
+  CU_add_test(nfft, "nfft_sigma_m_1d", X(check_sigma_m_1d));
 
   CU_add_test(nfft, "nfft_2d_direct_file", X(check_2d_direct_file));
   CU_add_test(nfft, "nfft_2d_fast_file", X(check_2d_fast_file));

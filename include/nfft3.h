@@ -185,7 +185,11 @@ NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
-NFFT_EXTERN void X(finalize)(X(plan) *ths);
+NFFT_EXTERN void X(finalize)(X(plan) *ths);\
+/** n, m for init_guru: least-cost 1-D Kaiser-Bessel NFFT with worst-case error / ||f_hat||_1 <= goal (floored at sigma_max's), \
+ *  n/N in [sigma_min, sigma_max] unless no efficient FFT size fits; other windows: defaults */\
+NFFT_EXTERN void X(sigma_m_1d)(int N, int M, R goal, R sigma_min, \
+  R sigma_max, int *n, int *m);
 
 /* Nfft module API. */
 NFFT_DEFINE_API(NFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)

@@ -7,10 +7,10 @@ else
 endif
 
 noinst_LTLIBRARIES = libnfft.la $(LIBNFFT_THREADS_LA)
-libnfft_la_SOURCES = nfft.c 
+libnfft_la_SOURCES = nfft.c sigma_m.c
 
 if ENABLE_OPENMP
-libnfft_threads_la_SOURCES = nfft.c
+libnfft_threads_la_SOURCES = nfft.c sigma_m.c
 libnfft_threads_la_CFLAGS = $(OPENMP_CFLAGS)
 libnfft_threads_la_LDLAGS = $(OPENMP_CFLAGS)
 endif
