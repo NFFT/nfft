@@ -130,16 +130,52 @@ def cost(N, M, n, m, k=None):
     return c["fft"] * n * math.log2(n) + c["M"] * M + c["tap"] * M * (2 * m + 2)
 
 
-FFT_AMAX = 6  # 5 for complex long double: 2^a * sizeof(complex) <= 1 KB
+SMALL_BYTES = 1 << 16  # grids up to 64 KB may round up to a power of two
+ROUND_UP = 1.25  # ... when it is at most this factor above n
 
 
-def fft_sizes(lo, hi, amax=FFT_AMAX):
-    """Sorted n in [lo, hi] of the form 2^a 3^b 5^c 7^d with 1 <= a <= amax.
+def fft_elem(eps):
+    """Bytes of one complex value: float 8, double 16, long double 32."""
+    return 8 if eps > 1e-10 else (16 if eps > 1e-18 else 32)
 
-    Only FFTW's specialised radices, and a power-of-two part of at most 1 KB
-    in bytes: a quarter of the smallest common L1 set period (4 KB), so the
-    FFT's strides cannot line up in a few cache sets on any usual host."""
-    out = []
+
+def _smooth(n, e):
+    """2^a 3^b 5^c 7^d, 1 <= a, power-of-two part at most 1 KB in bytes."""
+    a = (n & -n).bit_length() - 1
+    r = n >> a
+    for p in (3, 5, 7):
+        while r % p == 0:
+            r //= p
+    return r == 1 and 1 <= a and (1 << a) * e <= 1024
+
+
+def fft_allowed(n, eps):
+    """Efficient FFT size: 2^a 3^b 5^c 7^d, FFTW's specialised radices, with a
+    power-of-two part of at most 1 KB in bytes, a quarter of the smallest
+    common L1 set period, so FFTW's strides cannot line up in a few cache
+    sets. A grid of at most 64 KB fits in cache on any usual host, where radix
+    2 is FFTW's fastest: there a power of two P replaces every size n with
+    P <= ROUND_UP n."""
+    e = fft_elem(eps)
+    if n < 2:
+        return False
+    p = 1 << (n - 1).bit_length()
+    small = p * e <= SMALL_BYTES
+    if n == p and small:
+        return True
+    return _smooth(n, e) and not (small and p <= ROUND_UP * n)
+
+
+def fft_sizes(lo, hi, eps):
+    """Sorted efficient sizes in [lo, hi]."""
+    e = fft_elem(eps)
+    amax = (1024 // e).bit_length() - 1
+    out = set()
+    p = 2
+    while p <= hi and p * e <= SMALL_BYTES:
+        if p >= lo:
+            out.add(p)
+        p *= 2
     p2 = 2
     for _ in range(amax):
         p3 = p2
@@ -148,8 +184,8 @@ def fft_sizes(lo, hi, amax=FFT_AMAX):
             while p5 <= hi:
                 p7 = p5
                 while p7 <= hi:
-                    if p7 >= lo:
-                        out.append(p7)
+                    if p7 >= lo and fft_allowed(p7, eps):
+                        out.add(p7)
                     p7 *= 7
                 p5 *= 5
             p3 *= 3
@@ -157,15 +193,10 @@ def fft_sizes(lo, hi, amax=FFT_AMAX):
     return sorted(out)
 
 
-def fft_amax(eps):
-    """a limit for the type: 5 for complex long double (32 bytes), else 6."""
-    return 5 if eps < 1e-18 else FFT_AMAX
-
-
-def fft_size(n, amax=FFT_AMAX):
-    """n*: the smallest efficient FFT size >= n. At most 5 % above n for
-    n >= 1024, median 0.8 %."""
-    return fft_sizes(n, 2 * max(n, 2), amax)[0]
+def fft_size(n, eps):
+    """n*: the smallest efficient FFT size >= n. Above the small-grid bound at
+    most 5 % above n, median 0.4 %."""
+    return fft_sizes(n, 2 * max(n, 2), eps)[0]
 
 
 def candidates(N, M, goal, eps, sigma_min=1.25, sigma_max=2.5, k=None):
@@ -174,8 +205,7 @@ def candidates(N, M, goal, eps, sigma_min=1.25, sigma_max=2.5, k=None):
     least one: fft_size of the lower end, even where it passes sigma_max."""
     goal = max(goal, floor_error(sigma_max, eps, k))
     lo = smallest_sigma(goal, eps, sigma_min, sigma_max, k)
-    a = fft_amax(eps)
-    ns = fft_sizes(math.ceil(lo * N), math.floor(sigma_max * N), a) or [fft_size(math.ceil(lo * N), a)]
+    ns = fft_sizes(math.ceil(lo * N), math.floor(sigma_max * N), eps) or [fft_size(math.ceil(lo * N), eps)]
     out = []
     for n in ns:
         m = smallest_m(n / N, goal, eps, k)
@@ -223,9 +253,8 @@ def choose(N, M, goal, eps, sigma_min=1.25, sigma_max=2.5, k=None):
                 within the tie tolerance of the cheapest."""
     goal = max(goal, floor_error(sigma_max, eps, k))
     lo = smallest_sigma(goal, eps, sigma_min, sigma_max, k)
-    a = fft_amax(eps)
-    n_lo = fft_size(math.ceil(lo * N), a)
-    top = fft_sizes(n_lo, math.floor(sigma_max * N), a)
+    n_lo = fft_size(math.ceil(lo * N), eps)
+    top = fft_sizes(n_lo, math.floor(sigma_max * N), eps)
     n_hi = top[-1] if top else n_lo
 
     def at(m):
@@ -233,7 +262,7 @@ def choose(N, M, goal, eps, sigma_min=1.25, sigma_max=2.5, k=None):
         s = sigma_for_m(m, goal, eps, lo, n_hi / N, k)
         if s is None:
             return None
-        n = min(fft_size(math.ceil(s * N), a), n_hi)
+        n = min(fft_size(math.ceil(s * N), eps), n_hi)
         mm = smallest_m(n / N, goal, eps, k)
         return n, mm, cost(N, M, n, mm, k)
 
@@ -266,20 +295,16 @@ def choose_scan(N, M, goal, eps, sigma_min=1.25, sigma_max=2.5, k=None):
 
 
 def _check():
-    # fft_size against brute force
-    def ok(n, amax):
-        a = (n & -n).bit_length() - 1
-        r = n >> a
-        for p in (3, 5, 7):
-            while r % p == 0:
-                r //= p
-        return r == 1 and 1 <= a <= amax
-    for amax in (5, 6):
-        for n in range(1, 5000):
-            f = fft_size(n, amax)
-            assert f >= n and ok(f, amax) and not any(ok(q, amax) for q in range(n, f)), (n, f)
-    gaps = [(fft_size(n + 1) - n) / n for n in fft_sizes(1024, 1 << 21)]
-    assert max(gaps) <= 0.05 + 1e-12, max(gaps)
+    # fft_sizes and fft_size against the predicate, per type
+    import bisect
+    for eps in (EPS["float"], EPS["double"], EPS["quad"]):
+        ref = [q for q in range(1, 20000) if fft_allowed(q, eps)]
+        assert fft_sizes(1, 19999, eps) == ref
+        for n in range(1, ref[-1] + 1):
+            assert fft_size(n, eps) == ref[bisect.bisect_left(ref, n)], (eps, n)
+        big = fft_sizes(SMALL_BYTES // fft_elem(eps) + 1, 1 << 21, eps)
+        gaps = [(b - a) / a for a, b in zip(big, big[1:])]
+        assert max(gaps) <= 0.05 + 1e-12, max(gaps)
     # log_i0 against the power series at the switch-over and far out
     for x in (29.9, 30.0, 45.0):
         n = 400
@@ -310,7 +335,7 @@ def _check():
             s, n, m = choose(N, M, g, eps)
             gg = max(g, floor_error(2.5, eps))
             assert error(m, s, eps) <= gg * (1 + 1e-12), (name, N, M, g)
-            assert n == fft_size(n, fft_amax(eps)) and s >= smallest_sigma(g, eps), (name, N, M, g)
+            assert n == fft_size(n, eps) and s >= smallest_sigma(g, eps), (name, N, M, g)
             # greedy against the exhaustive scan: the same pair where the
             # tie rule or a single winner decides; in the fft regime never a
             # larger sigma, and within the tie tolerance of the cheapest

@@ -29,11 +29,14 @@ Cost per trafo, in seconds:
 
     t = fft n log2 n + node M + tap M (2m + 2)
 
-`n` is always an efficient FFT size (`fft_size`): `2^a 3^b 5^c 7^d` with
-`1 <= a <= 6`, or `a <= 5` for complex long double. This keeps the power-of-two
-part at or below 1 KB, a quarter of the smallest common L1 set period. Larger
-power-of-two parts make FFTW's strides fall into a few cache sets, which is
-3-5x slower. The next efficient size is at most 5 % above `n`.
+`n` is always an efficient FFT size (`fft_size`): `2^a 3^b 5^c 7^d` with a
+power-of-two part of at most 1 KB in bytes (`a <= 6` in double), a quarter of
+the smallest common L1 set period. Larger power-of-two parts make FFTW's strides
+fall into a few cache sets, which is 3-5x slower; the next efficient size is at
+most 5 % above `n`. A grid of at most 64 KB fits in cache on any usual host,
+where radix 2 is FFTW's fastest: there `n` rounds up to the next power of two
+`P` when `P <= 1.25 n`. Within that factor the power of two measured faster,
+beyond it the smaller smooth size.
 
 ## Choice
 

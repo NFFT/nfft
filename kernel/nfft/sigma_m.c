@@ -60,14 +60,7 @@
 #define M_MAX 64
 #define BISECT 64
 
-/* The power-of-two part of an FFT size stays at or below 1 KB in bytes, a
- * quarter of the smallest common L1 set period, so FFTW's strides cannot line
- * up in a few cache sets. */
-#if defined(NFFT_LDOUBLE)
-#define FFT_AMAX 5
-#else
-#define FFT_AMAX 6
-#endif
+#define SMALL_BYTES 65536
 
 #if defined(WINDOW_IS_KAISER_BESSEL)
 
@@ -167,30 +160,41 @@ static R sigma_for_m(const int m, const R goal, R lo, R hi)
   return hi;
 }
 
-/* n = 2^a 3^b 5^c 7^d with 1 <= a <= FFT_AMAX: FFTW's specialised radices. */
-static int is_fft_size(INT n)
+/* 2^a 3^b 5^c 7^d, FFTW's specialised radices, with a power-of-two part of at
+ * most 1 KB in bytes, a quarter of the smallest common L1 set period, so
+ * FFTW's strides cannot line up in a few cache sets. A grid of at most 64 KB
+ * fits in cache on any usual host, where radix 2 is FFTW's fastest: there a
+ * power of two p replaces every size n with p <= 1.25 n. */
+static int is_fft_size(const INT n)
 {
-  int a = 0;
+  const INT e = (INT)sizeof(C);
+  INT p = 1, p2 = 1, r = n;
+  int small;
 
   if (n < 2)
     return 0;
-  while (n % 2 == 0)
+  while (p < n)
+    p *= 2;
+  small = p * e <= SMALL_BYTES;
+  if (n == p && small)
+    return 1;
+  while (r % 2 == 0)
   {
-    n /= 2;
-    a++;
+    r /= 2;
+    p2 *= 2;
   }
-  if (a < 1 || a > FFT_AMAX)
+  if (p2 < 2 || p2 * e > 1024)
     return 0;
-  while (n % 3 == 0)
-    n /= 3;
-  while (n % 5 == 0)
-    n /= 5;
-  while (n % 7 == 0)
-    n /= 7;
-  return n == 1;
+  while (r % 3 == 0)
+    r /= 3;
+  while (r % 5 == 0)
+    r /= 5;
+  while (r % 7 == 0)
+    r /= 7;
+  return r == 1 && !(small && 4 * p <= 5 * n);
 }
 
-/* The smallest efficient FFT size >= n; at most 5 % above n for n >= 1024. */
+/* The smallest efficient FFT size >= n; above 64 KB at most 5 % above n. */
 static INT fft_size(INT n)
 {
   while (!is_fft_size(n))
