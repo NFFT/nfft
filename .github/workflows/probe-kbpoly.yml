@@ -1,0 +1,41 @@
+name: Probe KB polynomial fit on x86
+
+on:
+  push:
+    branches: [ 'probe/**' ]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        precision: [ float, double, long-double ]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install
+      run: sudo apt-get update && sudo apt-get install -y libfftw3-dev autoconf automake libtool
+    - name: Build
+      run: |
+        case "${{ matrix.precision }}" in
+          float) P=--enable-float; S=f ;;
+          double) P=; S= ;;
+          long-double) P=--enable-long-double; S=l ;;
+        esac
+        ./bootstrap.sh
+        ./configure --with-window=kaiserbessel $P
+        make -j
+        CFLAGS=$(sed -n 's/^CFLAGS = //p' Makefile)
+        echo "CFLAGS: $CFLAGS"
+        gcc $CFLAGS -I. -Iinclude probe/kbpoly_probe.c .libs/libnfft3$S.a -lfftw3$S -lm -o probe_bin
+    - name: Probe
+      run: |
+        lscpu | grep -E "Model name|Flags" | cut -c1-200
+        ./probe_bin | tee probe-${{ matrix.precision }}.txt
+    - uses: actions/upload-artifact@v4
+      with:
+        name: probe-${{ matrix.precision }}
+        path: probe-${{ matrix.precision }}.txt
