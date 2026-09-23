@@ -1778,32 +1778,27 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
 
 /* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
 
-/* The degree cap is per precision, and each one is there for a different
- * reason. Swept over m against degree with the shipped fit:
+/* The degree cap is the lowest degree that reaches each precision's floor,
+ * max |poly - phi| / peak over m = 2 .. 14 and sigma 1.25 and 2, on aarch64
+ * and on x86-64:
  *
- *   float, eps 1.2E-7: flat at three to five eps from degree 8 to 11, then a
- *     cliff, 3E-6 at 12 and 6E-5 at 13. The cap is an accuracy guard and sits
- *     inside the flat region rather than on its edge.
- *   double, eps 2.2E-16: flat at about 8E-16 from degree 12 to 22 for every m
- *     tested, no cliff, because the refinement step absorbs what used to
- *     degrade past the optimum. The cap is a work guard, not an accuracy one:
- *     degree 22 costs half again as much Horner for nothing.
- *   long double, eps 1.9E-34: still improving at 24, where it reaches about
- *     four eps. The cap is that floor, and it never binds in practice, since
- *     m + 6 would need m > 18.
+ *   float: four eps from degree 8, the same up to 10, then a cliff.
+ *   double: five eps from degree 13, flat to 22. Degree 12 is 30 eps.
+ *   80-bit: five eps from degree 15, flat to 27, 60 eps at 28.
+ *   binary128: still improving at 24, where it is five eps. The cap binds
+ *     only for m > 18.
  *
- * The 80-bit entry is untested here: this container carries binary128, so only
- * CI exercises it. */
+ * Past the floor, more degree is Horner work for nothing. */
 #if MANT_DIG == 113
   #define KB_POLY_DEG_MAX 24
 #elif MANT_DIG == 64
-  #define KB_POLY_DEG_MAX 20
+  #define KB_POLY_DEG_MAX 15
 #elif MANT_DIG == 53
-  #define KB_POLY_DEG_MAX 14
+  #define KB_POLY_DEG_MAX 13
 #elif MANT_DIG == 24
-  #define KB_POLY_DEG_MAX 10
+  #define KB_POLY_DEG_MAX 8
 #else
-  #define KB_POLY_DEG_MAX 14
+  #define KB_POLY_DEG_MAX 13
 #endif
 
 static inline INT Y(kb_poly_degree)(const INT m)
