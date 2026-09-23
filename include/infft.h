@@ -343,33 +343,54 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_I0E_PEAK_INV(ax), \
                              WINDOW_STENCIL_REACH, (R)(n), (R)(k)))
   /* One KB_POLY table per axis in ths->spline_coeffs; NULL selects the closed
-   * form. */
+   * form. KB_POLY_ON reads that choice from the plan unless the scope holds a
+   * constant kb_poly_on of 0 or 1, which KB_POLY_DISPATCH and KB_POLY_SPLIT
+   * provide so the compiler folds the test out of the node loops. */
+  enum { kb_poly_on = -1 };
+  #define KB_POLY_ON (kb_poly_on < 0 ? ths->spline_coeffs != NULL : kb_poly_on)
   #define KB_POLY_DEG (Y(kb_poly_degree)(ths->m))
   #define KB_POLY(ax) (ths->spline_coeffs \
       + (ax) * (KB_POLY_DEG + 1) * KB_POLY_COLS(ths->m))
-  #define PHI(n,x,ax) (ths->spline_coeffs \
+  #define PHI(n,x,ax) (KB_POLY_ON \
       ? Y(kb_poly_phi)(KB_POLY(ax), ths->m, KB_POLY_DEG, (R)(n) * (R)(x)) \
       : Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
                          WINDOW_STENCIL_REACH, (R)(n) * (R)(x)))
   /* Fills dst[0 .. 2m+1] with phi(x - (u + l)/n), the run every psi table is
-   * built from. */
-  #define PHI_RUN_POLY(dst,n,x,u,ax) \
-    Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
-  /* The closed form sees the whole run, so it can hoist its constants, step
-   * the argument by one grid cell rather than dividing per point, and put the
-   * points that need the guarded evaluation in their own branch. */
-  #define PHI_RUN_CLOSED(dst,n,x,u,ax) \
-    Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
-        WINDOW_STENCIL_REACH, (ths->m), NX_SUB(n, x, u))
-  /* Branches per run. A loop that is only the run, like precompute_psi, tests
-   * ths->spline_coeffs once outside it and calls the two forms directly: the
-   * per-node branch costs such a loop about 1.5%. */
+   * built from. The closed form sees the whole run, so it can hoist its
+   * constants, step the argument by one grid cell rather than dividing per
+   * point, and put the points that need the guarded evaluation in their own
+   * branch. */
   #define PHI_RUN(dst,n,x,u,ax) \
     do { \
-      if (ths->spline_coeffs) \
-        PHI_RUN_POLY(dst,n,x,u,ax); \
+      if (KB_POLY_ON) \
+        Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, \
+            NX_SUB(n, x, u)); \
       else \
-        PHI_RUN_CLOSED(dst,n,x,u,ax); \
+        Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
+            WINDOW_STENCIL_REACH, (ths->m), NX_SUB(n, x, u)); \
+    } while (0)
+  /* Calls f(ths, kb_poly_on) with the choice as a constant. f is
+   * KB_POLY_INLINE, so each call site becomes its own copy of f. */
+  #define KB_POLY_DISPATCH(f,ths) \
+    do { \
+      if ((ths)->spline_coeffs) \
+        f((ths), 1); \
+      else \
+        f((ths), 0); \
+    } while (0)
+  /* The same for a block with no preprocessor directives in it. */
+  #define KB_POLY_SPLIT(...) \
+    do { \
+      if (ths->spline_coeffs) \
+      { \
+        enum { kb_poly_on = 1 }; \
+        __VA_ARGS__ \
+      } \
+      else \
+      { \
+        enum { kb_poly_on = 0 }; \
+        __VA_ARGS__ \
+      } \
     } while (0)
   #define WINDOW_HELP_POLY_INIT(flags) \
     ths->spline_coeffs = ((flags) & ANALYTIC_WINDOW) \
@@ -425,8 +446,18 @@ typedef ptrdiff_t INT;
 /* Only Kaiser-Bessel has a polynomial form. */
 #ifndef WINDOW_HELP_POLY_INIT
   #define WINDOW_HELP_POLY_INIT(flags) ths->spline_coeffs = NULL
-  #define PHI_RUN_POLY PHI_RUN
-  #define PHI_RUN_CLOSED PHI_RUN
+  #define KB_POLY_DISPATCH(f,ths) f((ths), 0)
+  #define KB_POLY_SPLIT(...) do { __VA_ARGS__ } while (0)
+#endif
+
+/* Forced, so that KB_POLY_DISPATCH yields one copy of the function per choice
+ * whatever its size. */
+#if defined(__GNUC__) || defined(__clang__)
+  #define KB_POLY_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+  #define KB_POLY_INLINE __forceinline
+#else
+  #define KB_POLY_INLINE inline
 #endif
 
 /* Gaussian run fill for the FG_PSI paths: buf[0 .. 2m+2] holds the window at

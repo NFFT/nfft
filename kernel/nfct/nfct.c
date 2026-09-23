@@ -690,7 +690,8 @@ MACRO_D(T)
 }
 
 #define MACRO_B(which_one) \
-static inline void B_ ## which_one (X(plan) *ths) \
+static KB_POLY_INLINE void B_ ## which_one (X(plan) *ths, \
+    const int kb_poly_on) \
 { \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
@@ -906,7 +907,7 @@ void X(trafo)(X(plan) *ths)
       /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } j=0,\dots,M-1 \f$ */
       TIC(2)
-      B_A(ths);
+      KB_POLY_DISPATCH(B_A, ths);
       TOC(2)
 
       /*if (ths->flags & PRE_FULL_PSI)
@@ -934,7 +935,7 @@ void X(adjoint)(X(plan) *ths)
       /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } l \in I_n,m(x_j) \f$ */
       TIC(2)
-      B_T(ths);
+      KB_POLY_DISPATCH(B_T, ths);
       TOC(2)
 
       /* Compute by d-variate discrete cosine transform
@@ -988,10 +989,11 @@ void X(precompute_lin_psi)(X(plan) *ths)
   {
     step = ((R)(ths->m+2)) / (((R)ths->K) * (2 * NN(ths->n[t])));
 
-    for (j = 0; j <= ths->K; j++)
-    {
-      ths->psi[(ths->K + 1) * t + j] = PHI((2 * NN(ths->n[t])), (j * step), t);
-    } /* for(j) */
+    KB_POLY_SPLIT(
+      for (j = 0; j <= ths->K; j++)
+        ths->psi[(ths->K + 1) * t + j] = PHI((2 * NN(ths->n[t])), (j * step),
+            t);
+    );
   } /* for(t) */
 }
 
@@ -1035,20 +1037,15 @@ void X(precompute_psi)(X(plan) *ths)
   {
     INT j;
 
-    if (ths->spline_coeffs)
+    KB_POLY_SPLIT(
       for (j = 0; j < ths->M_total; j++)
       {
         uo(ths, j, &u, &o, t);
-        PHI_RUN_POLY(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
+
+        PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
             (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
       }
-    else
-      for (j = 0; j < ths->M_total; j++)
-      {
-        uo(ths, j, &u, &o, t);
-        PHI_RUN_CLOSED(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
-            (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
-      }
+    );
   } /* for (t) */
 } /* precompute_psi */
 
@@ -1082,23 +1079,25 @@ void X(precompute_full_psi)(X(plan) *ths)
   for (t = 0, lprod = 1; t < ths->d; t++)
     lprod *= 2 * ths->m + 2;
 
-  for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
-  {
-    MACRO_init_uo_l_lj_t;
-
-    for (l_L = 0; l_L < lprod; l_L++, ix++)
+  KB_POLY_SPLIT(
+    for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
     {
-      MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI);
-
-      ths->psi_index_g[ix] = ll_plain[ths->d];
-      ths->psi[ix] = phi_prod[ths->d];
-
-      MACRO_count_uo_l_lj_t;
-    } /* for (l_L) */
-
-    ths->psi_index_f[j] = ix - ix_old;
-    ix_old = ix;
-  } /* for(j) */
+      MACRO_init_uo_l_lj_t;
+  
+      for (l_L = 0; l_L < lprod; l_L++, ix++)
+      {
+        MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI);
+  
+        ths->psi_index_g[ix] = ll_plain[ths->d];
+        ths->psi[ix] = phi_prod[ths->d];
+  
+        MACRO_count_uo_l_lj_t;
+      } /* for (l_L) */
+  
+      ths->psi_index_f[j] = ix - ix_old;
+      ix_old = ix;
+    } /* for(j) */
+  );
 //#endif
 }
 

@@ -76,6 +76,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     f_hat[j]=that->f_hat[j];
   }
 
+  KB_POLY_SPLIT(
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]*=cexp(-2*KPI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0], ths->n[0]*that->w[j],0);
@@ -98,6 +99,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]=f_hat[j];
   }
+  );
 
   nfft_free(that->plan.f);
   that->f=f;
@@ -130,6 +132,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 
 
 
+  KB_POLY_SPLIT(
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
 
     for(j=0;j<that->M_total;j++) {
@@ -146,6 +149,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->M_total;j++)
       that->f[j]=f[j];
   }
+  );
 
   for(j=0;j<that->N_total;j++)
   {
@@ -205,6 +209,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 
 
 
+  KB_POLY_SPLIT(
   for(j=0;j<that->N_total;j++) {
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
@@ -216,6 +221,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 	      that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]=0.0;
     }
   }
+  );
 
   nfft_trafo(&that->plan);
 
@@ -243,6 +249,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
 
   nfft_adjoint(&that->plan);
 
+  KB_POLY_SPLIT(
   for(j=0;j<that->N_total;j++) {
     that->f_hat[j]=0.0;
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
@@ -253,6 +260,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
         that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI(ths->n[0],that->w[j]-((double)l)/((double)ths->n[0]),0);
     }
   }
+  );
 
 
 	WINDOW_HELP_FINALIZE
