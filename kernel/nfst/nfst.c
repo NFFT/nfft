@@ -163,6 +163,7 @@ void X(trafo_direct)(const X(plan) *ths)
     const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
     const INT nl = ths->N[ths->d - 1] - OFFSET;
     const INT nrows = nl > 0 ? ths->N_total / nl : 0;
+    const int use_rec = (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER);
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
@@ -172,7 +173,7 @@ void X(trafo_direct)(const X(plan) *ths)
       const R *xj = ths->x + (size_t)j * ths->d;
       const R xl = xj[ths->d - 1];
       const R dphi = K2PI * xl;
-      const C dw = COS(dphi) + II * SIN(dphi);
+      const C dw = use_rec ? COS(dphi) + II * SIN(dphi) : K(0.0);
       R P[ths->d], v = K(0.0);
       INT k[ths->d], t, t2, r, i;
 
@@ -189,7 +190,7 @@ void X(trafo_direct)(const X(plan) *ths)
         const R *fr = f_hat + r * nl;
         R s = K(0.0);
 
-        if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
+        if (use_rec)
         {
           i = 0;
           while (i < nl)
@@ -237,6 +238,7 @@ static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT 
   R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
   const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
   const INT nl = ths->N[ths->d - 1] - OFFSET;
+  const int use_rec = (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER);
   INT k0[ths->d], t, j, r = rlo;
 
   if (rlo >= rhi)
@@ -254,7 +256,7 @@ static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT 
     const R *xj = ths->x + (size_t)j * ths->d;
     const R xl = xj[ths->d - 1];
     const R dphi = K2PI * xl;
-    const C dw = COS(dphi) + II * SIN(dphi);
+    const C dw = use_rec ? COS(dphi) + II * SIN(dphi) : K(0.0);
     R P[ths->d];
     INT k[ths->d], t2, i;
 
@@ -271,7 +273,7 @@ static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT 
       R *fr = f_hat + r * nl;
       const R a = P[ths->d - 1];
 
-      if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
+      if (use_rec)
       {
         i = 0;
         while (i < nl)
@@ -394,12 +396,42 @@ void X(adjoint_direct)(const X(plan) *ths)
     const INT nl = ths->N[ths->d - 1] - OFFSET;
     const INT nrows = nl > 0 ? ths->N_total / nl : 0;
 #ifdef _OPENMP
-    #pragma omp parallel default(shared)
+    if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
     {
-      const int nt = omp_get_num_threads();
-      const int tid = omp_get_thread_num();
-      X(adjoint_direct_rows)(ths, (INT)(((long long)nrows * tid) / nt),
-                                  (INT)(((long long)nrows * (tid + 1)) / nt));
+      #pragma omp parallel default(shared)
+      {
+        const int nt = omp_get_num_threads();
+        const int tid = omp_get_thread_num();
+        X(adjoint_direct_rows)(ths, (INT)(((long long)nrows * tid) / nt),
+                                    (INT)(((long long)nrows * (tid + 1)) / nt));
+      }
+    }
+    else
+    {
+      /* Short rows are too few to share out, so the parallel unit is the frequency, as in
+       * NFFT. */
+      INT k_L;
+      #pragma omp parallel for default(shared) private(k_L)
+      for (k_L = 0; k_L < ths->N_total; k_L++)
+      {
+        INT k[ths->d], k_temp = k_L, t, j;
+
+        for (t = ths->d - 1; t >= 0; t--)
+        {
+          k[t] = k_temp % (ths->N[t] - OFFSET);
+          k_temp /= ths->N[t] - OFFSET;
+        }
+
+        for (j = 0; j < ths->M_total; j++)
+        {
+          R v = f[j];
+
+          for (t = 0; t < ths->d; t++)
+            v *= X(base_reduced)(k[t], ths->x[j * ths->d + t]);
+
+          f_hat[k_L] += v;
+        }
+      }
     }
 #else
     X(adjoint_direct_rows)(ths, 0, nrows);
