@@ -108,27 +108,27 @@ int main(void)
 #undef X
 #define X(name) NFCT(name)
   nfct = CU_add_suite("nfct", 0, 0);
-  /* The 1D direct/adjoint transforms are OpenMP-parallelised, so validate them in both the
-     serial and the threaded (checkall_threads) build. The remaining NFCT paths (fast, 2D/3D,
-     online) are exercised single-threaded only. */
+  /* The direct/adjoint transforms are OpenMP-parallelised in every dimension, so validate them
+     in both the serial and the threaded (checkall_threads) build. The remaining NFCT paths
+     (fast, online) are exercised single-threaded only. */
   CU_add_test(nfct, "nfct_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
+  CU_add_test(nfct, "nfct_2d_direct_file", X(check_2d_direct_file));
+  CU_add_test(nfct, "nfct_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
+  CU_add_test(nfct, "nfct_3d_direct_file", X(check_3d_direct_file));
+  CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
 #ifndef _OPENMP
   CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfct, "nfct_1d_online", X(check_1d_online));
   CU_add_test(nfct, "nfct_adjoint_1d_online", X(check_adjoint_1d_online));
 
-  CU_add_test(nfct, "nfct_2d_direct_file", X(check_2d_direct_file));
   CU_add_test(nfct, "nfct_2d_fast_file", X(check_2d_fast_file));
-  CU_add_test(nfct, "nfct_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_2d_fast_file", X(check_adjoint_2d_fast_file));
   CU_add_test(nfct, "nfct_2d_online", X(check_2d_online));
   CU_add_test(nfct, "nfct_adjoint_2d_online", X(check_adjoint_2d_online));
 
-  CU_add_test(nfct, "nfct_3d_direct_file", X(check_3d_direct_file));
   CU_add_test(nfct, "nfct_3d_fast_file", X(check_3d_fast_file));
-  CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
 #if defined(GAUSSIAN)
   CU_add_test(nfct, "nfct_1d_online_gaussian_m", X(check_1d_online_gaussian_m));
@@ -153,26 +153,26 @@ int main(void)
 #undef X
 #define X(name) NFST(name)
   nfst = CU_add_suite("nfst", 0, 0);
-  /* As for NFCT: the 1D direct/adjoint transforms are OpenMP-parallelised, so validate them in
-     both serial and threaded builds; the fast, 2D/3D and online NFST paths stay serial-only. */
+  /* As for NFCT: the direct/adjoint transforms are OpenMP-parallelised, so validate them in
+     both serial and threaded builds; the fast and online NFST paths stay serial-only. */
   CU_add_test(nfst, "nfst_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
+  CU_add_test(nfst, "nfst_2d_direct_file", X(check_2d_direct_file));
+  CU_add_test(nfst, "nfst_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
+  CU_add_test(nfst, "nfst_3d_direct_file", X(check_3d_direct_file));
+  CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
 #ifndef _OPENMP
   CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfst, "nfst_1d_online", X(check_1d_online));
   CU_add_test(nfst, "nfst_adjoint_1d_online", X(check_adjoint_1d_online));
 
-  CU_add_test(nfst, "nfst_2d_direct_file", X(check_2d_direct_file));
   CU_add_test(nfst, "nfst_2d_fast_file", X(check_2d_fast_file));
-  CU_add_test(nfst, "nfst_adjoint_2d_direct_file", X(check_adjoint_2d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_2d_fast_file", X(check_adjoint_2d_fast_file));
   CU_add_test(nfst, "nfst_2d_online", X(check_2d_online));
   CU_add_test(nfst, "nfst_adjoint_2d_online", X(check_adjoint_2d_online));
 
-  CU_add_test(nfst, "nfst_3d_direct_file", X(check_3d_direct_file));
   CU_add_test(nfst, "nfst_3d_fast_file", X(check_3d_fast_file));
-  CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_3d_fast_file", X(check_adjoint_3d_fast_file));
 #if defined(GAUSSIAN)
   CU_add_test(nfst, "nfst_1d_online_gaussian_m", X(check_1d_online_gaussian_m));
