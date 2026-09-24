@@ -146,12 +146,11 @@ static inline void sort(const X(plan) *ths)
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
 /* Minimum innermost-dimension length for the multivariate recurrence to pay: along a row of
- * length Nlast the recurrence replaces Nlast COS/SIN pairs with one accurate seed (2 trig) plus
- * Nlast complex multiplies, so for very short rows the per-row seed is not amortised. Below this
- * threshold the multivariate transforms evaluate per k_L from the reduced-fraction prefix sums
- * (measured break-even is ~8 in double, where COS/SIN are comparatively cheap; long double/float
- * profit at smaller Nlast, but a single precision-agnostic threshold is used). */
-#define NFFT_DIRECT_RECURRENCE_MIN_INNER 8
+ * length Nlast the recurrence replaces Nlast COS/SIN pairs, each after a phase reduction, with
+ * one accurate seed (2 trig) plus Nlast complex multiplies. It is ahead from Nlast = 2 on; below
+ * this threshold the multivariate transforms evaluate per k_L from the reduced-fraction prefix
+ * sums. */
+#define NFFT_DIRECT_RECURRENCE_MIN_INNER 2
 
 /* Accurate phase for exp(+-i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
  * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
