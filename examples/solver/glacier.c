@@ -151,7 +151,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   {
     p.x[2 * j + 0] = cp.x[2 * j + 0];
     p.x[2 * j + 1] = cp.x[2 * j + 1];
-    ip.y[j] = tmp_y;
+    ip.y[j] = cp_y[j];
   }
 
   /* precompute psi */
