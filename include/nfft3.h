@@ -155,7 +155,7 @@ typedef struct\
   C *g1; /**< Input of fftw */\
   C *g2; /**< Output of fftw */\
 \
-  R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, NULL with ANALYTIC_WINDOW */\
 \
   NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
@@ -205,6 +205,9 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FFTW_INIT                  (1U<<10)
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
+/* Kaiser-Bessel from its closed form, not the polynomial fitted at plan time.
+ * Orthogonal to PRE_ONE_PSI; other windows ignore it. */
+#define ANALYTIC_WINDOW            (1U<<13)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 /* nfct */
@@ -261,7 +264,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined   */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, NULL with ANALYTIC_WINDOW */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -341,7 +344,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, NULL with ANALYTIC_WINDOW */\
 \
   R X(full_psi_eps);\
 } X(plan);\
@@ -412,7 +415,7 @@ typedef struct\
   int *psi_index_g; /**< only for thin B */\
   int *psi_index_f; /**< only for thin B */\
   C *F;\
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, NULL with ANALYTIC_WINDOW */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \

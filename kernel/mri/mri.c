@@ -37,17 +37,20 @@ typedef struct window_funct_plan_ {
 	int n[1];
 	double sigma[1];
 	double *b;
+	double *spline_coeffs;
 } window_funct_plan;
 
 /**
  * init the window_funct_plan
  */
-static void window_funct_init(window_funct_plan* ths, int m, int n, double sigma) {
+static void window_funct_init(window_funct_plan* ths, int m, int n, double sigma,
+    unsigned flags) {
 	ths->d=1;
 	ths->m=m;
 	ths->n[0]=n;
 	ths->sigma[0]=sigma;
   WINDOW_HELP_INIT
+  WINDOW_HELP_POLY_INIT(flags);
 }
 
 /*
@@ -60,7 +63,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
   double _Complex *f_hat = (double _Complex*) nfft_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f and that->f_hat have been modified by the solver */
 	that->plan.f = that->f;
@@ -73,6 +76,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     f_hat[j]=that->f_hat[j];
   }
 
+  KB_POLY_SPLIT(
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]*=cexp(-2*KPI*_Complex_I*that->w[j]*((double)l))/PHI_HUT(ths->n[0], ths->n[0]*that->w[j],0);
@@ -95,6 +99,7 @@ void mri_inh_2d1d_trafo(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->N_total;j++)
       that->f_hat[j]=f_hat[j];
   }
+  );
 
   nfft_free(that->plan.f);
   that->f=f;
@@ -112,7 +117,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
   double _Complex *f_hat = (double _Complex*) nfft_malloc(that->N_total*sizeof(double _Complex));
 
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	memset(f_hat,0,that->N_total*sizeof(double _Complex));
 
@@ -127,6 +132,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
 
 
 
+  KB_POLY_SPLIT(
   for(l=-ths->n[0]/2;l<=ths->n[0]/2;l++) {
 
     for(j=0;j<that->M_total;j++) {
@@ -143,6 +149,7 @@ void mri_inh_2d1d_adjoint(mri_inh_2d1d_plan *that) {
     for(j=0;j<that->M_total;j++)
       that->f[j]=f[j];
   }
+  );
 
   for(j=0;j<that->N_total;j++)
   {
@@ -195,13 +202,14 @@ void mri_inh_2d1d_finalize(mri_inh_2d1d_plan *ths) {
 void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
   int l,j;
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;
 
 
 
+  KB_POLY_SPLIT(
   for(j=0;j<that->N_total;j++) {
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
     {
@@ -213,6 +221,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 	      that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]=0.0;
     }
   }
+  );
 
   nfft_trafo(&that->plan);
 
@@ -228,7 +237,7 @@ void mri_inh_3d_trafo(mri_inh_3d_plan *that) {
 void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
   int l,j;
   window_funct_plan *ths = (window_funct_plan*) nfft_malloc(sizeof(window_funct_plan));
-	window_funct_init(ths,that->plan.m,that->N3,that->sigma3);
+	window_funct_init(ths,that->plan.m,that->N3,that->sigma3,that->plan.flags);
 
 	/* the pointers that->f has been modified by the solver */
   that->plan.f =that->f ;
@@ -240,6 +249,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
 
   nfft_adjoint(&that->plan);
 
+  KB_POLY_SPLIT(
   for(j=0;j<that->N_total;j++) {
     that->f_hat[j]=0.0;
     for(l=-ths->n[0]/2;l<ths->n[0]/2;l++)
@@ -250,6 +260,7 @@ void mri_inh_3d_adjoint(mri_inh_3d_plan *that) {
         that->f_hat[j]+= that->plan.f_hat[j*ths->n[0]+(l+ths->n[0]/2)]*PHI(ths->n[0],that->w[j]-((double)l)/((double)ths->n[0]),0);
     }
   }
+  );
 
 
 	WINDOW_HELP_FINALIZE

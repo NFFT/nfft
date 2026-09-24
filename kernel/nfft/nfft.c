@@ -980,7 +980,8 @@ INT l_all[ths->d*(2*ths->m+2)]; \
       }
 
 #define MACRO_B(which_one) \
-static inline void B_serial_ ## which_one (X(plan) *ths) \
+static KB_POLY_INLINE void B_serial_ ## which_one (X(plan) *ths, \
+    const int kb_poly_on) \
 { \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
@@ -1317,7 +1318,7 @@ MACRO_B(A)
       } \
 }
 
-static inline void B_openmp_A (X(plan) *ths)
+static KB_POLY_INLINE void B_openmp_A(X(plan) *ths, const int kb_poly_on)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
@@ -1427,9 +1428,9 @@ static inline void B_openmp_A (X(plan) *ths)
 static void B_A(X(plan) *ths)
 {
 #ifdef _OPENMP
-  B_openmp_A(ths);
+  KB_POLY_DISPATCH(B_openmp_A, ths);
 #else
-  B_serial_A(ths);
+  KB_POLY_DISPATCH(B_serial_A, ths);
 #endif
 }
 
@@ -2106,7 +2107,7 @@ MACRO_B(T)
       } \
 }
 
-static inline void B_openmp_T(X(plan) *ths)
+static KB_POLY_INLINE void B_openmp_T(X(plan) *ths, const int kb_poly_on)
 {
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
@@ -2216,9 +2217,9 @@ static inline void B_openmp_T(X(plan) *ths)
 static void B_T(X(plan) *ths)
 {
 #ifdef _OPENMP
-  B_openmp_T(ths);
+  KB_POLY_DISPATCH(B_openmp_T, ths);
 #else
-  B_serial_T(ths);
+  KB_POLY_DISPATCH(B_serial_T, ths);
 #endif
 }
 
@@ -2387,7 +2388,8 @@ static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
 /* Window buffers come from the heap, once per thread: GCC 13 and newer abort
  * expanding this function's OpenMP regions on aarch64-apple-darwin when they
  * hold a run-time sized stack array. */
-static void nfft_trafo_1d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_trafo_1d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   const INT n = ths->n[0], M = ths->M_total, m = ths->m, m2p2 = 2*m+2;
   const C *g = (C*)ths->g;
@@ -2699,7 +2701,8 @@ static void nfft_trafo_1d_B(X(plan) *ths)
     } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */ \
 }
 
-static void nfft_adjoint_1d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_adjoint_1d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   const INT n = ths->n[0], M = ths->M_total, m = ths->m;
   INT k;
@@ -2946,7 +2949,7 @@ void X(trafo_1d)(X(plan) *ths)
     TOC_FFTW(1);
 
     TIC(2);
-    nfft_trafo_1d_B(ths);
+    KB_POLY_DISPATCH(nfft_trafo_1d_B, ths);
     TOC(2);
   }
 }
@@ -2975,7 +2978,7 @@ void X(adjoint_1d)(X(plan) *ths)
   g_hat2=(C*)ths->g_hat;
 
   TIC(2)
-  nfft_adjoint_1d_B(ths);
+  KB_POLY_DISPATCH(nfft_adjoint_1d_B, ths);
   TOC(2)
 
   TIC_FFTW(1)
@@ -3312,7 +3315,8 @@ static void nfft_adjoint_2d_compute_serial(const C *fj, C *g,
 }
 #endif
 
-static void nfft_trafo_2d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_trafo_2d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   const C *g = (C*)ths->g;
   const INT n0 = ths->n[0];
@@ -3652,7 +3656,8 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 }
 
 
-static void nfft_adjoint_2d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_adjoint_2d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   const INT n0 = ths->n[0];
   const INT n1 = ths->n[1];
@@ -3962,7 +3967,7 @@ void X(trafo_2d)(X(plan) *ths)
   TOC_FFTW(1);
 
   TIC(2);
-  nfft_trafo_2d_B(ths);
+  KB_POLY_DISPATCH(nfft_trafo_2d_B, ths);
   TOC(2);
 }
 
@@ -3992,7 +3997,7 @@ void X(adjoint_2d)(X(plan) *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(2);
-  nfft_adjoint_2d_B(ths);
+  KB_POLY_DISPATCH(nfft_adjoint_2d_B, ths);
   TOC(2);
 
   TIC_FFTW(1)
@@ -4728,7 +4733,8 @@ static void nfft_adjoint_3d_compute_serial(const C *fj, C *g,
 }
 #endif
 
-static void nfft_trafo_3d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_trafo_3d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   const INT n0 = ths->n[0];
   const INT n1 = ths->n[1];
@@ -5135,7 +5141,8 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     } /* if(NFFT_OMP_BLOCKWISE_ADJOINT) */ \
 }
 
-static void nfft_adjoint_3d_B(X(plan) *ths)
+static KB_POLY_INLINE void nfft_adjoint_3d_B(X(plan) *ths,
+    const int kb_poly_on)
 {
   INT k;
   const INT n0 = ths->n[0];
@@ -5513,7 +5520,7 @@ void X(trafo_3d)(X(plan) *ths)
   TOC_FFTW(1);
 
   TIC(2);
-  nfft_trafo_3d_B(ths);
+  KB_POLY_DISPATCH(nfft_trafo_3d_B, ths);
   TOC(2);
 }
 
@@ -5546,7 +5553,7 @@ void X(adjoint_3d)(X(plan) *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(2);
-  nfft_adjoint_3d_B(ths);
+  KB_POLY_DISPATCH(nfft_adjoint_3d_B, ths);
   TOC(2);
 
   TIC_FFTW(1)
@@ -5778,10 +5785,10 @@ void X(precompute_lin_psi)(X(plan) *ths)
   for (t=0; t<ths->d; t++)
     {
       step = ((R)(ths->m+2)) / ((R)(ths->K * ths->n[t]));
-      for(j = 0;j <= ths->K; j++)
-  {
-    ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t], (R)(j) * step,t);
-  } /* for(j) */
+      KB_POLY_SPLIT(
+        for (j = 0; j <= ths->K; j++)
+          ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t], (R)(j) * step, t);
+      );
     } /* for(t) */
 }
 
@@ -5814,7 +5821,7 @@ void X(precompute_fg_psi)(X(plan) *ths)
   /* for(t) */
 } /* nfft_precompute_fg_psi */
 
-void X(precompute_psi)(X(plan) *ths)
+static KB_POLY_INLINE void precompute_psi(X(plan) *ths, const int kb_poly_on)
 {
   INT t; /* index over all dimensions */
   INT u, o; /* depends on x_j */
@@ -5836,10 +5843,16 @@ void X(precompute_psi)(X(plan) *ths)
     } /* for(j) */
   }
   /* for(t) */
-} /* nfft_precompute_psi */
+}
+
+void X(precompute_psi)(X(plan) *ths)
+{
+  KB_POLY_DISPATCH(precompute_psi, ths);
+}
 
 #ifdef _OPENMP
-static void nfft_precompute_full_psi_omp(X(plan) *ths)
+static KB_POLY_INLINE void nfft_precompute_full_psi_omp(X(plan) *ths,
+    const int kb_poly_on)
 {
   INT j;                                /**< index over all nodes            */
   INT lprod;                            /**< 'bandwidth' of matrix B         */
@@ -5883,12 +5896,13 @@ static void nfft_precompute_full_psi_omp(X(plan) *ths)
 }
 #endif
 
-void X(precompute_full_psi)(X(plan) *ths)
+static KB_POLY_INLINE void precompute_full_psi(X(plan) *ths,
+    const int kb_poly_on)
 {
 #ifdef _OPENMP
   sort(ths);
 
-  nfft_precompute_full_psi_omp(ths);
+  nfft_precompute_full_psi_omp(ths, kb_poly_on);
 #else
   INT t, t2; /* index over all dimensions */
   INT j; /* index over all nodes */
@@ -5930,6 +5944,11 @@ void X(precompute_full_psi)(X(plan) *ths)
 #endif
 }
 
+void X(precompute_full_psi)(X(plan) *ths)
+{
+  KB_POLY_DISPATCH(precompute_full_psi, ths);
+}
+
 void X(precompute_one_psi)(X(plan) *ths)
 {
   if(ths->flags & PRE_LIN_PSI)
@@ -5959,6 +5978,8 @@ static void init_help(X(plan) *ths)
     ths->sigma[t] = ((R)ths->n[t]) / (R)(ths->N[t]);
 
   WINDOW_HELP_INIT;
+
+  WINDOW_HELP_POLY_INIT(ths->flags);
 
   if(ths->flags & MALLOC_X)
     ths->x = (R*)Y(malloc)((size_t)(ths->d * ths->M_total) * sizeof(R));

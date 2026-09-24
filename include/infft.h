@@ -169,8 +169,8 @@ typedef ptrdiff_t INT;
 /* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
  * to the nearest point uo() leaves out. The default is the floor(n x)
  * centring, whose offset lies in [0,1); a module whose uo() centres the run
- * differently defines this before including. Only the Gaussian reads it, the
- * other windows being zero past |x| <= m/n. */
+ * differently defines this before including. The Gaussian and Kaiser-Bessel
+ * windows read it, the other windows being zero past |x| <= m/n. */
 #ifndef WINDOW_STENCIL_REACH
   #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
 #endif
@@ -326,6 +326,7 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 11
   #endif
 #else /* Kaiser-Bessel is the default. */
+  #define WINDOW_IS_KAISER_BESSEL 1
   /* PHI and PHI_HUT both carry the factor exp(-log I0(m b)) so that PHI_HUT(n,0,ax) 
    * is normalized to 1. Deconvolution divides by PHI_HUT and convolution multiplies 
    * by PHI, so the factor cancels and the transform is unchanged.
@@ -341,15 +342,60 @@ typedef ptrdiff_t INT;
   #define KB_PEAK_INV(ax) (ths->b[3 * (ths->d) + (ax)])
   #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_I0E_PEAK_INV(ax), \
                              WINDOW_STENCIL_REACH, (R)(n), (R)(k)))
-  #define PHI(n,x,ax) (Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
+  /* One KB_POLY table per axis in ths->spline_coeffs; NULL selects the closed
+   * form. KB_POLY_ON reads that choice from the plan unless the scope holds a
+   * constant kb_poly_on of 0 or 1, which KB_POLY_DISPATCH and KB_POLY_SPLIT
+   * provide so the compiler folds the test out of the node loops. */
+  enum { kb_poly_on = -1 };
+  #define KB_POLY_ON (kb_poly_on < 0 ? ths->spline_coeffs != NULL : kb_poly_on)
+  #define KB_POLY_DEG (Y(kb_poly_degree)(ths->m))
+  #define KB_POLY(ax) (ths->spline_coeffs \
+      + (ax) * (KB_POLY_DEG + 1) * KB_POLY_COLS(ths->m))
+  #define PHI(n,x,ax) (KB_POLY_ON \
+      ? Y(kb_poly_phi)(KB_POLY(ax), ths->m, KB_POLY_DEG, (R)(n) * (R)(x)) \
+      : Y(kb_phi)(KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
                          WINDOW_STENCIL_REACH, (R)(n) * (R)(x)))
   /* Fills dst[0 .. 2m+1] with phi(x - (u + l)/n), the run every psi table is
-   * built from. The window sees the whole run, so it can hoist its constants,
-   * step the argument by one grid cell rather than dividing per point, and put
-   * the points that need the guarded evaluation in their own branch. */
+   * built from. The closed form sees the whole run, so it can hoist its
+   * constants, step the argument by one grid cell rather than dividing per
+   * point, and put the points that need the guarded evaluation in their own
+   * branch. */
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
-        WINDOW_STENCIL_REACH, (ths->m), NX_SUB(n, x, u))
+    do { \
+      if (KB_POLY_ON) \
+        Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, \
+            NX_SUB(n, x, u)); \
+      else \
+        Y(kb_phi_run)((dst), KB_B(ax), KB_LG_TAIL(ax), KB_PEAK_INV(ax), \
+            WINDOW_STENCIL_REACH, (ths->m), NX_SUB(n, x, u)); \
+    } while (0)
+  /* Calls f(ths, kb_poly_on) with the choice as a constant. f is
+   * KB_POLY_INLINE, so each call site becomes its own copy of f. */
+  #define KB_POLY_DISPATCH(f,ths) \
+    do { \
+      if ((ths)->spline_coeffs) \
+        f((ths), 1); \
+      else \
+        f((ths), 0); \
+    } while (0)
+  /* The same for a block with no preprocessor directives in it. */
+  #define KB_POLY_SPLIT(...) \
+    do { \
+      if (ths->spline_coeffs) \
+      { \
+        enum { kb_poly_on = 1 }; \
+        __VA_ARGS__ \
+      } \
+      else \
+      { \
+        enum { kb_poly_on = 0 }; \
+        __VA_ARGS__ \
+      } \
+    } while (0)
+  #define WINDOW_HELP_POLY_INIT(flags) \
+    ths->spline_coeffs = ((flags) & ANALYTIC_WINDOW) \
+        ? NULL : Y(kb_poly_init)(ths->b, ths->d, ths->m, \
+            WINDOW_STENCIL_REACH)
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -366,7 +412,7 @@ typedef ptrdiff_t INT;
         ths->b[3 * ths->d + WINDOW_idx] = EXP(-WINDOW_xpk - WINDOW_lg); \
       } \
   }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b); Y(free)(ths->spline_coeffs);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -396,6 +442,23 @@ typedef ptrdiff_t INT;
         (dst)[PHI_RUN_l] = PHI((n), \
             NX_SUB(n, x, PHI_RUN_l + (u)) / ((R)(n)), (ax)); \
     } while (0)
+#endif
+
+/* Only Kaiser-Bessel has a polynomial form. */
+#ifndef WINDOW_HELP_POLY_INIT
+  #define WINDOW_HELP_POLY_INIT(flags) ths->spline_coeffs = NULL
+  #define KB_POLY_DISPATCH(f,ths) f((ths), 0)
+  #define KB_POLY_SPLIT(...) do { __VA_ARGS__ } while (0)
+#endif
+
+/* Forced, so that KB_POLY_DISPATCH yields one copy of the function per choice
+ * whatever its size. */
+#if defined(__GNUC__) || defined(__clang__)
+  #define KB_POLY_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+  #define KB_POLY_INLINE __forceinline
+#else
+  #define KB_POLY_INLINE inline
 #endif
 
 /* Gaussian run fill for the FG_PSI paths: buf[0 .. 2m+2] holds the window at
@@ -1744,6 +1807,125 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
   for (l = hi + 1; l <= last; l++)
     dst[l] = Y(kb_phi)(b, lg_tail, peak_inv, m, nx0 - (R)l);
 }
+
+/* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
+
+/* The degree cap is the lowest degree that reaches each precision's floor,
+ * max |poly - phi| / peak over m = 2 .. 14 and sigma 1.25 and 2, on aarch64
+ * and on x86-64:
+ *
+ *   float: four eps from degree 8, the same up to 10, then a cliff.
+ *   double: five eps from degree 13, flat to 22. Degree 12 is 30 eps.
+ *   80-bit: five eps from degree 15, flat to 27, 60 eps at 28.
+ *   binary128: still improving at 24, where it is five eps. The cap binds
+ *     only for m > 18.
+ *
+ * Past the floor, more degree is Horner work for nothing. */
+#if MANT_DIG == 113
+  #define KB_POLY_DEG_MAX 24
+#elif MANT_DIG == 64
+  #define KB_POLY_DEG_MAX 15
+#elif MANT_DIG == 53
+  #define KB_POLY_DEG_MAX 13
+#elif MANT_DIG == 24
+  #define KB_POLY_DEG_MAX 8
+#else
+  #define KB_POLY_DEG_MAX 13
+#endif
+
+static inline INT Y(kb_poly_degree)(const INT m)
+{
+  /* m + 6 clears the transform's own error at every m measured in double. */
+  const INT deg = m + 6;
+
+  return IF(deg > (INT)KB_POLY_DEG_MAX, (INT)KB_POLY_DEG_MAX, deg);
+}
+
+/* Column c of the table is the cell [m + 1 - c, m + 2 - c) of the window
+ * argument, in the offset t into it. |nx| < m + 2 covers runs anchored below
+ * or nearest the node and the PRE_LIN_PSI table. */
+#define KB_POLY_COLS(m) (2 * (m) + 4)
+
+/* The lane count is the vectorised dimension, so it is worth having at compile
+ * time; the degree stays a runtime bound because the precision cap moves it.
+ * The row stride is KB_POLY_COLS(m) = W + 2. */
+#define KB_POLY_RUN_LANES(W) \
+  { \
+    INT j, l; \
+    for (l = 0; l < (W); l++) \
+      dst[l] = coef[deg * ((W) + 2) + l]; \
+    for (j = deg - 1; j >= 0; j--) \
+      for (l = 0; l < (W); l++) \
+        dst[l] = dst[l] * t + coef[j * ((W) + 2) + l]; \
+    return; \
+  }
+
+/* dst[l] = phi(nx0 - l), l = 0 .. 2m+1. nx0 must lie in [m - 1, m + 2), or
+ * the columns leave the table; being positive, the cast floors it. */
+static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict tab,
+    const INT m, const INT deg, const R nx0)
+{
+  const INT w = 2 * m + 2, s = KB_POLY_COLS(m), f = (INT)nx0;
+  const R t = nx0 - (R)f;
+  const R *restrict coef = tab + (m + 1 - f);
+  INT j, l;
+
+  switch (w)
+  {
+  case 6: KB_POLY_RUN_LANES(6)
+  case 8: KB_POLY_RUN_LANES(8)
+  case 10: KB_POLY_RUN_LANES(10)
+  case 12: KB_POLY_RUN_LANES(12)
+  case 14: KB_POLY_RUN_LANES(14)
+  case 16: KB_POLY_RUN_LANES(16)
+  case 18: KB_POLY_RUN_LANES(18)
+  case 20: KB_POLY_RUN_LANES(20)
+  case 22: KB_POLY_RUN_LANES(22)
+  case 24: KB_POLY_RUN_LANES(24)
+  case 26: KB_POLY_RUN_LANES(26)
+  case 28: KB_POLY_RUN_LANES(28)
+  case 30: KB_POLY_RUN_LANES(30)
+  case 32: KB_POLY_RUN_LANES(32)
+  case 34: KB_POLY_RUN_LANES(34)
+  default: break;
+  }
+
+  for (l = 0; l < w; l++)
+    dst[l] = coef[deg * s + l];
+
+  for (j = deg - 1; j >= 0; j--)
+    for (l = 0; l < w; l++)
+      dst[l] = dst[l] * t + coef[j * s + l];
+}
+
+/* phi(nx) from the cell of |nx|, the window being even. Extrapolates past
+ * |nx| = m + 2. */
+static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,
+    const R nx)
+{
+  const R a = FABS(nx);
+  const INT f = IF((INT)a > m + 1, m + 1, (INT)a), s = KB_POLY_COLS(m);
+  const R t = a - (R)f;
+  const R *coef = tab + (m + 1 - f);
+  R v = coef[deg * s];
+  INT j;
+
+  for (j = deg - 1; j >= 0; j--)
+    v = v * t + coef[j * s];
+
+  return v;
+}
+
+/* Fill coef, (deg + 1) * KB_POLY_COLS(m) reals, coef[j * KB_POLY_COLS(m) + c]
+ * being the coefficient of t^j for column c. reach is the window half-width;
+ * m fixes only the cells. */
+void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
+    const R reach, const INT m, const INT deg);
+
+/* One table per axis from the window constants in b, laid out as
+ * WINDOW_HELP_INIT leaves them. */
+R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach);
+
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed
