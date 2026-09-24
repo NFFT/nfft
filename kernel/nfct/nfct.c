@@ -70,8 +70,15 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
 /* Minimum innermost-axis length for the multivariate recurrence to pay: its per-row seed costs
- * a COS/SIN pair, so shorter rows evaluate BASE per frequency. */
-#define NFFT_DIRECT_RECURRENCE_MIN_INNER 8
+ * a COS/SIN pair, while per frequency BASE costs one trig call and a phase reduction, whose
+ * RINT is a library call on baseline x86-64. The recurrence is ahead from two frequencies on. */
+#define NFFT_DIRECT_RECURRENCE_MIN_INNER 2
+
+/* Threaded adjoint: rows shorter than NFFT_DIRECT_SHORT_ROW, and fewer than
+ * NFFT_DIRECT_ROWS_PER_THREAD per thread, are shared out by frequency instead of by row, since
+ * threads writing neighbouring short rows contend for the same cache lines. */
+#define NFFT_DIRECT_SHORT_ROW 8
+#define NFFT_DIRECT_ROWS_PER_THREAD 4
 
 /* The (co)sine value is a part of the complex phase exp(+i 2pi (k+OFFSET) x): NDCT reads the
  * real part (cos), NDST reads the imaginary part (sin). */
@@ -396,7 +403,8 @@ void X(adjoint_direct)(const X(plan) *ths)
     const INT nl = ths->N[ths->d - 1] - OFFSET;
     const INT nrows = nl > 0 ? ths->N_total / nl : 0;
 #ifdef _OPENMP
-    if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
+    if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER && (nl >= NFFT_DIRECT_SHORT_ROW
+        || nrows >= NFFT_DIRECT_ROWS_PER_THREAD * omp_get_max_threads()))
     {
       #pragma omp parallel default(shared)
       {
@@ -408,8 +416,7 @@ void X(adjoint_direct)(const X(plan) *ths)
     }
     else
     {
-      /* Short rows are too few to share out, so the parallel unit is the frequency, as in
-       * NFFT. */
+      /* Few short rows: the parallel unit is the frequency. */
       INT k_L;
       #pragma omp parallel for default(shared) private(k_L)
       for (k_L = 0; k_L < ths->N_total; k_L++)
