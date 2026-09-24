@@ -69,6 +69,10 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 /* Block size for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
+/* Minimum innermost-axis length for the multivariate recurrence to pay: its per-row seed costs
+ * a COS/SIN pair, so shorter rows evaluate BASE per frequency. */
+#define NFFT_DIRECT_RECURRENCE_MIN_INNER 8
+
 /* The (co)sine value is a part of the complex phase exp(+i 2pi (k+OFFSET) x): NDCT reads the
  * real part (cos), NDST reads the imaginary part (sin). */
 #define BASEPART(w) CIMAG(w)
@@ -79,6 +83,12 @@ static inline R X(reduced_omega)(const R k, const R x)
 {
   const R n = RINT(k * x);      // Nearest integer to k * x.
   return K2PI * FFMA(k, x, -n); // Calculate k * x - n with a single rounding, then multiply 2 * pi.
+}
+
+/* BASE(2pi (k + OFFSET) x) from the reduced phase. */
+static inline R X(base_reduced)(const INT k, const R x)
+{
+  return BASE(X(reduced_omega)((R)(k + OFFSET), x));
 }
 
 /* uo() anchors the run at the grid point nearest the node, run index m,
@@ -147,38 +157,150 @@ void X(trafo_direct)(const X(plan) *ths)
   }
   else
   {
-    /* multivariate case */
+    /* multivariate case: along each row of f_hat (the innermost axis) the phase recurs as in
+     * the univariate case, re-seeded at every row start and every B steps; the outer axes add
+     * one factor per row. */
+    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+    const INT nl = ths->N[ths->d - 1] - OFFSET;
+    const INT nrows = nl > 0 ? ths->N_total / nl : 0;
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
 #endif
     for (j = 0; j < ths->M_total; j++)
     {
-      R x[ths->d], omega, Omega[ths->d + 1];
-      INT t, t2, k_L, k[ths->d];
-      Omega[0] = K(1.0);
-      for (t = 0; t < ths->d; t++)
-      {
-        k[t] = OFFSET;
-        x[t] = ths->x[j * ths->d + t];
-        Omega[t+1] = BASE(X(reduced_omega)((R)(k[t]), x[t])) * Omega[t];
-      }
-      omega = Omega[ths->d];
+      const R *xj = ths->x + (size_t)j * ths->d;
+      const R xl = xj[ths->d - 1];
+      const R dphi = K2PI * xl;
+      const C dw = COS(dphi) + II * SIN(dphi);
+      R P[ths->d], v = K(0.0);
+      INT k[ths->d], t, t2, r, i;
 
-      for (k_L = 0; k_L < ths->N_total; k_L++)
+      /* P[t + 1] is the product of the outer axes' factors up to axis t. */
+      P[0] = K(1.0);
+      for (t = 0; t < ths->d - 1; t++)
       {
-        f[j] += f_hat[k_L] * omega;
+        k[t] = 0;
+        P[t + 1] = P[t] * X(base_reduced)(0, xj[t]);
+      }
+
+      for (r = 0; r < nrows; r++)
+      {
+        const R *fr = f_hat + r * nl;
+        R s = K(0.0);
+
+        if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
         {
-          for (t = ths->d - 1; (t >= 1) && (k[t] == (ths->N[t] - 1)); t--)
-            k[t] = OFFSET;
+          i = 0;
+          while (i < nl)
+          {
+            const R omega = X(reduced_omega)((R)(i + OFFSET), xl);
+            C w = COS(omega) + II * SIN(omega);
+            INT iend = i + B; if (iend > nl) iend = nl;
+            for (; i < iend; i++)
+            {
+              s += fr[i] * BASEPART(w);
+              w *= dw;
+            }
+          }
+        }
+        else
+        {
+          for (i = 0; i < nl; i++)
+            s += fr[i] * X(base_reduced)(i, xl);
+        }
+
+        v += P[ths->d - 1] * s;
+
+        if (r + 1 < nrows)
+        {
+          for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t] - OFFSET - 1); t--)
+            k[t] = 0;
 
           k[t]++;
 
-          for (t2 = t; t2 < ths->d; t2++)
-            Omega[t2+1] = BASE(X(reduced_omega)((R)(k[t2]), x[t2])) * Omega[t2];
-
-          omega = Omega[ths->d];
+          for (t2 = t; t2 < ths->d - 1; t2++)
+            P[t2 + 1] = P[t2] * X(base_reduced)(k[t2], xj[t2]);
         }
+      }
+
+      f[j] = v;
+    }
+  }
+}
+
+/* Adjoint over the rows [rlo,rhi) of f_hat, a row being the N[d-1] - OFFSET contiguous
+ * frequencies of the innermost axis. Callers pass disjoint ranges, which keeps the f_hat
+ * accumulation race-free. */
+static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT rhi)
+{
+  R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
+  const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+  const INT nl = ths->N[ths->d - 1] - OFFSET;
+  INT k0[ths->d], t, j, r = rlo;
+
+  if (rlo >= rhi)
+    return;
+
+  /* Decode the outer multi-index of row rlo once; the row loop advances it from there. */
+  for (t = ths->d - 2; t >= 0; t--)
+  {
+    k0[t] = r % (ths->N[t] - OFFSET);
+    r /= ths->N[t] - OFFSET;
+  }
+
+  for (j = 0; j < ths->M_total; j++)
+  {
+    const R *xj = ths->x + (size_t)j * ths->d;
+    const R xl = xj[ths->d - 1];
+    const R dphi = K2PI * xl;
+    const C dw = COS(dphi) + II * SIN(dphi);
+    R P[ths->d];
+    INT k[ths->d], t2, i;
+
+    /* P[t + 1] is f[j] times the outer axes' factors up to axis t. */
+    P[0] = f[j];
+    for (t = 0; t < ths->d - 1; t++)
+    {
+      k[t] = k0[t];
+      P[t + 1] = P[t] * X(base_reduced)(k[t], xj[t]);
+    }
+
+    for (r = rlo; r < rhi; r++)
+    {
+      R *fr = f_hat + r * nl;
+      const R a = P[ths->d - 1];
+
+      if (nl >= NFFT_DIRECT_RECURRENCE_MIN_INNER)
+      {
+        i = 0;
+        while (i < nl)
+        {
+          const R omega = X(reduced_omega)((R)(i + OFFSET), xl);
+          C w = COS(omega) + II * SIN(omega);
+          INT iend = i + B; if (iend > nl) iend = nl;
+          for (; i < iend; i++)
+          {
+            fr[i] += a * BASEPART(w);
+            w *= dw;
+          }
+        }
+      }
+      else
+      {
+        for (i = 0; i < nl; i++)
+          fr[i] += a * X(base_reduced)(i, xl);
+      }
+
+      if (r + 1 < rhi)
+      {
+        for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t] - OFFSET - 1); t--)
+          k[t] = 0;
+
+        k[t]++;
+
+        for (t2 = t; t2 < ths->d - 1; t2++)
+          P[t2 + 1] = P[t2] * X(base_reduced)(k[t2], xj[t2]);
       }
     }
   }
@@ -268,58 +390,19 @@ void X(adjoint_direct)(const X(plan) *ths)
   }
   else
   {
-    /* multivariate case */
-    INT j, k_L;
+    /* multivariate case: the recurrence runs along a row, so the parallel unit is the row */
+    const INT nl = ths->N[ths->d - 1] - OFFSET;
+    const INT nrows = nl > 0 ? ths->N_total / nl : 0;
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(j, k_L)
-    for (k_L = 0; k_L < ths->N_total; k_L++)
+    #pragma omp parallel default(shared)
     {
-      INT k[ths->d], k_temp, t;
-
-      k_temp = k_L;
-
-      for (t = ths->d - 1; t >= 0; t--)
-      {
-        k[t] = k_temp % (ths->N[t] - OFFSET);
-        k_temp /= ths->N[t] - OFFSET;
-      }
-
-      for (j = 0; j < ths->M_total; j++)
-      {
-        R omega = K(1.0);
-        for (t = 0; t < ths->d; t++)
-          omega *= BASE(X(reduced_omega)((R)(k[t] + OFFSET), ths->x[j * ths->d + t]));
-        f_hat[k_L] += f[j] * omega;
-      }
+      const int nt = omp_get_num_threads();
+      const int tid = omp_get_thread_num();
+      X(adjoint_direct_rows)(ths, (INT)(((long long)nrows * tid) / nt),
+                                  (INT)(((long long)nrows * (tid + 1)) / nt));
     }
 #else
-    for (j = 0; j < ths->M_total; j++)
-    {
-      R x[ths->d], omega, Omega[ths->d+1];
-      INT t, t2, k[ths->d];
-      Omega[0] = K(1.0);
-      for (t = 0; t < ths->d; t++)
-      {
-        k[t] = OFFSET;
-        x[t] = ths->x[j * ths->d + t];
-        Omega[t+1] = BASE(X(reduced_omega)((R)(k[t]), x[t])) * Omega[t];
-      }
-      omega = Omega[ths->d];
-      for (k_L = 0; k_L < ths->N_total; k_L++)
-      {
-        f_hat[k_L] += f[j] * omega;
-
-        for (t = ths->d-1; (t >= 1) && (k[t] == ths->N[t] - 1); t--)
-          k[t] = OFFSET;
-
-        k[t]++;
-
-        for (t2 = t; t2 < ths->d; t2++)
-          Omega[t2+1] = BASE(X(reduced_omega)((R)(k[t2]), x[t2])) * Omega[t2];
-
-        omega = Omega[ths->d];
-      }
-    }
+    X(adjoint_direct_rows)(ths, 0, nrows);
 #endif
   }
 }
