@@ -160,8 +160,8 @@ void X(trafo_direct)(const X(plan) *ths)
       for (t = 0; t < ths->d; t++)
       {
         k[t] = OFFSET;
-        x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = BASE(((R)(k[t])) * x[t]) * Omega[t];
+        x[t] = ths->x[j * ths->d + t];
+        Omega[t+1] = BASE(X(reduced_omega)((R)(k[t]), x[t])) * Omega[t];
       }
       omega = Omega[ths->d];
 
@@ -175,7 +175,7 @@ void X(trafo_direct)(const X(plan) *ths)
           k[t]++;
 
           for (t2 = t; t2 < ths->d; t2++)
-            Omega[t2+1] = BASE(((R)(k[t2])) * x[t2]) * Omega[t2];
+            Omega[t2+1] = BASE(X(reduced_omega)((R)(k[t2]), x[t2])) * Omega[t2];
 
           omega = Omega[ths->d];
         }
@@ -288,7 +288,7 @@ void X(adjoint_direct)(const X(plan) *ths)
       {
         R omega = K(1.0);
         for (t = 0; t < ths->d; t++)
-          omega *= BASE(K2PI * (k[t] + OFFSET) * ths->x[j * ths->d + t]);
+          omega *= BASE(X(reduced_omega)((R)(k[t] + OFFSET), ths->x[j * ths->d + t]));
         f_hat[k_L] += f[j] * omega;
       }
     }
@@ -301,8 +301,8 @@ void X(adjoint_direct)(const X(plan) *ths)
       for (t = 0; t < ths->d; t++)
       {
         k[t] = OFFSET;
-        x[t] = K2PI * ths->x[j * ths->d + t];
-        Omega[t+1] = BASE(((R)(k[t])) * x[t]) * Omega[t];
+        x[t] = ths->x[j * ths->d + t];
+        Omega[t+1] = BASE(X(reduced_omega)((R)(k[t]), x[t])) * Omega[t];
       }
       omega = Omega[ths->d];
       for (k_L = 0; k_L < ths->N_total; k_L++)
@@ -315,7 +315,7 @@ void X(adjoint_direct)(const X(plan) *ths)
         k[t]++;
 
         for (t2 = t; t2 < ths->d; t2++)
-          Omega[t2+1] = BASE(((R)(k[t2])) * x[t2]) * Omega[t2];
+          Omega[t2+1] = BASE(X(reduced_omega)((R)(k[t2]), x[t2])) * Omega[t2];
 
         omega = Omega[ths->d];
       }
