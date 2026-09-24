@@ -280,8 +280,8 @@ void X(adjoint_direct)(const X(plan) *ths)
 
       for (t = ths->d - 1; t >= 0; t--)
       {
-        k[t] = k_temp % ths->N[t];
-        k_temp /= ths->N[t];
+        k[t] = k_temp % (ths->N[t] - OFFSET);
+        k_temp /= ths->N[t] - OFFSET;
       }
 
       for (j = 0; j < ths->M_total; j++)
