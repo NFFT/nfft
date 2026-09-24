@@ -339,7 +339,11 @@ static R err_trafo(X(plan) *p)
     a = K(0.7);
     b = K(5000.0);
   #endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+    {
+      /* The window's half-width, WINDOW_STENCIL_REACH in infft.h. */
+      const R r = m + K(0.5);
+      err = KPI * (SQRT(r) + r) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * r * SQRT(K(1.0) - K(1.0) / K(2.0)));
+    }
 #else
   #error Unsupported window function.
 #endif
