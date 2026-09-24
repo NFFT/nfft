@@ -341,19 +341,11 @@ static R err_trafo(X(plan) *p)
     a = K(0.3);
     b = K(2100.0);
   #endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
-  #if MANT_DIG == 24
-    /* TODO: Remove when the window width change has landed. */
-    if (m <= K(2.0))
     {
-      const R band_b = KPI * (K(2.0) - K(1.0) / s);
-      const R band_u = KPI / s;
-      const R band_ra = SQRT((band_b - band_u) * (band_b + band_u));
-      /* Divided by the fitted prefactor, so that a * err carries this term at
-       * its own size: it is exact, not something the fit may shrink. */
-      err += EXP(-m * band_ra) / (Y(bessel_i0_exp_scaled)(m * band_ra) * a);
+      /* The window's half-width, WINDOW_STENCIL_REACH in infft.h. */
+      const R r = m + K(1.0);
+      err = KPI * (SQRT(r) + r) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * r * SQRT(K(1.0) - K(1.0) / K(2.0)));
     }
-  #endif
 #else
   #error Unsupported window function.
 #endif
