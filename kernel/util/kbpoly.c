@@ -95,7 +95,7 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
 }
 
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
-    const R mr, const INT m, const INT deg)
+    const R reach, const INT m, const INT deg)
 {
   const INT w = KB_POLY_COLS(m), n = deg + 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n; out is w. */
@@ -113,8 +113,8 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
 
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
-      val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, mr,
-          node[k] + mr + K(1.0) - (R)l);
+      val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, reach,
+          node[k] + (R)(m + 1 - l));
 
   cheb_of(cheb, val, cm, w, deg);
   cheb_to_monomial(coef, cheb, tp, w, deg);
@@ -147,7 +147,7 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   Y(free)(mem);
 }
 
-R *Y(kb_poly_init)(const R *b, const INT d, const INT m)
+R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
 {
   const INT deg = Y(kb_poly_degree)(m);
   const INT stride = (deg + 1) * KB_POLY_COLS(m);
@@ -155,7 +155,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m)
   INT t;
 
   for (t = 0; t < d; t++)
-    Y(kb_poly_fit)(tab + t * stride, b[t], b[d + t], b[3 * d + t], (R)m, m,
+    Y(kb_poly_fit)(tab + t * stride, b[t], b[d + t], b[3 * d + t], reach, m,
         deg);
 
   return tab;

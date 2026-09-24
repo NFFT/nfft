@@ -80,9 +80,10 @@ void X(check_kaiser_bessel_poly)(void)
     {
       const INT N = 64, n = 2 * (INT)(kb_sigma[s] * (R)N / K(2.0));
       const R b = KPI * (K(2.0) - (R)N / (R)n);
-      const R lt = Y(bessel_i0_logtail)((R)m * b);
-      const R pki = EXP(-(R)m * b - lt);
-      const R peak = kb_peak(b, lt, pki, (R)m);
+      const R reach = (R)m + K(1.0);
+      const R lt = Y(bessel_i0_logtail)(reach * b);
+      const R pki = EXP(-reach * b - lt);
+      const R peak = kb_peak(b, lt, pki, reach);
       const INT deg = Y(kb_poly_degree)(m), w = 2 * m + 2;
       const INT cols = KB_POLY_COLS(m);
       const R bound = IF(approx_bound(m) > eps_floor(deg), approx_bound(m),
@@ -93,7 +94,7 @@ void X(check_kaiser_bessel_poly)(void)
       INT i, l;
       int ok;
 
-      Y(kb_poly_fit)(coef, b, lt, pki, (R)m, m, deg);
+      Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
 
       /* 513 offsets, off the interpolation nodes where the residual is zero
        * by construction. Runs start in [m - 1, m + 1], the reach of both run
@@ -108,7 +109,7 @@ void X(check_kaiser_bessel_poly)(void)
 
         for (l = 0; l < w; l++)
         {
-          const R ref = Y(kb_phi)(b, lt, pki, (R)m, nx0 - (R)l);
+          const R ref = Y(kb_phi)(b, lt, pki, reach, nx0 - (R)l);
 
           err = ABS(got[l] - ref) / peak;
 
@@ -117,7 +118,7 @@ void X(check_kaiser_bessel_poly)(void)
         }
 
         err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
-            - Y(kb_phi)(b, lt, pki, (R)m, nx)) / peak;
+            - Y(kb_phi)(b, lt, pki, reach, nx)) / peak;
 
         if (err > worst)
           worst = err;

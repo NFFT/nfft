@@ -169,8 +169,8 @@ typedef ptrdiff_t INT;
 /* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
  * to the nearest point uo() leaves out. The default is the floor(n x)
  * centring, whose offset lies in [0,1); a module whose uo() centres the run
- * differently defines this before including. Only the Gaussian reads it, the
- * other windows being zero past |x| <= m/n. */
+ * differently defines this before including. The Gaussian and Kaiser-Bessel
+ * windows read it, the other windows being zero past |x| <= m/n. */
 #ifndef WINDOW_STENCIL_REACH
   #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
 #endif
@@ -394,7 +394,8 @@ typedef ptrdiff_t INT;
     } while (0)
   #define WINDOW_HELP_POLY_INIT(flags) \
     ths->spline_coeffs = ((flags) & ANALYTIC_WINDOW) \
-        ? NULL : Y(kb_poly_init)(ths->b, ths->d, ths->m)
+        ? NULL : Y(kb_poly_init)(ths->b, ths->d, ths->m, \
+            WINDOW_STENCIL_REACH)
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -1916,13 +1917,14 @@ static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,
 }
 
 /* Fill coef, (deg + 1) * KB_POLY_COLS(m) reals, coef[j * KB_POLY_COLS(m) + c]
- * being the coefficient of t^j for column c. */
+ * being the coefficient of t^j for column c. reach is the window half-width;
+ * m fixes only the cells. */
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
-    const R mr, const INT m, const INT deg);
+    const R reach, const INT m, const INT deg);
 
 /* One table per axis from the window constants in b, laid out as
  * WINDOW_HELP_INIT leaves them. */
-R *Y(kb_poly_init)(const R *b, const INT d, const INT m);
+R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach);
 
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
