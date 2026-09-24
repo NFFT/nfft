@@ -69,14 +69,12 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 /* Block size for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
-/* Minimum innermost-axis length for the multivariate recurrence to pay: its per-row seed costs
- * a COS/SIN pair, while per frequency BASE costs one trig call and a phase reduction, whose
- * RINT is a library call on baseline x86-64. The recurrence is ahead from two frequencies on. */
+/* Minimum innermost-dimension length for the multivariate recurrence to pay. */
 #define NFFT_DIRECT_RECURRENCE_MIN_INNER 2
 
 /* Threaded adjoint: rows shorter than NFFT_DIRECT_SHORT_ROW, and fewer than
- * NFFT_DIRECT_ROWS_PER_THREAD per thread, are shared out by frequency instead of by row, since
- * threads writing neighbouring short rows contend for the same cache lines. */
+ * NFFT_DIRECT_ROWS_PER_THREAD per thread, are shared out by frequency instead of by row
+ * to avoid cache contention. */
 #define NFFT_DIRECT_SHORT_ROW 8
 #define NFFT_DIRECT_ROWS_PER_THREAD 4
 
@@ -164,9 +162,7 @@ void X(trafo_direct)(const X(plan) *ths)
   }
   else
   {
-    /* multivariate case: along each row of f_hat (the innermost axis) the phase recurs as in
-     * the univariate case, re-seeded at every row start and every B steps; the outer axes add
-     * one factor per row. */
+    /* Multivariate: Recur phase along innermost axis and re-seed at every row start and after B steps. */
     const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
     const INT nl = ths->N[ths->d - 1] - OFFSET;
     const INT nrows = nl > 0 ? ths->N_total / nl : 0;
@@ -238,8 +234,7 @@ void X(trafo_direct)(const X(plan) *ths)
 }
 
 /* Adjoint over the rows [rlo,rhi) of f_hat, a row being the N[d-1] - OFFSET contiguous
- * frequencies of the innermost axis. Callers pass disjoint ranges, which keeps the f_hat
- * accumulation race-free. */
+ * frequencies of the innermost axis. */
 static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT rhi)
 {
   R *f_hat = (R*)ths->f_hat, *f = (R*)ths->f;
@@ -399,7 +394,7 @@ void X(adjoint_direct)(const X(plan) *ths)
   }
   else
   {
-    /* multivariate case: the recurrence runs along a row, so the parallel unit is the row */
+    /* Multivariate case: Recurrence runs along a row, parallel unit is the row */
     const INT nl = ths->N[ths->d - 1] - OFFSET;
     const INT nrows = nl > 0 ? ths->N_total / nl : 0;
 #ifdef _OPENMP
@@ -416,7 +411,7 @@ void X(adjoint_direct)(const X(plan) *ths)
     }
     else
     {
-      /* Few short rows: the parallel unit is the frequency. */
+      /* Few short rows: parallelize over frequencies. */
       INT k_L;
       #pragma omp parallel for default(shared) private(k_L)
       for (k_L = 0; k_L < ths->N_total; k_L++)
