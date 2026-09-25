@@ -187,8 +187,8 @@ C Y(conv_node_nd)(C *g, const R *psi, const INT *u, const INT *n, int d, INT len
  * otherwise row k belongs to node perm[k]. */
 void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,
                  INT M, INT *u);
-void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
-                   const INT *N, int d, int m, INT M, R *psi);
+void Y(conv_fill_psi)(int window, int analytic, const R *x, const INT *perm,
+                   const INT *n, const INT *N, int d, int m, INT M, R *psi);
 
 /* A CONV solver instance. Every CONV registrar registers two, caller order
  * (reg_id 0) and sorted (reg_id 1), so the planner races node order like any

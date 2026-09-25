@@ -142,6 +142,7 @@ Full detail: [lifecycle-and-contracts.md](reference/lifecycle-and-contracts.md).
 | *(reserved)* | `1<<6` | `NFFT_EXHAUSTIVE`. Not defined publicly; do not reuse this bit. |
 | `NFFT_NO_NONTHREADED` | `1<<7` | Beyond-guru: forbid serial solvers whenever more than one thread was requested, whatever the patience. |
 | `NFFT_WISDOM_ONLY` | `1<<8` | Plan only from existing wisdom, at every level and internal stage; the guru returns `NULL` on a miss instead of searching or writing anything. |
+| `NFFT_ANALYTIC_WINDOW` | `1<<9` | Kaiser-Bessel psi tables from the closed form instead of the per-plan fitted polynomial (the default). Other windows ignore it. Enters the NFFT and CONV keys. |
 
 Per-axis NDFT variant (even `N`): `NFFT_NDFT_TYPE_I` (`k=-N/2..N/2-1`),
 `NFFT_NDFT_TYPE_II` (`k=-N/2+1..N/2`); odd `N` has only type-I. Windows:

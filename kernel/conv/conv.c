@@ -40,6 +40,7 @@ static void hash(const problem *p, md5 *ctx)
   for (t = 0; t < ego->sz->rnk; t++)
     Y(md5_put_INT)(ctx, ego->N[t]);
   Y(md5_put_int)(ctx, ego->window);
+  Y(md5_put_int)(ctx, ego->analytic);
   /* x itself is not hashed: the key is a size class. Its one recorded
    * property is whether the rows are already in key order, since a sorted
    * winner blessed on random nodes must not replay on presorted ones, nor the
@@ -101,6 +102,7 @@ problem *Y(mkproblem_conv)(int d, const INT *n, const INT *N, INT M, int m,
   ego->window = window;
   ego->sign = sign;
   ego->x_sorted = x_sorted;
+  ego->analytic = 0;
   ego->x = x; /* borrowed alias */
   ego->g = g; /* borrowed alias */
   ego->f = f; /* borrowed alias */
@@ -289,28 +291,35 @@ void Y(conv_fill_u)(const R *x, const INT *perm, const INT *n, int d, int m,
  * evaluation still runs over a contiguous array and no copy of x is kept. */
 #define CONV_PSI_BLOCK 256
 
-void Y(conv_fill_psi)(int window, const R *x, const INT *perm, const INT *n,
-                   const INT *N, int d, int m, INT M, R *psi)
+void Y(conv_fill_psi)(int window, int analytic, const R *x, const INT *perm,
+                   const INT *n, const INT *N, int d, int m, INT M, R *psi)
 {
   const INT len = 2 * (INT)m + 2;
   R xb[CONV_PSI_BLOCK];
+  R *poly[d];
   INT k0, k, cnt;
   int t;
+  for (t = 0; t < d; t++)
+    poly[t] = (window == NFFT_WINDOW_KAISER_BESSEL && !analytic) ?
+                   Y(window_kb_poly)(n[t], N[t], m) :
+                   0;
   if (!perm) {
     for (t = 0; t < d; t++)
-      Y(window_phi_precompute)(window, n[t], N[t], m, x + t, d, M, psi + t * len,
-                            d * len);
-    return;
-  }
-  for (k0 = 0; k0 < M; k0 += cnt) {
-    cnt = (M - k0 < CONV_PSI_BLOCK) ? M - k0 : CONV_PSI_BLOCK;
-    for (t = 0; t < d; t++) {
-      for (k = 0; k < cnt; k++)
-        xb[k] = x[perm[k0 + k] * d + t];
-      Y(window_phi_precompute)(window, n[t], N[t], m, xb, 1, cnt,
-                            psi + (k0 * d + t) * len, d * len);
+      Y(window_phi_precompute)(window, poly[t], n[t], N[t], m, x + t, d, M,
+                            psi + t * len, d * len);
+  } else {
+    for (k0 = 0; k0 < M; k0 += cnt) {
+      cnt = (M - k0 < CONV_PSI_BLOCK) ? M - k0 : CONV_PSI_BLOCK;
+      for (t = 0; t < d; t++) {
+        for (k = 0; k < cnt; k++)
+          xb[k] = x[perm[k0 + k] * d + t];
+        Y(window_phi_precompute)(window, poly[t], n[t], N[t], m, xb, 1, cnt,
+                              psi + (k0 * d + t) * len, d * len);
+      }
     }
   }
+  for (t = 0; t < d; t++)
+    Y(free)(poly[t]);
 }
 
 double Y(conv_sort_grid_bytes)(int d)

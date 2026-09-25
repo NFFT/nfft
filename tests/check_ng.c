@@ -233,6 +233,7 @@ int main(void)
   CU_add_test(nfast_suite, "native_window_select",
               Y(check_nfast_native_window_select));
   CU_add_test(nfast_suite, "window_accuracy", Y(check_nfast_window_accuracy));
+  CU_add_test(nfast_suite, "analytic_window", Y(check_nfast_analytic_window));
 
   ops_suite = CU_add_suite("ops", 0, 0);
   CU_add_test(ops_suite, "helpers", Y(check_ops_helpers));

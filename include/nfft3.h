@@ -859,6 +859,8 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
                                          * requested, whatever the patience. */
 #define NFFT_WISDOM_ONLY     (1U << 8)  /* Plan only from existing wisdom; the
                                          * guru returns NULL on a miss. */
+#define NFFT_ANALYTIC_WINDOW (1U << 9)  /* Kaiser-Bessel from its closed form,
+                                         * not the polynomial fitted per plan. */
 
 /* Per-axis NDFT variant for even N: type-I is k = -N/2 .. N/2-1; type-II is k = -N/2+1 .. N/2.
  * For odd N, there is only one type (defined as type-I) and the range is k = -(N-1)/2 .. (N-1)/2. */

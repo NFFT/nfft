@@ -188,13 +188,37 @@ void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
     out[i] = Y(window_phi_hut)(window, n, N, m, k0 + i);
 }
 
+R *Y(window_kb_poly)(INT n, INT N, int m)
+{
+  R c[4];
+
+  kb_consts(n, N, m, &c[0], &c[1], &c[2], &c[3]);
+  return Y(kb_poly_init)(c, 1, (INT)m, REACH(m));
+}
+
 /* The run's offsets come from NX_SUB, as the PHI_RUN macros form them: one
  * rounding, so a node past the mantissa of n x is not displaced. */
-void Y(window_phi_precompute)(int window, INT n, INT N, int m,
+void Y(window_phi_precompute)(int window, const R *poly, INT n, INT N, int m,
                               const R *x, INT x_stride, INT num_nodes,
                               R *out, INT out_stride)
 {
   INT j;
+
+  if (poly)
+  {
+    const INT deg = Y(kb_poly_degree)((INT)m);
+
+    for (j = 0; j < num_nodes; j++)
+    {
+      const R xj = x[(size_t)j * (size_t)x_stride];
+      const INT u = LRINT(FLOOR((R)n * xj)) - (INT)m;
+
+      Y(kb_poly_run)(out + (size_t)j * (size_t)out_stride, poly, (INT)m, deg,
+          NX_SUB(n, xj, u));
+    }
+
+    return;
+  }
 
   if (window == NFFT_WINDOW_KAISER_BESSEL)
   {

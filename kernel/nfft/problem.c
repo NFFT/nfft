@@ -68,6 +68,7 @@ static void hash(const problem *p, md5 *ctx)
   Y(md5_put_int)(ctx, floor_log2_int(ego->M));
   Y(md5_put_int)(ctx, ego->m);
   Y(md5_put_int)(ctx, ego->window);
+  Y(md5_put_int)(ctx, ego->analytic);
   /* FFTW_WISDOM_ONLY says how hard to look for a plan, not which plan is
    * wanted, so it never enters the key, however this problem was built. */
   Y(md5_put_unsigned)(ctx, ego->fftw_flags & ~(unsigned)FFTW_WISDOM_ONLY);
@@ -179,6 +180,7 @@ Y(mkproblem_nfft)(int d, const INT *N, const int *variant, const INT *n,
   ego->M = M;
   ego->m = m;
   ego->window = window;
+  ego->analytic = 0;
   ego->sign = sign;
   ego->fftw_flags = fftw_flags;
 

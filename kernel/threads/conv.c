@@ -50,7 +50,7 @@ typedef struct {
   int d;
   INT *n, *N; /* owned, length d */
   INT M, ntot;
-  int m, window;
+  int m, window, analytic;
   int nthr; /* team size */
   int nb; /* bands along axis 0, 1 <= nb <= nthr */
   INT band; /* band width in grid rows; band >= 2m+2 whenever nb > 1 */
@@ -100,8 +100,8 @@ static void fill_u(conv_omp_plan *pln)
 
 static void fill_psi(conv_omp_plan *pln)
 {
-  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, pln->n, pln->N, pln->d, pln->m,
-                pln->M, pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->analytic, pln->x, pln->perm, pln->n, pln->N,
+                pln->d, pln->m, pln->M, pln->psi);
 }
 
 /* Counting sort of the rows by the band their window start falls in. Stable,
@@ -291,6 +291,7 @@ static plan *mkplan_conv_omp(const solver *ego_, const problem *p, planner *pl)
   pln->M = pc->M;
   pln->m = pc->m;
   pln->window = pc->window;
+  pln->analytic = pc->analytic;
   pln->x = pc->x;
   pln->nthr = pl->nthr;
   /* A node's support is len rows wide, so a band narrower than that could be

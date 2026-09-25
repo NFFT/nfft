@@ -30,7 +30,7 @@
 typedef struct {
   plan super;
   INT n, N, M; /* geometry captured at mkplan */
-  int m, window;
+  int m, window, analytic;
   const R *x; /* borrowed alias of the problem's nodes */
   R *psi; /* length M*(2m+2): psi[j*(2m+2)+lj]; NULL while SLEEPY */
   INT *u; /* length M: wrapped window start per node; NULL while SLEEPY */
@@ -46,8 +46,8 @@ static void fill_u(conv_plan *pln)
 
 static void fill_psi(conv_plan *pln)
 {
-  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, &pln->n, &pln->N, 1, pln->m,
-                pln->M, pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->analytic, pln->x, pln->perm, &pln->n,
+                &pln->N, 1, pln->m, pln->M, pln->psi);
 }
 
 /* The tables live between a wake and the return to SLEEPY (ADR-0009). Node
@@ -152,6 +152,7 @@ static plan *mkplan_conv_1d(const solver *ego_, const problem *p, planner *pl)
   pln->M = pc->M;
   pln->m = pc->m;
   pln->window = pc->window;
+  pln->analytic = pc->analytic;
   pln->x = pc->x; /* borrowed */
   pln->psi = 0;
   pln->u = 0;

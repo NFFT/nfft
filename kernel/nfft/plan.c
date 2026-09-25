@@ -136,6 +136,9 @@ Y(plan_ng) * Y(plan_ng_guru)(int d, const INT *N, const int *variant, const INT 
        d, N, variant, n, M, m, window, +1,
        keyable_fftw_flags(Y(nfft_derive_fftw_flags)(planning, fftw_flags)), x,
        /*copy_x=*/1, (C *)f_hat, (C *)f);
+  ((problem_nfft *)p->prob[FWD])->analytic =
+       (planning & NFFT_ANALYTIC_WINDOW)
+       && window == NFFT_WINDOW_KAISER_BESSEL;
   p->prob[ADJ] = 0;
 
   /* With the fast solver in play the geometry and the window must satisfy its

@@ -952,7 +952,9 @@ void Y(check_nfast_conv_solver)(void)
     g[0] = K(1.0);
   }
 
+  /* Closed form, so each tap matches window_phi to a relative rounding. */
   pf = Y(mkproblem_conv)(1, &n, &N, M, m, w, 1, 0, x, g, f);
+  ((problem_conv *)pf)->analytic = 1;
   pln = Y(planner_mkplan)(Y(the_planner)(), pf);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln);
   Y(plan_awake)(pln, PLNR_AWAKE);
@@ -982,6 +984,7 @@ void Y(check_nfast_conv_solver)(void)
   /* B^H: a single node spike f[0] = 1 scatters node 0's psi weights onto its
    * wrapped neighbors. */
   pa = Y(mkproblem_conv)(1, &n, &N, M, m, w, -1, 0, x, g, f);
+  ((problem_conv *)pa)->analytic = 1;
   pln_adj = Y(planner_mkplan)(Y(the_planner)(), pa);
   CU_ASSERT_PTR_NOT_NULL_FATAL(pln_adj);
   Y(plan_awake)(pln_adj, PLNR_AWAKE);
@@ -1979,24 +1982,33 @@ void Y(check_nfast_window_apply)(void)
     }
 
     /* phi_precompute: per-node psi matches single-arg window_phi at every
-     * tap, under the same 1-ULP caveat. */
+     * tap, under the same 1-ULP caveat for the closed form. The polynomial
+     * is off by its fit error relative to the peak of 1, 1.3e-10 at m = 4. */
     {
       INT M = 4, j, lj;
       R x[4] = {K(0.1), K(0.37), K(0.5), K(0.83)};
       R *psi = (R *)Y(malloc)((size_t)M * (size_t)(2 * m + 2) * sizeof(R));
-      Y(window_phi_precompute)(NFFT_WINDOW_KAISER_BESSEL, n, N, m, x, 1, M, psi,
-                            2 * m + 2);
-      for (j = 0; j < M; j++) {
-        INT c = LRINT(FLOOR((R)n * x[j]));
-        for (lj = 0; lj <= 2 * m + 1; lj++) {
-          INT idx = c - m + lj;
-          R got = psi[j * (2 * m + 2) + lj],
-            ref = Y(window_phi)(NFFT_WINDOW_KAISER_BESSEL, n, N, m,
-                             x[j] - (R)idx / (R)n);
-          CU_ASSERT(FABS(got - ref)
-                    <= NFAST_LEGACY_REL_BOUND * FMAX(FABS(got), FABS(ref)));
+      R *poly = Y(window_kb_poly)(n, N, m);
+      int use_poly;
+      for (use_poly = 0; use_poly <= 1; use_poly++) {
+        Y(window_phi_precompute)(NFFT_WINDOW_KAISER_BESSEL,
+                              use_poly ? poly : 0, n, N, m, x, 1, M, psi,
+                              2 * m + 2);
+        for (j = 0; j < M; j++) {
+          INT c = LRINT(FLOOR((R)n * x[j]));
+          for (lj = 0; lj <= 2 * m + 1; lj++) {
+            INT idx = c - m + lj;
+            R got = psi[j * (2 * m + 2) + lj],
+              ref = Y(window_phi)(NFFT_WINDOW_KAISER_BESSEL, n, N, m,
+                               x[j] - (R)idx / (R)n);
+            R tol = use_poly ? FMAX(NFAST_LEGACY_REL_BOUND, K(1e-9))
+                             : NFAST_LEGACY_REL_BOUND
+                                    * FMAX(FABS(got), FABS(ref));
+            CU_ASSERT(FABS(got - ref) <= tol);
+          }
         }
       }
+      Y(free)(poly);
       Y(free)(psi);
     }
     Y(free)(buf);
@@ -2833,4 +2845,37 @@ void Y(check_nfast_conv_race_memory)(void)
   free(f);
   free(g);
   free(x);
+}
+
+void Y(check_nfast_analytic_window)(void)
+{
+  INT N, M, n;
+  const int m = 7;
+  R *x;
+  C *f_hat, *f, *got[2];
+  int a;
+  CU_ASSERT_TRUE_FATAL(
+       read_1d_case("data/nfft_1d_20_50.txt", &N, &M, &x, &f_hat, &f));
+  n = 2 * N;
+  for (a = 0; a < 2; a++) {
+    Y(plan_ng) *p;
+    got[a] = (C *)Y(malloc)((size_t)M * sizeof(C));
+    p = Y(plan_ng_guru)(1, &N, 0, &n, M, m, NFFT_WINDOW_KAISER_BESSEL, x,
+                        f_hat, got[a], 0u,
+                        NFFT_ESTIMATE | NFFT_NO_DIRECT
+                             | (a ? NFFT_ANALYTIC_WINDOW : 0u));
+    CU_ASSERT_PTR_NOT_NULL_FATAL(p);
+    Y(precompute)(p);
+    Y(execute)(p);
+    CU_ASSERT(Y(test_rel_max_err)(got[a], f, M)
+              < Y(test_err_bound)(NFFT_WINDOW_KAISER_BESSEL, (R)m, K(2.0)));
+    Y(plan_ng_destroy)(p);
+  }
+  CU_ASSERT(memcmp(got[0], got[1], (size_t)M * sizeof(C)) != 0);
+  Y(free)(got[0]);
+  Y(free)(got[1]);
+  Y(free)(x);
+  Y(free)(f_hat);
+  Y(free)(f);
+  Y(the_planner_destroy)();
 }

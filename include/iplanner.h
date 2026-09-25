@@ -507,6 +507,8 @@ typedef struct {
                           0: x is borrowed from a parent problem. */
   int x_sorted; /* 1: the x rows are in CONV key order (Y(conv_nodes_sorted)),
                  * or this problem never read x; enters the CONV child's key */
+  int analytic; /* 1: NFFT_ANALYTIC_WINDOW; 0 from mkproblem_nfft, set by the
+                 * guru before planning; hashed */
 } problem_nfft;
 
 problem *
@@ -588,9 +590,13 @@ R Y(window_phi)(int window, INT n, INT N, int m, R x);
  * table, owning the c = floor(n*x) centering and the 2m+2 tap loop (CONV). */
 void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0, R *out,
                           INT count);
-void Y(window_phi_precompute)(int window, INT n, INT N, int m, const R *x,
-                           INT x_stride, INT num_nodes, R *out,
+void Y(window_phi_precompute)(int window, const R *poly, INT n, INT N, int m,
+                           const R *x, INT x_stride, INT num_nodes, R *out,
                            INT out_stride);
+
+/* The Kaiser-Bessel polynomial table for one axis, for window_phi_precompute's
+ * poly (NULL there selects the closed form). Caller frees. */
+R *Y(window_kb_poly)(INT n, INT N, int m);
 
 /* NFFT deconvolution. Maps the input frequency tensor onto the oversampled grid,
  * dividing by the window's Fourier coefficients. Step is node-independent. */
@@ -638,6 +644,7 @@ typedef struct {
   int sign; /* +1 = g->f, -1 = adjoint f->g */
   int x_sorted; /* 1: x is already in CONV key order; hashed, so wisdom for
                  * sorted and unsorted nodes never mixes */
+  int analytic; /* as problem_nfft.analytic; 0 from mkproblem_conv */
   R *x; /* caller-owned nodes */
   C *g; /* borrowed in */
   C *f; /* borrowed out */

@@ -35,7 +35,7 @@ typedef struct {
   INT *n, *N; /* owned, length d: geometry captured at mkplan */
   INT M; /* node count */
   INT ntot; /* owned product of n[], captured at mkplan */
-  int m, window;
+  int m, window, analytic;
   const R *x; /* borrowed alias of the problem's nodes, length d*M */
   R *psi; /* length M*d*(2m+2): psi[(j*d+t)*(2m+2)+lj]; NULL while SLEEPY */
   INT *u; /* length M*d: wrapped window start, u[j*d+t]; NULL while SLEEPY */
@@ -51,8 +51,8 @@ static void fill_u(conv_nd_plan *pln)
 
 static void fill_psi(conv_nd_plan *pln)
 {
-  Y(conv_fill_psi)(pln->window, pln->x, pln->perm, pln->n, pln->N, pln->d, pln->m,
-                pln->M, pln->psi);
+  Y(conv_fill_psi)(pln->window, pln->analytic, pln->x, pln->perm, pln->n, pln->N,
+                pln->d, pln->m, pln->M, pln->psi);
 }
 
 /* The tables live between a wake and the return to SLEEPY (ADR-0009). Node
@@ -183,6 +183,7 @@ static plan *mkplan_conv_nd(const solver *ego_, const problem *p, planner *pl)
    * rank/m cannot overflow the stack. */
   A((size_t)d * (size_t)(2 * pln->m + 2) * sizeof(INT) <= (size_t)(64 * 1024));
   pln->window = pc->window;
+  pln->analytic = pc->analytic;
   pln->x = pc->x; /* borrowed */
   pln->psi = 0;
   pln->u = 0;

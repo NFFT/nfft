@@ -104,7 +104,7 @@ touch it):
 
 ### The configuration signature (the roster fingerprint)
 
-An MD5 over `sizeof(R)`, a **vocabulary tag** (`"plnr-flags-v2"`, a literal
+An MD5 over `sizeof(R)`, a **vocabulary tag** (`"plnr-flags-v3"`, a literal
 string in `config_signature`, `kernel/planner/planner.c`), then, in
 registration order, **every** registered solver's `reg_id` and registrar name
 — computed across *all* kinds, not per-kind. Written on export, checked on
@@ -119,8 +119,9 @@ wisdom (harmless: it is a cache).
 The vocabulary tag exists so a `PLNR_*` bit change or a problem-hash field
 change also invalidates old wisdom, even when the solver roster itself is
 unchanged: bump the string whenever either changes. Adding `x_sorted` to the
-CONV key bumped it from `"plnr-flags"` to `v2`; a file exported before that
-fails the signature check and is rejected as a clean cache miss.
+CONV key bumped it from `"plnr-flags"` to `v2`, and adding `analytic` to the
+NFFT and CONV keys bumped it to `v3`; a file exported before that fails the
+signature check and is rejected as a clean cache miss.
 
 ## Three import guards (defense in depth)
 

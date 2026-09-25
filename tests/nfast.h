@@ -134,4 +134,8 @@ void Y(check_nfast_native_window_select)(void);
  * window-independent direct NDFT, forward and adjoint. */
 void Y(check_nfast_window_accuracy)(void);
 
+/* NFFT_ANALYTIC_WINDOW and the default polynomial Kaiser-Bessel window both
+ * meet the bound, and give different results. */
+void Y(check_nfast_analytic_window)(void);
+
 #endif

@@ -185,6 +185,15 @@ window is untouched (legacy float32 3D stays broken by design). The per-axis
 `log`-peak is hoisted once per axis by the range-apply helpers, so precompute
 cost is at or below baseline.
 
+**KB polynomial window (default).** `conv_fill_psi` fits one
+`Y(window_kb_poly)` table per axis, once per fill, and passes it to
+`window_phi_precompute`, which then runs `kb_poly_run` in place of the closed
+form, as the legacy default does. `NFFT_ANALYTIC_WINDOW` sets
+`problem_nfft.analytic`, which the fast solver copies to `problem_conv.analytic`;
+both are hashed. `mkproblem_nfft`/`mkproblem_conv` leave it 0, and the guru or
+parent sets it after construction. DECONV is unaffected: `phi_hut` has no
+polynomial form.
+
 ## Adding a solver or a new kind
 
 1. **Write the `solver_adt`** with `problem_kind` and a `mkplan` that returns a
