@@ -297,7 +297,8 @@ void Y(check_nfast_window_normalized)(void)
   {
     R b = KPI * (K(2.0) - (R)N / (R)n);
     R t1 = K(2.0) * KPI * K(1.0) / (R)n, t2 = K(2.0) * KPI * K(3.0) / (R)n;
-    R a1 = (R)m * SQRT(b * b - t1 * t1), a2 = (R)m * SQRT(b * b - t2 * t2);
+    R r = (R)m + K(1.0); /* WINDOW_STENCIL_REACH */
+    R a1 = r * SQRT(b * b - t1 * t1), a2 = r * SQRT(b * b - t2 * t2);
     R got = Y(window_phi_hut)(w, n, N, m, (INT)1)
             / Y(window_phi_hut)(w, n, N, m, (INT)3);
     /* I0(a1)/I0(a2) without ever forming I0: exp(a1-a2) times the ratio of
@@ -327,7 +328,8 @@ void Y(check_nfast_window_all)(void)
   {
     R b = KPI * (K(2.0) - (R)N / (R)n);
     R t1 = K(2.0) * KPI * K(1.0) / (R)n, t2 = K(2.0) * KPI * K(3.0) / (R)n;
-    R a1 = (R)m * SQRT(b * b - t1 * t1), a2 = (R)m * SQRT(b * b - t2 * t2);
+    R r = (R)m + K(1.0); /* WINDOW_STENCIL_REACH */
+    R a1 = r * SQRT(b * b - t1 * t1), a2 = r * SQRT(b * b - t2 * t2);
     R got = Y(window_phi_hut)(NFFT_WINDOW_KAISER_BESSEL, n, N, m, 1)
             / Y(window_phi_hut)(NFFT_WINDOW_KAISER_BESSEL, n, N, m, 3);
     /* I0(a1)/I0(a2) without ever forming I0: exp(a1-a2) times the ratio of
@@ -1920,16 +1922,19 @@ void Y(check_nfast_window_cancellation)(void)
   const int w = NFFT_WINDOW_KAISER_BESSEL;
   INT n = 512, N = 256;
   int m = 8, k;
-  R b = KPI * (K(2.0) - (R)N / (R)n), xpk = (R)m * b;
+  R r = (R)m + K(1.0); /* WINDOW_STENCIL_REACH */
+  R b = KPI * (K(2.0) - (R)N / (R)n), xpk = r * b;
   R lt = Y(bessel_i0_logtail)(xpk);
-  for (k = 0; k <= 3; k++) /* the near-peak bins where a ~ m*b */
+  for (k = 0; k <= 3; k++) /* the near-peak bins where a ~ r*b */
   {
-    R t = K(2.0) * KPI * (R)k / (R)n, a = (R)m * SQRT(b * b - t * t);
+    R t = K(2.0) * KPI * (R)k / (R)n, a = r * SQRT(b * b - t * t);
     R got = Y(window_phi_hut)(w, n, N, m, (INT)k);
     /* stable log-domain reference: log I0(a) - log I0(xpk) is
-     * (a - xpk) + logtail(a) - logtail(xpk), with no peak to cancel. */
+     * (a - xpk) + logtail(a) - logtail(xpk), with no peak to cancel. The
+     * rounding of a, of size xpk eps, passes through EXP into both sides. */
     R ref = EXP((a - xpk) + Y(bessel_i0_logtail)(a) - lt);
-    CU_ASSERT(FABS(got - ref) <= K(20.0) * Y(float_property)(NFFT_EPSILON)
+    CU_ASSERT(FABS(got - ref) <= K(2.0) * (K(1.0) + xpk)
+                                      * Y(float_property)(NFFT_EPSILON)
                                       * (K(1.0) + FABS(ref)));
   }
 }

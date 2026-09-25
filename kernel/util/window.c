@@ -76,13 +76,17 @@ int Y(get_window_id)(void)
  * convolution cancel it. Dirac and unrecognized ordinals return 0; callers must
  * decline. */
 
-/* b = pi(2 - N/n), lg_tail = log I0(m b) - m b,
- * i0e_peak_inv = 1/(exp(-m b) I0(m b)), peak_inv = 1/I0(m b). */
+/* WINDOW_STENCIL_REACH: the floor(n x) centring of window_phi_precompute
+ * leaves out points m + 1 grid spacings away. KB and Gaussian read it. */
+#define REACH(m) ((R)(m) + K(1.0))
+
+/* b = pi(2 - N/n), lg_tail = log I0(r b) - r b,
+ * i0e_peak_inv = 1/(exp(-r b) I0(r b)), peak_inv = 1/I0(r b). */
 static inline void kb_consts(INT n, INT N, int m, R *b, R *lg_tail,
                              R *i0e_peak_inv, R *peak_inv)
 {
   const R bb = KPI * (K(2.0) - (R)N / (R)n);
-  const R xpk = (R)m * bb;
+  const R xpk = REACH(m) * bb;
 
   *b = bb;
   *lg_tail = Y(bessel_i0_logtail)(xpk);
@@ -90,14 +94,12 @@ static inline void kb_consts(INT n, INT N, int m, R *b, R *lg_tail,
   *peak_inv = EXP(-xpk - *lg_tail);
 }
 
-/* The floor(n x) centring below is the one WINDOW_STENCIL_REACH assumes, so the
- * run reaches m + 1 grid spacings from the node. */
 static inline R gaussian_b(INT n, INT N, int m)
 {
   const R sigma = (R)n / (R)N;
 
   return (K(2.0) * sigma) / (K(2.0) * sigma - K(1.0))
-    * (((R)m + K(1.0)) / KPI);
+    * (REACH(m) / KPI);
 }
 
 static inline R sincpow_w(INT n, INT N, int m)
@@ -115,7 +117,7 @@ R Y(window_phi_hut)(int window, INT n, INT N, int m, INT k)
   {
     R b, lg_tail, i0e_peak_inv, peak_inv;
     kb_consts(n, N, m, &b, &lg_tail, &i0e_peak_inv, &peak_inv);
-    return Y(kb_phi_hut)(b, i0e_peak_inv, (R)m, (R)n, (R)k);
+    return Y(kb_phi_hut)(b, i0e_peak_inv, REACH(m), (R)n, (R)k);
   }
   case NFFT_WINDOW_GAUSSIAN:
   {
@@ -145,7 +147,7 @@ R Y(window_phi)(int window, INT n, INT N, int m, R x)
   {
     R b, lg_tail, i0e_peak_inv, peak_inv;
     kb_consts(n, N, m, &b, &lg_tail, &i0e_peak_inv, &peak_inv);
-    return Y(kb_phi)(b, lg_tail, peak_inv, (R)m, (R)n * x);
+    return Y(kb_phi)(b, lg_tail, peak_inv, REACH(m), (R)n * x);
   }
   case NFFT_WINDOW_GAUSSIAN:
   {
@@ -176,7 +178,8 @@ void Y(window_phi_hut_apply)(int window, INT n, INT N, int m, INT k0,
     kb_consts(n, N, m, &b, &lg_tail, &i0e_peak_inv, &peak_inv);
 
     for (i = 0; i < count; i++)
-      out[i] = Y(kb_phi_hut)(b, i0e_peak_inv, (R)m, (R)n, (R)(k0 + i));
+      out[i] = Y(kb_phi_hut)(b, i0e_peak_inv, REACH(m), (R)n,
+          (R)(k0 + i));
 
     return;
   }
@@ -204,7 +207,7 @@ void Y(window_phi_precompute)(int window, INT n, INT N, int m,
       const INT u = LRINT(FLOOR((R)n * xj)) - (INT)m;
 
       Y(kb_phi_run)(out + (size_t)j * (size_t)out_stride, b, lg_tail, peak_inv,
-          (R)m, (INT)m, NX_SUB(n, xj, u));
+          REACH(m), (INT)m, NX_SUB(n, xj, u));
     }
 
     return;

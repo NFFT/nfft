@@ -175,7 +175,8 @@ Implemented in the fast path: **Kaiser-Bessel** (default), **Gaussian**,
 fast solver** (the `default:` returns 0.0) — reachable only via direct NDFT.
 
 **KB self-normalization (single-precision fix).** The Kaiser-Bessel `phi_hut`/ψ
-**self-scale** by `exp(-log I0(m·b))` (peak → 1), computed in `window.c` with the
+**self-scale** by `exp(-log I0(r·b))` (peak → 1), `r = m + 1` the stencil reach
+as in legacy `WINDOW_STENCIL_REACH`, computed in `window.c` with the
 `kernel/util/bessel_i0.c` helpers. Without this, the deconvolved grid
 `g1 = f_hat / phi_hut^d` underflows to float32 denormals at `d = 3` (KB-specific;
 the composed `CONV·FFT·DECONV` cancels the scaling exactly). It is exact in

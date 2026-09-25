@@ -356,7 +356,11 @@ R Y(test_err_bound)(int window, R m, R s)
     a = K(1.5);
     b = K(50.0);
 #endif
-    err = KPI * (SQRT(m) + m) * SQRT(SQRT(K(1.0) - K(1.0) / K(2.0))) * EXP(-K2PI * m * SQRT(K(1.0) - K(1.0) / K(2.0)));
+    {
+      /* The window's half-width, WINDOW_STENCIL_REACH in infft.h. */
+      const R r = m + K(1.0);
+      err = KPI * (SQRT(r) + r) * SQRT(SQRT(K(1.0) - K(1.0) / K(2.0))) * EXP(-K2PI * r * SQRT(K(1.0) - K(1.0) / K(2.0)));
+    }
     break;
   }
   return FMAX(FMAX(a * err, b * eps), K(56.0) * eps);
