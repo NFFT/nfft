@@ -135,6 +135,6 @@ int main(int argc, char **argv)
 
   nfft_free(mem);
 
-  return 1;
+  return 0;
 }
 /* \} */
