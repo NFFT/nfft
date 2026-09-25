@@ -16,9 +16,10 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef KBPOLY_H
-#define KBPOLY_H
+#ifndef WINDOW_POLY_H
+#define WINDOW_POLY_H
 
 void X(check_kaiser_bessel_poly)(void);
+void X(check_sinc_power_poly)(void);
 
 #endif

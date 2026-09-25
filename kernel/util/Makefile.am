@@ -12,7 +12,7 @@ endif
 EXTRA_DIST = bessel_i0_data.h sinc_data.h poly4.h
 
 noinst_LTLIBRARIES = libutil.la $(LIBUTIL_THREADS_LA)
-libutil_la_SOURCES = malloc.c sinc.c lambda.c bessel_i0.c kbpoly.c float.c int.c error.c bspline.c assert.c sort.c rand.c vector1.c vector2.c vector3.c print.c damp.c thread.c time.c window.c version.c
+libutil_la_SOURCES = malloc.c sinc.c lambda.c bessel_i0.c window_poly.c float.c int.c error.c bspline.c assert.c sort.c rand.c vector1.c vector2.c vector3.c print.c damp.c thread.c time.c window.c version.c
 # Unused file: voronoi.c
 
 if ENABLE_OPENMP

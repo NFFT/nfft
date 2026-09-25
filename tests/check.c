@@ -27,7 +27,7 @@
 #include "bspline.h"
 #include "bessel.h"
 #include "window.h"
-#include "kbpoly.h"
+#include "window_poly.h"
 #include "nfft.h"
 #include "nfct.h"
 #include "nfst.h"
@@ -62,6 +62,7 @@ int main(void)
   CU_add_test(util, "bspline_phi_reference", X(check_bspline_phi_reference));
   CU_add_test(util, "sincpow_phi_reference", X(check_sincpow_phi_reference));
   CU_add_test(util, "sincpow_phi_hut_reference", X(check_sincpow_phi_hut_reference));
+  CU_add_test(util, "sinc_power_poly", X(check_sinc_power_poly));
   CU_add_test(util, "bspline_cheb", X(check_bspline_cheb));
   CU_add_test(util, "version", X(check_get_version));
   CU_add_test(util, "window_name", X(check_get_window_name));

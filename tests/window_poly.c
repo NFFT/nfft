@@ -20,7 +20,7 @@
 #include <CUnit/CUnit.h>
 #include "nfft3.h"
 #include "infft.h"
-#include "kbpoly.h"
+#include "window_poly.h"
 
 /* The window macros in infft.h fall through to Kaiser-Bessel. */
 #if !defined(DIRAC_DELTA) && !defined(GAUSSIAN) && !defined(B_SPLINE) \
@@ -84,8 +84,8 @@ void X(check_kaiser_bessel_poly)(void)
       const R lt = Y(bessel_i0_logtail)(reach * b);
       const R pki = EXP(-reach * b - lt);
       const R peak = kb_peak(b, lt, pki, reach);
-      const INT deg = Y(kb_poly_degree)(m), w = 2 * m + 2;
-      const INT cols = KB_POLY_COLS(m);
+      const INT deg = Y(window_poly_degree)(m), w = 2 * m + 2;
+      const INT cols = WINDOW_POLY_COLS(m);
       const R bound = IF(approx_bound(m) > eps_floor(deg), approx_bound(m),
           eps_floor(deg));
       R *coef = (R*) Y(malloc)((size_t)((deg + 1) * cols) * sizeof(R));
@@ -105,7 +105,7 @@ void X(check_kaiser_bessel_poly)(void)
         const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
         R err;
 
-        Y(kb_poly_run)(got, coef, m, deg, nx0);
+        Y(window_poly_run)(got, coef, m, deg, nx0);
 
         for (l = 0; l < w; l++)
         {
@@ -117,7 +117,7 @@ void X(check_kaiser_bessel_poly)(void)
             worst = err;
         }
 
-        err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
+        err = ABS(Y(window_poly_phi)(coef, m, deg, nx)
             - Y(kb_phi)(b, lt, pki, reach, nx)) / peak;
 
         if (err > worst)
@@ -148,3 +148,107 @@ void X(check_kaiser_bessel_poly)(void)
 }
 
 #endif
+
+/* The sinc-power fit reads only header-inline evaluators, so it is checked
+ * whatever window the build selects. */
+
+/* Approximation error at degree m + 6 up to the cap, measured in double as for
+ * Kaiser-Bessel. From m = 7 on it is the double floor. */
+static R sincpow_approx_bound(const INT m)
+{
+  static const R tab[] =
+  {
+    K(0.0), K(0.0),
+    K(4.1E-8),  /* m = 2 */
+    K(1.3E-10), /* m = 3 */
+    K(1.2E-11), /* m = 4 */
+    K(1.3E-13), /* m = 5 */
+    K(4.0E-15), /* m = 6 */
+    K(3.9E-16), /* m = 7 */
+    K(3.7E-16), /* m = 8 */
+    K(3.4E-16), /* m = 9 */
+    K(3.7E-16), /* m = 10 */
+    K(3.9E-16)  /* m = 11 */
+  };
+
+  return K(4.0) * tab[m];
+}
+
+static R sincpow_eps_floor(const INT deg)
+{
+  return K(4.0) * ((R)deg + K(3.0)) * Y(float_property)(NFFT_EPSILON);
+}
+
+static const R sincpow_sigma[] = {K(1.25), K(2.0)};
+
+/* The same yardstick as for Kaiser-Bessel: absolute against the peak, which
+ * is w, over the runs and single points the transform evaluates. m runs up to
+ * the window's default cutoff in double. */
+void X(check_sinc_power_poly)(void)
+{
+  unsigned int s;
+  INT m;
+
+  printf("SINC-POWER POLYNOMIAL\n---------------------\n");
+
+  for (s = 0; s < sizeof(sincpow_sigma) / sizeof(sincpow_sigma[0]); s++)
+    for (m = 2; m <= 11; m++)
+    {
+      const INT N = 64, n = 2 * (INT)(sincpow_sigma[s] * (R)N / K(2.0));
+      const R sg = (R)n / (R)N;
+      const R w = (K(2.0) * sg - K(1.0)) / (K(2.0) * (R)m * sg);
+      const R h = KPI * w;
+      const R peak = Y(sincpow_phi)(w, (R)m, K(0.0));
+      const INT deg = Y(window_poly_degree)(m), rw = 2 * m + 2;
+      const INT cols = WINDOW_POLY_COLS(m);
+      const R bound = IF(sincpow_approx_bound(m) > sincpow_eps_floor(deg),
+          sincpow_approx_bound(m), sincpow_eps_floor(deg));
+      R *coef = (R*) Y(malloc)((size_t)((deg + 1) * cols) * sizeof(R));
+      R *got = (R*) Y(malloc)((size_t)rw * sizeof(R));
+      R worst = K(0.0);
+      INT i, l;
+      int ok;
+
+      Y(sincpow_poly_fit)(coef, w, m, deg);
+
+      /* Offsets and reach as in the Kaiser-Bessel check. The reference is
+       * the closed form the fit was built from, with the argument formed as
+       * its run forms it. */
+      for (i = 0; i <= 512; i++)
+      {
+        const R nx0 = (R)(m - 1) + (R)i / K(256.0);
+        const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
+        R err;
+
+        Y(window_poly_run)(got, coef, m, deg, nx0);
+
+        for (l = 0; l < rw; l++)
+        {
+          const R ref = Y(sincpow_phi)(w, (R)m, h * (nx0 - (R)l));
+
+          err = ABS(got[l] - ref) / peak;
+
+          if (err > worst)
+            worst = err;
+        }
+
+        err = ABS(Y(window_poly_phi)(coef, m, deg, nx)
+            - Y(sincpow_phi)(w, (R)m, h * nx)) / peak;
+
+        if (err > worst)
+          worst = err;
+      }
+
+      ok = IF(worst < bound, 1, 0);
+      printf("poly[sigma=" __FE__ ", m=%2td, deg=%2td] err_peak = " __FE__
+          " %-2s " __FE__ " -> %-4s\n", sincpow_sigma[s], (ptrdiff_t)m,
+          (ptrdiff_t)deg, worst, IF(ok == 0, ">=", "<"), bound,
+          IF(ok == 0, "FAIL", "OK"));
+      CU_ASSERT(ok == 1);
+
+      Y(free)(got);
+      Y(free)(coef);
+    }
+
+  printf("\n");
+}

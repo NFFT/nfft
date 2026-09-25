@@ -16,18 +16,23 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Polynomial form of the Kaiser-Bessel window.
+/* Polynomial form of the Kaiser-Bessel and sinc-power windows.
  *
  * One polynomial per unit cell of the window argument, in the offset t in
  * [0, 1) into the cell. A run of 2m + 2 taps spans 2m + 2 cells at one t, so
- * it is one Horner sweep over 2m + 2 columns, in place of 2m + 2 calls to
- * EXP, EXPM1 and SIN. Each column is analytic in t: both branches of the
- * window are even in the radical and ra^2 is a polynomial in t, so there is no
- * branch point and a Chebyshev interpolant converges geometrically.
+ * it is one Horner sweep over 2m + 2 columns, in place of 2m + 2 calls to the
+ * window's closed form. Each column is analytic in t, so a Chebyshev
+ * interpolant converges geometrically:
+ *
+ *   Kaiser-Bessel: both branches of the window are even in the radical and
+ *     ra^2 is a polynomial in t, so there is no branch point.
+ *   sinc-power: w sinc(pi w nx)^(2m) is entire. Its zeros are of order 2m
+ *     and cost the interpolant nothing.
  *
  * The interpolant is built from the window itself, not from a rewrite of it:
  * a plain sinh(b ra)/ra ratio carries 20 times the error of Y(kb_phi) and that
- * error would cap the fit.
+ * error would cap the fit. The sinc power's closed form goes through its
+ * logarithm for the same reason, and the fit inherits that accuracy.
  */
 
 #include "nfft3.h"
@@ -94,10 +99,14 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     }
 }
 
-void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
-    const R reach, const INT m, const INT deg)
+/* phi(nx) for one window, with the constants it needs in par. */
+typedef R (*window_eval)(const R *par, const R nx);
+
+/* The fit of every window: coef as Y(kb_poly_fit) documents it. */
+static void poly_fit(R *coef, const window_eval phi, const R *par, const INT m,
+    const INT deg)
 {
-  const INT w = KB_POLY_COLS(m), n = deg + 1;
+  const INT w = WINDOW_POLY_COLS(m), n = deg + 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n; out is w. */
   R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n + w) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
@@ -113,8 +122,7 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
 
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
-      val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, reach,
-          node[k] + (R)(m + 1 - l));
+      val[k * w + l] = phi(par, node[k] + (R)(m + 1 - l));
 
   cheb_of(cheb, val, cm, w, deg);
   cheb_to_monomial(coef, cheb, tp, w, deg);
@@ -147,16 +155,56 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   Y(free)(mem);
 }
 
+/* par: b, lg_tail, peak_inv, reach. */
+static R kb_eval(const R *par, const R nx)
+{
+  return Y(kb_phi)(par[0], par[1], par[2], par[3], nx);
+}
+
+void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
+    const R reach, const INT m, const INT deg)
+{
+  const R par[4] = {b, lg_tail, peak_inv, reach};
+
+  poly_fit(coef, kb_eval, par, m, deg);
+}
+
 R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
 {
-  const INT deg = Y(kb_poly_degree)(m);
-  const INT stride = (deg + 1) * KB_POLY_COLS(m);
+  const INT deg = Y(window_poly_degree)(m);
+  const INT stride = (deg + 1) * WINDOW_POLY_COLS(m);
   R *tab = (R*) Y(malloc)((size_t)(stride * d) * sizeof(R));
   INT t;
 
   for (t = 0; t < d; t++)
     Y(kb_poly_fit)(tab + t * stride, b[t], b[d + t], b[3 * d + t], reach, m,
         deg);
+
+  return tab;
+}
+
+/* par: w, m. The argument is formed as the closed-form run forms it. */
+static R sincpow_eval(const R *par, const R nx)
+{
+  return Y(sincpow_phi)(par[0], par[1], KPI * par[0] * nx);
+}
+
+void Y(sincpow_poly_fit)(R *coef, const R w, const INT m, const INT deg)
+{
+  const R par[2] = {w, (R)m};
+
+  poly_fit(coef, sincpow_eval, par, m, deg);
+}
+
+R *Y(sincpow_poly_init)(const R *b, const INT d, const INT m)
+{
+  const INT deg = Y(window_poly_degree)(m);
+  const INT stride = (deg + 1) * WINDOW_POLY_COLS(m);
+  R *tab = (R*) Y(malloc)((size_t)(stride * d) * sizeof(R));
+  INT t;
+
+  for (t = 0; t < d; t++)
+    Y(sincpow_poly_fit)(tab + t * stride, b[t], m, deg);
 
   return tab;
 }

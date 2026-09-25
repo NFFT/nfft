@@ -184,8 +184,8 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
 }
 
 #define MACRO_nnfft_B(which_one)                                              \
-static KB_POLY_INLINE void nnfft_B_ ## which_one (nnfft_plan *ths,        \
-    const int kb_poly_on)                                                     \
+static WINDOW_POLY_INLINE void nnfft_B_ ## which_one (nnfft_plan *ths,     \
+    const int window_poly_on)                                                 \
 {                                                                             \
   int lprod;                           /**< 'regular bandwidth' of matrix B */\
   int u[ths->d], o[ths->d];            /**< multi band with respect to x_j  */\
@@ -305,7 +305,7 @@ void nnfft_trafo(nnfft_plan *ths)
 {
   int j,t;
 
-  KB_POLY_DISPATCH(nnfft_B_T, ths);
+  WINDOW_POLY_DISPATCH(nnfft_B_T, ths);
 
   for(j=0;j<ths->M_total;j++) {
     for(t=0;t<ths->d;t++) {
@@ -352,7 +352,7 @@ void nnfft_adjoint(nnfft_plan *ths)
     }
   }
 
-  KB_POLY_DISPATCH(nnfft_B_A, ths);
+  WINDOW_POLY_DISPATCH(nnfft_B_A, ths);
 } /* nnfft_adjoint */
 
 /** initialisation of direct transform
@@ -388,7 +388,7 @@ void nnfft_precompute_lin_psi(nnfft_plan *ths)
   for (t=0; t<ths->d; t++)
     {
       step=((double)(ths->m+1))/(ths->K*ths->N1[t]);
-      KB_POLY_SPLIT(
+      WINDOW_POLY_SPLIT(
         for(j=0;j<=ths->K;j++)
           ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
       );
@@ -403,7 +403,7 @@ void nnfft_precompute_psi(nnfft_plan *ths)
   int lj;                               /**< index 0<=lj<u+o+1                */
   int u, o;                             /**< depends on v_j                   */
 
-  KB_POLY_SPLIT(
+  WINDOW_POLY_SPLIT(
   for (t=0; t<ths->d; t++)
     for(j=0;j<ths->N_total;j++)
       {
@@ -476,7 +476,7 @@ void nnfft_precompute_full_psi(nnfft_plan *ths)
   for(t=0,lprod = 1; t<ths->d; t++)
     lprod *= 2*ths->m+2;
 
-  KB_POLY_SPLIT(
+  WINDOW_POLY_SPLIT(
   for(j=0,ix=0,ix_old=0; j<ths->N_total; j++)
     {
       MACRO_init_uo_l_lj_t;
