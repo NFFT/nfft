@@ -30,8 +30,6 @@
 
 /* NFFT headers */
 #include "nfft3.h"
-/* uo() rounds to the nearest grid point, so the run reaches m + 1/2. */
-#define WINDOW_STENCIL_REACH (((R)ths->m) + K(0.5))
 #include "infft.h"
 
 #ifdef _OPENMP
@@ -96,7 +94,7 @@ static inline R X(base_reduced)(const INT k, const R x)
   return BASE(X(reduced_omega)((R)(k + OFFSET), x));
 }
 
-/* uo() anchors the run at the grid point nearest the node, run index m,
+/* uo() anchors the run at the grid point below the node, run index m,
  * which FG_RUN puts at buffer index m + 2 for a fill based at fg_psi[t] + 1 */
 #define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
 #define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
@@ -464,7 +462,7 @@ static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
   const INT act_dim)
 {
   const R xj = ths->x[j * ths->d + act_dim];
-  INT c = LRINT(xj * (2 * NN(ths->n[(act_dim)])));
+  INT c = (INT)FLOOR(xj * (2 * NN(ths->n[(act_dim)])));
 
   (*up) = c - (ths->m);
   (*op) = c + 1 + (ths->m);
@@ -1010,7 +1008,7 @@ void X(precompute_fg_psi)(X(plan) *ths)
     {
       uo(ths, j, &u, &o, t);
 
-      /* anchored at the grid point nearest the node, which uo() puts at run
+      /* anchored at the grid point below the node, which uo() puts at run
        * index m */
       c = u + ths->m;
 
