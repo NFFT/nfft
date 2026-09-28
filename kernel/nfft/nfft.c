@@ -2257,8 +2257,9 @@ static void nfft_trafo_1d_compute(C *fj, const C *g,const R *psij_const,
 }
 
 #ifndef _OPENMP
-static void nfft_adjoint_1d_compute_serial(const C *fj, C *g,
-    const R *psij_const, const R *xj, const INT n, const INT m)
+static void nfft_adjoint_1d_compute_serial(const C *restrict fj,
+    C *restrict g, const R *restrict psij_const, const R *restrict xj,
+    const INT n, const INT m)
 {
   INT u,o,l;
   C *gj;
@@ -2284,8 +2285,9 @@ static void nfft_adjoint_1d_compute_serial(const C *fj, C *g,
 
 #ifdef _OPENMP
 /* adjoint NFFT one-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,
-    const R *psij_const, const R *xj, const INT n, const INT m)
+static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *restrict g,
+    const R *restrict psij_const, const R *restrict xj, const INT n,
+    const INT m)
 {
   INT u,o,l;
   C *gj;
@@ -2327,9 +2329,9 @@ static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *g,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *g,
-    const R *psij_const, const R *xj, const INT n, const INT m,
-    const INT my_u0, const INT my_o0)
+static void nfft_adjoint_1d_compute_omp_blockwise(const C f, C *restrict g,
+    const R *restrict psij_const, const R *restrict xj, const INT n,
+    const INT m, const INT my_u0, const INT my_o0)
 {
   INT ar_u,ar_o,l;
 
@@ -3099,9 +3101,10 @@ static void nfft_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
 
 #ifdef _OPENMP
 /* adjoint NFFT two-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
-            const R *psij_const0, const R *psij_const1, const R *xj0,
-            const R *xj1, const INT n0, const INT n1, const INT m)
+static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *restrict g,
+            const R *restrict psij_const0, const R *restrict psij_const1,
+            const R *restrict xj0, const R *restrict xj1, const INT n0,
+            const INT n1, const INT m)
 {
   INT u0,o0,l0,u1,o1,l1;
 
@@ -3155,10 +3158,10 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *g,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
-            const R *psij_const0, const R *psij_const1, const R *xj0,
-            const R *xj1, const INT n0, const INT n1, const INT m,
-            const INT my_u0, const INT my_o0)
+static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
+            const R *restrict psij_const0, const R *restrict psij_const1,
+            const R *restrict xj0, const R *restrict xj1, const INT n0,
+            const INT n1, const INT m, const INT my_u0, const INT my_o0)
 {
   INT ar_u0,ar_o0,l0,u1,o1,l1;
   INT index_temp1[2*m+2];
@@ -3234,9 +3237,10 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *g,
 #endif
 
 #ifndef _OPENMP
-static void nfft_adjoint_2d_compute_serial(const C *fj, C *g,
-            const R *psij_const0, const R *psij_const1, const R *xj0,
-            const R *xj1, const INT n0, const INT n1, const INT m)
+static void nfft_adjoint_2d_compute_serial(const C *restrict fj,
+            C *restrict g, const R *restrict psij_const0,
+            const R *restrict psij_const1, const R *restrict xj0,
+            const R *restrict xj1, const INT n0, const INT n1, const INT m)
 {
   INT u0,o0,l0,u1,o1,l1;
   C *gj;
@@ -4330,11 +4334,11 @@ static void nfft_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
  *
  * \author Toni Volkmer
  */
-static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
-    const R *psij_const0, const R *psij_const1, const R *psij_const2,
-    const R *xj0, const R *xj1, const R *xj2,
-    const INT n0, const INT n1, const INT n2, const INT m,
-    const INT my_u0, const INT my_o0)
+static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
+    const R *restrict psij_const0, const R *restrict psij_const1,
+    const R *restrict psij_const2, const R *restrict xj0,
+    const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
+    const INT n2, const INT m, const INT my_u0, const INT my_o0)
 {
   INT ar_u0,ar_o0,l0,u1,o1,l1,u2,o2,l2;
 
@@ -4434,10 +4438,11 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *g,
 
 #ifdef _OPENMP
 /* adjoint NFFT three-dimensional case with OpenMP atomic operations */
-static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
-    const R *psij_const0, const R *psij_const1, const R *psij_const2,
-    const R *xj0, const R *xj1, const R *xj2,
-    const INT n0, const INT n1, const INT n2, const INT m)
+static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *restrict g,
+    const R *restrict psij_const0, const R *restrict psij_const1,
+    const R *restrict psij_const2, const R *restrict xj0,
+    const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
+    const INT n2, const INT m)
 {
   INT u0,o0,l0,u1,o1,l1,u2,o2,l2;
 
@@ -4481,10 +4486,11 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *g,
 #endif
 
 #ifndef _OPENMP
-static void nfft_adjoint_3d_compute_serial(const C *fj, C *g,
-    const R *psij_const0, const R *psij_const1, const R *psij_const2, const R *xj0,
-    const R *xj1, const R *xj2, const INT n0, const INT n1, const INT n2,
-    const INT m)
+static void nfft_adjoint_3d_compute_serial(const C *restrict fj,
+    C *restrict g, const R *restrict psij_const0,
+    const R *restrict psij_const1, const R *restrict psij_const2,
+    const R *restrict xj0, const R *restrict xj1, const R *restrict xj2,
+    const INT n0, const INT n1, const INT n2, const INT m)
 {
   INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
   C *gj;
