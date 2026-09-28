@@ -169,8 +169,8 @@ typedef ptrdiff_t INT;
 /* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
  * to the nearest point uo() leaves out. The default is the floor(n x)
  * centring, whose offset lies in [0,1); a module whose uo() centres the run
- * differently defines this before including. Only the Gaussian reads it, the
- * other windows being zero past |x| <= m/n. */
+ * differently defines this before including. The Gaussian, Kaiser-Bessel and
+ * B-spline windows all size themselves from it. */
 #ifndef WINDOW_STENCIL_REACH
   #define WINDOW_STENCIL_REACH (((R)ths->m) + K(1.0))
 #endif
@@ -222,26 +222,31 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
-  /* ths->b holds 2m reals of 1/(j+1) (PHI_RUN's de Boor triangular sweep),
-   * then the (2m)x(2m) Chebyshev table Y(bspline_cheb_init) builds (PHI's
-   * single-point evaluator) -- the same table-building function the
-   * sinc-power window's phi_hut uses. PHI is a rarer single-point call (fg_psi
-   * table builds, precompute_lin_psi) where the O(m) Chebyshev evaluator
-   * beats de Boor's O(m^2) outright. PHI_RUN already amortizes to O(m) per
-   * point via one shared triangular sweep over the whole run -- an
+  /* The window is the centred B-spline of order BS_ORDER: half-width
+   * BS_ORDER/2 = WINDOW_STENCIL_REACH, so it reaches every point of the run.
+   *
+   * ths->b holds BS_ORDER reals of 1/(j+1) (PHI_RUN's de Boor triangular
+   * sweep), then the BS_ORDER x BS_ORDER Chebyshev table Y(bspline_cheb_init)
+   * builds (PHI's single-point evaluator) -- the same table-building function
+   * the sinc-power window's phi_hut uses. PHI is a rarer single-point call
+   * (fg_psi table builds, precompute_lin_psi) where the O(m) Chebyshev
+   * evaluator beats de Boor's O(m^2) outright. PHI_RUN already amortizes to
+   * O(m) per point via one shared triangular sweep over the whole run -- an
    * independent per-point Chebyshev evaluation was measured slower there, so
    * it keeps de Boor. */
-  #define BS_CHEB (ths->b + 2 * ths->m)
-  #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)((R)ths->m, (R)(n), (R)(k)))
-  #define PHI(n,x,ax) (Y(bspline_cheb)(BS_CHEB, 2 * ths->m, \
-                          (x) * (R)(n) + (R)ths->m) / (R)(n))
+  #define BS_ORDER ((INT)(K(2.0) * WINDOW_STENCIL_REACH))
+  #define BS_CHEB (ths->b + BS_ORDER)
+  #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)(WINDOW_STENCIL_REACH, (R)(n), \
+                              (R)(k)))
+  #define PHI(n,x,ax) (Y(bspline_cheb)(BS_CHEB, BS_ORDER, \
+                          (x) * (R)(n) + WINDOW_STENCIL_REACH) / (R)(n))
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(bspline_phi_run)((dst), ths->b, (ths->m), \
-        NX_SUB(n, x, u) + (R)ths->m, K(1.0) / (R)(n))
+    Y(bspline_phi_run)((dst), ths->b, BS_ORDER, 2 * (ths->m) + 1, \
+        NX_SUB(n, x, u) + WINDOW_STENCIL_REACH, K(1.0) / (R)(n))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      const INT WINDOW_k = 2 * ths->m; \
+      const INT WINDOW_k = BS_ORDER; \
       ths->b = (R*) Y(malloc)((size_t)(WINDOW_k + WINDOW_k * WINDOW_k) \
           * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < WINDOW_k; WINDOW_idx++) \
@@ -1827,21 +1832,19 @@ static inline R Y(bspline_phi_hut)(R m, R n, R k)
   return EXP(K(2.0) * m * Y(log_sinc)(k * KPI / n)) / n;
 }
 
-/* dst[l] = B_{2m}(t - l) / n for l = 0 .. 2m+1, with inv[j] = 1/(j+1).
+/* dst[l] = B_k(t - l) / n for l = 0 .. last, with inv[j] = 1/(j+1).
  *
- * The run arguments are one grid cell apart, so the nonzero entries are the 2m
- * cardinal B-splines of order 2m at a single point, and de Boor's scheme gives
- * all of them in one triangular sweep of O(m^2) rather than one sweep each.
+ * The run arguments are one grid cell apart, so the nonzero entries are the k
+ * cardinal B-splines of order k at a single point, and de Boor's scheme gives
+ * all of them in one triangular sweep of O(k^2) rather than one sweep each.
  * The recurrence is linear in its seed, so the 1/n enters there instead of
  * costing a rounding per entry.
  *
  * The nonzero stretch is derived from t, so a run that sits differently against
  * the support still gets one evaluation per point. */
-static inline void Y(bspline_phi_run)(R *dst, const R *inv, INT mi, R t,
-  R inv_n)
+static inline void Y(bspline_phi_run)(R *dst, const R *inv, INT k, INT last,
+  R t, R inv_n)
 {
-  const INT k = 2 * mi;
-  const INT last = 2 * mi + 1;
   const INT i = (INT)FLOOR(t);
   const INT lo = i - k + 1;
   INT j, l, r;

@@ -593,7 +593,7 @@ void X(check_bspline_run)(void)
       INT l, worst = 0;
       int ok;
 
-      Y(bspline_phi_run)(run, inv, m, t, K(1.0));
+      Y(bspline_phi_run)(run, inv, 2 * m, 2 * m + 1, t, K(1.0));
 
       for (l = 0; l < 2 * m + 2; l++)
         peak = FMAX(peak, Y(bsplines)(2 * m, t - (R)l));
@@ -734,7 +734,7 @@ void X(check_bspline_phi_reference)(void)
   for (j = 0; j < 2 * m; j++)
     inv[j] = K(1.0) / (R)(j + 1);
 
-  Y(bspline_phi_run)(run, inv, m, t, K(1.0) / (R)n);
+  Y(bspline_phi_run)(run, inv, 2 * m, 2 * m + 1, t, K(1.0) / (R)n);
 
   for (l = 0; l < SIZE(bspline_phi_ref_512_11); l++)
   {
