@@ -2,28 +2,25 @@
 filter-by-commitish: true
 categories:
   - title: 'Added'
-    labels:
-      - 'feat'
+    when:
+      labels:
+        - 'added'
   - title: 'Changed'
-    labels:
-      - 'refactor'
-      - 'style'
+    when:
+      labels:
+        - 'changed'
   - title: 'Removed'
-    labels:
-      - 'removal'
+    when:
+      labels:
+        - 'removed'
   - title: 'Fixed'
-    labels:
-      - 'bug'
-      - 'fix'
-  - title: 'Deprecated'
-    labels:
-      - 'deprecation'
-  - title: Documentation
-    labels:
-      - 'docs'
-  - title: Chores
-    labels:
-      - 'chore'
+    when:
+      labels:
+        - 'fixed'
+  - title: 'Chores'
+    when:
+      labels:
+        - 'chore'
 template: |
   # What’s Changed
   $CHANGES
