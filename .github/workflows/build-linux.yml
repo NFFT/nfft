@@ -74,32 +74,19 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
     
     - name: Install dependencies
-      uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
+      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
       with:
-        PACKAGES: |
-          software-properties-common
+        packages: software-properties-common
+        version: 1.0
 
     - name: Add universe repo
       run: sudo add-apt-repository universe
 
     - name: Install dependencies
-      uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
+      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
       with:
-        PACKAGES: |
-          build-essential
-          gcc-snapshot
-          gcc-14
-          g++-14
-          cmake
-          libfftw3-dev
-          libcunit1-dev 
-          doxygen 
-          doxygen-latex 
-          graphviz
-          octave-dev
-          clang
-          libomp-dev
-          libatomic1
+        packages: build-essential gcc-snapshot gcc-14 g++-14 cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz octave-dev clang libomp-dev libatomic1
+        version: 1.0
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -455,16 +442,10 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
 
     - name: Install dependencies
-      uses: dsx137/deb-cache@caf71786c0050ce140ac752de004d7c1343d4363 # main
+      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
       with:
-        PACKAGES: |
-          build-essential
-          cmake
-          libfftw3-dev
-          libcunit1-dev 
-          doxygen 
-          doxygen-latex 
-          graphviz
+        packages: build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
+        version: 1.0
 
     - name: Bootstrap
       run: ./bootstrap.sh
