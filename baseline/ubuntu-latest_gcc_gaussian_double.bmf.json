@@ -1486,13 +1486,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FG_PSI": {
     "accuracy-digits": {
-      "value": 15.450147403913151
+      "value": 15.490799873751891
     },
     "bound-digits": {
       "value": 12.211811209909557
     },
     "max-error": {
-      "value": 3.546929824371006e-16
+      "value": 3.229982179541667e-16
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
@@ -1508,24 +1508,24 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 15.654479340945056
+      "value": 15.653632761935333
     },
     "bound-digits": {
       "value": 12.211811209909557
     },
     "max-error": {
-      "value": 2.2157494953076514e-16
+      "value": 2.2200729130681167e-16
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
     "accuracy-digits": {
-      "value": 8.16388601095495
+      "value": 8.163886009328817
     },
     "bound-digits": {
       "value": 5.84472155864763
     },
     "max-error": {
-      "value": 6.8566816980197595e-09
+      "value": 6.8566817236933165e-09
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
