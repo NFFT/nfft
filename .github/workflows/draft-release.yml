@@ -15,10 +15,13 @@ concurrency:
 
 jobs:
   # Changes merged into "develop" accumulate in a placeholder draft named "next",
-  # which has no version number yet.
+  # which has no version number yet. Pushes to a release branch also update it,
+  # since a new release branch moves the start of "next".
   draft-next:
     name: Draft the next release
-    if: github.ref == 'refs/heads/develop'
+    concurrency:
+      group: release-drafter-next
+      cancel-in-progress: false
     permissions:
       contents: write  # Required to create GitHub release.
       pull-requests: read  # Required to read PR contents.
@@ -44,6 +47,7 @@ jobs:
           config-name: release-drafter-config.yml
           name: next
           tag: next
+          commitish: develop
           from: ${{ steps.base.outputs.from }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
