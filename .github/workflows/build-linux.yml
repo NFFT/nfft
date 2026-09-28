@@ -74,19 +74,13 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
     
     - name: Install dependencies
-      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
-      with:
-        packages: software-properties-common
-        version: 1.0
+      run: sudo apt-get update && sudo apt-get install -y software-properties-common
 
     - name: Add universe repo
       run: sudo add-apt-repository universe
 
     - name: Install dependencies
-      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
-      with:
-        packages: build-essential gcc-snapshot gcc-14 g++-14 cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz octave-dev clang libomp-dev libatomic1
-        version: 1.0
+      run: sudo apt-get update && sudo apt-get install -y build-essential gcc-snapshot gcc-14 g++-14 cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz octave-dev clang libomp-dev libatomic1
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -442,10 +436,7 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
 
     - name: Install dependencies
-      uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
-      with:
-        packages: build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
-        version: 1.0
+      run: sudo apt-get update && sudo apt-get install -y build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
 
     - name: Bootstrap
       run: ./bootstrap.sh
