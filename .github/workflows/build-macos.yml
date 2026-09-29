@@ -78,20 +78,18 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: gerlero/brew-install@b7bdd6875207fdf3b7ebd0ecc5cf8da6e657eca2 # v1
-      with:
-        cache: true
-        packages: |
-          autoconf
-          automake
-          libtool
-          cmake
-          fftw
-          libomp
-          cunit
-          octave
-          llvm
-          gcc
+    - name: Install dependencies
+      env:
+        COMPILER: ${{ matrix.compiler }}
+        BUILD_OCTAVE: ${{ matrix.build_octave }}
+      run: |
+        extra=""
+        case "${COMPILER}" in
+          clang-homebrew) extra="llvm" ;;
+          gcc-*) command -v "${COMPILER}" >/dev/null || extra="gcc" ;;
+        esac
+        [ "${BUILD_OCTAVE}" = "1" ] && extra="${extra} octave"
+        brew install autoconf automake libtool cmake fftw libomp cunit ${extra}
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -389,15 +387,8 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: gerlero/brew-install@b7bdd6875207fdf3b7ebd0ecc5cf8da6e657eca2 # v1
-      with:
-        cache: true
-        packages: |
-          autoconf
-          automake
-          libtool
-          cmake
-          fftw
+    - name: Install dependencies
+      run: brew install autoconf automake libtool cmake fftw
 
     - name: Bootstrap
       run: ./bootstrap.sh
