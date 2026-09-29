@@ -148,6 +148,10 @@ static inline void sort(const X(plan) *ths)
 /* Minimum innermost-dimension length for the multivariate recurrence to pay. */
 #define NFFT_DIRECT_RECURRENCE_MIN_INNER 2
 
+/* Minimum N for the univariate recurrence to pay. Below it |k x| <= 1, so the phase needs no
+ * reduction. */
+#define NFFT_DIRECT_RECURRENCE_MIN_1D 5
+
 /* Accurate phase for exp(+-i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
  * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
 static inline R X(reduced_omega)(const R k, const R x)
@@ -190,6 +194,17 @@ void X(trafo_direct)(const X(plan) *ths)
     {
       C v = K(0.0);
       const R x = ths->x[j];
+      if (ths->N_total < NFFT_DIRECT_RECURRENCE_MIN_1D)
+      {
+        INT k_L;
+        for (k_L = 0; k_L < ths->N_total; k_L++)
+        {
+          const R omega = K2PI * ((R)(k_L - ths->N_total/2)) * x;
+          v += f_hat[k_L] * (COS(omega) - II * SIN(omega));
+        }
+        f[j] = v;
+        continue;
+      }
       const R dphi = K2PI * x;                 /* |dphi| <= pi: accurate without reduction */
       const C dw = COS(dphi) - II * SIN(dphi); /* per-step phase factor exp(-i 2pi x)      */
       INT k_L = 0;
@@ -396,6 +411,16 @@ void X(adjoint_direct)(const X(plan) *ths)
       for (j = 0; j < ths->M_total; j++)
       {
         const R x = ths->x[j];
+        if (ths->N_total < NFFT_DIRECT_RECURRENCE_MIN_1D)
+        {
+          INT k_L;
+          for (k_L = 0; k_L < ths->N_total; k_L++)
+          {
+            const R omega = K2PI * ((R)(k_L - ths->N_total/2)) * x;
+            f_hat[k_L] += f[j] * (COS(omega) + II * SIN(omega));
+          }
+          continue;
+        }
         const R dphi = K2PI * x;
         const C dw = COS(dphi) + II * SIN(dphi);
         INT k_L = 0;
