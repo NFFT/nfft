@@ -79,7 +79,17 @@ jobs:
         persist-credentials: false
 
     - name: Install dependencies
-      run: brew install autoconf automake libtool cmake fftw libomp cunit octave llvm gcc
+      env:
+        COMPILER: ${{ matrix.compiler }}
+        BUILD_OCTAVE: ${{ matrix.build_octave }}
+      run: |
+        extra=""
+        case "${COMPILER}" in
+          clang-homebrew) extra="llvm" ;;
+          gcc-*) command -v "${COMPILER}" >/dev/null || extra="gcc" ;;
+        esac
+        [ "${BUILD_OCTAVE}" = "1" ] && extra="${extra} octave"
+        brew install autoconf automake libtool cmake fftw libomp cunit ${extra}
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''

@@ -33,7 +33,7 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
 
     - name: Bootstrap
       run: ./bootstrap.sh

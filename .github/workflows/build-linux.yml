@@ -74,13 +74,19 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
     
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y software-properties-common
-
-    - name: Add universe repo
-      run: sudo add-apt-repository universe
-
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential gcc-snapshot gcc-14 g++-14 cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz octave-dev clang libomp-dev libatomic1
+      env:
+        COMPILER: ${{ matrix.compiler }}
+        BUILD_OCTAVE: ${{ matrix.build_octave }}
+      run: |
+        case "${COMPILER}" in
+          clang) extra="clang libomp-dev" ;;
+          gcc-snapshot) extra="gcc-snapshot" ;;
+          gcc-*) extra="${COMPILER} g++-${COMPILER#gcc-}" ;;
+          *) extra="" ;;
+        esac
+        [ "${BUILD_OCTAVE}" = "1" ] && extra="${extra} octave-dev"
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends build-essential cmake libfftw3-dev libcunit1-dev libatomic1 ${extra}
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -436,7 +442,7 @@ jobs:
       run: sudo rm -f /var/lib/man-db/auto-update        
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
 
     - name: Bootstrap
       run: ./bootstrap.sh
@@ -463,7 +469,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc g++ \
+          sudo apt-get install -y --no-install-recommends cmake gcc g++ \
             libfftw3-dev libfftw3-double3 libcunit1-dev octave-dev libomp-dev
 
       - name: Configure (Octave interface, double, OpenMP)
