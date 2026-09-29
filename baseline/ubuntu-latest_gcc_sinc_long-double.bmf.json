@@ -958,35 +958,35 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.039788136001423
+      "value": 17.039098514513803
     },
     "bound-digits": {
       "value": 7.510398258735839
     },
     "max-error": {
-      "value": 9.124558585978535e-18
+      "value": 9.139059093205251e-18
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
     "accuracy-digits": {
-      "value": 7.872074484791692
+      "value": 7.872074484791708
     },
     "bound-digits": {
       "value": 3.9483725780925982
     },
     "max-error": {
-      "value": 1.3425346865284339e-08
+      "value": 1.3425346865283851e-08
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.039788136001423
+      "value": 17.039098514513803
     },
     "bound-digits": {
       "value": 7.510398258735839
     },
     "max-error": {
-      "value": 9.124558585978535e-18
+      "value": 9.139059093205251e-18
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init_guru_PRE_PSI_m_half": {
@@ -1354,24 +1354,24 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 16.22674841246261
+      "value": 16.213152495272322
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 5.932689067455782e-17
+      "value": 6.121354128313252e-17
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.210693129624
+      "value": 16.22578593304314
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 6.156117073144423e-17
+      "value": 5.945851618144567e-17
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI_m_half": {
@@ -1387,13 +1387,13 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 16.21002565955795
+      "value": 16.211509455272687
     },
     "bound-digits": {
       "value": 6.641336658648642
     },
     "max-error": {
-      "value": 6.165585724605684e-17
+      "value": 6.144556538958915e-17
     }
   },
   "nfft/omp/online/fast/forward/1d/init": {
