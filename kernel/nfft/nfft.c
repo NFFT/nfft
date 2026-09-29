@@ -142,7 +142,7 @@ static inline void sort(const X(plan) *ths)
  * for k in I_N^d
  *  f_hat[k] = sum_{j=0}^{M_total-1} f[j] * exp(-2(pi) k x[j])
  */
-/* Block size for the phase recurrence in the direct transforms */
+/* Maximum block length for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
 
 /* Minimum innermost-dimension length for the multivariate recurrence to pay. */
@@ -151,6 +151,14 @@ static inline void sort(const X(plan) *ths)
 /* Minimum N for the univariate recurrence to pay. Below it |k x| <= 1, so the phase needs no
  * reduction. */
 #define NFFT_DIRECT_RECURRENCE_MIN_1D 5
+
+/* Recurrence block length for N frequencies in 1-D. The error grows with the block length, so
+ * N >= 8 splits into at least two blocks. */
+static inline INT X(direct_block)(const INT n)
+{
+  const INT h = (n + 1) / 2;
+  return n < 8 ? n : (h < NFFT_DIRECT_RECURRENCE_BLOCK ? h : NFFT_DIRECT_RECURRENCE_BLOCK);
+}
 
 /* Accurate phase for exp(+-i 2pi k x): reduce k*x modulo 1 into ~[-1/2,1/2) so COS/SIN see a
  * small argument, error does not grow with N. Requires FMA single-rounding semantics. */
@@ -185,7 +193,7 @@ void X(trafo_direct)(const X(plan) *ths)
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
-    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+    const INT B = X(direct_block)(ths->N_total);
     INT j;
 #ifdef _OPENMP
     #pragma omp parallel for default(shared) private(j)
@@ -355,9 +363,9 @@ void X(adjoint_direct)(const X(plan) *ths)
   if (ths->d == 1)
   {
     /* specialize for univariate case, rationale: faster */
-    const INT B = NFFT_DIRECT_RECURRENCE_BLOCK;
+    const INT B = X(direct_block)(ths->N_total);
 #ifdef _OPENMP
-    if (ths->N_total > B)
+    if (ths->N_total > NFFT_DIRECT_RECURRENCE_BLOCK)
     {
       /* Give each thread a disjoint, contiguous range of frequencies [klo,khi) (so the
        * f_hat[k] writes are race-free) and run the phase recurrence within it, re-seeded
@@ -391,9 +399,9 @@ void X(adjoint_direct)(const X(plan) *ths)
     }
     else
     {
-      /* N <= B: the recurrence spans at most one block per thread-range, so its per-block
-       * seed/setup costs more than it saves once threaded. Use the plain per-k
-       * parallelisation. At these tiny N the per-entry phase error is in check. */
+      /* N <= NFFT_DIRECT_RECURRENCE_BLOCK: too few frequencies for per-range seeding to pay once
+       * threaded, so use the plain per-k split. At these tiny N the per-entry phase error is in
+       * check. */
       INT k_L;
       #pragma omp parallel for default(shared) private(k_L)
       for (k_L = 0; k_L < ths->N_total; k_L++)
