@@ -42,7 +42,7 @@ jobs:
             echo "from=refs/heads/$branch" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: release-drafter/release-drafter@fbfd371f645664a1d67e6bbf56a4a47d38eb7e6e # main
+      - uses: release-drafter/release-drafter@6e07c8bd33e47bb119e7ce1de88d9f66023a967e # main
         with:
           config-name: release-drafter-config.yml
           name: next
@@ -72,7 +72,7 @@ jobs:
           echo "from=refs/tags/$tag" >> "$GITHUB_OUTPUT"
           echo "version=${GITHUB_REF_NAME#release/}" >> "$GITHUB_OUTPUT"
 
-      - uses: release-drafter/release-drafter@fbfd371f645664a1d67e6bbf56a4a47d38eb7e6e # main
+      - uses: release-drafter/release-drafter@6e07c8bd33e47bb119e7ce1de88d9f66023a967e # main
         with:
           config-name: release-drafter-config.yml
           name: ${{ steps.base.outputs.version }}
