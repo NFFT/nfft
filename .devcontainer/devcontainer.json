@@ -21,7 +21,7 @@
         }
     },
     "features": {
-        "ghcr.io/devcontainers/features/common-utils:2.5.9": {
+        "ghcr.io/devcontainers/features/common-utils:2.7.0": {
             "configureZshAsDefaultShell": true
         },
         "ghcr.io/devcontainers/features/node:2": {
