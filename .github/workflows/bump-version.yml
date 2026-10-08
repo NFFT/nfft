@@ -1,0 +1,64 @@
+name: Bump Version
+
+# Pushes a branch that sets the version in configure.ac. A maintainer opens the 
+# PR from the link in the job summary, so this workflow needs no permission to 
+# create or approve PRs.
+on:
+  create:
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    name: Bump the version
+    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'release/')
+    permissions:
+      contents: write  # Required to push the bump branch.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set the version
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          version=${BRANCH#release/}
+          # major.minor.patch, then an optional type such as "rc1" or "-beta".
+          if [[ ! $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)([A-Za-z0-9.-]*)$ ]]; then
+            echo "::error::Branch $BRANCH does not name a version major.minor.patch[type]."
+            exit 1
+          fi
+          m=("${BASH_REMATCH[@]}")
+          sed -i -E \
+            -e "s/^(m4_define\(\[nfft_version_major\], \[)[^]]*/\1${m[1]}/" \
+            -e "s/^(m4_define\(\[nfft_version_minor\], \[)[^]]*/\1${m[2]}/" \
+            -e "s/^(m4_define\(\[nfft_version_patch\], \[)[^]]*/\1${m[3]}/" \
+            -e "s/^(m4_define\(\[nfft_version_type\], \[)[^]]*/\1${m[4]}/" \
+            configure.ac
+          git diff
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Push the bump branch
+        env:
+          BASE: ${{ github.ref_name }}
+        run: |
+          if git diff --quiet; then
+            echo "configure.ac already has version $VERSION." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          head="version-bump/$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$head"
+          git commit -am "Bump version to $VERSION."
+          git push --force origin "$head"
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$BASE...$head?expand=1"
+          echo "::notice::Open the PR: $url"
+          {
+            echo "Branch \`$head\` sets the version to $VERSION."
+            echo
+            echo "[Open the PR]($url). Check SHARED_VERSION_INFO in configure.ac before merging."
+          } >> "$GITHUB_STEP_SUMMARY"
