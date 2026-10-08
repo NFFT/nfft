@@ -1,11 +1,20 @@
 cmake_minimum_required(VERSION 3.20)
 
+# The version is defined only in configure.ac.
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configure.ac" _nfft_version
+  REGEX "^m4_define\\(\\[nfft_version_")
+foreach(_part major minor patch type)
+  string(REGEX MATCH "nfft_version_${_part}\\], \\[([^]]*)\\]" _ "${_nfft_version}")
+  set(_nfft_version_${_part} "${CMAKE_MATCH_1}")
+endforeach()
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS configure.ac)
+
 project(NFFT3
-  VERSION 3.5.4
+  VERSION ${_nfft_version_major}.${_nfft_version_minor}.${_nfft_version_patch}
   DESCRIPTION "Nonequispaced Fast Fourier Transforms"
   LANGUAGES C)
 
-set(NFFT_VERSION_TYPE "alpha" CACHE STRING "Version type suffix (e.g. alpha)")
+set(NFFT_VERSION_TYPE "${_nfft_version_type}")
 
 list(PREPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 

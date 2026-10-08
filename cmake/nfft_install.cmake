@@ -37,7 +37,7 @@ install(FILES
 set(prefix      "${CMAKE_INSTALL_PREFIX}")
 set(exec_prefix "${CMAKE_INSTALL_PREFIX}")
 set(libdir      "${CMAKE_INSTALL_FULL_LIBDIR}")
-set(VERSION     "${PROJECT_VERSION}")
+set(VERSION     "${NFFT_PACKAGE_VERSION_STR}")
 set(PREC_SUFFIX "${NFFT_PREC_SUFFIX}")
 configure_file(${PROJECT_SOURCE_DIR}/nfft3.pc.in
                ${PROJECT_BINARY_DIR}/nfft3${NFFT_PREC_SUFFIX}.pc @ONLY)
