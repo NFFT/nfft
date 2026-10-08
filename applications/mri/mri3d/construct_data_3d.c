@@ -100,6 +100,6 @@ int main(int argc, char **argv)
 
   construct(argv[1], atoi(argv[2]),atoi(argv[3]),atoi(argv[4]));
 
-	return 1;
+	return 0;
 }
 /* \} */
