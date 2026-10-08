@@ -27,8 +27,10 @@ endif()
 function(nfft_configure_library tgt outname)
   set_target_properties(${tgt} PROPERTIES
     OUTPUT_NAME "${outname}"
-    VERSION 4.0.3        # libtool -version-info 4:3:0 -> current.age.revision
-    SOVERSION 0
+    VERSION ${NFFT_LIB_VERSION}
+    SOVERSION ${NFFT_SOVERSION}
+    MACHO_COMPATIBILITY_VERSION ${NFFT_MACHO_COMPAT_VERSION}
+    MACHO_CURRENT_VERSION ${NFFT_MACHO_CURRENT_VERSION}
     EXPORT_NAME "${outname}")
   # Generated config.h in build directory always wins over in-tree config.h left in include/.
   target_include_directories(${tgt}

@@ -7,6 +7,15 @@ foreach(_part major minor patch type)
   string(REGEX MATCH "nfft_version_${_part}\\], \\[([^]]*)\\]" _ "${_nfft_version}")
   set(_nfft_version_${_part} "${CMAKE_MATCH_1}")
 endforeach()
+
+# Shared library version as libtool derives it from -version-info C:R:A.
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/configure.ac" _nfft_svi
+  REGEX "^SHARED_VERSION_INFO=")
+string(REGEX MATCH "\"([0-9]+):([0-9]+):([0-9]+)\"" _ "${_nfft_svi}")
+math(EXPR NFFT_SOVERSION "${CMAKE_MATCH_1} - ${CMAKE_MATCH_3}")
+set(NFFT_LIB_VERSION "${NFFT_SOVERSION}.${CMAKE_MATCH_3}.${CMAKE_MATCH_2}")
+math(EXPR NFFT_MACHO_COMPAT_VERSION "${CMAKE_MATCH_1} + 1")
+set(NFFT_MACHO_CURRENT_VERSION "${NFFT_MACHO_COMPAT_VERSION}.${CMAKE_MATCH_2}")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS configure.ac)
 
 project(NFFT3
