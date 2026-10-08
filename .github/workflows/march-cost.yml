@@ -1,0 +1,99 @@
+name: March Native Cost
+
+# Temporary: compares -march=native with -mtune=native on an x86-64 runner,
+# for speed (walltime benchmarks) and accuracy (unit tests and an N sweep).
+on:
+  push:
+    branches: [ tmp/march-native-cost ]
+
+permissions:
+  contents: read
+
+env:
+  CODSPEED_VERSION: v2.3.0
+  BASE_FLAGS: -O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math
+
+jobs:
+  measure:
+    name: ${{ matrix.precision }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        precision: [ double, float ]
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      with:
+        persist-credentials: false
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      with:
+        persist-credentials: false
+        repository: CodSpeedHQ/codspeed-cpp
+        ref: ${{ env.CODSPEED_VERSION }}
+        path: codspeed-cpp
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          build-essential cmake libfftw3-dev libcunit1-dev libatomic1
+
+    - name: CPU
+      run: |
+        mkdir -p out
+        { lscpu; gcc --version; gcc -march=native -Q --help=target | grep -E '^ +-march=|^ +-mtune='; } | tee out/cpu.txt
+
+    - name: Build
+      env:
+        PRECISION: ${{ matrix.precision }}
+      run: |
+        PF=""; LIB=nfft3; FFTW=fftw3; DF=""
+        if [ "$PRECISION" = float ]; then
+          PF=-DNFFT_ENABLE_FLOAT=ON; LIB=nfft3f; FFTW=fftw3f; DF=-DUSE_FLOAT
+        fi
+        for v in march mtune; do
+          cmake -S . -B build-$v $PF \
+            -DCMAKE_C_FLAGS="$BASE_FLAGS -$v=native" \
+            -DNFFT_BENCHMARK_MODE=walltime \
+            -DFETCHCONTENT_SOURCE_DIR_CODSPEED="$PWD/codspeed-cpp" \
+            -DNFFT_ENABLE_TESTS=ON \
+            -DNFFT_ENABLE_EXAMPLES=OFF -DNFFT_ENABLE_APPLICATIONS=OFF
+          cmake --build build-$v -j
+          gcc -O2 -std=c11 $DF -Iinclude march-cost/sweep.c -Lbuild-$v/kernel \
+            -l$LIB -l$FFTW -lm -Wl,-rpath,"$PWD/build-$v/kernel" -o build-$v/sweep
+          lib=$(ls build-$v/kernel/lib$LIB.so.*.*)
+          echo "$v: $(objdump -d "$lib" | grep -c -E 'vfn?m(add|sub)') fma instructions, $(objdump -d "$lib" | grep -c -E '%[yz]mm') ymm/zmm uses" | tee -a out/code.txt
+        done
+
+    - name: Accuracy (unit tests)
+      run: |
+        for v in march mtune; do
+          (cd build-$v && NFFT_BENCH_OUT="$GITHUB_WORKSPACE/out/acc-$v.ndjson" ./tests/checkall > "$GITHUB_WORKSPACE/out/checkall-$v.txt" 2>&1) || echo "checkall $v failed"
+        done
+
+    - name: Accuracy (N sweep)
+      run: |
+        build-march/sweep 20 128 > out/sweep-march.txt &
+        build-mtune/sweep 20 128 > out/sweep-mtune.txt &
+        wait
+
+    - name: Benchmarks
+      run: |
+        # Alternate the two builds so runner drift affects both alike.
+        for r in 1 2 3; do
+          for v in march mtune; do
+            for b in build-$v/benchmarks/bench_*; do
+              [ -x "$b" ] || continue
+              CODSPEED_PROFILE_FOLDER="$GITHUB_WORKSPACE/out/bench/$v/$r/$(basename $b)" "$b" > /dev/null
+            done
+          done
+        done
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: march-cost-${{ matrix.precision }}
+        path: out/
