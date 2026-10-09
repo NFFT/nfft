@@ -328,6 +328,8 @@ jobs:
 
     - name: CMake — Assert example/application
       shell: bash
+      env:
+        PRECISION_OPT: ${{ matrix.precision_opt }}
       run: |
         set -e
         # Always-precision representatives (present in every cell):
@@ -337,7 +339,7 @@ jobs:
           test -x "build-cmake/$b" || { echo "MISSING: build-cmake/$b" >&2; exit 1; }
         done
         # Double-only representatives only in the double cells (precision_opt empty):
-        if [ -z "${{ matrix.precision_opt }}" ]; then
+        if [ -z "${PRECISION_OPT}" ]; then
           for b in examples/nfsft/simple_test applications/quadratureS2/quadratureS2 \
                    applications/mri/mri2d/construct_data_2d; do
             test -x "build-cmake/$b" || { echo "MISSING (double): build-cmake/$b" >&2; exit 1; }
@@ -348,12 +350,14 @@ jobs:
     - name: CMake — Install
       if: matrix.window == 'kaiserbessel'
       shell: bash
+      env:
+        PRECISION_OPT: ${{ matrix.precision_opt }}
       run: |
-        cmake --install build-cmake --prefix "${{ github.workspace }}/_install_cmake"
-        test -f "${{ github.workspace }}/_install_cmake/include/nfft3.h"
-        SUFFIX=$([ "${{ matrix.precision_opt }}" = "--enable-float" ] && echo f || \
-                 { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
-        ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
+        cmake --install build-cmake --prefix "${GITHUB_WORKSPACE}/_install_cmake"
+        test -f "${GITHUB_WORKSPACE}/_install_cmake/include/nfft3.h"
+        SUFFIX=$([ "${PRECISION_OPT}" = "--enable-float" ] && echo f || \
+                 { [ "${PRECISION_OPT}" = "--enable-long-double" ] && echo l || echo ""; })
+        ls "${GITHUB_WORKSPACE}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
 
     - name: CMake — Test Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -371,6 +375,7 @@ jobs:
         done
 
   accuracy-report:  # Accuracy report publishing (only baseline and in-repo PRs).
+    name: accuracy-report
     needs: build
     runs-on: ubuntu-latest
     if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
@@ -496,6 +501,7 @@ jobs:
             | tee build-cmake/ctest-octave.log
 
   linux-ok:  # Single required status check: all jobs above must succeed.
+    name: linux-ok
     if: always()
     needs: [ build, distcheck, cmake-octave ]
     runs-on: ubuntu-latest

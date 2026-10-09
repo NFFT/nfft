@@ -17,12 +17,16 @@ concurrency:
   group: accuracy-fork-${{ github.event.workflow_run.head_sha }}
   cancel-in-progress: true
 
-permissions:
-  checks: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   fork-report:
+    name: fork-report
+    permissions:
+      contents: read  # Required to check out the default-branch scripts.
+      actions: read  # Required to download the Build Linux artifacts.
+      checks: write  # Required to create the accuracy Check.
+      pull-requests: write  # Required to post the PR comment.
     if: >-
       ${{ github.event.workflow_run.event == 'pull_request' &&
           github.event.workflow_run.head_repository.fork == true }}

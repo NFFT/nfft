@@ -16,13 +16,14 @@ concurrency:
 
 jobs:
   cmake-windows:
+    name: cmake-windows
     runs-on: windows-latest
     # NFFT's C99 native-_Complex code is not compatible with MSVC's C frontend,
     # so build with the MinGW-w64 (GCC) toolchain NFFT actually supports on
     # Windows. All run steps use the MSYS2 MINGW64 shell.
     defaults:
       run:
-        shell: msys2 {0}
+        shell: msys2 {0}  # zizmor: ignore[misfeature] -- the MinGW-w64 toolchain needs the MSYS2 shell
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -72,6 +73,7 @@ jobs:
           PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3.exe
 
   windows-ok:  # Single required status check: all jobs above must succeed.
+    name: windows-ok
     if: always()
     needs: [ cmake-windows ]
     runs-on: ubuntu-latest

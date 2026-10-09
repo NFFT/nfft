@@ -244,6 +244,8 @@ jobs:
 
     - name: CMake — assert example/application binaries built
       shell: bash
+      env:
+        PRECISION_OPT: ${{ matrix.precision_opt }}
       run: |
         set -e
         # Always-precision representatives (present in every cell):
@@ -253,7 +255,7 @@ jobs:
           test -x "build-cmake/$b" || { echo "MISSING: build-cmake/$b" >&2; exit 1; }
         done
         # Double-only representatives only in the double cells (precision_opt empty):
-        if [ -z "${{ matrix.precision_opt }}" ]; then
+        if [ -z "${PRECISION_OPT}" ]; then
           for b in examples/nfsft/simple_test applications/quadratureS2/quadratureS2 \
                    applications/mri/mri2d/construct_data_2d; do
             test -x "build-cmake/$b" || { echo "MISSING (double): build-cmake/$b" >&2; exit 1; }
@@ -294,12 +296,14 @@ jobs:
 
     - name: CMake — test install
       shell: bash
+      env:
+        PRECISION_OPT: ${{ matrix.precision_opt }}
       run: |
-        cmake --install build-cmake --prefix "${{ github.workspace }}/_install_cmake"
-        test -f "${{ github.workspace }}/_install_cmake/include/nfft3.h"
-        SUFFIX=$([ "${{ matrix.precision_opt }}" = "--enable-float" ] && echo f || \
-                 { [ "${{ matrix.precision_opt }}" = "--enable-long-double" ] && echo l || echo ""; })
-        ls "${{ github.workspace }}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
+        cmake --install build-cmake --prefix "${GITHUB_WORKSPACE}/_install_cmake"
+        test -f "${GITHUB_WORKSPACE}/_install_cmake/include/nfft3.h"
+        SUFFIX=$([ "${PRECISION_OPT}" = "--enable-float" ] && echo f || \
+                 { [ "${PRECISION_OPT}" = "--enable-long-double" ] && echo l || echo ""; })
+        ls "${GITHUB_WORKSPACE}"/_install_cmake/lib*/cmake/nfft3${SUFFIX}/NFFT3${SUFFIX}Config.cmake
 
     - name: CMake — run-verify Julia staged simple_tests
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
@@ -400,6 +404,7 @@ jobs:
       run: make distcheck
 
   macos-ok:  # Single required status check: all jobs above must succeed.
+    name: macos-ok
     if: always()
     needs: [ build, distcheck ]
     runs-on: ubuntu-latest
