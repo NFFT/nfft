@@ -14,7 +14,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: release-rc-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
