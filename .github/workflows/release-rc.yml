@@ -63,9 +63,7 @@ jobs:
     needs: prepare
     uses: $/.github/workflows/release-dist.yml
     permissions:
-      # Ceiling for the called workflow. Its build job is read-only, its
-      # upload job is skipped here.
-      contents: write
+      contents: write  # Ceiling for the called workflow, whose build job is read-only and whose upload job is skipped here.
     with:
       ref: ${{ github.sha }}
       version-type: ${{ needs.prepare.outputs.type }}

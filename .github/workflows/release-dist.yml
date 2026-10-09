@@ -24,6 +24,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-dist-${{ github.event.release.tag_name || inputs.tag || inputs.ref }}
+  cancel-in-progress: false
+
 jobs:
   dist:
     # Release Candidate attaches the archive to its pre-releases.
