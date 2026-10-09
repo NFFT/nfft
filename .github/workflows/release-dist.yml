@@ -1,14 +1,8 @@
 name: Release Dist
 
+# Builds and attests the distribution archive. Releases are immutable once
+# published, so the Release workflow attaches the archive before it publishes.
 on:
-  release:
-    types: [ published ]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag to attach the archive to"
-        required: true
-  # Release Candidate builds the archive here and creates the release itself.
   workflow_call:
     inputs:
       ref:
@@ -16,7 +10,7 @@ on:
         required: true
         type: string
       version-type:
-        description: "Version suffix, e.g. -rc1"
+        description: "Version suffix, e.g. -rc1, empty for the final release"
         required: false
         type: string
         default: ""
@@ -25,13 +19,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-dist-${{ github.event.release.tag_name || inputs.tag || inputs.ref }}
+  group: release-dist-${{ inputs.ref }}
   cancel-in-progress: false
 
 jobs:
   dist:
-    # Release Candidate attaches the archive to its pre-releases.
-    if: github.event_name != 'release' || !github.event.release.prerelease
     runs-on: ubuntu-latest
     name: "dist"
     permissions:
@@ -39,17 +31,14 @@ jobs:
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
-        ref: ${{ inputs.ref || github.event.release.tag_name || inputs.tag }}
+        ref: ${{ inputs.ref }}
         persist-credentials: false
 
-    # An RC tag passed by hand carries its suffix in the tag name.
     - name: Set version type
+      if: inputs.version-type != ''
       env:
         VERSION_TYPE: ${{ inputs.version-type }}
-        TAG: ${{ github.event.release.tag_name || inputs.tag }}
       run: |
-        if [ -z "$VERSION_TYPE" ] && [[ $TAG =~ (-rc[0-9]+)$ ]]; then VERSION_TYPE=${BASH_REMATCH[1]}; fi
-        [ -n "$VERSION_TYPE" ] || exit 0
         [[ $VERSION_TYPE =~ ^-rc[0-9]+$ ]] || { echo "::error::Bad version type '$VERSION_TYPE'."; exit 1; }
         sed -i "s/^m4_define(\[nfft_version_type\], \[.*\])$/m4_define([nfft_version_type], [$VERSION_TYPE])/" configure.ac
         grep -qxF "m4_define([nfft_version_type], [$VERSION_TYPE])" configure.ac
@@ -95,23 +84,3 @@ jobs:
       with:
         subject-path: nfft-*.tar.gz
         create-storage-record: false
-
-  # Only this job can write, and only to attach the archive.
-  upload:
-    needs: [ dist, attest ]
-    if: ${{ !inputs.ref }}
-    runs-on: ubuntu-latest
-    name: "upload"
-    permissions:
-      contents: write  # Required to upload release assets.
-    env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
-    steps:
-    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-      with:
-        name: dist
-
-    - name: Upload archive to release
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: gh release upload "$TAG" nfft-*.tar.gz --clobber --repo "$GITHUB_REPOSITORY"
