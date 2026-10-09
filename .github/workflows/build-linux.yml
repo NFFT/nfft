@@ -103,7 +103,7 @@ jobs:
     - name: Set up uv
       uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v7
       with:
-        enable-cache: true
+        enable-cache: false
 
     - name: Set up Python
       run: uv python install 3.13
@@ -392,7 +392,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Download accuracy BMF artifacts
         continue-on-error: true   # tolerate a partial/empty artifact set when build cells failed

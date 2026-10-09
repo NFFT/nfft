@@ -7,7 +7,7 @@ name: Accuracy Report (forks)
 # BMF *artifacts* (JSON data — parsed/rendered, never executed) and never checks
 # out or runs fork code. No gh-pages write (no contents:write), so forks get the
 # aggregate comment + Check only; the report link points at the develop dashboard.
-on:
+on:  # zizmor: ignore[dangerous-triggers] -- consumes artifacts as data only, see above
   workflow_run:
     workflows: ["Build Linux"]
     types: [completed]
