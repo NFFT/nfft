@@ -1,0 +1,117 @@
+name: Release Candidate
+
+# Run manually on a release branch. Creates the pre-release <version>-rcN with
+# the next free N and attaches the distribution archive.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-rc-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare
+    if: startsWith(github.ref, 'refs/heads/release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Required to list tags.
+      actions: read  # Required to read the CI result of the commit.
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+      tag: ${{ steps.next.outputs.tag }}
+      type: ${{ steps.next.outputs.type }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ACTOR: ${{ github.triggering_actor }}
+    steps:
+      - name: Check role
+        run: |
+          role=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$ACTOR/permission" --jq .role_name)
+          case "$role" in
+            admin|maintain) ;;
+            *) echo "::error::$ACTOR has role '$role', maintain or admin is required."; exit 1 ;;
+          esac
+
+      - name: Check CI
+        run: |
+          fail=0
+          for wf in build-linux.yml build-macos.yml; do
+            result=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/runs?head_sha=$GITHUB_SHA&event=push" \
+              --jq '.workflow_runs[0] | .conclusion // .status // "no run"')
+            if [ "$result" != success ]; then
+              echo "::error::$wf for $GITHUB_SHA: $result"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - id: next
+        run: |
+          version=${GITHUB_REF_NAME#release/}
+          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Bad version '$version'."; exit 1; }
+          last=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$version-rc" --jq '.[].ref' \
+            | sed -n "s|^refs/tags/$version-rc\([0-9][0-9]*\)$|\1|p" | sort -n | tail -1)
+          n=$(( ${last:-0} + 1 ))
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$version-rc$n" >> "$GITHUB_OUTPUT"
+          echo "type=-rc$n" >> "$GITHUB_OUTPUT"
+
+  dist:
+    needs: prepare
+    uses: ./.github/workflows/release-dist.yml
+    permissions:
+      # Ceiling for the called workflow. Its build job is read-only, its
+      # upload job is skipped here.
+      contents: write
+    with:
+      ref: ${{ github.sha }}
+      version-type: ${{ needs.prepare.outputs.type }}
+
+  release:
+    name: Release
+    needs: [ prepare, dist ]
+    runs-on: ubuntu-latest
+    # Holds the app key. Only release branches can use it.
+    environment: release
+    permissions: {}
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+    steps:
+      # GITHUB_TOKEN cannot create tags, the release-rc-tags ruleset allows
+      # only this app.
+      - id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+
+      # The notes are a copy of the draft for the final release, which covers
+      # the full cycle.
+      - name: Write release notes
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          body=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq ".[] | select(.draft and .tag_name == \"$VERSION\") | .body")
+          {
+            echo "Release candidate ${TAG##*-rc} for $VERSION. These notes are a copy of the $VERSION draft at this time. The final release has the full list."
+            echo
+            echo "${body:-No changes yet.}"
+          } > notes.md
+
+      - name: Create pre-release
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          gh release create "$TAG" nfft-*.tar.gz --repo "$GITHUB_REPOSITORY" \
+            --prerelease --latest=false --target "$GITHUB_SHA" \
+            --title "$TAG" --notes-file notes.md
