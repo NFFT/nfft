@@ -16,9 +16,10 @@ concurrency:
 
 jobs:
   changes:
-    uses: ./.github/workflows/changes.yml
+    uses: $/.github/workflows/changes.yml
 
   cmake-windows:
+    name: cmake-windows
     needs: changes
     if: needs.changes.outputs.build == 'true'
     runs-on: windows-latest
@@ -27,7 +28,7 @@ jobs:
     # Windows. All run steps use the MSYS2 MINGW64 shell.
     defaults:
       run:
-        shell: msys2 {0}
+        shell: msys2 {0}  # zizmor: ignore[misfeature] -- the MinGW-w64 toolchain needs the MSYS2 shell
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -77,6 +78,7 @@ jobs:
           PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3.exe
 
   windows-ok:  # Single required status check: all jobs above must succeed.
+    name: windows-ok
     if: always()
     needs: [ changes, cmake-windows ]
     runs-on: ubuntu-latest
