@@ -61,7 +61,7 @@ jobs:
 
   dist:
     needs: prepare
-    uses: ./.github/workflows/release-dist.yml
+    uses: $/.github/workflows/release-dist.yml
     permissions:
       # Ceiling for the called workflow. Its build job is read-only, its
       # upload job is skipped here.
