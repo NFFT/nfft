@@ -969,13 +969,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
     "accuracy-digits": {
-      "value": 9.134193727266277
+      "value": 9.134193727274251
     },
     "bound-digits": {
       "value": 3.767635097462398
     },
     "max-error": {
-      "value": 7.341862940403087e-10
+      "value": 7.341862940268286e-10
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
