@@ -218,6 +218,7 @@ The generators' own notes are in `tests/besselgen/README.md` and
 | Measure (walltime) | `CODSPEED_PROFILE_FOLDER=/tmp/wt build-cmake/benchmarks/bench_nfft_direct` → `/tmp/wt/results/*.json` |
 | Clean | `make clean` / full reset: `make distclean` |
 | Format C code | `clang-format -i <file>` (uses repo `.clang-format`) |
+| Pre-commit checks (zizmor on workflows) | `pre-commit install` once; `pre-commit run --all-files`. Do not bypass with `--no-verify`. |
 | Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m tests.besselgen.generate` (§5) |
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m tests.sincgen.generate` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |
