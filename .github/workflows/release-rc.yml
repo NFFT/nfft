@@ -1,9 +1,15 @@
-name: Release Candidate
+name: Release
 
 # Run manually on a release branch. Creates the pre-release <version>-rcN with
-# the next free N and attaches the distribution archive.
+# the next free N, or with "final" publishes the <version> draft. Both attach
+# the distribution archive before they publish, since releases are immutable.
 on:
   workflow_dispatch:
+    inputs:
+      final:
+        description: "Publish the final release from the draft instead of a release candidate"
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -49,13 +55,24 @@ jobs:
           exit $fail
 
       - id: next
+        env:
+          FINAL: ${{ inputs.final }}
         run: |
           version=${GITHUB_REF_NAME#release/}
           [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Bad version '$version'."; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$FINAL" = true ]; then
+            if gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$version" --jq '.[].ref' | grep -qx "refs/tags/$version"; then
+              echo "::error::Tag $version exists already."
+              exit 1
+            fi
+            echo "tag=$version" >> "$GITHUB_OUTPUT"
+            echo "type=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           last=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$version-rc" --jq '.[].ref' \
             | sed -n "s|^refs/tags/$version-rc\([0-9][0-9]*\)$|\1|p" | sort -n | tail -1)
           n=$(( ${last:-0} + 1 ))
-          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$version-rc$n" >> "$GITHUB_OUTPUT"
           echo "type=-rc$n" >> "$GITHUB_OUTPUT"
 
@@ -63,7 +80,9 @@ jobs:
     needs: prepare
     uses: $/.github/workflows/release-dist.yml
     permissions:
-      contents: write  # Ceiling for the called workflow, whose build job is read-only and whose upload job is skipped here.
+      contents: read  # Ceiling for the build job of the called workflow.
+      id-token: write  # Ceiling for the attest job of the called workflow.
+      attestations: write  # Ceiling for the attest job of the called workflow.
     with:
       ref: ${{ github.sha }}
       version-type: ${{ needs.prepare.outputs.type }}
@@ -79,8 +98,8 @@ jobs:
       VERSION: ${{ needs.prepare.outputs.version }}
       TAG: ${{ needs.prepare.outputs.tag }}
     steps:
-      # GITHUB_TOKEN cannot create tags, the release-rc-tags ruleset allows
-      # only this app.
+      # GITHUB_TOKEN cannot create tags, the tag rulesets allow only admins
+      # and this app.
       - id: app
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
@@ -95,6 +114,7 @@ jobs:
       # The notes are a copy of the draft for the final release, which covers
       # the full cycle.
       - name: Write release notes
+        if: ${{ !inputs.final }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
@@ -107,9 +127,22 @@ jobs:
           } > notes.md
 
       - name: Create pre-release
+        if: ${{ !inputs.final }}
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
           gh release create "$TAG" nfft-*.tar.gz --repo "$GITHUB_REPOSITORY" \
             --prerelease --latest=false --target "$GITHUB_SHA" \
             --title "$TAG" --notes-file notes.md
+
+      - name: Publish final release
+        if: inputs.final
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          n=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq ".[] | select(.draft and .tag_name == \"$VERSION\") | .id" | wc -l)
+          [ "$n" = 1 ] || { echo "::error::Expected one draft release $VERSION, found $n."; exit 1; }
+          gh release upload "$VERSION" nfft-*.tar.gz --clobber --repo "$GITHUB_REPOSITORY"
+          gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" \
+            --draft=false --prerelease=false --latest --target "$GITHUB_SHA" --title "$VERSION"
