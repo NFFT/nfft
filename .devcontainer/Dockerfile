@@ -75,7 +75,7 @@ USER vscode
 ENV EDITOR=nano
 ENV VISUAL=nano
 
-# Install Julia, uv, Python, zizmor.
+# Install Julia, uv, Python, zizmor, pre-commit.
 ENV PATH="/home/vscode/.local/bin:${PATH}"
 # Install Julia but trim the shipped stdlib precompile cache, the
 # HTML documentation and the Julia test suite.
@@ -86,7 +86,8 @@ RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
     && curl -fsSL https://astral.sh/uv/install.sh | sh \
     && uv python install --default 3.13 \
     && uv tool install zizmor \
-    && uv tool install ruff
+    && uv tool install ruff \
+    && uv tool install pre-commit
 
 # Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /
 # simulation track). Installs to ~/.cargo/bin and adds it to PATH.

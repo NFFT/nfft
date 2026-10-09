@@ -45,6 +45,7 @@
         // preserve across container rebuilds.
         "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
     },
+    "postCreateCommand": "pre-commit install",
     "remoteUser": "vscode",
     "containerUser": "vscode",
     "mounts": [
