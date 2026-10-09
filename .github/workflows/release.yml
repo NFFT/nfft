@@ -1,15 +1,11 @@
 name: Release
 
-# Run manually on a release branch. Creates the pre-release <version>-rcN with
-# the next free N, or with "final" publishes the <version> draft. Both attach
-# the distribution archive before they publish, since releases are immutable.
+# Run manually. On a release branch, creates the pre-release <version>-rcN with
+# the next free N. On master, after the GitFlow release finish, publishes the
+# <version> draft. Both attach the distribution archive before they publish,
+# since releases are immutable.
 on:
   workflow_dispatch:
-    inputs:
-      final:
-        description: "Publish the final release from the draft instead of a release candidate"
-        type: boolean
-        default: false
 
 permissions: {}
 
@@ -20,15 +16,17 @@ concurrency:
 jobs:
   prepare:
     name: Prepare
-    if: startsWith(github.ref, 'refs/heads/release/')
+    if: startsWith(github.ref, 'refs/heads/release/') || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
-      contents: read  # Required to list tags.
+      contents: read  # Required to read configure.ac and the tags.
       actions: read  # Required to read the CI result of the commit.
     outputs:
       version: ${{ steps.next.outputs.version }}
       tag: ${{ steps.next.outputs.tag }}
       type: ${{ steps.next.outputs.type }}
+      final: ${{ steps.next.outputs.final }}
+      tag-exists: ${{ steps.next.outputs.tag-exists }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ACTOR: ${{ github.triggering_actor }}
@@ -55,26 +53,48 @@ jobs:
           exit $fail
 
       - id: next
-        env:
-          FINAL: ${{ inputs.final }}
         run: |
-          version=${GITHUB_REF_NAME#release/}
-          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Bad version '$version'."; exit 1; }
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if [ "$FINAL" = true ]; then
-            if gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$version" --jq '.[].ref' | grep -qx "refs/tags/$version"; then
-              echo "::error::Tag $version exists already."
-              exit 1
-            fi
-            echo "tag=$version" >> "$GITHUB_OUTPUT"
-            echo "type=" >> "$GITHUB_OUTPUT"
+          tags=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/" --paginate --jq '.[].ref')
+          if [ "$GITHUB_REF_NAME" != master ]; then
+            version=${GITHUB_REF_NAME#release/}
+            [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Bad version '$version'."; exit 1; }
+            last=$(sed -n "s|^refs/tags/$version-rc\([0-9][0-9]*\)$|\1|p" <<< "$tags" | sort -n | tail -1)
+            n=$(( ${last:-0} + 1 ))
+            {
+              echo "version=$version"
+              echo "tag=$version-rc$n"
+              echo "type=-rc$n"
+              echo "final=false"
+              echo "tag-exists=false"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          last=$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$version-rc" --jq '.[].ref' \
-            | sed -n "s|^refs/tags/$version-rc\([0-9][0-9]*\)$|\1|p" | sort -n | tail -1)
-          n=$(( ${last:-0} + 1 ))
-          echo "tag=$version-rc$n" >> "$GITHUB_OUTPUT"
-          echo "type=-rc$n" >> "$GITHUB_OUTPUT"
+
+          # Final release: the version comes from configure.ac of this commit.
+          ac=$(gh api "repos/$GITHUB_REPOSITORY/contents/configure.ac?ref=$GITHUB_SHA" --jq .content | base64 -d)
+          part() { sed -n "s/^m4_define(\[nfft_version_$1\], \[\(.*\)\])$/\1/p" <<< "$ac"; }
+          version="$(part major).$(part minor).$(part patch)"
+          [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Bad version '$version'."; exit 1; }
+          [ -z "$(part type)" ] || { echo "::error::configure.ac has version type '$(part type)'."; exit 1; }
+
+          # The GitFlow finish may have pushed the annotated tag already. It
+          # must point to this commit.
+          exists=false
+          if grep -qx "refs/tags/$version" <<< "$tags"; then
+            obj=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$version" --jq '"\(.object.type) \(.object.sha)"')
+            if [ "${obj% *}" = tag ]; then
+              obj=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/${obj#* }" --jq '"\(.object.type) \(.object.sha)"')
+            fi
+            [ "$obj" = "commit $GITHUB_SHA" ] || { echo "::error::Tag $version points to $obj, not to $GITHUB_SHA."; exit 1; }
+            exists=true
+          fi
+          {
+            echo "version=$version"
+            echo "tag=$version"
+            echo "type="
+            echo "final=true"
+            echo "tag-exists=$exists"
+          } >> "$GITHUB_OUTPUT"
 
   dist:
     needs: prepare
@@ -91,12 +111,13 @@ jobs:
     name: Release
     needs: [ prepare, dist ]
     runs-on: ubuntu-latest
-    # Holds the app key. Only release branches can use it.
+    # Holds the app key. Only release branches and master can use it.
     environment: release
     permissions: {}
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
       TAG: ${{ needs.prepare.outputs.tag }}
+      TAG_EXISTS: ${{ needs.prepare.outputs.tag-exists }}
     steps:
       # GITHUB_TOKEN cannot create tags, the tag rulesets allow only admins
       # and this app.
@@ -114,7 +135,7 @@ jobs:
       # The notes are a copy of the draft for the final release, which covers
       # the full cycle.
       - name: Write release notes
-        if: ${{ !inputs.final }}
+        if: needs.prepare.outputs.final != 'true'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
@@ -127,7 +148,7 @@ jobs:
           } > notes.md
 
       - name: Create pre-release
-        if: ${{ !inputs.final }}
+        if: needs.prepare.outputs.final != 'true'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
@@ -135,14 +156,17 @@ jobs:
             --prerelease --latest=false --target "$GITHUB_SHA" \
             --title "$TAG" --notes-file notes.md
 
+      # Without a pushed tag, publishing creates a lightweight tag here.
       - name: Publish final release
-        if: inputs.final
+        if: needs.prepare.outputs.final == 'true'
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
         run: |
           n=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
             --jq ".[] | select(.draft and .tag_name == \"$VERSION\") | .id" | wc -l)
           [ "$n" = 1 ] || { echo "::error::Expected one draft release $VERSION, found $n."; exit 1; }
+          target=()
+          [ "$TAG_EXISTS" = true ] || target=(--target "$GITHUB_SHA")
           gh release upload "$VERSION" nfft-*.tar.gz --clobber --repo "$GITHUB_REPOSITORY"
           gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" \
-            --draft=false --prerelease=false --latest --target "$GITHUB_SHA" --title "$VERSION"
+            --draft=false --prerelease=false --latest --title "$VERSION" "${target[@]}"
