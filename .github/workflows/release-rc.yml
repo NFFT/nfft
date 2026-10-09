@@ -38,7 +38,7 @@ jobs:
       - name: Check CI
         run: |
           fail=0
-          for wf in build-linux.yml build-macos.yml; do
+          for wf in build-linux.yml build-macos.yml build-windows.yml; do
             result=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$wf/runs?head_sha=$GITHUB_SHA&event=push" \
               --jq '.workflow_runs[0] | .conclusion // .status // "no run"')
             if [ "$result" != success ]; then

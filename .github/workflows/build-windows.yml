@@ -2,9 +2,9 @@ name: Build Windows
 
 on:
   push:
-    branches: [ main, develop, master ]
+    branches: [ main, develop, master, 'release/**' ]
   pull_request:
-    branches: [ main, develop, master ]
+    branches: [ main, develop, master, 'release/**' ]
   workflow_dispatch:
 
 permissions:
