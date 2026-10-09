@@ -8,23 +8,48 @@ on:
       tag:
         description: "Release tag to attach the archive to"
         required: true
+  # Release Candidate builds the archive here and creates the release itself.
+  workflow_call:
+    inputs:
+      ref:
+        description: "Commit to build the archive from"
+        required: true
+        type: string
+      version-type:
+        description: "Version suffix, e.g. -rc1"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-dist-${{ github.event.release.tag_name || inputs.tag || inputs.ref }}
+  cancel-in-progress: false
+
 jobs:
   dist:
+    # Release Candidate attaches the archive to its pre-releases.
+    if: github.event_name != 'release' || !github.event.release.prerelease
     runs-on: ubuntu-latest
     name: "dist"
     permissions:
-      contents: write  # Required to upload release assets.
-    env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      contents: read
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
-        ref: ${{ env.TAG }}
+        ref: ${{ inputs.ref || github.event.release.tag_name || inputs.tag }}
         persist-credentials: false
+
+    - name: Set version type
+      if: inputs.version-type != ''
+      env:
+        VERSION_TYPE: ${{ inputs.version-type }}
+      run: |
+        [[ $VERSION_TYPE =~ ^-rc[0-9]+$ ]] || { echo "::error::Bad version type '$VERSION_TYPE'."; exit 1; }
+        sed -i "s/^m4_define(\[nfft_version_type\], \[.*\])$/m4_define([nfft_version_type], [$VERSION_TYPE])/" configure.ac
+        grep -qxF "m4_define([nfft_version_type], [$VERSION_TYPE])" configure.ac
 
     - name: Disable initramfs update
       run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
@@ -43,6 +68,27 @@ jobs:
 
     - name: Distcheck
       run: make distcheck
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: dist
+        path: nfft-*.tar.gz
+        if-no-files-found: error
+
+  # Only this job can write, and only to attach the archive.
+  upload:
+    needs: dist
+    if: ${{ !inputs.ref }}
+    runs-on: ubuntu-latest
+    name: "upload"
+    permissions:
+      contents: write  # Required to upload release assets.
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: dist
 
     - name: Upload archive to release
       env:
