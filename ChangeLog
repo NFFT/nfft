@@ -5,6 +5,110 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0]
+
+### Added
+
+* Add CMake support. (#207) @jenskeiner
+
+### Changed
+
+* Mark the adjoint NFFT compute kernels' buffers `restrict`. (#302) @jenskeiner
+* Adjust B-spline order to match actual reach. (#309) @jenskeiner
+* Increase effective width of Kaiser-Bessel window to match stencil size. (#300) @jenskeiner
+* Form the window's grid offset with one FMA. (#298) @jenskeiner
+* Sync vendored m4 macros for compiler option tuning. (#282) @jenskeiner
+* Sum the log sinc table as four chains instead of one Horner pass. (#280) @jenskeiner
+* Fill the fast-Gaussian run with fixed trip counts to avoid breaking auto-vectorization. (#269) @jenskeiner
+* Drop autoconf .c.in templating (#277) @jenskeiner
+* Blocked phase recurrence for the NFCT/NFST direct transforms, serial and OpenMP. (#275) @jenskeiner
+* Blocked phase recurrence for the nfft direct transforms in all dimensions, serial and OpenMP. (#273) @jenskeiner
+* Evaluate B-splines in the Chebyshev basis. (#265) @jenskeiner
+* Improve performance and accuracy of B-spline and Sinc-power window evaluations. (#263) @jenskeiner
+* Improve efficiency and accuracy of Kaiser-Bessel window evaluations. (#261) @jenskeiner
+* Sync with upstream FFTW. (#241) @jenskeiner
+
+### Fixed
+
+* Fix an issue where NFCT and NFST use round to nearest instead flooring for run centering. (#310) @jenskeiner
+* Bring NFCT/NFST to parity with NFFT re blocked phase recurrence. (#308) @jenskeiner
+* Alleviate issues when multiple OpenMP implementations can be linked on macOS (CMake). (#286) @jenskeiner
+* Alleviate issues when multiple OpenMP implementations can be linked on macOS (Autotools). (#287) @jenskeiner
+* Fix the node stride of NFSFT_EQUISPACED with NFSFT_MALLOC_X. (#293) @jenskeiner
+* Search config.h in CMake build directory before include/. (#285) @jenskeiner
+* Have infft.h include its own config.h. (#272) @jenskeiner
+* Fix the macOS OpenMP build and cover it in CI (#271) @jenskeiner
+* Fix formatting for printf in applications/mri (#209) @michaelquellmalz, [@github-advanced-security[bot]](https://github.com/apps/github-advanced-security)
+* Add missing openmp libraries in fastsum_benchomp (#208) @michaelquellmalz, [@github-code-quality[bot]](https://github.com/apps/github-code-quality)
+* Fix makefile.am LDFLAGS Typo for fastsum (#201) @AlexBuccheri, @michaelquellmalz
+* Fixes for compilation in Windows (#200) @michaelquellmalz
+
+### Chores
+
+* Install CI dependencies with plain apt-get and brew. (#311) @jenskeiner
+* Benchmark on-the-fly window evaluation. (#305) @jenskeiner
+* Fix CodSpeed benchmarks section and add sponsoring link. (#299) @jenskeiner
+* Align benchmark allocation to reduce noise. (#304) @jenskeiner
+* Optimize benchmark reliability. (#303) @jenskeiner
+* Test windows at cutoff where approximation error is actually visible. (#301) @jenskeiner
+* Draft the next release separately from a cut release branch. (#291) @jenskeiner
+* Attach the make dist archive to published releases. (#289) @jenskeiner
+* Add one gate job per build workflow for required status checks. (#290) @jenskeiner
+* Devcontainer: Install native Claude Code and remove custom setup script. (#276) @jenskeiner
+* Cap OpenMP threads number to reduce jitter in benchmarks. (#262) @jenskeiner
+* Reduce noise in OpenMP-enabled precomputation benchmarks. (#260) @jenskeiner
+* Bump astral-sh/setup-uv from 9.0.0 to 10.0.1 (#255) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump actions/checkout from 7.0.0 to 7.0.1 (#258) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump ghcr.io/devcontainers/features/node from 1.7.1 to 2.1.0 (#256) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump CodSpeedHQ/action from 4.18.5 to 5.2.1 (#257) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump actions/cache from 5.0.5 to 6.1.0 (#252) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump ghcr.io/devcontainers/features/github-cli from 1.1.0 to 1.1.1 (#254) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Disable long double benchmarks as they are too slow on arm64. (#259) @jenskeiner
+* Bump release-drafter/release-drafter from 7.4.0 to 7.7.0 (#253) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Cut benchmark minutes. (#251) @jenskeiner
+* Add benchmarks for fast NDFT algorithm. (#250) @jenskeiner
+* Feature/downsize devcontainer (#245) @jenskeiner
+* Ensure recent Node version. Update plugins and skills. (#244) @jenskeiner
+* Adjust formatting options. (#243) @jenskeiner
+* Add understanding-fftw skill. (#242) @jenskeiner
+* Bump astral-sh/setup-uv from 8.2.0 to 9.0.0 (#235) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump ghcr.io/devcontainers/features/git from 1.3.7 to 1.3.8 (#236) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump CodSpeedHQ/action from 4.18.1 to 4.18.5 (#237) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump msys2/setup-msys2 from 2.31.1 to 2.32.0 (#238) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump gerlero/brew-install from 1.1.2 to 1.1.3 (#239) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump actions/download-artifact from 7.0.0 to 8.0.1 (#240) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Add NFCT/NFST benchmarks. (#232) @jenskeiner
+* Devcontainer improvements (#231) @jenskeiner
+* Bump release-drafter/release-drafter from 7.3.1 to 7.4.0 (#230) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump ctrf-io/github-test-reporter from 1.0.28 to 1.1.0 (#228) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump astral-sh/setup-uv from 8.1.0 to 8.2.0 (#226) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump CodSpeedHQ/action from 4.15.1 to 4.18.1 (#227) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump actions/checkout from 6.0.2 to 7.0.0 (#229) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Bump ghcr.io/devcontainers/features/git from 1.3.5 to 1.3.7 (#225) [@dependabot[bot]](https://github.com/apps/dependabot), @jenskeiner
+* Add accuracy tracking to PRs. (#224) @jenskeiner
+* DIsable commit and PR attribution. (#221) @jenskeiner
+* Generate test data for NFFT/NFCT/NFST in Python. (#220) @jenskeiner
+* Add Python-based test data generator for NFFT/NFST/NFCT. (#219) @jenskeiner
+* Add agent docs. (#218) @jenskeiner
+* Support benchmark mode choice. (#217) @jenskeiner
+* Change to wallclock mode. (#215) @jenskeiner
+* Only run benchmarks for system gcc, Kaiserbessel, and all three precisions. (#214) @jenskeiner
+* Ensure deterministic code alignment (for benchmarks). (#213) @jenskeiner
+* CodSpeed toolchain, git-lfs, and preinstalled Claude Code extensions (#211) @jenskeiner
+* Add multi-threaded benchmarks. (#173) @jenskeiner
+* Bump ctrf-io/github-test-reporter from 1.0.26 to 1.0.28 (#206) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump CodSpeedHQ/action from 4.14.0 to 4.15.1 (#205) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump julia-actions/setup-julia from 3.0.1 to 3.0.2 (#204) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump astral-sh/setup-uv from 7.2.0 to 8.1.0 (#203) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump release-drafter/release-drafter from 7.2.0 to 7.3.1 (#202) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump CodSpeedHQ/action from 4.8.2 to 4.14.0 (#195) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump actions/upload-artifact from 6.0.0 to 7.0.1 (#196) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump julia-actions/setup-julia from 2.6.1 to 3.0.1 (#199) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump release-drafter/release-drafter from 6.2.0 to 7.2.0 (#197) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump actions/cache from 4.3.0 to 5.0.5 (#198) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump release-drafter/release-drafter from 6.1.0 to 6.2.0 (#188) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+* Bump actions/checkout from 6.0.1 to 6.0.2 (#189) [@dependabot[bot]](https://github.com/apps/dependabot), @michaelquellmalz
+
 ## [3.6.0] - 2026-09-18
 
 ### Added
@@ -345,6 +449,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Versions 3.2.4 and older have no GitHub release. Release dates and detailed
 release notes are not available for these versions.
 
+[3.7.0]: https://github.com/NFFT/nfft/compare/3.6.0...3.7.0
 [3.6.0]: https://github.com/NFFT/nfft/compare/3.5.3...3.6.0
 [3.5.3]: https://github.com/NFFT/nfft/compare/3.5.2...3.5.3
 [3.5.2]: https://github.com/NFFT/nfft/compare/3.5.1...3.5.2
