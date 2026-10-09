@@ -64,6 +64,8 @@ jobs:
     uses: $/.github/workflows/release-dist.yml
     permissions:
       contents: write  # Ceiling for the called workflow, whose build job is read-only and whose upload job is skipped here.
+      id-token: write  # Ceiling for the attest job of the called workflow.
+      attestations: write  # Ceiling for the attest job of the called workflow.
     with:
       ref: ${{ github.sha }}
       version-type: ${{ needs.prepare.outputs.type }}

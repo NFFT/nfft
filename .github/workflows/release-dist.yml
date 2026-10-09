@@ -42,11 +42,14 @@ jobs:
         ref: ${{ inputs.ref || github.event.release.tag_name || inputs.tag }}
         persist-credentials: false
 
+    # An RC tag passed by hand carries its suffix in the tag name.
     - name: Set version type
-      if: inputs.version-type != ''
       env:
         VERSION_TYPE: ${{ inputs.version-type }}
+        TAG: ${{ github.event.release.tag_name || inputs.tag }}
       run: |
+        if [ -z "$VERSION_TYPE" ] && [[ $TAG =~ (-rc[0-9]+)$ ]]; then VERSION_TYPE=${BASH_REMATCH[1]}; fi
+        [ -n "$VERSION_TYPE" ] || exit 0
         [[ $VERSION_TYPE =~ ^-rc[0-9]+$ ]] || { echo "::error::Bad version type '$VERSION_TYPE'."; exit 1; }
         sed -i "s/^m4_define(\[nfft_version_type\], \[.*\])$/m4_define([nfft_version_type], [$VERSION_TYPE])/" configure.ac
         grep -qxF "m4_define([nfft_version_type], [$VERSION_TYPE])" configure.ac
@@ -75,9 +78,27 @@ jobs:
         path: nfft-*.tar.gz
         if-no-files-found: error
 
+  # Signs the archive digest. Runs no build code.
+  attest:
+    needs: dist
+    runs-on: ubuntu-latest
+    name: "attest"
+    permissions:
+      id-token: write  # Required to request the Sigstore signing certificate.
+      attestations: write  # Required to store the attestation.
+    steps:
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: dist
+
+    - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-path: nfft-*.tar.gz
+        create-storage-record: false
+
   # Only this job can write, and only to attach the archive.
   upload:
-    needs: dist
+    needs: [ dist, attest ]
     if: ${{ !inputs.ref }}
     runs-on: ubuntu-latest
     name: "upload"
