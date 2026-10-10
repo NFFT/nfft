@@ -249,7 +249,8 @@ case "$window" in
     AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
-  delta)
+  dirac|delta)
+    window=delta
     AC_DEFINE(DIRAC_DELTA,1,[Define to enable Dirac delta window function.]);;
   *)
     AC_MSG_ERROR([Unknown window function "$window".]);;
