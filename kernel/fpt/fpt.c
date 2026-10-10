@@ -863,16 +863,18 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->kindsr[1]  = FFTW_REDFT10;
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
+#ifdef HAVE_FFTW_THREADS
     fftw_plan_with_nthreads(nthreads);
+#endif
 #endif
     set->plans_dct2[tau] =
       fftw_plan_many_r2r(1, &plength, 2, (double*)set->work, NULL,
                          2, 1, (double*)set->result, NULL, 2, 1,set->kindsr,
                          0);
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 }
 #endif
   }
@@ -884,16 +886,18 @@ fpt_set fpt_init(const int M, const int t, const unsigned int flags)
   set->kinds[1]   = FFTW_REDFT01;
   for (tau = 0, plength = 4; tau < set->t/*-1*/; tau++, plength<<=1)
   {
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
+#ifdef HAVE_FFTW_THREADS
   fftw_plan_with_nthreads(nthreads);
+#endif
 #endif
     set->plans_dct3[tau] =
       fftw_plan_many_r2r(1, &plength, 2, (double*)set->work, NULL,
                          2, 1, (double*)set->result, NULL, 2, 1, set->kinds,
                          0);
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 }
 #endif
   }
@@ -1430,15 +1434,16 @@ void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Compl
 
   if (flags & FPT_FUNCTION_VALUES)
   {
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
-    int nthreads = X(get_num_threads)();
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+#ifdef HAVE_FFTW_THREADS
+    fftw_plan_with_nthreads(X(get_num_threads)());
+#endif
 #endif
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1,
       (double*)set->work, NULL, 2, 1, kinds, 0U);
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 }
 #endif
   }
@@ -1793,15 +1798,16 @@ void fpt_transposed(fpt_set set, const int m, double _Complex *x,
 
   if (flags & FPT_FUNCTION_VALUES)
   {
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
-    int nthreads = X(get_num_threads)();
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
-    fftw_plan_with_nthreads(nthreads);
+#ifdef HAVE_FFTW_THREADS
+    fftw_plan_with_nthreads(X(get_num_threads)());
+#endif
 #endif
     plan = fftw_plan_many_r2r(1, &length, 2, (double*)set->work, NULL, 2, 1,
       (double*)set->work, NULL, 2, 1, kinds, 0U);
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 }
 #endif
     fftw_execute_r2r(plan,(double*)y,(double*)set->result);

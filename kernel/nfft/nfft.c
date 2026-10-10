@@ -6050,10 +6050,12 @@ static void init_help(X(plan) *ths)
     else
       ths->g2 = ths->g1;
 
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
 {
+#ifdef HAVE_FFTW_THREADS
     FFTW(plan_with_nthreads)(nthreads);
+#endif
 #endif
     {
       int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
@@ -6065,7 +6067,7 @@ static void init_help(X(plan) *ths)
       ths->my_fftw_plan2 = FFTW(plan_dft)((int)ths->d, _n, ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
       Y(free)(_n);
     }
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 }
 #endif
   }

@@ -1271,13 +1271,15 @@ void nfsft_trafo(nfsft_plan *plan)
             plan->f_hat_intern[j*N[1]+k] *= -1;
 //	  f_hat[j*N[1]+k] = plan->f_hat_intern[j*N[1]+k] * CEXP(II*KPI*(j+k));
 
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
 #pragma omp critical (nfft_omp_critical_fftw_plan)
       {
+#ifdef HAVE_FFTW_THREADS
         FFTW(plan_with_nthreads)(nthreads);
 #endif
+#endif
         plan_fftw = fftw_plan_dft(2, N, plan->f_hat_intern, plan->f_hat_intern, FFTW_FORWARD, FFTW_ESTIMATE);
-#if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
+#ifdef _OPENMP
       }
 #endif
       fftw_execute(plan_fftw);
@@ -1381,12 +1383,26 @@ void nfsft_adjoint(nfsft_plan *plan)
         for (int k=N[1]/2; k<N[1]+1; k++)
           plan->f_hat[j*N[1]+k%N[1]] = plan->f[j*(N[1]/2+1)+k-N[1]/2] * ((j+k)%2 ? -1 : 1);
       }
-      fftw_plan plan_fftw = FFTW(plan_dft)(2, N, plan->f_hat, plan->f_hat, FFTW_BACKWARD, FFTW_ESTIMATE);
+      fftw_plan plan_fftw;
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#ifdef HAVE_FFTW_THREADS
+        FFTW(plan_with_nthreads)(Y(get_num_threads)());
+#endif
+#endif
+        plan_fftw = FFTW(plan_dft)(2, N, plan->f_hat, plan->f_hat, FFTW_BACKWARD, FFTW_ESTIMATE);
+#ifdef _OPENMP
+      }
+#endif
       fftw_execute(plan_fftw);
       for (int j=0; j<N[0]; j++)
         for (int k=0; k<N[1]; k++)
           if ((j+k)%2)
             plan->f_hat[j*N[1]+k] *= -1;
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+#endif
       fftw_destroy_plan(plan_fftw);
     }
     /* Check, which adjoint nonequispaced discrete Fourier transform algorithm

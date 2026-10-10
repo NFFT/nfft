@@ -1178,7 +1178,17 @@ static inline void init_help(X(plan) *ths)
       for (t = 0; t < ths->d; t++)
         _n[t] = (int)(ths->n[t]);
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#ifdef HAVE_FFTW_THREADS
+        FFTW(plan_with_nthreads)(Y(get_num_threads)());
+#endif
+#endif
       ths->my_fftw_r2r_plan = FFTW(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
+#ifdef _OPENMP
+      }
+#endif
       Y(free)(_n);
     }
   }
