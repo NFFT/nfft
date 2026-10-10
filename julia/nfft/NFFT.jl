@@ -125,7 +125,7 @@ function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=In
 		error("Every entry of n has to be an even integer." )
 	end
     
-	if n <= N
+	if any(n .<= N)
 		error("Every entry of n has to be larger than the corresponding entry in N." )
 	end
     
