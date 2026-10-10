@@ -456,8 +456,10 @@ AC_SUBST(OPENMP_LIBS)
 # Check for MATLAB.
 AX_PROG_MATLAB
 
-if test "x$ax_prog_matlab" = "xyes" -a "x$PRECISION" != "xd" -a "x$PRECISION" != "xs"; then
-  AC_MSG_ERROR([Building the Matlab interfaces requires double precision.])
+if test "x$PRECISION" = "xl"; then
+  if test "x$ax_prog_matlab" = "xyes" -o "x$ax_prog_octave" = "xyes"; then
+    AC_MSG_ERROR([Building the Matlab/Octave interfaces requires double or single precision.])
+  fi
 fi
 
 if test "x$matlab_threads" = "xyes" -a "x$enable_threads" != "xyes"; then
