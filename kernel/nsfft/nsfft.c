@@ -1600,6 +1600,13 @@ static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
     {
       N[0]=X(exp2i)(r);   n[0]=ths->sigma*N[0];
       N[1]=X(exp2i)(J-r); n[1]=ths->sigma*N[1];
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#ifdef HAVE_FFTW_THREADS
+        fftw_plan_with_nthreads(X(get_num_threads)());
+#endif
+#endif
       ths->set_fftw_plan1[r] =
 	fftw_plan_dft(2, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		      FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
@@ -1607,6 +1614,9 @@ static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
       ths->set_fftw_plan2[r] =
 	fftw_plan_dft(2, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
 		      FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
+#ifdef _OPENMP
+      }
+#endif
     }
 
   /* planning the 1d nffts */
@@ -1688,12 +1698,22 @@ static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
   ths->act_nfft_plan->g1 = nfft_malloc(ths->sigma*ths->sigma*ths->sigma*X(exp2i)(J+(J+1)/2)*sizeof(double _Complex));
   ths->act_nfft_plan->g2 = nfft_malloc(ths->sigma*ths->sigma*ths->sigma*X(exp2i)(J+(J+1)/2)*sizeof(double _Complex));
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+  {
+#ifdef HAVE_FFTW_THREADS
+    fftw_plan_with_nthreads(X(get_num_threads)());
+#endif
+#endif
   ths->act_nfft_plan->my_fftw_plan1 =
     fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		  FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
   ths->act_nfft_plan->my_fftw_plan2 =
     fftw_plan_dft(3, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
 		  FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
+#ifdef _OPENMP
+  }
+#endif
 
   ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
   ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
@@ -1712,12 +1732,22 @@ static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
 	n[1]=ths->sigma*X(exp2i)(r);
       n[2]=ths->sigma*X(exp2i)(J-r);
 
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#ifdef HAVE_FFTW_THREADS
+        fftw_plan_with_nthreads(X(get_num_threads)());
+#endif
+#endif
       ths->set_fftw_plan1[rr] =
 	fftw_plan_dft(3, n, ths->act_nfft_plan->g1, ths->act_nfft_plan->g2,
 		      FFTW_FORWARD, ths->act_nfft_plan->fftw_flags);
       ths->set_fftw_plan2[rr] =
 	fftw_plan_dft(3, n, ths->act_nfft_plan->g2, ths->act_nfft_plan->g1,
 		      FFTW_BACKWARD, ths->act_nfft_plan->fftw_flags);
+#ifdef _OPENMP
+      }
+#endif
     }
 
   /* planning the 1d nffts */
@@ -1813,8 +1843,15 @@ static void nsfft_finalize_2d(nsfft_plan *ths)
 
   for(r=1;r<=ths->J/2;r++)
     {
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#endif
       fftw_destroy_plan(ths->set_fftw_plan2[r]);
       fftw_destroy_plan(ths->set_fftw_plan1[r]);
+#ifdef _OPENMP
+      }
+#endif
     }
 
   /* r=0 */
@@ -1860,8 +1897,15 @@ static void nsfft_finalize_3d(nsfft_plan *ths)
 
   for(r=1;r<=(ths->J+1)/2;r++)
     {
+#ifdef _OPENMP
+#pragma omp critical (nfft_omp_critical_fftw_plan)
+      {
+#endif
       fftw_destroy_plan(ths->set_fftw_plan2[r]);
       fftw_destroy_plan(ths->set_fftw_plan1[r]);
+#ifdef _OPENMP
+      }
+#endif
     }
 
   /* r=0 */
