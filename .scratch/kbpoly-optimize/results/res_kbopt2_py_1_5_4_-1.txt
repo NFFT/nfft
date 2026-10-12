@@ -1,0 +1,19 @@
+=== sigma=1.5 m=4 deg=8 (LUT double=9)
+lawson it=  1  design-grid max=9.050e-08   fine-grid J_inf=1.197e-07 J_2=1.812e-08
+lawson it=  2  design-grid max=6.528e-08   fine-grid J_inf=9.267e-08 J_2=2.691e-08
+lawson it=  3  design-grid max=6.113e-08   fine-grid J_inf=7.734e-08 J_2=3.523e-08
+lawson it=  5  design-grid max=6.034e-08   fine-grid J_inf=7.435e-08 J_2=3.909e-08
+lawson it=  8  design-grid max=5.997e-08   fine-grid J_inf=7.724e-08 J_2=3.945e-08
+lawson it= 10  design-grid max=5.914e-08   fine-grid J_inf=7.860e-08 J_2=3.938e-08
+lawson it= 15  design-grid max=5.725e-08   fine-grid J_inf=8.187e-08 J_2=3.921e-08
+lawson it= 20  design-grid max=5.610e-08   fine-grid J_inf=8.373e-08 J_2=3.911e-08
+lawson it= 30  design-grid max=5.523e-08   fine-grid J_inf=8.645e-08 J_2=3.913e-08
+lawson it= 50  design-grid max=5.477e-08   fine-grid J_inf=9.101e-08 J_2=3.930e-08
+lawson it=100  design-grid max=5.473e-08   fine-grid J_inf=9.508e-08 J_2=3.878e-08
+lawson it=250  design-grid max=5.473e-08   fine-grid J_inf=9.508e-08 J_2=3.878e-08
+LP minimax (32-gon): design-grid tau=4.737e-08  fine-grid J_inf=1.426e-07 J_2=5.331e-08
+chebKB  edge p(-R)=+3.35e-08  p(R^-)=+3.35e-08  max interior jump=9.21e-10  (rel. to peak)
+LS      edge p(-R)=+2.82e-08  p(R^-)=+2.82e-08  max interior jump=4.13e-08  (rel. to peak)
+MM      edge p(-R)=+1.58e-08  p(R^-)=+1.58e-08  max interior jump=4.43e-08  (rel. to peak)
+KB      edge phi(R)/peak = 3.36e-08, jumps are the Chebyshev truncation error only
+max |MM - KB|/peak per cell: 9.4e-08 1.1e-07 2.2e-07 2.8e-07 3.3e-07 3.3e-07 2.8e-07 2.2e-07 1.1e-07 9.4e-08

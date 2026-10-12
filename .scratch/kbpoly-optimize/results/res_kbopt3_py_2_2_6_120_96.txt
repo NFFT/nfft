@@ -1,0 +1,8 @@
+=== sigma=2 m=2 deg=6  design grid 120 x 96, unknowns 42
+LS            fine J_inf=1.965e-05 J_2=2.897e-06
+Lawson it= 5  design max=7.571e-06  fine J_inf=7.734e-06 J_2=4.295e-06
+Lawson it=10  design max=7.522e-06  fine J_inf=7.710e-06 J_2=4.439e-06
+Lawson it=20  design max=7.420e-06  fine J_inf=7.603e-06 J_2=4.520e-06
+Lawson it=40  design max=7.380e-06  fine J_inf=7.546e-06 J_2=4.521e-06
+Lawson it=60  design max=7.371e-06  fine J_inf=7.541e-06 J_2=4.522e-06
+LP (32-gon)   design tau=7.333e-06  fine J_inf=7.765e-06 J_2=5.306e-06  grow=1.0
