@@ -394,6 +394,11 @@ static int check_single(const testcase_delegate_t *testcase,
   {
     R err = check_delegate->compare(check_delegate, &p, NN, M, f, f_hat);
     R bound = trafo_delegate->acc(&p);
+
+    /* Online cases compare against the direct transform, so its round-off
+     * adds to the fast transform's. */
+    if (testcase->setup == setup_online || testcase->setup == setup_adjoint_online)
+      bound += err_trafo_direct(&p);
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfst",
