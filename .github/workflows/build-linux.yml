@@ -208,7 +208,7 @@ jobs:
 
     - name: Autotools - Publish Test Report (serial)
       if: ${{ always() && hashFiles('tests/junit.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
+      uses: ctrf-io/github-test-reporter@7974087018bf4857cf5a9d78723e152038c3fa31 # v1
       with:
         report-path: './tests/junit.xml'
         integrations-config: |
@@ -229,7 +229,7 @@ jobs:
 
     - name: Autotools - Publish Test Report (threads)
       if: ${{ always() && hashFiles('tests/junit_threads.xml') != '' }}
-      uses: ctrf-io/github-test-reporter@e500b992f936420eb633c91644cf10d4d71df700 # v1
+      uses: ctrf-io/github-test-reporter@7974087018bf4857cf5a9d78723e152038c3fa31 # v1
       with:
         report-path: './tests/junit_threads.xml'
         integrations-config: |
