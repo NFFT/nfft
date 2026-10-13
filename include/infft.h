@@ -143,6 +143,24 @@ typedef ptrdiff_t INT;
 
 #define IF(x,a,b) ((x)?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
+
+/* One block of a phase recurrence, seeded at its centre: w0 is the factor at index c0 + len/2
+ * and dw the step per index. The drift grows with the distance from the seed, so the centre
+ * halves it against a start seed. STEP(i, w) is the body. The lower half is the conjugate of
+ * the upper half times a constant, so only one recurrence runs. */
+#define NFFT_RECUR_BLOCK(c0, len, w0, dw, STEP) \
+  do { \
+    const INT h_ = (len) / 2; \
+    const C cd_ = (w0) * (w0) * CONJ(dw); /* w at c0+h-1-i is cd_ conj(w at c0+h+i) */ \
+    C w_ = (w0); \
+    INT i_; \
+    for (i_ = 0; i_ < h_; i_++) \
+    { \
+      STEP((c0) + h_ + i_, w_); STEP((c0) + h_ - 1 - i_, cd_ * CONJ(w_)); \
+      w_ *= (dw); \
+    } \
+    if ((len) & 1) STEP((c0) + (len) - 1, w_); \
+  } while (0)
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define ABS(x) (((x)>K(0.0))?(x):(-(x)))
 #define SIGN(a) (((a)>=0)?1:-1)
