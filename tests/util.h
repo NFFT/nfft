@@ -20,3 +20,8 @@
 
 void X(check_log2i)(void);
 void X(check_next_power_of_2)(void);
+
+/* Kaiser-Bessel error bound of the fast transforms, ext = 0 (NFFT), 
+ * ext = -1 (NFCT) and ext = +1 (NFST). */
+R Y(kb_err_trafo)(INT d, INT m, const R *sigma, const INT *N, const INT *n,
+    int ext);

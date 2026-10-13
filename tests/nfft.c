@@ -29,6 +29,7 @@
 #include "cycle.h"
 #include "nfft.h"
 #include "accuracy_log.h"
+#include "util.h"
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
@@ -319,33 +320,7 @@ static R err_trafo(X(plan) *p)
   #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
 #elif defined(KAISER_BESSEL)
-  #if MANT_DIG == 113
-    // TODO: Set good values for IEEE 754 quadruple precision, 128 bits.
-    a = K(1.5);
-    b = K(50.0);
-  #elif MANT_DIG == 64
-    // Intel double extended, 80 bits.
-    a = K(1.5);
-    b = K(50.0);
-  #elif MANT_DIG == 53
-    // IEEE 754 double precision, 64 bits.
-    a = K(0.3);
-    b = K(2100.0);
-  #elif MANT_DIG == 24
-    // IEEE 754 single precision, 32 bits.
-    a = K(0.4);
-    b = K(2000.0);
-  #else
-    // Unknown floating-point type.
-    // Assume IEEE 754 double precision, 64 bits.
-    a = K(0.3);
-    b = K(2100.0);
-  #endif
-    {
-      /* The window's half-width, WINDOW_STENCIL_REACH in infft.h. */
-      const R r = m + K(1.0);
-      err = KPI * (SQRT(r) + r) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * r * SQRT(K(1.0) - K(1.0) / K(2.0)));
-    }
+  return Y(kb_err_trafo)(p->d, p->m, p->sigma, p->N, p->n, 0);
 #else
   #error Unsupported window function.
 #endif
