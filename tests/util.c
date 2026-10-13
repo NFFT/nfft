@@ -167,3 +167,38 @@ void X(check_next_power_of_2)(void)
     }
 }
 
+
+/* Error bound for NFFT/NFCT/NFST using the Kaiser-bessel window.
+ *
+ * The error is window truncation plus round-off
+ *
+ * nfct and nfst run on the even or odd extension of f_hat with grid length
+ * 2 (n + ext) and modes up to N - 1, against n and N / 2 for NFFT. */
+R Y(kb_err_trafo)(INT d, INT m, const R *sigma, const INT *N, const INT *n,
+    int ext)
+{
+  const R r = (R)m + K(1.0); // Stencil reach.
+  const R eps = Y(float_property)(NFFT_EPSILON);
+  R trunc = K(0.0);
+  R spread = K(1.0); // Round-off amplification due to deconvolution.
+  INT i;
+
+  // All dimensions contribute.
+  for (i = 0; i < d; i++)
+  {
+    const R b = KPI * (K(2.0) - K(1.0) / sigma[i]);
+    const R z = K2PI * r * SQRT(K(1.0) - K(1.0) / sigma[i]); // Exponent of aliasing term.
+    const R nfull = (R)(ext ? 2 * (n[i] + ext) : n[i]);
+    const R kmax = (R)(ext ? N[i] - 1 : N[i] / 2); // Frequency index of band edge.
+
+    // Truncation error.
+    trunc += EXP(-z) / Y(bessel_i0_exp_scaled)(z);
+
+    // Round-off amplification.
+    spread *= Y(kb_phi_hut)(b, K(1.0), r, nfull, K(0.0))
+        / Y(kb_phi_hut)(b, K(1.0), r, nfull, kmax);
+  }
+
+  // Total error term with some slack.
+  return K(3.5) * (trunc + spread * eps);
+}

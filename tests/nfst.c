@@ -29,6 +29,7 @@
 #include "cycle.h"
 #include "nfst.h"
 #include "accuracy_log.h"
+#include "util.h"
 
 #define ABSPATH(x) ABS_SRCDIR "/tests/" x
 
@@ -317,33 +318,7 @@ static R err_trafo(X(plan) *p)
   #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
 #elif defined(KAISER_BESSEL)
-  #if MANT_DIG == 113
-    // TODO: Set good values for quadruple precision.
-    a = K(2.9);
-    b = K(50.0);
-  #elif MANT_DIG == 64
-    // Intel double extended, 80 bits.
-    a = K(2.9);
-    b = K(50.0);
-  #elif MANT_DIG == 53
-    // IEEE 754 double precision, 64 bits.
-    a = K(0.7);
-    b = K(5000.0);
-  #elif MANT_DIG == 24
-    // IEEE 754 single precision, 32 bits.
-    a = K(0.95);
-    b = K(4800.0);
-  #else
-    // Unknown floating-point type.
-    // Assume IEEE 754 double precision, 64 bits.
-    a = K(0.7);
-    b = K(5000.0);
-  #endif
-    {
-      /* The window's half-width, WINDOW_STENCIL_REACH in infft.h. */
-      const R r = m + K(0.5);
-      err = KPI * (SQRT(r) + r) * SQRT(SQRT(K(1.0) - K(1.0)/K(2.0))) * EXP(-K2PI * r * SQRT(K(1.0) - K(1.0) / K(2.0)));
-    }
+  return Y(kb_err_trafo)(p->d, p->m, p->sigma, p->N, p->n, 1);
 #else
   #error Unsupported window function.
 #endif
@@ -419,6 +394,11 @@ static int check_single(const testcase_delegate_t *testcase,
   {
     R err = check_delegate->compare(check_delegate, &p, NN, M, f, f_hat);
     R bound = trafo_delegate->acc(&p);
+
+    /* Online cases compare against the direct transform, so its round-off
+     * adds to the fast transform's. */
+    if (testcase->setup == setup_online || testcase->setup == setup_adjoint_online)
+      bound += err_trafo_direct(&p);
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfst",
