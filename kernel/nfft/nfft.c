@@ -144,6 +144,8 @@ static inline void sort(const X(plan) *ths)
  */
 /* Block size for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
+#define TRAFO_STEP(i, w) (v += f_hat[i] * (w))
+#define ADJOINT_STEP(i, w) (f_hat[i] += f[j] * (w))
 
 /* Minimum innermost-dimension length for the multivariate recurrence to pay. */
 #define NFFT_DIRECT_RECURRENCE_MIN_INNER 2
@@ -195,15 +197,12 @@ void X(trafo_direct)(const X(plan) *ths)
       INT k_L = 0;
       while (k_L < ths->N_total)
       {
-        /* Accurate seed exp(-i 2pi (k_L - N/2) x), then recur within the block. */
-        const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
-        C w = COS(omega) - II * SIN(omega);
-        INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
-        for (; k_L < kend; k_L++)
-        {
-          v += f_hat[k_L] * w;
-          w *= dw;
-        }
+        /* Accurate seed exp(-i 2pi k x) at the block centre, then recur within the block. */
+        const INT len = MIN(B, ths->N_total - k_L);
+        const R omega = X(reduced_omega)((R)(k_L + len/2 - ths->N_total/2), x);
+        const C w0 = COS(omega) - II * SIN(omega);
+        NFFT_RECUR_BLOCK(k_L, len, w0, dw, TRAFO_STEP);
+        k_L += len;
       }
 
       f[j] = v;
@@ -237,16 +236,12 @@ void X(trafo_direct)(const X(plan) *ths)
           INT i = 0;
           while (i < Nlast)                               /* re-seed per row and per B steps */
           {
-            k[ths->d - 1] = -Nlast/2 + i;
+            const INT len = MIN(B, Nlast - i);
+            k[ths->d - 1] = -Nlast/2 + i + len/2;
             const R omega = X(reduced_omega_multi)(ths->d, k, xj);
-            C w = COS(omega) - II * SIN(omega);
-            INT blk = Nlast - i; if (blk > B) blk = B;
-            INT b;
-            for (b = 0; b < blk; b++, i++, k_L++)
-            {
-              v += f_hat[k_L] * w;
-              w *= dw;
-            }
+            const C w0 = COS(omega) - II * SIN(omega);
+            NFFT_RECUR_BLOCK(k_L, len, w0, dw, TRAFO_STEP);
+            i += len; k_L += len;
           }
           /* advance the outer multi-index (dims 0..d-2); innermost reset at next row's seed */
           for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
@@ -313,16 +308,12 @@ static void X(adjoint_direct_rows)(const X(plan) *ths, const INT rlo, const INT 
       INT i = 0;
       while (i < Nlast)                         /* re-seed per row and per B steps */
       {
-        k[ths->d - 1] = -Nlast/2 + i;
+        const INT len = MIN(B, Nlast - i);
+        k[ths->d - 1] = -Nlast/2 + i + len/2;
         const R omega = X(reduced_omega_multi)(ths->d, k, xj);
-        C w = COS(omega) + II * SIN(omega);
-        INT blk = Nlast - i; if (blk > B) blk = B;
-        INT b;
-        for (b = 0; b < blk; b++, i++, k_L++)
-        {
-          f_hat[k_L] += f[j] * w;
-          w *= dw;
-        }
+        const C w0 = COS(omega) + II * SIN(omega);
+        NFFT_RECUR_BLOCK(k_L, len, w0, dw, ADJOINT_STEP);
+        i += len; k_L += len;
       }
       /* advance the outer multi-index (dims 0..d-2); innermost reset at next row's seed */
       for (t = ths->d - 2; (t >= 1) && (k[t] == ths->N[t]/2 - 1); t--) k[t] -= ths->N[t] - 1;
@@ -362,14 +353,11 @@ void X(adjoint_direct)(const X(plan) *ths)
           INT k_L = klo;
           while (k_L < khi)
           {
-            const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
-            C w = COS(omega) + II * SIN(omega);
-            INT kend = k_L + B; if (kend > khi) kend = khi;
-            for (; k_L < kend; k_L++)
-            {
-              f_hat[k_L] += f[j] * w;
-              w *= dw;
-            }
+            const INT len = MIN(B, khi - k_L);
+            const R omega = X(reduced_omega)((R)(k_L + len/2 - ths->N_total/2), x);
+            const C w0 = COS(omega) + II * SIN(omega);
+            NFFT_RECUR_BLOCK(k_L, len, w0, dw, ADJOINT_STEP);
+            k_L += len;
           }
         }
       }
@@ -401,14 +389,11 @@ void X(adjoint_direct)(const X(plan) *ths)
         INT k_L = 0;
         while (k_L < ths->N_total)
         {
-          const R omega = X(reduced_omega)((R)(k_L - ths->N_total/2), x);
-          C w = COS(omega) + II * SIN(omega);
-          INT kend = k_L + B; if (kend > ths->N_total) kend = ths->N_total;
-          for (; k_L < kend; k_L++)
-          {
-            f_hat[k_L] += f[j] * w;
-            w *= dw;
-          }
+          const INT len = MIN(B, ths->N_total - k_L);
+          const R omega = X(reduced_omega)((R)(k_L + len/2 - ths->N_total/2), x);
+          const C w0 = COS(omega) + II * SIN(omega);
+          NFFT_RECUR_BLOCK(k_L, len, w0, dw, ADJOINT_STEP);
+          k_L += len;
         }
       }
 #endif
