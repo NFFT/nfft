@@ -675,6 +675,8 @@ void nnfft_finalize(nnfft_plan *ths)
   nfft_free(ths->direct_plan);
 
   nfft_free(ths->aN1);
+  nfft_free(ths->a);
+  nfft_free(ths->sigma);
   nfft_free(ths->N);
   nfft_free(ths->N1);
 
@@ -705,4 +707,6 @@ void nnfft_finalize(nnfft_plan *ths)
 
   if(ths->nnfft_flags & MALLOC_V)
     nfft_free(ths->v);
+
+  WINDOW_HELP_FINALIZE
 }
