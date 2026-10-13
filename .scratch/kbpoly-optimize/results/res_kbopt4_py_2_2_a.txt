@@ -1,0 +1,9 @@
+
+=== A: sigma=2 m=2  table d=7   KB J_inf=2.59e-05   rule reference pi e^-bR=2.28e-06 (KB is 11.4x it), tol 5% of it=1.14e-07
+  d | tail bound | measured poly part | bound/measured | poly part / KB | chebKB J_inf / KB
+  2 |   2.38e-02 |          1.97e-02 |           1.2 |         759.987 |  759.509
+  3 |   2.27e-03 |          1.93e-03 |           1.2 |         74.760 |  75.448
+  4 |   4.13e-04 |          1.57e-04 |           2.6 |          6.069 |  6.503
+  5 |   1.95e-05 |          1.12e-05 |           1.7 |          0.435 |  1.123
+  6 |   4.54e-06 |          3.91e-07 |          11.6 |          0.015 |  1.011
+  7 |   6.22e-08 |          2.40e-08 |           2.6 |          0.001 |  1.000

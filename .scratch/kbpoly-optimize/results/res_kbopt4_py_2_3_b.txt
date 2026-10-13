@@ -1,0 +1,5 @@
+
+=== B: sigma=2 m=3  (float eps 6e-8)
+  d |   KB J_inf | LS f64 J_inf/J_2       | LS f32 J_inf/J_2       | Lawson20 f64 J_inf | Lawson20 f32 J_inf
+  7 |   3.13e-07 | 1.36e-07 / 3.36e-08    | 2.03e-07 / 4.84e-08    |          1.16e-07 |          3.05e-07
+  8 |   3.13e-07 | 1.22e-07 / 3.33e-08    | 2.25e-07 / 4.44e-08    |          1.08e-07 |          2.58e-07

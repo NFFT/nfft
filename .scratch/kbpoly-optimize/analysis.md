@@ -1,9 +1,14 @@
 # Optimizing the polynomial Kaiser-Bessel window against the transform error
 
 Status: analysis, no implementation. Prototype scripts in this directory
-(`kbopt.py`, `kbopt2.py`, `kbopt3.py`; run with
+(`kbopt.py`, `kbopt2.py`, `kbopt3.py`, `kbopt4.py`; run with
 `uv run --with numpy --with scipy python kbopt.py [sigma m]`), raw output in
 `results/`.
+
+Design constraints taken as given: the optimization runs at plan time, starts
+from the Chebyshev interpolant the branch already builds, is an optional
+step on top of it, and works in the build's floating-point type `R`.
+Sections 9 and 10 cover the last two points.
 
 ## 1. Verdict
 
@@ -15,11 +20,13 @@ Kaiser-Bessel function. There are two separate levers, and the first is free:
 
 1. **Pick the degree from the measured transform error, not from the Chebyshev
    tail.** The table rule (`2 sum_{j>d} max_cells |c_j| <= 0.05 pi e^(-bR)`)
-   is a bound that adds the per-cell truncation errors without phase
-   cancellation. Measured against the actual aliasing functional, the current
-   Chebyshev fit already matches the truncated Kaiser-Bessel window 1 to 4
-   degrees below the table degree (section 6, column "chebKB reaches KB").
-   No change to the fit, only to the generator.
+   holds the polynomial to 5 percent of `pi e^(-bR)`, which is a lower bound
+   of the transform error that sits 10x to 100x below the actual
+   Kaiser-Bessel error, so the polynomial is in fact held to 0.05 to 0.5
+   percent of it. Measured directly, the polynomial's contribution is within
+   5 percent of the actual error 0 to 3 degrees below the table degree, and
+   the transform error matches Kaiser-Bessel's 1 to 4 degrees below it
+   (section 9). No change to the fit, only to the generator.
 2. **Fit the coefficients to the error functional.** At the table degree, a
    weighted least-squares fit lowers the RMS error by 1.3x to 3.1x and the
    worst-case error by about 1.3x to 4x over the six cases measured, at
@@ -36,10 +43,16 @@ Kaiser-Bessel window is already within a small factor of the optimal
 the `e^(-bR)` rate is set by the support, not by the fit.
 
 Recommended route, in order: regenerate the degree table from the error
-functional (lever 1); replace the Chebyshev interpolation in `Y(kb_poly_fit)`
-by a regularized weighted least-squares fit (lever 2, closed form,
-microseconds); treat a bounded Lawson iteration for the worst-case objective
-as an optional third step once the generator can certify it.
+functional (lever 1); add an optional correction step after the Chebyshev
+interpolation in `Y(kb_poly_fit)` that fits the *difference* to the
+interpolant by weighted least squares in `R` (lever 2, closed form,
+microseconds), guarded by a table entry that says where the step pays; treat
+a bounded Lawson iteration for the worst-case objective as a further
+optional step once the generator can certify it. The residual formulation is
+what makes working precision sufficient (section 10): the correction is of
+the size of the error, so only the residual needs to be accurate, and that
+holds as long as the error is well above the format's rounding noise, which
+is also the only regime where optimizing is worth anything.
 
 ## 2. What the branch does today
 
@@ -320,10 +333,10 @@ cost error for nothing, unless one wants the single-point evaluator
   regularized LS solve of 5.1, with an optional Lawson loop (fixed iteration
   count, chosen per precision like `KB_POLY_DEG_MAX`). `Y(kb_poly_degree)`
   reads a regenerated `kbpoly_data.h`.
-- Do the solve in double (or `E`) even in the float build: a float LS with
-  100 unknowns loses about three digits, and the float target is `1e-7`
-  relative. The result is rounded to `R` once, as the current fit already is
-  via the refinement step.
+- The solve stays in `R`, in the residual formulation of section 10, with a
+  Householder QR rather than normal equations (the normal equations square
+  the condition number, which float cannot afford). A regime guard from the
+  table skips the step where the error is within about 30 rounding units.
 - The window is then defined by its stencil. The NFFT touches cells
   `-R .. R-1` only; `KB_POLY_COLS(m) = 2m + 4` keeps two outer cells for the
   other anchorings and `PRE_LIN_PSI`. For an optimized window those outer
@@ -360,6 +373,108 @@ cost error for nothing, unless one wants the single-point evaluator
   interpolant; the prototype found no growth in the monomial coefficients at
   the table degree, but the generator should keep the per-precision
   degree-cap measurement in place.
+- In working precision the step turns harmful, not merely useless, when the
+  error is within a few rounding units: it fits noise (section 10). The
+  regime guard is therefore part of the feature, not a refinement.
+
+## 9. Why the degree table is conservative
+
+The table was optimized, but against a sufficient condition, and three parts
+of that condition stack. `kbopt4.py`, part A, measures each per degree:
+"tail bound" is the rule's left-hand side `2 sum_{j>d} max_cells |c_j| /
+peak`, "poly part" is the polynomial's actual contribution to the transform
+error, `max |D_cheb - D_KB| / |C|`, and the last column is the transform error
+with the Chebyshev window relative to Kaiser-Bessel's.
+
+| sigma, m (table d) | KB J_inf / (pi e^-bR) | d | tail bound | poly part | bound / poly | poly / KB | chebKB J_inf / KB |
+|---|---|---|---|---|---|---|---|
+| 2, 2 (7) | 11 | 5 | 1.95e-5 | 1.12e-5 | 1.7 | 0.44 | 1.12 |
+| | | 6 | 4.54e-6 | 3.91e-7 | 11.6 | 0.015 | 1.01 |
+| | | 7 | 6.22e-8 | 2.40e-8 | 2.6 | 0.001 | 1.00 |
+| 2, 3 (9) | 15 | 7 | 7.23e-8 | 2.54e-8 | 2.8 | 0.081 | 1.03 |
+| | | 8 | 1.26e-8 | 1.04e-9 | 12.1 | 0.003 | 1.00 |
+| | | 9 | 1.92e-10 | 4.49e-11 | 4.3 | 0.000 | 1.00 |
+| 4, 2 (9) | 10 | 5 | 1.44e-5 | 2.84e-7 | 51 | 0.13 | 0.94 |
+| | | 6 | 8.41e-6 | 9.07e-8 | 93 | 0.042 | 0.99 |
+| | | 7 | 2.75e-7 | 1.41e-8 | 20 | 0.006 | 1.00 |
+| 1.5, 4 (9) | 102 | 7 | 3.46e-8 | 2.72e-7 | 0.13 | 1.06 | 1.59 |
+| | | 8 | 2.92e-9 | 1.61e-8 | 0.18 | 0.063 | 0.97 |
+| | | 9 | 1.20e-10 | 8.38e-10 | 0.14 | 0.003 | 1.00 |
+
+1. **The reference level.** The rule measures the polynomial against
+   `pi e^(-bR)`. The actual error is `c / I0(aR)` with `a = 2 pi sqrt(1 -
+   1/sigma)`, and since `b - a = pi (1 - sqrt(1 - 1/sigma))^2 >= 0`,
+   `pi e^(-bR)` is a lower bound of it by the factor `(c / pi) e^((b-a)R)
+   sqrt(2 pi a R)`: 10x at `sigma = 2` and `4`, 100x at `sigma = 1.5`
+   (second column). Safe, but it turns the intended 5 percent into 0.05 to
+   0.5 percent. This is the dominant term; at the roughly 10x per degree
+   the truncation error falls, it costs one to two degrees.
+2. **The per-cell bound.** The tail sum `sum_{j>d} |c_j|` overestimates the
+   interpolation error, which is about `|c_{d+1}|`, by the geometric factor
+   of the tail (1.5x to 3x here), and the 2m+2 cells do not add coherently
+   in the transform: the leading error term `c_{d+1,a} T_{d+1}(2t - 1)` has
+   the same shape in every cell, and for even `d` it is odd in `2t - 1`, so
+   mirrored cells cancel it at `xi = 0`. That parity shows in the
+   bound/poly column (even `d`: 11.6, 12.1, 93; odd `d`: 1.7 to 4.3, 20 to
+   51), and it is why some rows of the table step by one degree where the
+   next even degree would have done.
+3. **The deconvolution.** The rule compares function errors to the peak, but
+   the transform divides by `C(xi)`, which at the band edge is 0.85 at
+   `sigma = 4`, 0.2 at `sigma = 2` and 0.07 at `sigma = 1.5`. At
+   `sigma = 1.5` this outweighs item 2, and the rule *under*-estimates the
+   polynomial's contribution by 7x; the lower bound of item 1 happens to
+   cover it. The two errors of the rule partly cancel, which is luck, not
+   design.
+
+So the table is conservative by 0 to 3 degrees on the strict reading
+(polynomial contribution within 5 percent of the actual error: `d = 6, 8, 6,
+9` for the four cases against `7, 9, 9, 9`), and by 1 to 4 degrees on the
+measured reading (transform error within 5 percent of Kaiser-Bessel's: `6, 7,
+5, 8`). The difference between the two readings is cancellation between the
+truncation error and the aliasing error, which is deterministic, but which
+other consumers of the table (`PRE_LIN_PSI`, the NFCT and NFST stencils) do
+not share. The generator should compute both quantities and the user should
+choose the criterion; both are a few matrix products.
+
+## 10. Working precision
+
+`kbopt4.py`, part B, repeats the least-squares and Lawson fits with every
+array in float32 (complex64), in the residual formulation: the unknown is the
+correction to the Chebyshev interpolant and the right-hand side is the
+interpolant's residual `D_cheb / C - 1`, computed in float32. The metrics are
+evaluated in double on the float32 coefficients. Float `eps` is `6e-8`.
+
+| sigma, m, d | KB J_inf | KB J_inf / eps | LS float64 J_inf / J_2 | LS float32 J_inf / J_2 | Lawson float64 | Lawson float32 |
+|---|---|---|---|---|---|---|
+| 2, 2, 6 | 2.59e-5 | 430 | 1.67e-5 / 3.00e-6 | 1.68e-5 / 3.00e-6 | 7.70e-6 | 7.77e-6 |
+| 4, 2, 7 | 2.17e-6 | 36 | 5.07e-7 / 1.17e-7 | 5.67e-7 / 1.18e-7 | 2.67e-7 | 4.84e-7 |
+| 2, 3, 8 | 3.13e-7 | 5 | 1.22e-7 / 3.33e-8 | 2.25e-7 / 4.44e-8 | 1.08e-7 | 2.58e-7 |
+| 1.5, 4, 8 | 2.57e-7 | 4 | 1.20e-7 / 1.81e-8 | 1.84e-6 / 1.26e-7 | 8.37e-8 | 2.53e-6 |
+
+The residual is a difference of `O(1)` quantities, so it carries an absolute
+rounding error of a few `eps`; the fit is exact to working precision when
+the error is hundreds of `eps` above the floor, degrades gracefully for
+least squares down to about 5 `eps` (still below Kaiser-Bessel), loses the
+Lawson gain below about 30 `eps`, and becomes harmful at a few `eps`, where
+it fits noise and makes the error 7x to 10x *worse* than Kaiser-Bessel.
+Nothing about this is specific to float; double and long double show the
+same picture at their own `eps`, shifted to larger `m`.
+
+Two conclusions. First, working precision is enough wherever the step is
+worth taking: near the floor the transform's own rounding noise dominates,
+and the only thing the step could do there is damage. Second, the step
+therefore needs a guard that is not computed at plan time in `R` (a noisy
+quantity cannot judge its own noise): a per-format entry in the degree table,
+"optimize when `c / I0(aR) >= K eps`" with `K` around 30 for least squares
+and 100 for Lawson, which the generator derives in high precision the way it
+derives the degrees. In float that leaves the step on for `m <= 2` or `3`
+depending on `sigma`; in double for `m` up to about 6 or 7 at `sigma = 2`.
+
+The design matrix stays well conditioned at the table degree (the float32
+least-squares fit at `sigma = 2, m = 2` reproduces the float64 one to three
+digits), provided the solve is a QR, not normal equations, and the unknowns
+are Chebyshev coefficients, converted to monomials afterwards by the existing
+`cheb_to_monomial` and refinement step.
 
 ## References
 
