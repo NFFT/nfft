@@ -7,8 +7,9 @@ Status: analysis, no implementation. Prototype scripts in this directory
 
 Design constraints taken as given: the optimization runs at plan time, starts
 from the Chebyshev interpolant the branch already builds, is an optional
-step on top of it, and works in the build's floating-point type `R`.
-Sections 9 and 10 cover the last two points.
+step on top of it, and works in the build's floating-point type `R`, or in
+the local type `E` where that has more precision, without depending on it
+(`E = R` must work). Sections 9 and 10 cover the last two points.
 
 ## 1. Verdict
 
@@ -333,10 +334,12 @@ cost error for nothing, unless one wants the single-point evaluator
   regularized LS solve of 5.1, with an optional Lawson loop (fixed iteration
   count, chosen per precision like `KB_POLY_DEG_MAX`). `Y(kb_poly_degree)`
   reads a regenerated `kbpoly_data.h`.
-- The solve stays in `R`, in the residual formulation of section 10, with a
-  Householder QR rather than normal equations (the normal equations square
-  the condition number, which float cannot afford). A regime guard from the
-  table skips the step where the error is within about 30 rounding units.
+- The residual and the solve are done in `E` (section 10), which is `R` where
+  no wider type exists, with a Householder QR rather than normal equations
+  (the normal equations square the condition number, which float cannot
+  afford). The correction is rounded to `R` once at the end. A regime guard
+  from the table skips the step where the error is within about 30 rounding
+  units of the type the fit runs in.
 - The window is then defined by its stencil. The NFFT touches cells
   `-R .. R-1` only; `KB_POLY_COLS(m) = 2m + 4` keeps two outer cells for the
   other anchorings and `PRE_LIN_PSI`. For an optimized window those outer
@@ -430,11 +433,29 @@ So the table is conservative by 0 to 3 degrees on the strict reading
 (polynomial contribution within 5 percent of the actual error: `d = 6, 8, 6,
 9` for the four cases against `7, 9, 9, 9`), and by 1 to 4 degrees on the
 measured reading (transform error within 5 percent of Kaiser-Bessel's: `6, 7,
-5, 8`). The difference between the two readings is cancellation between the
-truncation error and the aliasing error, which is deterministic, but which
-other consumers of the table (`PRE_LIN_PSI`, the NFCT and NFST stencils) do
-not share. The generator should compute both quantities and the user should
-choose the criterion; both are a few matrix products.
+5, 8`).
+
+The gap between the two readings is not a structural cancellation. The
+transform error with the polynomial window is the sum of two terms,
+Kaiser-Bessel's aliasing error and the polynomial's contribution, and the
+maximum of the sum is the maximum of the first term plus whatever sign and
+size the second term has at that point of `(xi, t)`. The two terms peak at
+different places and have unrelated shapes in `t` (the aliasing error is a
+sum of `e^(2 pi i r t)`, the truncation error is `T_{d+1}(2t - 1)`), so the
+second term adds or subtracts at the first term's peak by chance: a
+polynomial part of 13 percent lowered the maximum by 6.5 percent at `sigma =
+4, m = 2, d = 5`, one of 8 percent raised it by 3 percent at `sigma = 2, m =
+3, d = 7`, one of 44 percent raised it by 12 percent at `sigma = 2, m = 2, d
+= 5`. The sign is deterministic for a given `(sigma, m, d)` and the NFFT
+functional, but it is a property of where that functional peaks. The NFCT
+and NFST combine the same per-frequency errors `E(xi, t)` differently (a
+cosine is two exponentials, and the reflected image of a node has the
+reflected offset), so their error peaks elsewhere and sees the polynomial's
+sign there; the same holds for `PRE_LIN_PSI`, whose interpolation error is a
+third term. The strict reading bounds the polynomial part wherever the
+maximum lands and so carries over to every consumer; the measured reading
+certifies the NFFT alone. The generator should compute both and the user
+should choose the criterion; both are a few matrix products.
 
 ## 10. Working precision
 
@@ -463,12 +484,25 @@ same picture at their own `eps`, shifted to larger `m`.
 Two conclusions. First, working precision is enough wherever the step is
 worth taking: near the floor the transform's own rounding noise dominates,
 and the only thing the step could do there is damage. Second, the step
-therefore needs a guard that is not computed at plan time in `R` (a noisy
-quantity cannot judge its own noise): a per-format entry in the degree table,
-"optimize when `c / I0(aR) >= K eps`" with `K` around 30 for least squares
-and 100 for Lawson, which the generator derives in high precision the way it
-derives the degrees. In float that leaves the step on for `m <= 2` or `3`
-depending on `sigma`; in double for `m` up to about 6 or 7 at `sigma = 2`.
+therefore needs a guard that is not computed at plan time in the fit's own
+type (a noisy quantity cannot judge its own noise): a per-format entry in the
+degree table, "optimize when `c / I0(aR) >= K eps`" with `K` around 30 for
+least squares and 100 for Lawson, which the generator derives in high
+precision the way it derives the degrees. In float that leaves the step on
+for `m <= 2` or `3` depending on `sigma`; in double for `m` up to about 6 or
+7 at `sigma = 2`.
+
+Where the local type `E` is wider than `R` (long double in the double build
+on x86), the residual and the solve run in `E` and the floor of the table
+above moves to `eps_E`: the step then stays useful one or two rows of `m`
+further, down to where the transform's own floor in `R` takes over, and the
+correction, which is of the size of the error, is still representable in
+`R` since it is measured against a peak of order one. The guard is then keyed
+to the mantissa of `E`, so the generator emits the threshold for every
+format it knows and the code selects by `E`'s `MANT_DIG`; with `E = R` the
+selection falls back to `R`'s row and the float32 picture above is exactly
+what one gets. Nothing in the algorithm depends on `E` being wider; it only
+extends the regime where the guard says yes.
 
 The design matrix stays well conditioned at the table degree (the float32
 least-squares fit at `sigma = 2, m = 2` reproduces the float64 one to three
