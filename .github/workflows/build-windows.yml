@@ -15,7 +15,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
+
   cmake-windows:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: windows-latest
     # NFFT's C99 native-_Complex code is not compatible with MSVC's C frontend,
     # so build with the MinGW-w64 (GCC) toolchain NFFT actually supports on
@@ -73,8 +78,8 @@ jobs:
 
   windows-ok:  # Single required status check: all jobs above must succeed.
     if: always()
-    needs: [ cmake-windows ]
+    needs: [ changes, cmake-windows ]
     runs-on: ubuntu-latest
     steps:
-      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.build == 'true' && contains(needs.*.result, 'skipped'))
         run: exit 1

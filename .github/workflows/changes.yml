@@ -1,0 +1,35 @@
+name: Changes
+
+# Decides for the build workflows whether a pull request needs a build. A
+# change confined to the devcontainer, docs, markdown or the dependabot config
+# sets build=false; pushes and manual runs always build.
+on:
+  workflow_call:
+    outputs:
+      build:
+        value: ${{ jobs.changes.outputs.build }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.filter.outputs.build }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        if: github.event_name == 'pull_request'
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - id: filter
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != pull_request ] || git diff --name-only HEAD^1 HEAD \
+              | grep -Ev '^(\.devcontainer/|docs/|\.github/dependabot\.yml$)|\.md$' | grep -q .; then
+            echo build=true >> "$GITHUB_OUTPUT"
+          else
+            echo build=false >> "$GITHUB_OUTPUT"
+          fi

@@ -15,7 +15,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
+
   build:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ${{ matrix.os }}
     env:
       BUILD_CONFIG: "${{ matrix.os }}_${{ matrix.compiler }}_${{ matrix.window }}_${{ matrix.precision_opt == '' && 'double' || matrix.precision_opt == '--enable-float' && 'float' || matrix.precision_opt == '--enable-long-double' && 'long-double' || 'unknown' }}"
@@ -373,7 +378,7 @@ jobs:
   accuracy-report:  # Accuracy report publishing (only baseline and in-repo PRs).
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
+    if: ${{ always() && needs.build.result != 'skipped' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
     permissions:
       contents: write  # push to gh-pages
       checks: write  # post the Check
@@ -428,6 +433,8 @@ jobs:
         run: bash .github/scripts/accuracy-pr-report.sh
 
   distcheck:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
     name: "distcheck"
     steps:
@@ -459,6 +466,8 @@ jobs:
   # long-double cells. (The CMake Julia interface IS folded into the build matrix,
   # gated on double precision, mirroring the Autotools --enable-julia path.)
   cmake-octave:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-24.04
     name: "cmake-octave"
     steps:
@@ -497,8 +506,8 @@ jobs:
 
   linux-ok:  # Single required status check: all jobs above must succeed.
     if: always()
-    needs: [ build, distcheck, cmake-octave ]
+    needs: [ changes, build, distcheck, cmake-octave ]
     runs-on: ubuntu-latest
     steps:
-      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped')
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.build == 'true' && contains(needs.*.result, 'skipped'))
         run: exit 1
