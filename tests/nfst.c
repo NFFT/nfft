@@ -40,34 +40,41 @@ typedef struct testcase_delegate_s testcase_delegate_t;
 
 typedef void (*setup_t)(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
 typedef void (*destroy_t)(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
+/* Fill the input and the reference once the plan exists. */
+typedef void (*fill_t)(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f);
 
 struct testcase_delegate_s
 {
   setup_t setup;
   destroy_t destroy;
+  fill_t fill;
 };
 
 typedef struct testcase_delegate_file_s
 {
   setup_t setup;
   destroy_t destroy;
+  fill_t fill;
   const char *filename;
 } testcase_delegate_file_t;
 
 static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
 static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
+static void fill_file(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f);
 
 typedef struct testcase_delegate_online_s
 {
   setup_t setup;
   destroy_t destroy;
+  fill_t fill;
   const int d;
   const int N;
   const int M;
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
-static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
+static void fill_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f);
+static void fill_adjoint_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f);
 static void destroy_online(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat, R *f);
 
 /* Initialization delegate. */
@@ -380,6 +387,8 @@ static int check_single(const testcase_delegate_t *testcase,
   if(p.flags & PRE_ONE_PSI)
     X(precompute_one_psi)(&p);
 
+  testcase->fill(testcase, &p, NN, M, f_hat, f);
+
   check_delegate->prepare(check_delegate, &p, NN, M, f, f_hat);
 
   trafo_delegate->trafo(&p);
@@ -397,12 +406,12 @@ static int check_single(const testcase_delegate_t *testcase,
 
     /* Online cases compare against the direct transform, so its round-off
      * adds to the fast transform's. */
-    if (testcase->setup == setup_online || testcase->setup == setup_adjoint_online)
+    if (testcase->setup == setup_online)
       bound += err_trafo_direct(&p);
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfst",
-      testcase->setup == setup_online || testcase->setup == setup_adjoint_online ? "online" : "file",
+      testcase->setup == setup_online ? "online" : "file",
       d, N, M, init_delegate->name, trafo_delegate->name,
       (long double)err, (long double)bound, ok);
   }
@@ -510,6 +519,12 @@ static void destroy_file(const testcase_delegate_t *ego_, int *N, R *x, R *f_hat
   Y(free)(f);
 }
 
+/* The file holds input and reference, read in setup_file. */
+static void fill_file(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f)
+{
+  UNUSED(ego_); UNUSED(p); UNUSED(NN); UNUSED(M); UNUSED(f_hat); UNUSED(f);
+}
+
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
 {
   const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
@@ -552,132 +567,52 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
     (*x)[j] = K(0.5) * Y(drand48)();
   }
 
-  /* Fourier coefficients. */
+  /* Input and reference are filled once the plan exists. */
   *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(R));
-  for (j = 0; j < NN[0]; j++)
+  *f = Y(malloc)((size_t)(M[0]) * sizeof(R));
+}
+
+static void fill_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f)
+{
+  int j;
+
+  UNUSED(ego_);
+
+  /* Fourier coefficients. */
+  for (j = 0; j < NN; j++)
   {
-    (*f_hat)[j] = Y(drand48)() - K(0.5);
+    f_hat[j] = Y(drand48)() - K(0.5);
+    p->f_hat[j] = f_hat[j];
   }
 
+  X(trafo_direct)(p);
+
+  /* Reference function values. */
+  for (j = 0; j < M; j++)
   {
-    X(plan) p;
-
-    X(init)(&p, *d, *N, *M);
-
-    /* Nodes. */
-    for (j = 0; j < M[0]*d[0]; j++)
-    {
-      p.x[j] = (*x)[j];
-    }
-
-    /* Pre-compute Psi, maybe. */
-    if(p.flags & PRE_ONE_PSI)
-      X(precompute_one_psi)(&p);
-
-    /* Fourier coefficients. */
-    for (j = 0; j < *NN; j++)
-    {
-      p.f_hat[j] = (*f_hat)[j];
-    }
-
-    X(trafo_direct)(&p);
-
-    /* Reference function values. */
-    *f = Y(malloc)((size_t)(M[0]) * sizeof(R));
-    for (j = 0; j < M[0]; j++)
-    {
-      (*f)[j] = p.f[j];
-    }
-
-    X(finalize)(&p);
+    f[j] = p->f[j];
   }
 }
 
-static void setup_adjoint_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
+static void fill_adjoint_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, R *f_hat, R *f)
 {
-  const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
 
-  Y(srand48)(SEED);
-
-  /* Dimensions. */
-  *d = ego->d;
-
-  /* Bandwidths. */
-  *N = Y(malloc)((size_t)(*d) * sizeof(int));
-
-  for (j = 0; j < *d; j++)
-    (*N)[j] = ego->N;
-
-  /* Number of nodes. */
-  *M = ego->M;
-
-  printf("%-31s", "nfst_online");
-
-  printf(" d = %-1d, N = [", *d);
-  {
-    for (j = 0; j < *d; j++)
-    {
-      printf("%s%-5d", IF(j > 0,", ", ""), (*N)[j]);
-    }
-    for (j = 0; j < (4-*d); j++)
-    {
-      printf("%s%-5s", "  ", "");
-    }
-  }
-  printf("],");
-  printf(" M = %-5d", *M);
-
-  for (j = 0, *NN = 1; j < *d; j++)
-    *NN *= ((*N)[j] - 1);
-
-  /* Nodes. */
-  *x = Y(malloc)((size_t)(M[0]*d[0])*sizeof(R));
-
-  for (j = 0; j < M[0]*d[0]; j++)
-  {
-    (*x)[j] = K(0.5) * Y(drand48)();
-  }
+  UNUSED(ego_);
 
   /* Function values. */
-  *f = Y(malloc)((size_t)(M[0]) * sizeof(C));
-  for (j = 0; j < M[0]; j++)
+  for (j = 0; j < M; j++)
   {
-    (*f)[j] = Y(drand48)() - K(0.5);
+    f[j] = Y(drand48)() - K(0.5);
+    p->f[j] = f[j];
   }
 
+  X(adjoint_direct)(p);
+
+  /* Reference pseudo Fourier coefficients. */
+  for (j = 0; j < NN; j++)
   {
-    X(plan) p;
-
-    X(init)(&p, *d, *N, *M);
-
-    /* Nodes. */
-    for (j = 0; j < M[0]*d[0]; j++)
-    {
-      p.x[j] = (*x)[j];
-    }
-
-    /* Pre-compute Psi, maybe. */
-    if(p.flags & PRE_ONE_PSI)
-      X(precompute_one_psi)(&p);
-
-    /* Function values. */
-    for (j = 0; j < M[0]; j++)
-    {
-      p.f[j] = (*f)[j];
-    }
-
-    X(adjoint_direct)(&p);
-
-    /* Reference pseudo Fourier coefficients. */
-    *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(R));
-
-    for (j = 0; j < NN[0]; j++)
-    {
-      (*f_hat)[j] = p.f_hat[j];
-    }
-
-    X(finalize)(&p);
+    f_hat[j] = p->f_hat[j];
   }
 }
 
@@ -930,14 +865,14 @@ void X(check_adjoint_1d_fast_file)(void)
     testcases_adjoint_1d_file_, initializers_1d, &check_adjoint, trafos_adjoint_fast_1d_file);
 }
 
-static const testcase_delegate_online_t nfst_online_1d_50_50 = {setup_online, destroy_online, 1, 50 ,50};
-static const testcase_delegate_online_t nfst_online_1d_100_50 = {setup_online, destroy_online, 1, 100 ,50};
-static const testcase_delegate_online_t nfst_online_1d_200_50 = {setup_online, destroy_online, 1, 200 ,50};
-static const testcase_delegate_online_t nfst_online_1d_500_50 = {setup_online, destroy_online, 1, 500 ,50};
-static const testcase_delegate_online_t nfst_online_1d_1000_50 = {setup_online, destroy_online, 1, 1000 ,50};
-static const testcase_delegate_online_t nfst_online_1d_2000_50 = {setup_online, destroy_online, 1, 2000 ,50};
-static const testcase_delegate_online_t nfst_online_1d_5000_50 = {setup_online, destroy_online, 1, 5000 ,50};
-static const testcase_delegate_online_t nfst_online_1d_10000_50 = {setup_online, destroy_online, 1, 10000 ,50};
+static const testcase_delegate_online_t nfst_online_1d_50_50 = {setup_online, destroy_online, fill_online, 1, 50 ,50};
+static const testcase_delegate_online_t nfst_online_1d_100_50 = {setup_online, destroy_online, fill_online, 1, 100 ,50};
+static const testcase_delegate_online_t nfst_online_1d_200_50 = {setup_online, destroy_online, fill_online, 1, 200 ,50};
+static const testcase_delegate_online_t nfst_online_1d_500_50 = {setup_online, destroy_online, fill_online, 1, 500 ,50};
+static const testcase_delegate_online_t nfst_online_1d_1000_50 = {setup_online, destroy_online, fill_online, 1, 1000 ,50};
+static const testcase_delegate_online_t nfst_online_1d_2000_50 = {setup_online, destroy_online, fill_online, 1, 2000 ,50};
+static const testcase_delegate_online_t nfst_online_1d_5000_50 = {setup_online, destroy_online, fill_online, 1, 5000 ,50};
+static const testcase_delegate_online_t nfst_online_1d_10000_50 = {setup_online, destroy_online, fill_online, 1, 10000 ,50};
 
 static const testcase_delegate_online_t *testcases_1d_online[] =
 {
@@ -972,14 +907,14 @@ void X(check_1d_online_gaussian_m)(void)
 }
 #endif
 
-static const testcase_delegate_online_t nfst_adjoint_online_1d_50_50 = {setup_adjoint_online, destroy_online, 1, 50 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_100_50 = {setup_adjoint_online, destroy_online, 1, 100 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_200_50 = {setup_adjoint_online, destroy_online, 1, 200 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_500_50 = {setup_adjoint_online, destroy_online, 1, 500 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_1000_50 = {setup_adjoint_online, destroy_online, 1, 1000 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_2000_50 = {setup_adjoint_online, destroy_online, 1, 2000 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_5000_50 = {setup_adjoint_online, destroy_online, 1, 5000 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_1d_10000_50 = {setup_adjoint_online, destroy_online, 1, 10000 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_50_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 50 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_100_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 100 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_200_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 200 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_500_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 500 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_1000_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 1000 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_2000_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 2000 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_5000_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 5000 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_1d_10000_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 10000 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_1d_online[] =
 {
@@ -1066,11 +1001,11 @@ void X(check_adjoint_2d_fast_file)(void)
     testcases_adjoint_2d_file_, initializers_2d, &check_adjoint, trafos_adjoint_2d_fast_file);
 }
 
-static const testcase_delegate_online_t nfst_online_2d_50_50 = {setup_online, destroy_online, 2, 50 ,50};
-static const testcase_delegate_online_t nfst_online_2d_100_50 = {setup_online, destroy_online, 2, 100 ,50};
-static const testcase_delegate_online_t nfst_online_2d_200_50 = {setup_online, destroy_online, 2, 200 ,50};
-static const testcase_delegate_online_t nfst_online_2d_500_50 = {setup_online, destroy_online, 2, 500 ,50};
-static const testcase_delegate_online_t nfst_online_2d_1000_50 = {setup_online, destroy_online, 2, 1000 ,50};
+static const testcase_delegate_online_t nfst_online_2d_50_50 = {setup_online, destroy_online, fill_online, 2, 50 ,50};
+static const testcase_delegate_online_t nfst_online_2d_100_50 = {setup_online, destroy_online, fill_online, 2, 100 ,50};
+static const testcase_delegate_online_t nfst_online_2d_200_50 = {setup_online, destroy_online, fill_online, 2, 200 ,50};
+static const testcase_delegate_online_t nfst_online_2d_500_50 = {setup_online, destroy_online, fill_online, 2, 500 ,50};
+static const testcase_delegate_online_t nfst_online_2d_1000_50 = {setup_online, destroy_online, fill_online, 2, 1000 ,50};
 
 static const testcase_delegate_online_t *testcases_2d_online[] =
 {
@@ -1102,11 +1037,11 @@ void X(check_2d_online_gaussian_m)(void)
 }
 #endif
 
-static const testcase_delegate_online_t nfst_adjoint_online_2d_50_50 = {setup_adjoint_online, destroy_online, 2, 50 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_2d_100_50 = {setup_adjoint_online, destroy_online, 2, 100 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_2d_200_50 = {setup_adjoint_online, destroy_online, 2, 200 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_2d_500_50 = {setup_adjoint_online, destroy_online, 2, 500 ,50};
-static const testcase_delegate_online_t nfst_adjoint_online_2d_1000_50 = {setup_adjoint_online, destroy_online, 2, 1000 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_2d_50_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 50 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_2d_100_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 100 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_2d_200_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 200 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_2d_500_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 500 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_2d_1000_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 1000 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_2d_online[] =
 {
@@ -1191,7 +1126,7 @@ void X(check_adjoint_3d_fast_file)(void)
 }
 
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
-static const testcase_delegate_online_t nfst_online_3d_50_50 = {setup_online, destroy_online, 3, 50 ,50};
+static const testcase_delegate_online_t nfst_online_3d_50_50 = {setup_online, destroy_online, fill_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_3d_online[] =
 {
@@ -1217,7 +1152,7 @@ void X(check_3d_online_gaussian_m)(void)
 }
 #endif
 
-static const testcase_delegate_online_t nfst_adjoint_online_3d_50_50 = {setup_adjoint_online, destroy_online, 3, 50 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_3d_50_50 = {setup_online, destroy_online, fill_adjoint_online, 3, 50 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_3d_online[] =
 {
@@ -1260,7 +1195,7 @@ static const init_delegate_t* initializers_4d[] =
 };
 
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
-static const testcase_delegate_online_t nfst_online_4d_28_50 = {setup_online, destroy_online, 4, 28 ,50};
+static const testcase_delegate_online_t nfst_online_4d_28_50 = {setup_online, destroy_online, fill_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_4d_online[] =
 {
@@ -1277,7 +1212,7 @@ void X(check_4d_online)(void)
     testcases_4d_online_, initializers_4d, &check_trafo, trafos_4d_online);
 }
 
-static const testcase_delegate_online_t nfst_adjoint_online_4d_28_50 = {setup_adjoint_online, destroy_online, 4, 28 ,50};
+static const testcase_delegate_online_t nfst_adjoint_online_4d_28_50 = {setup_online, destroy_online, fill_adjoint_online, 4, 28 ,50};
 
 static const testcase_delegate_online_t *testcases_adjoint_4d_online[] =
 {
