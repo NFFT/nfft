@@ -11,7 +11,7 @@ _MODULES = ("nfft", "nfct", "nfst")
 def _decl(module, kind, d, N, M):
     base = G.basename(module, kind, d, N, M)
     return ('static const testcase_delegate_file_t %s = '
-            '{setup_file, destroy_file, ABSPATH("data/%s.txt")};' % (base, base))
+            '{setup_file, destroy_file, fill_file, ABSPATH("data/%s.txt")};' % (base, base))
 
 
 def _array(module, kind, d):
