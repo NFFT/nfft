@@ -70,6 +70,10 @@ typedef struct testcase_delegate_online_s
   const int d;
   const int N;
   const int M;
+  /* Worst-case input: a unit coefficient at the band-edge corner, or a unit
+   * sample at one node for the adjoint. With l1 norm 1 the error is the sup
+   * norm the bound describes. */
+  const int edge;
 } testcase_delegate_online_t;
 
 static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, C **f_hat, C **f);
@@ -407,7 +411,8 @@ static int check_single(const testcase_delegate_t *testcase,
     ok = IF(err < bound, 1, 0);
     printf(" -> %-4s " __FE__ " (" __FE__ ")\n", IF(ok == 0, "FAIL", "OK"), err, bound);
     accuracy_log_append("nfft",
-      testcase->setup == setup_online ? "online" : "file",
+      testcase->setup == setup_online
+        ? IF(((const testcase_delegate_online_t*)testcase)->edge, "online_edge", "online") : "file",
       d, N, M, init_delegate->name, trafo_delegate->name,
       (long double)err, (long double)bound, ok);
   }
@@ -541,7 +546,7 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
   /* Number of nodes. */
   *M = ego->M;
 
-  printf("%-31s", "nfft_online");
+  printf("%-31s", IF(ego->edge, "nfft_online_edge", "nfft_online"));
 
   printf(" d = %-1d, N = [", *d);
   {
@@ -578,16 +583,17 @@ static void setup_online(const testcase_delegate_t *ego_, int *d, int **N, int *
 
 static void fill_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, C *f_hat, C *f)
 {
+  const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
-
-  UNUSED(ego_);
 
   /* Fourier coefficients. */
   for (j = 0; j < NN; j++)
-  {
     f_hat[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
+  if (ego->edge)
+    for (j = 0; j < NN; j++)
+      f_hat[j] = IF(j == 0, K(1.0), K(0.0));
+  for (j = 0; j < NN; j++)
     p->f_hat[j] = f_hat[j];
-  }
 
   X(trafo_direct)(p);
 
@@ -600,16 +606,40 @@ static void fill_online(const testcase_delegate_t *ego_, X(plan) *p, const int N
 
 static void fill_adjoint_online(const testcase_delegate_t *ego_, X(plan) *p, const int NN, const int M, C *f_hat, C *f)
 {
+  const testcase_delegate_online_t *ego = (const testcase_delegate_online_t*)ego_;
   int j;
-
-  UNUSED(ego_);
 
   /* Function values. */
   for (j = 0; j < M; j++)
-  {
     f[j] = (Y(drand48)() - K(0.5)) + (Y(drand48)() - K(0.5)) * I;
-    p->f[j] = f[j];
+  if (ego->edge)
+  {
+    /* The unit sample goes to the node where the fast trafo of the band-edge
+     * mode errs most, the largest entry of that column of the error matrix.
+     * f holds the direct values meanwhile. */
+    int jmax = 0;
+    R emax = K(-1.0);
+
+    for (j = 0; j < NN; j++)
+      p->f_hat[j] = IF(j == 0, K(1.0), K(0.0));
+    X(trafo_direct)(p);
+    for (j = 0; j < M; j++)
+      f[j] = p->f[j];
+    X(trafo)(p);
+    for (j = 0; j < M; j++)
+    {
+      const R e = CABS(p->f[j] - f[j]);
+      if (e > emax)
+      {
+        emax = e;
+        jmax = j;
+      }
+    }
+    for (j = 0; j < M; j++)
+      f[j] = IF(j == jmax, K(1.0), K(0.0));
   }
+  for (j = 0; j < M; j++)
+    p->f[j] = f[j];
 
   X(adjoint_direct)(p);
 
@@ -1464,3 +1494,109 @@ void X(check_acc)(void)
   check_many_file(SIZE(testcases_acc), SIZE(initializers_acc), SIZE(trafos_acc),
     testcases_acc_, initializers_acc, &check_trafo, trafos_acc);
 }
+
+#if defined(KAISER_BESSEL)
+#define ONLINE_EDGE(d, N, M) \
+  &(const testcase_delegate_online_t){setup_online, destroy_online, fill_online, d, N, M, 1}
+#define ADJOINT_ONLINE_EDGE(d, N, M) \
+  &(const testcase_delegate_online_t){setup_online, destroy_online, fill_adjoint_online, d, N, M, 1}
+#define CHECK_ONLINE_EDGE(FN, CASES, INITS, CHECK, TRAFOS) \
+void X(FN)(void) \
+{ \
+  printf(#FN ":\n"); \
+  check_many(SIZE(CASES), SIZE(INITS), SIZE(TRAFOS), \
+    (const testcase_delegate_t**)CASES, INITS, CHECK, TRAFOS); \
+}
+
+static const testcase_delegate_online_t *testcases_1d_online_edge[] =
+{
+  ONLINE_EDGE(1, 50, 50),
+  ONLINE_EDGE(1, 100, 50),
+  ONLINE_EDGE(1, 200, 50),
+  ONLINE_EDGE(1, 500, 50),
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  ONLINE_EDGE(1, 1000, 50),
+  ONLINE_EDGE(1, 2000, 50),
+  ONLINE_EDGE(1, 5000, 50),
+  ONLINE_EDGE(1, 10000, 50),
+#endif
+};
+
+CHECK_ONLINE_EDGE(check_1d_online_edge, testcases_1d_online_edge, initializers_1d, &check_trafo, trafos_1d_online)
+
+static const testcase_delegate_online_t *testcases_adjoint_1d_online_edge[] =
+{
+  ADJOINT_ONLINE_EDGE(1, 50, 50),
+  ADJOINT_ONLINE_EDGE(1, 100, 50),
+  ADJOINT_ONLINE_EDGE(1, 200, 50),
+  ADJOINT_ONLINE_EDGE(1, 500, 50),
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  ADJOINT_ONLINE_EDGE(1, 1000, 50),
+  ADJOINT_ONLINE_EDGE(1, 2000, 50),
+  ADJOINT_ONLINE_EDGE(1, 5000, 50),
+  ADJOINT_ONLINE_EDGE(1, 10000, 50),
+#endif
+};
+
+CHECK_ONLINE_EDGE(check_adjoint_1d_online_edge, testcases_adjoint_1d_online_edge, initializers_1d, &check_adjoint, trafos_adjoint_1d_online)
+
+static const testcase_delegate_online_t *testcases_2d_online_edge[] =
+{
+  ONLINE_EDGE(2, 50, 50),
+  ONLINE_EDGE(2, 100, 50),
+  ONLINE_EDGE(2, 200, 50),
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  ONLINE_EDGE(2, 500, 50),
+  ONLINE_EDGE(2, 1000, 50),
+#endif
+};
+
+CHECK_ONLINE_EDGE(check_2d_online_edge, testcases_2d_online_edge, initializers_2d, &check_trafo, trafos_2d_online)
+
+static const testcase_delegate_online_t *testcases_adjoint_2d_online_edge[] =
+{
+  ADJOINT_ONLINE_EDGE(2, 50, 50),
+  ADJOINT_ONLINE_EDGE(2, 100, 50),
+  ADJOINT_ONLINE_EDGE(2, 200, 50),
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  ADJOINT_ONLINE_EDGE(2, 500, 50),
+  ADJOINT_ONLINE_EDGE(2, 1000, 50),
+#endif
+};
+
+CHECK_ONLINE_EDGE(check_adjoint_2d_online_edge, testcases_adjoint_2d_online_edge, initializers_2d, &check_adjoint, trafos_adjoint_2d_online)
+
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+static const testcase_delegate_online_t *testcases_3d_online_edge[] =
+{
+  ONLINE_EDGE(3, 50, 50),
+};
+
+CHECK_ONLINE_EDGE(check_3d_online_edge, testcases_3d_online_edge, initializers_3d, &check_trafo, trafos_3d_online)
+
+static const testcase_delegate_online_t *testcases_adjoint_3d_online_edge[] =
+{
+  ADJOINT_ONLINE_EDGE(3, 50, 50),
+};
+
+CHECK_ONLINE_EDGE(check_adjoint_3d_online_edge, testcases_adjoint_3d_online_edge, initializers_3d, &check_adjoint, trafos_adjoint_3d_online)
+
+static const testcase_delegate_online_t *testcases_4d_online_edge[] =
+{
+  ONLINE_EDGE(4, 28, 50),
+};
+
+CHECK_ONLINE_EDGE(check_4d_online_edge, testcases_4d_online_edge, initializers_4d, &check_trafo, trafos_4d_online)
+
+static const testcase_delegate_online_t *testcases_adjoint_4d_online_edge[] =
+{
+  ADJOINT_ONLINE_EDGE(4, 28, 50),
+};
+
+CHECK_ONLINE_EDGE(check_adjoint_4d_online_edge, testcases_adjoint_4d_online_edge, initializers_4d, &check_adjoint, trafos_adjoint_4d_online)
+
+#endif
+#undef ONLINE_EDGE
+#undef ADJOINT_ONLINE_EDGE
+#undef CHECK_ONLINE_EDGE
+#endif

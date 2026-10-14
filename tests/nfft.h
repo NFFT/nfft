@@ -52,4 +52,15 @@ void X(check_adjoint_2d_online_gaussian_m)(void);
 void X(check_adjoint_3d_online_gaussian_m)(void);
 #endif
 
+#if defined(KAISER_BESSEL)
+void X(check_1d_online_edge)(void);
+void X(check_adjoint_1d_online_edge)(void);
+void X(check_2d_online_edge)(void);
+void X(check_adjoint_2d_online_edge)(void);
+void X(check_3d_online_edge)(void);
+void X(check_adjoint_3d_online_edge)(void);
+void X(check_4d_online_edge)(void);
+void X(check_adjoint_4d_online_edge)(void);
+#endif
+
 void X(check_acc)(void);

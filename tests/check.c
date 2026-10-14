@@ -97,6 +97,18 @@ int main(void)
   CU_add_test(nfft, "nfft_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
 #endif
 #endif
+#if defined(KAISER_BESSEL)
+  CU_add_test(nfft, "nfft_1d_online_edge", X(check_1d_online_edge));
+  CU_add_test(nfft, "nfft_adjoint_1d_online_edge", X(check_adjoint_1d_online_edge));
+  CU_add_test(nfft, "nfft_2d_online_edge", X(check_2d_online_edge));
+  CU_add_test(nfft, "nfft_adjoint_2d_online_edge", X(check_adjoint_2d_online_edge));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfft, "nfft_3d_online_edge", X(check_3d_online_edge));
+  CU_add_test(nfft, "nfft_adjoint_3d_online_edge", X(check_adjoint_3d_online_edge));
+  CU_add_test(nfft, "nfft_4d_online_edge", X(check_4d_online_edge));
+  CU_add_test(nfft, "nfft_adjoint_4d_online_edge", X(check_adjoint_4d_online_edge));
+#endif
+#endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfft, "nfft_3d_online", X(check_3d_online));
   CU_add_test(nfft, "nfft_adjoint_3d_online", X(check_adjoint_3d_online));
@@ -138,6 +150,18 @@ int main(void)
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfct, "nfct_3d_online_gaussian_m", X(check_3d_online_gaussian_m));
   CU_add_test(nfct, "nfct_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
+#endif
+#endif
+#if defined(KAISER_BESSEL)
+  CU_add_test(nfct, "nfct_1d_online_edge", X(check_1d_online_edge));
+  CU_add_test(nfct, "nfct_adjoint_1d_online_edge", X(check_adjoint_1d_online_edge));
+  CU_add_test(nfct, "nfct_2d_online_edge", X(check_2d_online_edge));
+  CU_add_test(nfct, "nfct_adjoint_2d_online_edge", X(check_adjoint_2d_online_edge));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfct, "nfct_3d_online_edge", X(check_3d_online_edge));
+  CU_add_test(nfct, "nfct_adjoint_3d_online_edge", X(check_adjoint_3d_online_edge));
+  CU_add_test(nfct, "nfct_4d_online_edge", X(check_4d_online_edge));
+  CU_add_test(nfct, "nfct_adjoint_4d_online_edge", X(check_adjoint_4d_online_edge));
 #endif
 #endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
@@ -182,6 +206,18 @@ int main(void)
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
   CU_add_test(nfst, "nfst_3d_online_gaussian_m", X(check_3d_online_gaussian_m));
   CU_add_test(nfst, "nfst_adjoint_3d_online_gaussian_m", X(check_adjoint_3d_online_gaussian_m));
+#endif
+#endif
+#if defined(KAISER_BESSEL)
+  CU_add_test(nfst, "nfst_1d_online_edge", X(check_1d_online_edge));
+  CU_add_test(nfst, "nfst_adjoint_1d_online_edge", X(check_adjoint_1d_online_edge));
+  CU_add_test(nfst, "nfst_2d_online_edge", X(check_2d_online_edge));
+  CU_add_test(nfst, "nfst_adjoint_2d_online_edge", X(check_adjoint_2d_online_edge));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nfst, "nfst_3d_online_edge", X(check_3d_online_edge));
+  CU_add_test(nfst, "nfst_adjoint_3d_online_edge", X(check_adjoint_3d_online_edge));
+  CU_add_test(nfst, "nfst_4d_online_edge", X(check_4d_online_edge));
+  CU_add_test(nfst, "nfst_adjoint_4d_online_edge", X(check_adjoint_4d_online_edge));
 #endif
 #endif
 #ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
