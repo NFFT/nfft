@@ -37,6 +37,7 @@ typedef struct window_funct_plan_ {
 	int n[1];
 	double sigma[1];
 	double *b;
+	double *spline_coeffs;
 } window_funct_plan;
 
 /**

@@ -1315,6 +1315,11 @@ const char* X(check)(X(plan) *ths)
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
 
+#ifdef WINDOW_IS_KAISER_BESSEL
+    if (!KB_POLY_SIGMA_OK(ths->sigma[j]))
+      return "Oversampling factor outside [1.1, 4]";
+#endif
+
     if(ths->N[j] - 1 <= ths->m)
       return "Polynomial degree N is smaller than cut-off m";
   }
