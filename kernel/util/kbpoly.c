@@ -18,12 +18,13 @@
 
 /* Polynomial form of the Kaiser-Bessel window.
  *
- * One polynomial per unit cell of the window argument, in the offset t in
- * [0, 1) into the cell. A run of 2m + 2 taps spans 2m + 2 cells at one t, so
- * it is one Horner sweep over 2m + 2 columns, in place of 2m + 2 calls to
- * EXP, EXPM1 and SIN. Each column is analytic in t: both branches of the
- * window are even in the radical and ra^2 is a polynomial in t, so there is no
- * branch point and a Chebyshev interpolant converges geometrically.
+ * One polynomial per unit cell of |nx|, in the offset s in [-1/2, 1/2] from
+ * the cell centre. A run of 2m + 2 taps spans m + 1 cells and their mirror
+ * cells at s and -s, so it is one Horner sweep in s^2 over m + 1 columns, in
+ * place of 2m + 2 calls to EXP, EXPM1 and SIN. Each column is analytic in s:
+ * both branches of the window are even in the radical and ra^2 is a
+ * polynomial in s, so there is no branch point and a Chebyshev interpolant
+ * converges geometrically.
  *
  * The interpolant is built from the window itself, not from a rewrite of it:
  * a plain sinh(b ra)/ra ratio carries 20 times the error of Y(kb_phi) and that
@@ -54,7 +55,7 @@ static void cheb_of(R *dst, const R *val, const R *cm, const INT w,
     }
 }
 
-/* T_j(2t - 1) in powers of t, so the run time can use plain Horner. */
+/* T_j(2s) in powers of s, so the run time can use plain Horner. */
 static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     const INT deg)
 {
@@ -67,15 +68,12 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
   tp[0] = K(1.0);
 
   if (deg >= 1)
-  {
-    tp[n + 0] = K(-1.0);
     tp[n + 1] = K(2.0);
-  }
 
   for (j = 2; j <= deg; j++)
     for (i = 0; i <= j; i++)
     {
-      R v = -tp[(j - 2) * n + i] - K(2.0) * tp[(j - 1) * n + i];
+      R v = -tp[(j - 2) * n + i];
 
       if (i > 0)
         v += K(4.0) * tp[(j - 1) * n + i - 1];
@@ -93,6 +91,29 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
 
       coef[i * w + l] = s;
     }
+}
+
+/* All columns at offset s, in the even and odd split Y(kb_poly_run) uses. */
+static void eval_split(R *out, const R *coef, const INT w, const INT deg,
+    const R s)
+{
+  const INT h = KB_POLY_HALF(deg);
+  const R u = s * s;
+  INT j, l;
+
+  for (l = 0; l < w; l++)
+  {
+    R e = coef[(2 * h) * w + l], o = coef[(2 * h - 1) * w + l];
+
+    for (j = h - 1; j >= 1; j--)
+    {
+      e = e * u + coef[(2 * j) * w + l];
+      o = o * u + coef[(2 * j - 1) * w + l];
+    }
+
+    e = e * u + coef[l];
+    out[l] = e + s * o;
+  }
 }
 
 INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
@@ -120,7 +141,7 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R reach, const INT m, const INT deg)
 {
-  const INT w = KB_POLY_COLS(m), n = deg + 1;
+  const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n; out is w. */
   R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n + w) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
@@ -128,19 +149,19 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   INT j, k, l;
 
   for (k = 0; k < n; k++)
-    node[k] = (COS(KPI * ((R)k + K(0.5)) / (R)n) + K(1.0)) / K(2.0);
+    node[k] = COS(KPI * ((R)k + K(0.5)) / (R)n) / K(2.0);
 
-  for (j = 0; j <= deg; j++)
+  for (j = 0; j < n; j++)
     for (k = 0; k < n; k++)
       cm[j * n + k] = COS(KPI * (R)j * ((R)k + K(0.5)) / (R)n);
 
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
       val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, reach,
-          node[k] + (R)(m + 1 - l));
+          ((R)(m + 1 - l) + K(0.5)) + node[k]);
 
-  cheb_of(cheb, val, cm, w, deg);
-  cheb_to_monomial(coef, cheb, tp, w, deg);
+  cheb_of(cheb, val, cm, w, dg);
+  cheb_to_monomial(coef, cheb, tp, w, dg);
 
   /* One refinement step, against the evaluator the run time will use, so the
    * correction absorbs the conversion's rounding as well as the fit's. The
@@ -149,21 +170,16 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
    * fit costs eps of something tiny. A second step changes nothing. */
   for (k = 0; k < n; k++)
   {
-    for (l = 0; l < w; l++)
-      out[l] = coef[deg * w + l];
-
-    for (j = deg - 1; j >= 0; j--)
-      for (l = 0; l < w; l++)
-        out[l] = out[l] * node[k] + coef[j * w + l];
+    eval_split(out, coef, w, dg, node[k]);
 
     for (l = 0; l < w; l++)
       res[k * w + l] = val[k * w + l] - out[l];
   }
 
-  cheb_of(cheb, res, cm, w, deg);
-  cheb_to_monomial(res, cheb, tp, w, deg);
+  cheb_of(cheb, res, cm, w, dg);
+  cheb_to_monomial(res, cheb, tp, w, dg);
 
-  for (j = 0; j <= deg; j++)
+  for (j = 0; j < n; j++)
     for (l = 0; l < w; l++)
       coef[j * w + l] += res[j * w + l];
 
@@ -196,7 +212,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
     deg = IF(dt > deg, dt, deg);
   }
 
-  stride = (deg + 1) * KB_POLY_COLS(m);
+  stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
   tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   tab[0] = (R)deg;
 

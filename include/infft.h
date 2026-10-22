@@ -373,11 +373,11 @@ typedef ptrdiff_t INT;
    * holding the degree. The closed form Y(kb_phi) is what the fit samples. */
   #define KB_POLY_DEG ((INT)ths->spline_coeffs[0])
   #define KB_POLY(ax) (ths->spline_coeffs + 1 \
-      + (ax) * (KB_POLY_DEG + 1) * KB_POLY_COLS(ths->m))
+      + (ax) * KB_POLY_ROWS(KB_POLY_DEG) * KB_POLY_COLS(ths->m))
   #define PHI(n,x,ax) (Y(kb_poly_phi)(KB_POLY(ax), ths->m, KB_POLY_DEG, \
                          (R)(n) * (R)(x)))
   /* Fills dst[0 .. 2m+1] with phi(x - (u + l)/n), the run every psi table is
-   * built from: one Horner sweep over the 2m+2 taps at one offset. */
+   * built from: one Horner sweep over the m+1 mirror pairs at one offset. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
@@ -1779,17 +1779,18 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
     dst[l] = Y(kb_phi)(b, lg_tail, peak_inv, m, nx0 - (R)l);
 }
 
-/* kbpoly.c: the same run from one polynomial per tap, fitted per plan. */
+/* kbpoly.c: the same run from one polynomial per cell, fitted per plan. */
 
 /* Upper bound of the degree. Over sigma 1.1 .. 4 and m = 2 .. 30, the fit
- * error falls to a plateau of 2 to 6 eps, relative to the peak, and then
- * rises again as the monomial coefficients start to cancel:
+ * error at even degree falls to a plateau of about 5 eps, relative to the
+ * peak, and then rises again as the monomial coefficients start to cancel:
  *
- *   float: plateau from degree 7 at worst, cliff from 12.
- *   double: plateau from 14 at worst (sigma 4, m 4), cliff from 23.
- *   80-bit: plateau from 15 at sigma 2, worst case not measured, cliff from
- *     28, on x86-64.
- *   binary128: plateau from 28 at worst, no cliff up to 32.
+ *   float: plateau from degree 8 at worst, cliff from 22.
+ *   double: plateau from 16 at worst, no cliff up to 40.
+ *   80-bit: not measured in the centred basis. In the former basis on [0, 1],
+ *     which is worse conditioned, plateau from 15 at sigma 2, cliff from 28,
+ *     on x86-64.
+ *   binary128: plateau from 30 at worst, no cliff up to 40.
  *
  * Each cap sits past the plateau start and short of the cliff. */
 #if MANT_DIG == 113
@@ -1816,61 +1817,97 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
  * it within its rounding noise. */
 INT Y(kb_poly_degree)(const R b, const R reach, const INT m);
 
-/* Column c of the table is the cell [m + 1 - c, m + 2 - c) of the window
- * argument, in the offset t into it. |nx| < m + 2 covers runs anchored below
- * or nearest the node and the PRE_LIN_PSI table. */
-#define KB_POLY_COLS(m) (2 * (m) + 4)
+/* Column c of the table is the cell [m + 1 - c, m + 2 - c) of |nx|, c = 0 ..
+ * m + 1, in the offset s in [-1/2, 1/2] from the cell centre. The window is
+ * even, so the mirror cell is the same polynomial at -s, and each column is
+ * split as E(s^2) + s O(s^2). Row k holds the coefficients of s^k, so E has
+ * the even rows and O the odd ones. An odd degree is raised by one: at even
+ * degree 2h the interpolation error leads with T_(2h+1), which is odd and has
+ * no mean over the cell. A mean would add up coherently over the taps, and
+ * the deconvolution amplifies it at the band edge. */
+#define KB_POLY_COLS(m) ((m) + 2)
+#define KB_POLY_HALF(deg) (((deg) + 1) / 2)
+#define KB_POLY_ROWS(deg) (2 * KB_POLY_HALF(deg) + 1)
 
-/* The lane count is the vectorised dimension, so it is worth having at compile
+/* The pair count is the vectorised dimension, so it is worth having at compile
  * time; the degree stays a runtime bound because the precision cap moves it.
- * The row stride is KB_POLY_COLS(m) = W + 2. */
-#define KB_POLY_RUN_LANES(W) \
+ * The row stride is KB_POLY_COLS(m) = P + 1. */
+#define KB_POLY_RUN_PAIRS(P) \
   { \
+    R e[P], o[P]; \
     INT j, l; \
-    for (l = 0; l < (W); l++) \
-      dst[l] = coef[deg * ((W) + 2) + l]; \
-    for (j = deg - 1; j >= 0; j--) \
-      for (l = 0; l < (W); l++) \
-        dst[l] = dst[l] * t + coef[j * ((W) + 2) + l]; \
+    for (l = 0; l < (P); l++) \
+    { \
+      e[l] = coef[(2 * h) * ((P) + 1) + l]; \
+      o[l] = coef[(2 * h - 1) * ((P) + 1) + l]; \
+    } \
+    for (j = h - 1; j >= 1; j--) \
+      for (l = 0; l < (P); l++) \
+      { \
+        e[l] = e[l] * u + coef[(2 * j) * ((P) + 1) + l]; \
+        o[l] = o[l] * u + coef[(2 * j - 1) * ((P) + 1) + l]; \
+      } \
+    for (l = 0; l < (P); l++) \
+    { \
+      e[l] = e[l] * u + coef[l]; \
+      dst[l] = e[l] + s * o[l]; \
+      dst[2 * (P) - 1 - l] = e[l] - s * o[l]; \
+    } \
     return; \
   }
 
-/* dst[l] = phi(nx0 - l), l = 0 .. 2m+1. nx0 must lie in [m - 1, m + 2), or
- * the columns leave the table; being positive, the cast floors it. */
+/* dst[l] = phi(nx0 - l), l = 0 .. 2m+1, for a run anchored at the grid point
+ * below the node, nx0 in [m, m + 1]. Tap l and tap 2m+1-l fall in mirror
+ * cells, column l + 1, at s and -s. */
 static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict tab,
     const INT m, const INT deg, const R nx0)
 {
-  const INT w = 2 * m + 2, s = KB_POLY_COLS(m), f = (INT)nx0;
-  const R t = nx0 - (R)f;
-  const R *restrict coef = tab + (m + 1 - f);
+  const INT p = m + 1, cs = KB_POLY_COLS(m), h = KB_POLY_HALF(deg);
+  const R s = nx0 - ((R)m + K(0.5)), u = s * s;
+  const R *restrict coef = tab + 1;
   INT j, l;
 
-  switch (w)
+  switch (p)
   {
-  case 6: KB_POLY_RUN_LANES(6)
-  case 8: KB_POLY_RUN_LANES(8)
-  case 10: KB_POLY_RUN_LANES(10)
-  case 12: KB_POLY_RUN_LANES(12)
-  case 14: KB_POLY_RUN_LANES(14)
-  case 16: KB_POLY_RUN_LANES(16)
-  case 18: KB_POLY_RUN_LANES(18)
-  case 20: KB_POLY_RUN_LANES(20)
-  case 22: KB_POLY_RUN_LANES(22)
-  case 24: KB_POLY_RUN_LANES(24)
-  case 26: KB_POLY_RUN_LANES(26)
-  case 28: KB_POLY_RUN_LANES(28)
-  case 30: KB_POLY_RUN_LANES(30)
-  case 32: KB_POLY_RUN_LANES(32)
-  case 34: KB_POLY_RUN_LANES(34)
+  case 3: KB_POLY_RUN_PAIRS(3)
+  case 4: KB_POLY_RUN_PAIRS(4)
+  case 5: KB_POLY_RUN_PAIRS(5)
+  case 6: KB_POLY_RUN_PAIRS(6)
+  case 7: KB_POLY_RUN_PAIRS(7)
+  case 8: KB_POLY_RUN_PAIRS(8)
+  case 9: KB_POLY_RUN_PAIRS(9)
+  case 10: KB_POLY_RUN_PAIRS(10)
+  case 11: KB_POLY_RUN_PAIRS(11)
+  case 12: KB_POLY_RUN_PAIRS(12)
+  case 13: KB_POLY_RUN_PAIRS(13)
+  case 14: KB_POLY_RUN_PAIRS(14)
+  case 15: KB_POLY_RUN_PAIRS(15)
+  case 16: KB_POLY_RUN_PAIRS(16)
+  case 17: KB_POLY_RUN_PAIRS(17)
   default: break;
   }
 
-  for (l = 0; l < w; l++)
-    dst[l] = coef[deg * s + l];
+  /* E in dst[l], O in dst[2p - 1 - l], so each pair combines in place. */
+  for (l = 0; l < p; l++)
+  {
+    dst[l] = coef[(2 * h) * cs + l];
+    dst[2 * p - 1 - l] = coef[(2 * h - 1) * cs + l];
+  }
 
-  for (j = deg - 1; j >= 0; j--)
-    for (l = 0; l < w; l++)
-      dst[l] = dst[l] * t + coef[j * s + l];
+  for (j = h - 1; j >= 1; j--)
+    for (l = 0; l < p; l++)
+    {
+      dst[l] = dst[l] * u + coef[(2 * j) * cs + l];
+      dst[2 * p - 1 - l] = dst[2 * p - 1 - l] * u + coef[(2 * j - 1) * cs + l];
+    }
+
+  for (l = 0; l < p; l++)
+  {
+    const R e = dst[l] * u + coef[l], o = dst[2 * p - 1 - l];
+
+    dst[l] = e + s * o;
+    dst[2 * p - 1 - l] = e - s * o;
+  }
 }
 
 /* phi(nx) from the cell of |nx|, the window being even. Extrapolates past
@@ -1879,21 +1916,25 @@ static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,
     const R nx)
 {
   const R a = FABS(nx);
-  const INT f = IF((INT)a > m + 1, m + 1, (INT)a), s = KB_POLY_COLS(m);
-  const R t = a - (R)f;
+  const INT f = IF((INT)a > m + 1, m + 1, (INT)a), cs = KB_POLY_COLS(m);
+  const INT h = KB_POLY_HALF(deg);
+  const R s = (a - (R)f) - K(0.5), u = s * s;
   const R *coef = tab + (m + 1 - f);
-  R v = coef[deg * s];
+  R e = coef[(2 * h) * cs], o = coef[(2 * h - 1) * cs];
   INT j;
 
-  for (j = deg - 1; j >= 0; j--)
-    v = v * t + coef[j * s];
+  for (j = h - 1; j >= 1; j--)
+  {
+    e = e * u + coef[(2 * j) * cs];
+    o = o * u + coef[(2 * j - 1) * cs];
+  }
 
-  return v;
+  return e * u + coef[0] + s * o;
 }
 
-/* Fill coef, (deg + 1) * KB_POLY_COLS(m) reals, coef[j * KB_POLY_COLS(m) + c]
- * being the coefficient of t^j for column c. reach is the window half-width;
- * m fixes only the cells. */
+/* Fill coef, KB_POLY_ROWS(deg) * KB_POLY_COLS(m) reals, coef[k *
+ * KB_POLY_COLS(m) + c] being the coefficient of s^k for column c. reach is the
+ * window half-width; m fixes only the cells. */
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R reach, const INT m, const INT deg);
 

@@ -90,7 +90,7 @@ void X(check_kaiser_bessel_poly)(void)
       const INT deg = Y(kb_poly_degree)(b, reach, m), w = 2 * m + 2;
       const INT cols = KB_POLY_COLS(m);
       const R bound = K(2.0) * pick_target(b, reach);
-      R *coef = (R*) Y(malloc)((size_t)((deg + 1) * cols) * sizeof(R));
+      R *coef = (R*) Y(malloc)((size_t)(KB_POLY_ROWS(deg) * cols) * sizeof(R));
       R *got = (R*) Y(malloc)((size_t)w * sizeof(R));
       R worst = K(0.0);
       INT i, l;
@@ -99,11 +99,11 @@ void X(check_kaiser_bessel_poly)(void)
       Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
 
       /* 513 offsets, off the interpolation nodes where the residual is zero
-       * by construction. Runs start in [m - 1, m + 1], the reach of both run
-       * anchors; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
+       * by construction. Runs start in [m, m + 1], anchored at the grid point
+       * below the node; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
       for (i = 0; i <= 512; i++)
       {
-        const R nx0 = (R)(m - 1) + (R)i / K(256.0);
+        const R nx0 = (R)m + (R)i / K(512.0);
         const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
         R err;
 

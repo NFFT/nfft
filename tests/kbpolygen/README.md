@@ -31,6 +31,10 @@ the lowest `d` with
 - `eps` keeps the polynomial below the transform's rounding noise where `E` is
   smaller still.
 
+The plan raises an odd `d` by one: at even degree the leading interpolation
+error is odd in the cell and has no mean, which would otherwise add up over
+the taps (`KB_POLY_ROWS` in `include/infft.h`).
+
 The coefficients are computed in mpmath, so the table is free of the rounding
 noise a fit in working precision sees; in float that noise moved the degree by
 one at random.
