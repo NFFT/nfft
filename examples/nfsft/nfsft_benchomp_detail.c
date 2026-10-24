@@ -36,10 +36,10 @@ void bench_openmp_readfile(FILE *infile, int *trafo_adjoint, int *N, int *M, dou
 
   fscanf(infile, "%d %d %d", trafo_adjoint, N, M);
   *x = (double *)nfft_malloc(2*(*M)*sizeof(double));
-  *f_hat = (C*)nfft_malloc((2*(*N)+2) * (2*(*N)+2) * sizeof(C));
+  *f_hat = (C*)nfft_malloc(sizeof(C) * (2*(*N)+2) * (2*(*N)+2));
   *f = (C*)nfft_malloc((*M)*sizeof(C));
 
-  memset(*f_hat,0U,(2*(*N)+2) * (2*(*N)+2) * sizeof(C));
+  memset(*f_hat,0U,sizeof(C) * (2*(*N)+2) * (2*(*N)+2));
   memset(*f,0U,(*M)*sizeof(C));
 
 #ifdef _OPENMP

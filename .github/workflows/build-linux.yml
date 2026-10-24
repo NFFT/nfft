@@ -73,7 +73,7 @@ jobs:
         persist-credentials: false
 
     - name: Disable initramfs update
-      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+      run: test -f /etc/initramfs-tools/update-initramfs.conf && sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf || true
 
     - name: Disable man-db update
       run: sudo rm -f /var/lib/man-db/auto-update        
@@ -448,7 +448,7 @@ jobs:
         persist-credentials: false
 
     - name: Disable initramfs update
-      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+      run: test -f /etc/initramfs-tools/update-initramfs.conf && sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf || true
 
     - name: Disable man-db update
       run: sudo rm -f /var/lib/man-db/auto-update        

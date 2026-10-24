@@ -38,7 +38,7 @@ void nfft_benchomp_createdataset(unsigned int d, unsigned int trafo_adjoint, int
   for (t = 0; t < d; t++)
     N_total *= N[t];
 
-  x = (R*) NFFT(malloc)(d*M*sizeof(R));
+  x = (R*) NFFT(malloc)(sizeof(R)*d*M);
   f = (C*) NFFT(malloc)(M*sizeof(C));
   f_hat = (C*) NFFT(malloc)(N_total*sizeof(C));
 
