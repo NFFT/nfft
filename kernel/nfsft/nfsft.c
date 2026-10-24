@@ -933,7 +933,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
             for (k = n_abs+2; k <= plan->N; k++)
             {
               long double _Complex temp = it2;
-              it2 = (long double) alpha[k] * stheta * it2 + gamma[k] * it1;
+              it2 = alpha[k] * (stheta * it2) + gamma[k] * it1;
               it1 = temp;
               plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
             }
@@ -1001,7 +1001,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
           for (k = n_abs+2; k <= plan->N; k++)
           {
             long double _Complex temp = it2;
-            it2 = (long double) alpha[k] * stheta * it2 + gamma[k] * it1;
+            it2 = alpha[k] * (stheta * it2) + gamma[k] * it1;
             it1 = temp;
             plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
           }
