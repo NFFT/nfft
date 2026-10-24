@@ -773,7 +773,7 @@ static void eval_sum_clenshaw_transposed_ld(int N, int M, double _Complex* a, do
     for (j = 0; j <= M; j++)
     {
       /* Compute final result by multiplying with the constant lambda */
-      long double _Complex it2 = lambda * y[j];
+      long double _Complex it2 = (long double) lambda * y[j];
       a[0] += it2;
 
       /* Compute final step. */

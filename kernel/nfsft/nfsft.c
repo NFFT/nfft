@@ -412,12 +412,12 @@ void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags,
   else
   {
     /* Allocate memory for three-term recursion coefficients. */
-    wisdom.alpha = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
-      sizeof(double));
-    wisdom.beta = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
-      sizeof(double));
-    wisdom.gamma = (double*) nfft_malloc((wisdom.N_MAX+1)*(wisdom.N_MAX+2)*
-      sizeof(double));
+    wisdom.alpha = (double*) nfft_malloc(sizeof(double)*(wisdom.N_MAX+1)*
+      (wisdom.N_MAX+2));
+    wisdom.beta = (double*) nfft_malloc(sizeof(double)*(wisdom.N_MAX+1)*
+      (wisdom.N_MAX+2));
+    wisdom.gamma = (double*) nfft_malloc(sizeof(double)*(wisdom.N_MAX+1)*
+      (wisdom.N_MAX+2));
     /** \todo Change to functions which compute only for fixed order n. */
     /* Compute three-term recurrence coefficients alpha_k^n, beta_k^n, and
      * gamma_k^n. */
@@ -933,7 +933,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
             for (k = n_abs+2; k <= plan->N; k++)
             {
               long double _Complex temp = it2;
-              it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+              it2 = (long double) alpha[k] * stheta * it2 + gamma[k] * it1;
               it1 = temp;
               plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
             }
@@ -1001,7 +1001,7 @@ void nfsft_adjoint_direct(nfsft_plan *plan)
           for (k = n_abs+2; k <= plan->N; k++)
           {
             long double _Complex temp = it2;
-            it2 = alpha[k] * stheta * it2 + gamma[k] * it1;
+            it2 = (long double) alpha[k] * stheta * it2 + gamma[k] * it1;
             it1 = temp;
             plan->f_hat[NFSFT_INDEX(k,n,plan)] += it2;
           }

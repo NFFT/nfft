@@ -280,12 +280,20 @@ void strEscapeUnderscore(char *dst, char *src, int maxlen)
   int len;
   int offset = 0;
 
-  while (src[i] != '\0' && len + offset < maxlen - 1)
+  if (maxlen > 0)
+    dst[0] = '\0';
+
+  while (src[i] != '\0' && offset < maxlen - 1)
   {
     if (src[i] == '_')
       len = snprintf(dst + offset, maxlen - offset, "\\_{}");
     else
       len = snprintf(dst + offset, maxlen - offset, "%c", src[i]);
+    if (len < 0 || len >= maxlen - offset)
+    {
+      dst[offset] = '\0';
+      break;
+    }
     offset += len;
     i++;
   }

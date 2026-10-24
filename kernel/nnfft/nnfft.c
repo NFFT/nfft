@@ -560,7 +560,7 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
   if(ths->nnfft_flags & PRE_LIN_PSI)
   {
     ths->K=(1U<< 10)*(ths->m+1);
-    ths->psi = (double*) nfft_malloc((ths->K+1)*ths->d*sizeof(double));
+    ths->psi = (double*) nfft_malloc(sizeof(double)*(ths->K+1)*ths->d);
   }
 
   if(ths->nnfft_flags & PRE_PSI){

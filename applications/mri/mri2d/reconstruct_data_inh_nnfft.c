@@ -60,7 +60,7 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   int m=2;
   double sigma = 1.25;
 
-  w = (double*)nfft_malloc(N*N*sizeof(double));
+  w = (double*)nfft_malloc(sizeof(double)*N*N);
 
   ftime=fopen("readout_time.dat","r");
   finh=fopen("inh.dat","r");
