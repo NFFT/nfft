@@ -707,4 +707,6 @@ void nnfft_finalize(nnfft_plan *ths)
 
   if(ths->nnfft_flags & MALLOC_V)
     nfft_free(ths->v);
+
+  WINDOW_HELP_FINALIZE
 }
