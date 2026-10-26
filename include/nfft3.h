@@ -112,7 +112,8 @@ typedef struct\
 \
   NFFT_INT d; /**< Dimension (rank). */\
   NFFT_INT *N; /**< Multi-bandwidth. */\
-  R *sigma; /**< Oversampling factor. */\
+  R *sigma; /**< Oversampling factor. Kaiser-Bessel window: tested for
+               \f$1.1\le\sigma\le4\f$, nfft_check() rejects others. */\
   NFFT_INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
                is to use a power of two that satifies  \f$2\le\sigma<4\f$. */\
   NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
