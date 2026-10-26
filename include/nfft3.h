@@ -156,7 +156,7 @@ typedef struct\
   C *g1; /**< Input of fftw */\
   C *g2; /**< Output of fftw */\
 \
-  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
+  R *spline_coeffs; /**< Kaiser-Bessel window only: one polynomial table per axis */\
 \
   NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
@@ -262,7 +262,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
+  R *spline_coeffs; /**< Kaiser-Bessel window only: one polynomial table per axis */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -342,7 +342,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
+  R *spline_coeffs; /**< Kaiser-Bessel window only: one polynomial table per axis */\
 \
   R X(full_psi_eps);\
 } X(plan);\
@@ -413,7 +413,7 @@ typedef struct\
   int *psi_index_g; /**< only for thin B */\
   int *psi_index_f; /**< only for thin B */\
   C *F;\
-  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
+  R *spline_coeffs; /**< Kaiser-Bessel window only: one polynomial table per axis */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \

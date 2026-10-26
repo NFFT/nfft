@@ -46,7 +46,8 @@ function h=nfsoft(N, M, nfsoft_flags, nfft_flags, nfft_cutoff, fpt_kappa, fftw_s
 %   NFSOFT_USE_DPT, NFSOFT_USE_NDFT (default=0)
 % nfft_cutoff ... NFFT cutoff parameter (default 6)
 % fpt_kappa ... threshold (affects accuracy, 1000 is the default)
-% fftw_size ... oversampling (must be >= 2*N+2 and even, default 4*N+4)
+% fftw_size ... oversampling (must be >= 2*N+2 and even, default 4*N+4;
+%   Kaiser-Bessel window: tested for 1.1*(2*N+2) .. 4*(2*N+2))
 % (fftw_size is the size of the fftw transform,
 % higher oversampling means better accuracy but more time and memory required)
 %
