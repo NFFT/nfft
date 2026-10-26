@@ -30,18 +30,16 @@
 
 #if defined(WINDOW_IS_KAISER_BESSEL)
 
-/* The polynomial's contract is absolute against the window peak, which is what
- * the psi table owes the transform. Relative error is not the yardstick out in
- * a tail that is 1E-19 of the peak, and holding it there is what sank the
- * earlier attempt at this. */
+/* Errors are absolute against the window peak, which is what the psi table
+ * owes the transform. Relative error is meaningless in a tail 1E-19 of the
+ * peak. */
 static R kb_peak(const R b, const R lg_tail, const R peak_inv, const R mr)
 {
   return Y(kb_phi)(b, lg_tail, peak_inv, mr, K(0.0));
 }
 
-/* What the fit error comes to at the degree Y(kb_poly_degree) picks: the
- * tolerance, or 7.5 eps for a rounding plateau of up to 6 eps, 1 eps of
- * truncation and margin. */
+/* Expected fit error at the degree Y(kb_poly_degree) picks: the tolerance, or
+ * 7.5 eps (rounding plateau up to 6 eps, 1 eps truncation, margin). */
 static R pick_target(const R b, const R reach)
 {
   const R tol = K(0.05) * KPI * EXP(-b * reach);
@@ -98,8 +96,8 @@ void X(check_kaiser_bessel_poly)(void)
 
       Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
 
-      /* 513 offsets, off the interpolation nodes where the residual is zero
-       * by construction. Runs start in [m, m + 1], anchored at the grid point
+      /* Offsets off the interpolation nodes, where the residual is zero by
+       * construction. Runs start in [m, m + 1], anchored at the grid point
        * below the node; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
       for (i = 0; i <= 512; i++)
       {
@@ -349,10 +347,8 @@ void X(check_kaiser_bessel_poly_trafo)(void)
       ea = edge_err(&pa);
 
       {
-        /* Where truncation dominates, the polynomial may add 5%. At the
-         * round-off floor, about u kappa with kappa the deconvolution's
-         * spread, both errors are rounding noise and the polynomial may add
-         * one unit of it. */
+        /* The polynomial may add 5% where truncation dominates, and one u
+         * kappa at the round-off floor, kappa the spread of c_phi_inv. */
         const R uk = Y(float_property)(NFFT_EPSILON) * pa.c_phi_inv[0][0]
             / pa.c_phi_inv[0][KB_N / 2];
         const R bound = K(1.05) * ea + uk;

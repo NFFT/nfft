@@ -119,7 +119,7 @@ static inline R X(base_reduced)(const INT k, const R x)
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI psij_const[t * (2 * ths->m + 2) + lj[t]]
 
-/* The node's runs into psij_const, read by MACRO_without_PRE_PSI. */
+/* Window runs of node j on all axes, for MACRO_without_PRE_PSI. */
 #define MACRO_fill_psij_const \
 { \
   for (t = 0; t < ths->d; t++) \

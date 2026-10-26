@@ -16,20 +16,14 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/* Polynomial form of the Kaiser-Bessel window.
- *
- * One polynomial per unit cell of |nx|, in the offset s in [-1/2, 1/2] from
- * the cell centre. A run of 2m + 2 taps spans m + 1 cells and their mirror
- * cells at s and -s, so it is one Horner sweep in s^2 over m + 1 columns, in
- * place of 2m + 2 calls to EXP, EXPM1 and SIN. Each column is analytic in s:
- * both branches of the window are even in the radical and ra^2 is a
- * polynomial in s, so there is no branch point and a Chebyshev interpolant
- * converges geometrically.
- *
- * The interpolant is built from the window itself, not from a rewrite of it:
- * a plain sinh(b ra)/ra ratio carries 20 times the error of Y(kb_phi) and that
- * error would cap the fit.
- */
+/* Polynomial form of the Kaiser-Bessel window: one Chebyshev interpolant per
+ * unit cell of |nx|, converted to monomials in the offset from the cell
+ * centre. Each cell is analytic: both branches of the window are even in the
+ * radical and ra^2 is a polynomial in the offset, so the fit converges
+ * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
+ * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
+ * infft.h evaluate the tables, a run of 2m + 2 taps as one Horner sweep in s^2
+ * over m + 1 mirrored columns. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -55,7 +49,7 @@ static void cheb_of(R *dst, const R *val, const R *cm, const INT w,
     }
 }
 
-/* T_j(2s) in powers of s, so the run time can use plain Horner. */
+/* Series in T_j(2s) to powers of s. tp is (deg + 1)^2 scratch. */
 static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     const INT deg)
 {
@@ -93,7 +87,7 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     }
 }
 
-/* All columns at offset s, in the even and odd split Y(kb_poly_run) uses. */
+/* All columns at offset s, evaluated as Y(kb_poly_run) does. */
 static void eval_split(R *out, const R *coef, const INT w, const INT deg,
     const R s)
 {
@@ -130,8 +124,8 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   mt = IF(mt > 1, mt, 1);
   deg = kb_poly_tab_deg0[mt];
 
-  /* Thresholds are rounded down. A sigma off [1.1, 4], which X(check)
-   * rejects, gets the degree at the nearer end. */
+  /* Thresholds are rounded down. A sigma off [1.1, 4] gets the degree at the
+   * nearer end. */
   for (k = kb_poly_tab_off[mt]; k < kb_poly_tab_off[mt + 1]; k++)
     deg += IF(sigma >= K(1E-4) * (R)kb_poly_tab_brk[k], 1, 0);
 
@@ -163,11 +157,9 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   cheb_of(cheb, val, cm, w, dg);
   cheb_to_monomial(coef, cheb, tp, w, dg);
 
-  /* One refinement step, against the evaluator the run time will use, so the
-   * correction absorbs the conversion's rounding as well as the fit's. The
-   * residual is a difference of two values that already agree to a few units
-   * in the last place, so it is formed without cancellation error and its own
-   * fit costs eps of something tiny. A second step changes nothing. */
+  /* One refinement step against the run-time evaluator absorbs the rounding of
+   * the fit and of the monomial conversion. The residual is a few ulp, so its
+   * own fit error is negligible; a second step changes nothing. */
   for (k = 0; k < n; k++)
   {
     eval_split(out, coef, w, dg, node[k]);
@@ -204,7 +196,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
   INT deg = 0, stride, t;
   R *tab;
 
-  /* One degree for all axes, the one the hardest axis needs. */
+  /* One degree for all axes, the largest any axis needs. */
   for (t = 0; t < d; t++)
   {
     const INT dt = Y(kb_poly_degree)(b[t], reach, m);
