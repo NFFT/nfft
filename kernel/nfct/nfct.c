@@ -62,7 +62,7 @@ static inline INT intprod(const INT *vec, const INT a, const INT d)
 #define FOURIER_TRAFO FFTW_REDFT00
 #define FFTW_DEFAULT_FLAGS FFTW_ESTIMATE | FFTW_DESTROY_INPUT
 
-#define NODE(p,r) (ths->x[(p) * ths->d + (r)])
+#define NODE(p,r) (xs[(p) * ths->d + (r)])
 
 /* Block size for the phase recurrence in the direct transforms */
 #define NFFT_DIRECT_RECURRENCE_BLOCK 32
@@ -124,7 +124,7 @@ static inline R X(base_reduced)(const INT k, const R x)
 { \
   for (t = 0; t < ths->d; t++) \
     PHI_RUN(psij_const + t * (2 * ths->m + 2), (2 * NN(ths->n[t])), \
-        ths->x[j * ths->d + t], u[t], t); \
+        xs[j * ths->d + t], u[t], t); \
 }
 #define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), \
   NX_SUB((2 * NN(ths->n[t])), NODE(j,t), lj[t] + u[t]) \
@@ -465,16 +465,145 @@ void X(adjoint_direct)(const X(plan) *ths)
 /** macros and small sub routines for the fast transforms
  */
 
-/** computes 2m+2 indices for the matrix B
+/** computes 2m+2 indices for the matrix B, for node j of the node array xs
  */
-static inline void uo(const X(plan) *ths, const INT j, INT *up, INT *op,
-  const INT act_dim)
+static inline void uo(const X(plan) *ths, const R *xs, const INT j, INT *up,
+  INT *op, const INT act_dim)
 {
-  const R xj = ths->x[j * ths->d + act_dim];
+  const R xj = xs[j * ths->d + act_dim];
   INT c = (INT)FLOOR(xj * (2 * NN(ths->n[(act_dim)])));
 
   (*up) = c - (ths->m);
   (*op) = c + 1 + (ths->m);
+}
+
+/**
+ * Sorts the nodes by the row-major index of the cell they lie in, for better
+ * cache utilisation in the multiplication with the matrix B. The result is
+ * written to ar_x as (key, node index) pairs, the nodes remain unchanged.
+ */
+static void sort0(const X(plan) *ths, INT *ar_x)
+{
+  const INT d = ths->d, M = ths->M_total;
+  INT j, t, nprod, rhigh;
+  INT *ar_x_temp;
+
+  for (t = 0, nprod = 1; t < d; t++)
+    nprod *= NN(ths->n[t]) + 1;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(j, t)
+#endif
+  for (j = 0; j < M; j++)
+  {
+    INT key = 0;
+    for (t = 0; t < d; t++)
+    {
+      INT c = (INT)FLOOR(ths->x[j * d + t] * (R)(2 * NN(ths->n[t])));
+      c = MIN(MAX(c, 0), NN(ths->n[t]));
+      key = key * (NN(ths->n[t]) + 1) + c;
+    }
+    ar_x[2 * j] = key;
+    ar_x[2 * j + 1] = j;
+  }
+
+  rhigh = (INT) LRINT(CEIL(LOG2((R)nprod))) - 1;
+
+  ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(M) * sizeof(INT));
+  Y(sort_node_indices_radix_lsdf)(M, ar_x, ar_x_temp, rhigh);
+  Y(free)(ar_x_temp);
+}
+
+/** Sorts the nodes for one transform, if flag NFFT_SORT_NODES is set and no
+ *  precomputation has taken a snapshot of them (see sort_nodes). */
+static inline void sort(const X(plan) *ths)
+{
+  if ((ths->flags & NFFT_SORT_NODES) && ths->x_sorted == NULL)
+    sort0(ths, ths->index_x);
+}
+
+/**
+ * Takes the snapshot of the nodes the transforms work on when flag
+ * NFFT_SORT_NODES is set: sorts them into ths->index_x and copies them in that
+ * order into ths->x_sorted. The psi tables are then built in the same order, so
+ * that the matrix B is applied with sequential access to the node data and the
+ * permutation is only used for ths->f. Without NFFT_SORT_NODES it does nothing.
+ */
+static void sort_nodes(X(plan) *ths)
+{
+  const INT d = ths->d, M = ths->M_total;
+  INT k;
+
+  if (!(ths->flags & NFFT_SORT_NODES))
+    return;
+
+  sort0(ths, ths->index_x);
+
+  if (ths->x_sorted == NULL)
+  {
+    ths->x_sorted = (R*) Y(malloc)((size_t)(d * M) * sizeof(R));
+    ths->f_sorted = (R*) Y(malloc)((size_t)(M) * sizeof(R));
+  }
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k)
+#endif
+  for (k = 0; k < M; k++)
+  {
+    const R *xj = ths->x + ths->index_x[2 * k + 1] * d;
+    INT t;
+    for (t = 0; t < d; t++)
+      ths->x_sorted[k * d + t] = xj[t];
+  }
+}
+
+/** Nodes as the matrix B reads them: the sorted snapshot once it is taken,
+ *  else the caller's array ths->x. */
+static inline const R *node_x(const X(plan) *ths)
+{
+  return ths->x_sorted != NULL ? ths->x_sorted : ths->x;
+}
+
+/** Samples as the matrix B reads and writes them: the plan's scratch array in
+ *  sorted order once the snapshot is taken, else the caller's array ths->f. */
+static inline R *node_f(const X(plan) *ths)
+{
+  return ths->x_sorted != NULL ? ths->f_sorted : ths->f;
+}
+
+/** Row of the k-th node in processing order in the node data (node_x(ths),
+ *  node_f(ths) and the psi tables). */
+#define NODE_J(ths, k) (((ths)->x_sorted == NULL \
+  && ((ths)->flags & NFFT_SORT_NODES)) ? (ths)->index_x[2 * (k) + 1] : (k))
+
+/** Before the adjoint B: copy ths->f into the sorted scratch array. */
+static void gather_f(X(plan) *ths)
+{
+  INT k;
+
+  if (ths->x_sorted == NULL)
+    return;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k)
+#endif
+  for (k = 0; k < ths->M_total; k++)
+    ths->f_sorted[k] = ths->f[ths->index_x[2 * k + 1]];
+}
+
+/** After the trafo B: copy the sorted scratch array back into ths->f. */
+static void scatter_f(X(plan) *ths)
+{
+  INT k;
+
+  if (ths->x_sorted == NULL)
+    return;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k)
+#endif
+  for (k = 0; k < ths->M_total; k++)
+    ths->f[ths->index_x[2 * k + 1]] = ths->f_sorted[k];
 }
 
 #define MACRO_D_compute_A \
@@ -616,7 +745,7 @@ MACRO_D(T)
 { \
   for (t2 = 0; t2 < ths->d; t2++) \
   { \
-    uo(ths, j, &u[t2], &o[t2], t2); \
+    uo(ths, xs, j, &u[t2], &o[t2], t2); \
     \
     /* determine index in g-array corresponding to u[(t2)] */ \
     if (u[(t2)] < 0) \
@@ -702,7 +831,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT lprod; /* 'regular bandwidth' of matrix B  */ \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
   INT t, t2; /* index dimensions */ \
-  INT j; /* index nodes */ \
+  INT j, k; /* index nodes: row in the node data, processing order */ \
+  const R *xs = node_x(ths); \
   INT l_L, ix; /* index one row of B */ \
   INT l[ths->d]; /* multi index u<=l<=o (real index of g in array) */ \
   INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
@@ -723,14 +853,15 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT lg_offset[ths->d]; /* offset in g according to u */ \
   INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
-  f = (R*)ths->f; g = (R*)ths->g; \
+  f = node_f(ths); g = (R*)ths->g; \
 \
   MACRO_B_init_result_ ## which_one \
 \
   if (ths->flags & PRE_FULL_PSI) \
   { \
-    for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (ix = 0, j = 0; j < ths->M_total; j++) \
     { \
+      fj = f + j; \
       for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
       { \
         MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
@@ -739,6 +870,8 @@ static inline void B_ ## which_one (X(plan) *ths) \
     return; \
   } \
 \
+  sort(ths); \
+ \
   phi_prod[0] = K(1.0); \
   ll_plain[0] = 0; \
 \
@@ -747,8 +880,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
 \
   if (ths->flags & PRE_PSI) \
   { \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      j = NODE_J(ths, k); \
+      fj = f + j; \
       MACRO_init_uo_l_lj_t; \
  \
       for (l_L = 0; l_L < lprod; l_L++) \
@@ -771,8 +906,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
       fg_q[t] = fg_e[t] * fg_e[t]; \
     } \
  \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      j = NODE_J(ths, k); \
+      fj = f + j; \
       MACRO_init_uo_l_lj_t; \
  \
       for (t = 0; t < ths->d; t++) \
@@ -801,8 +938,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
       fg_q[t] = fg_e[t] * fg_e[t]; \
     } \
  \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      j = NODE_J(ths, k); \
+      fj = f + j; \
       MACRO_init_uo_l_lj_t; \
  \
       for (t = 0; t < ths->d; t++) \
@@ -810,10 +949,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
         const INT fg_c = u[t] + ths->m; \
         FG_RUN(fg_psi[t] + 1, ths->m, \
             (PHI((2 * NN(ths->n[t])), \
-                 NX_SUB((2 * NN(ths->n[t])), ths->x[j*ths->d+t], fg_c) \
+                 NX_SUB((2 * NN(ths->n[t])), xs[j*ths->d+t], fg_c) \
                  / ((R)(2 * NN(ths->n[t]))), (t))), \
             EXP(K(2.0) \
-                * NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], fg_c) \
+                * NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], fg_c) \
                 / ths->b[t]), \
             fg_e[t], fg_q[t]); \
       } \
@@ -832,13 +971,15 @@ static inline void B_ ## which_one (X(plan) *ths) \
  \
   if (ths->flags & PRE_LIN_PSI) \
   { \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
+    for (k = 0; k < ths->M_total; k++) \
     { \
+      j = NODE_J(ths, k); \
+      fj = f + j; \
       MACRO_init_uo_l_lj_t; \
   \
       for (t = 0; t < ths->d; t++) \
       { \
-        y[t] = ((NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], u[t])) \
+        y[t] = ((NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], u[t])) \
                 * ((R)ths->K))/(ths->m + 2); \
         ip_u  = LRINT(FLOOR(y[t])); \
         ip_w  = y[t]-ip_u; \
@@ -863,10 +1004,12 @@ static inline void B_ ## which_one (X(plan) *ths) \
   } /* if(PRE_LIN_PSI) */ \
   \
   /* no precomputed psi at all */ \
-  for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
+  for (k = 0; k < ths->M_total; k++) \
   { \
     R psij_const[ths->d * (2 * ths->m + 2)]; \
  \
+    j = NODE_J(ths, k); \
+    fj = f + j; \
     MACRO_init_uo_l_lj_t; \
     MACRO_fill_psij_const; \
  \
@@ -917,6 +1060,7 @@ void X(trafo)(X(plan) *ths)
        * \text{ for } j=0,\dots,M-1 \f$ */
       TIC(2)
       B_A(ths);
+      scatter_f(ths);
       TOC(2)
 
       /*if (ths->flags & PRE_FULL_PSI)
@@ -944,6 +1088,7 @@ void X(adjoint)(X(plan) *ths)
       /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } l \in I_n,m(x_j) \f$ */
       TIC(2)
+      gather_f(ths);
       B_T(ths);
       TOC(2)
 
@@ -1005,12 +1150,13 @@ void X(precompute_lin_psi)(X(plan) *ths)
   } /* for(t) */
 }
 
-void X(precompute_fg_psi)(X(plan) *ths)
+static void precompute_fg_psi_sorted(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
   INT u, o, c; /* depends on x_j */
+  const R *xs;
 
-//  sort(ths);
+  xs = node_x(ths);
 
   for (t = 0; t < ths->d; t++)
   {
@@ -1018,28 +1164,35 @@ void X(precompute_fg_psi)(X(plan) *ths)
 //    #pragma omp parallel for default(shared) private(j,u,o)
     for (j = 0; j < ths->M_total; j++)
     {
-      uo(ths, j, &u, &o, t);
+      uo(ths, xs, j, &u, &o, t);
 
       /* anchored at the grid point below the node, which uo() puts at run
        * index m */
       c = u + ths->m;
 
       ths->psi[2 * (j*ths->d + t)] = (PHI((2 * NN(ths->n[t])),
-          NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], c)
+          NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], c)
           / ((R)(2 * NN(ths->n[t]))), (t)));
       ths->psi[2 * (j*ths->d + t) + 1] = EXP(K(2.0)
-          * NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], c) / ths->b[t]);
+          * NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], c) / ths->b[t]);
       } /* for(j) */
   }
   /* for(t) */
 } /* nfft_precompute_fg_psi */
 
-void X(precompute_psi)(X(plan) *ths)
+void X(precompute_fg_psi)(X(plan) *ths)
+{
+  sort_nodes(ths);
+  precompute_fg_psi_sorted(ths);
+}
+
+static void precompute_psi_sorted(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
   INT u, o; /* depends on x_j */
+  const R *xs;
 
-  //sort(ths);
+  xs = node_x(ths);
 
   for (t = 0; t < ths->d; t++)
   {
@@ -1047,15 +1200,21 @@ void X(precompute_psi)(X(plan) *ths)
 
     for (j = 0; j < ths->M_total; j++)
     {
-      uo(ths, j, &u, &o, t);
+      uo(ths, xs, j, &u, &o, t);
 
       PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
-          (2 * NN(ths->n[t])), ths->x[(j) * ths->d + (t)], u, t);
+          (2 * NN(ths->n[t])), xs[(j) * ths->d + (t)], u, t);
     } /* for (j) */
   } /* for (t) */
 } /* precompute_psi */
 
-void X(precompute_full_psi)(X(plan) *ths)
+void X(precompute_psi)(X(plan) *ths)
+{
+  sort_nodes(ths);
+  precompute_psi_sorted(ths);
+}
+
+static void precompute_full_psi_sorted(X(plan) *ths)
 {
 //#ifdef _OPENMP
 //  sort(ths);
@@ -1076,8 +1235,9 @@ void X(precompute_full_psi)(X(plan) *ths)
   R phi_prod[ths->d+1];
 
   INT ix, ix_old;
+  const R *xs;
 
-  //sort(ths);
+  xs = node_x(ths);
 
   phi_prod[0] = K(1.0);
   ll_plain[0]  = 0;
@@ -1108,14 +1268,23 @@ void X(precompute_full_psi)(X(plan) *ths)
 //#endif
 }
 
+void X(precompute_full_psi)(X(plan) *ths)
+{
+  sort_nodes(ths);
+  precompute_full_psi_sorted(ths);
+}
+
 void X(precompute_one_psi)(X(plan) *ths)
 {
+  /* one snapshot of the nodes for all psi tables (NFFT_SORT_NODES only) */
+  sort_nodes(ths);
+
   if(ths->flags & PRE_PSI)
-    X(precompute_psi)(ths);
+    precompute_psi_sorted(ths);
   if(ths->flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(ths);
+    precompute_full_psi_sorted(ths);
   if(ths->flags & PRE_FG_PSI)
-    X(precompute_fg_psi)(ths);
+    precompute_fg_psi_sorted(ths);
   if(ths->flags & PRE_LIN_PSI)
     X(precompute_lin_psi)(ths);
 }
@@ -1198,10 +1367,13 @@ static inline void init_help(X(plan) *ths)
     }
   }
 
-//  if(ths->flags & NFFT_SORT_NODES)
-//    ths->index_x = (INT*) Y(malloc)(sizeof(INT)*2*ths->M_total);
-//  else
-//    ths->index_x = NULL;
+  if (ths->flags & NFFT_SORT_NODES)
+    ths->index_x = (INT*) Y(malloc)(sizeof(INT) * 2U * (size_t)(ths->M_total));
+  else
+    ths->index_x = NULL;
+
+  ths->x_sorted = NULL;
+  ths->f_sorted = NULL;
 
   ths->mv_trafo = (void (*) (void* ))X(trafo);
   ths->mv_adjoint = (void (*) (void* ))X(adjoint);
@@ -1342,8 +1514,14 @@ void X(finalize)(X(plan) *ths)
 {
   INT t; /* index over dimensions */
 
-//  if(ths->flags & NFFT_SORT_NODES)
-//    Y(free)(ths->index_x);
+  if (ths->flags & NFFT_SORT_NODES)
+    Y(free)(ths->index_x);
+
+  if (ths->x_sorted != NULL)
+  {
+    Y(free)(ths->x_sorted);
+    Y(free)(ths->f_sorted);
+  }
 
   if (ths->flags & FFTW_INIT)
   {

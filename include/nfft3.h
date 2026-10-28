@@ -268,6 +268,13 @@ typedef struct\
   R *g2; /**< output of fftw */\
 \
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
+\
+  NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
+  R *x_sorted; /**< Nodes in the order of \ref index_x, copied by the \
+                    precomputation when flag \ref NFFT_SORT_NODES is set; \
+                    NULL until then */\
+  R *f_sorted; /**< Samples in the order of \ref index_x, scratch array of \
+                    the fast transforms once \ref x_sorted is set */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -350,6 +357,13 @@ typedef struct\
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
   R X(full_psi_eps);\
+\
+  NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
+  R *x_sorted; /**< Nodes in the order of \ref index_x, copied by the \
+                    precomputation when flag \ref NFFT_SORT_NODES is set; \
+                    NULL until then */\
+  R *f_sorted; /**< Samples in the order of \ref index_x, scratch array of \
+                    the fast transforms once \ref x_sorted is set */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
