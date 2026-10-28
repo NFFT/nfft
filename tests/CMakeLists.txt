@@ -11,6 +11,7 @@ set(NFFT_TEST_SOURCES
   window.c  window.h
   kbpoly.c  kbpoly.h
   nfft.c    nfft.h
+  sort.c    sort.h
   nfct.c    nfct.h
   nfst.c    nfst.h)
 
