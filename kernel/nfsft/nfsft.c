@@ -1556,8 +1556,8 @@ void nfsft_precompute_x(nfsft_plan *plan)
   /* Pass angle array to NFFT plan. */
   plan->plan_nfft.x = plan->x;
 
-  /* Precompute. */
-  if (plan->plan_nfft.flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(&plan->plan_nfft);
+  /* Precompute; with NFFT_SORT_NODES this also takes the sorted copy of the
+   * nodes, so it runs without a psi flag, too. */
+  nfft_precompute_one_psi(&plan->plan_nfft);
 }
 /* \} */

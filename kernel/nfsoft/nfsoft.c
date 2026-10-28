@@ -402,14 +402,8 @@ void nfsoft_precompute(nfsoft_plan *plan3D)
   }
 
 
-  if ((plan3D->p_nfft).flags & FG_PSI)
-  {
-    nfft_precompute_one_psi(&(plan3D->p_nfft));
-  }
-  if ((plan3D->p_nfft).flags & PRE_PSI)
-  {
-    nfft_precompute_one_psi(&(plan3D->p_nfft));
-  }
+  /* the psi tables and, with NFFT_SORT_NODES, the sorted copy of the nodes */
+  nfft_precompute_one_psi(&(plan3D->p_nfft));
 
 }
 

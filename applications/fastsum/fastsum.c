@@ -1118,15 +1118,9 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
 //    for (t = 0; t < ths->mv1.d; t++)
 //      ths->mv1.x[ths->mv1.d * k + t] = -ths->x[ths->mv1.d * k + t]; /* note the factor -1 for transposed transform instead of adjoint*/
 
-  /** precompute psi, the entries of the matrix B */
-  if (ths->mv1.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&(ths->mv1));
-
-  if (ths->mv1.flags & PRE_PSI)
-    NFFT(precompute_psi)(&(ths->mv1));
-
-  if (ths->mv1.flags & PRE_FULL_PSI)
-    NFFT(precompute_full_psi)(&(ths->mv1));
+  /** precompute psi, the entries of the matrix B, and with NFFT_SORT_NODES
+   *  the sorted copy of the nodes */
+  NFFT(precompute_one_psi)(&(ths->mv1));
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[1] += nfft_elapsed_seconds(t1,t0);
@@ -1154,15 +1148,9 @@ void fastsum_precompute_target_nodes(fastsum_plan *ths)
 //    for (t = 0; t < ths->mv2.d; t++)
 //      ths->mv2.x[ths->mv2.d * j + t] = -ths->y[ths->mv2.d * j + t]; /* note the factor -1 for conjugated transform instead of standard*/
 
-  /** precompute psi, the entries of the matrix B */
-  if (ths->mv2.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&(ths->mv2));
-
-  if (ths->mv2.flags & PRE_PSI)
-    NFFT(precompute_psi)(&(ths->mv2));
-
-  if (ths->mv2.flags & PRE_FULL_PSI)
-    NFFT(precompute_full_psi)(&(ths->mv2));
+  /** precompute psi, the entries of the matrix B, and with NFFT_SORT_NODES
+   *  the sorted copy of the nodes */
+  NFFT(precompute_one_psi)(&(ths->mv2));
 #ifdef MEASURE_TIME
   t1 = getticks();
   ths->MEASURE_TIME_t[2] += NFFT(elapsed_seconds)(t1,t0);
