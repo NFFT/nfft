@@ -87,13 +87,10 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     }
 }
 
-INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
+INT Y(kb_poly_degree)(const R b, const INT m)
 {
   const R sigma = KPI / (K2PI - b);
   INT mt = (INT)CEIL(KB_POLY_BR_OPT / b) - 1, deg, k;
-
-  A(reach == (R)m + K(1.0));
-  (void)reach;
 
   /* Past m_opt the degree does not rise. */
   mt = IF(m < mt, m, mt);
@@ -177,7 +174,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
   /* One degree for all axes, the largest any axis needs. */
   for (t = 0; t < d; t++)
   {
-    const INT dt = Y(kb_poly_degree)(b[t], reach, m);
+    const INT dt = Y(kb_poly_degree)(b[t], m);
 
     deg = IF(dt > deg, dt, deg);
   }

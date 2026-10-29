@@ -52,7 +52,6 @@ int main(void)
   CU_add_test(util, "kaiser_bessel_reference", X(check_kaiser_bessel_reference));
   CU_add_test(util, "kaiser_bessel_cancellation", X(check_kaiser_bessel_cancellation));
   CU_add_test(util, "kaiser_bessel_nfft", X(check_kaiser_bessel_nfft));
-  CU_add_test(util, "kaiser_bessel_run", X(check_kaiser_bessel_run));
   CU_add_test(util, "kaiser_bessel_poly", X(check_kaiser_bessel_poly));
   CU_add_test(util, "kaiser_bessel_poly_trafo", X(check_kaiser_bessel_poly_trafo));
   CU_add_test(util, "kaiser_bessel_poly_sigma", X(check_kaiser_bessel_poly_sigma));

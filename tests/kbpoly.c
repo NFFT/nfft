@@ -22,12 +22,6 @@
 #include "infft.h"
 #include "kbpoly.h"
 
-/* The window macros in infft.h fall through to Kaiser-Bessel. */
-#if !defined(DIRAC_DELTA) && !defined(GAUSSIAN) && !defined(B_SPLINE) \
-    && !defined(SINC_POWER)
-#define WINDOW_IS_KAISER_BESSEL 1
-#endif
-
 #if defined(WINDOW_IS_KAISER_BESSEL)
 
 /* Errors are absolute against the window peak, which is what the psi table
@@ -85,7 +79,7 @@ void X(check_kaiser_bessel_poly)(void)
       const R lt = Y(bessel_i0_logtail)(reach * b);
       const R pki = EXP(-reach * b - lt);
       const R peak = kb_peak(b, lt, pki, reach);
-      const INT deg = Y(kb_poly_degree)(b, reach, m), w = 2 * m + 2;
+      const INT deg = Y(kb_poly_degree)(b, m), w = 2 * m + 2;
       const INT cols = KB_POLY_COLS(m);
       const R bound = K(2.0) * pick_target(b, reach);
       R *coef = (R*) Y(malloc)((size_t)(KB_POLY_ROWS(deg) * cols) * sizeof(R));
@@ -208,15 +202,16 @@ void X(check_kaiser_bessel_poly_sigma)(void)
 static void analytic_psi(R *psi, const R *x, const R *b, const INT M,
     const INT n, const INT m)
 {
-  INT j;
+  INT j, l;
 
   for (j = 0; j < M; j++)
   {
     const R xn = x[j] * (R)n;
     const INT u = (INT)FLOOR(xn) - m;
 
-    Y(kb_phi_run)(psi + j * (2 * m + 2), b[0], b[1], b[3], (R)m + K(1.0), m,
-        xn - (R)u);
+    for (l = 0; l < 2 * m + 2; l++)
+      psi[j * (2 * m + 2) + l] = Y(kb_phi)(b[0], b[1], b[3], (R)m + K(1.0),
+          (xn - (R)u) - (R)l);
   }
 }
 

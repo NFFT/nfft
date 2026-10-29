@@ -126,9 +126,6 @@ static inline R X(base_reduced)(const INT k, const R x)
     PHI_RUN(psij_const + t * (2 * ths->m + 2), (2 * NN(ths->n[t])), \
         ths->x[j * ths->d + t], u[t], t); \
 }
-#define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), \
-  NX_SUB((2 * NN(ths->n[t])), NODE(j,t), lj[t] + u[t]) \
-  / ((R)(2 * NN(ths->n[t]))), t)
 
 /**
  * Direct computation of non equispaced sine transforms

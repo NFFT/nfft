@@ -23,7 +23,6 @@ void X(check_kaiser_bessel_peak)(void);
 void X(check_kaiser_bessel_reference)(void);
 void X(check_kaiser_bessel_cancellation)(void);
 void X(check_kaiser_bessel_nfft)(void);
-void X(check_kaiser_bessel_run)(void);
 void X(check_kaiser_bessel_phi)(void);
 void X(check_log_sinc)(void);
 void X(check_log_sinc_exp)(void);

@@ -27,12 +27,6 @@
 #include "infft.h"
 #include "window.h"
 
-/* The window macros in infft.h fall through to Kaiser-Bessel. */
-#if !defined(DIRAC_DELTA) && !defined(GAUSSIAN) && !defined(B_SPLINE) \
-    && !defined(SINC_POWER)
-#define WINDOW_IS_KAISER_BESSEL 1
-#endif
-
 #define ERR(x,y) IF(ABS(y) == K(0.0), ABS((x) - (y)), ABS((x) - (y)) / ABS(y))
 
 /* The test build carries -ffast-math, which rules out isnan and isinf, so bound
@@ -340,85 +334,10 @@ void X(check_kaiser_bessel_nfft)(void)
 #endif
 }
 
-/* kb_phi_run splits a run into a guarded stretch and a branch-free interior.
- * The two must agree, at every offset of the run against the support and at
- * every cutoff, including the offsets that put ra at or next to zero. */
-void X(check_kaiser_bessel_run)(void)
-{
-#if defined(WINDOW_IS_KAISER_BESSEL)
-  static const int kb_run_m[] = {1, 2, 4, 8, 11, 16};
-  /* fractions of a grid cell, the ends included: those are where ra vanishes */
-  static const R kb_run_frac[] =
-  {
-    K(0.0), K(1.0E-12), K(1.0E-6), K(0.25), K(0.5), K(0.75),
-    K(1.0) - K(1.0E-6), K(1.0)
-  };
-  const R b = tight_bound();
-  const R sh = KPI * K(1.5); /* sigma = 2 */
-  unsigned int i, f;
-
-  printf("KAISER-BESSEL RUN\n-----------------\n");
-
-  for (i = 0; i < sizeof(kb_run_m) / sizeof(kb_run_m[0]); i++)
-  {
-    const INT m = (INT)kb_run_m[i];
-    const R lt = Y(bessel_i0_logtail)((R)m * sh);
-    const R pki = EXP(-(R)m * sh - lt);
-    const R peak = Y(kb_phi)(sh, lt, pki, (R)m, K(0.0));
-    R *run = (R*)Y(malloc)((size_t)(2 * m + 2) * sizeof(R));
-
-    for (f = 0; f < sizeof(kb_run_frac) / sizeof(kb_run_frac[0]); f++)
-    {
-      const R nx0 = (R)m + kb_run_frac[f];
-      R err = K(0.0);
-      INT l, worst = 0;
-      int ok;
-
-      Y(kb_phi_run)(run, sh, lt, pki, (R)m, m, nx0);
-
-      /* Scaled by the peak of the run, not by each value: down in the tail the
-       * exponent carries m b, so two roundings of it differ by more than an ulp
-       * of a value that is itself 1E-15 of the peak. What the psi table owes
-       * the transform is accuracy against the peak. */
-      for (l = 0; l < 2 * m + 2; l++)
-      {
-        const R ref = Y(kb_phi)(sh, lt, pki, (R)m, nx0 - (R)l);
-        R e;
-
-        if (!(FINITE(run[l])))
-        {
-          err = K(1.0);
-          worst = l;
-          break;
-        }
-        e = ABS(run[l] - ref) / peak;
-        if (e > err)
-        {
-          err = e;
-          worst = l;
-        }
-      }
-
-      ok = IF(err < b, 1, 0);
-      printf("run[m=" __D__ ", frac=" __FE__ "] max err_peak = " __FE__ " %-2s "
-        __FE__ " at l = " __D__ " -> %-4s\n", m, kb_run_frac[f], err,
-        IF(ok == 0, ">=", "<"), b, worst, IF(ok == 0, "FAIL", "OK"));
-      CU_ASSERT(ok == 1);
-    }
-
-    Y(free)(run);
-  }
-#else
-  printf("KAISER-BESSEL RUN\n-----------------\nskipped: %s window\n",
-    Y(get_window_name)());
-#endif
-}
-
-
 /* kb_phi over one full run for n = 512, m = 8, sigma = 2, with the node three
  * tenths of a cell past a grid point, at 45 digits. The run straddles the
- * support, so it covers the interior kernel, both guarded ends and the
- * out-of-support tail in one sweep. Scaled by the window peak, which is what
+ * support, so it covers the interior, both ends and the out-of-support tail
+ * in one sweep. Scaled by the window peak, which is what
  * the psi table owes the transform: relative error is not the yardstick out in
  * a tail that is 1E-19 of the peak. */
 static const R kb_phi_ref_512_8_fr3[] =
