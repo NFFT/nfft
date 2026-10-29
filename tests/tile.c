@@ -288,12 +288,13 @@ void MODULE(check_tile)(void) \
   CU_ASSERT(ok); \
 }
 
-/* PRE_LIN_PSI with a table of K = 2^10 (m+2), as tests/kernel.c */
+/* PRE_LIN_PSI with a table of K = 2^10 (m+2) + 1, not a multiple of m+2, so
+ * that every kernel of B and B^T must step through the table alike */
 static void NFFT(tile_init)(NFFT(plan) *p, const int d, int *N, const int M,
   int *n, const int m, const unsigned flags)
 {
   if (flags & PRE_LIN_PSI)
-    NFFT(init_lin)(p, d, N, M, n, m, (1 << 10) * (m + 2), flags,
+    NFFT(init_lin)(p, d, N, M, n, m, (1 << 10) * (m + 2) + 1, flags,
       TILE_FFTW_FLAGS);
   else
     NFFT(init_guru)(p, d, N, M, n, m, flags, TILE_FFTW_FLAGS);
