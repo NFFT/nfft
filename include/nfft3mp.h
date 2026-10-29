@@ -28,8 +28,15 @@
  *
  * Without <complex.h> first, fftw_complex and NFFT_C are 2-element real arrays.
  */
-#ifndef FFTW3_H
-#error include nfft3.h (or <fftw3.h>) before nfft3mp.h
+/* Deprecated: include nfft3.h when the program did not. Will be removed in the
+ * next release. */
+#ifndef __NFFT3_H__
+#if defined(_MSC_VER)
+#pragma message("nfft3mp.h: include nfft3.h before nfft3mp.h. The automatic inclusion of nfft3.h is deprecated and will be removed in the next release.")
+#else
+#warning "nfft3mp.h: include nfft3.h before nfft3mp.h. The automatic inclusion of nfft3.h is deprecated and will be removed in the next release."
+#endif
+#include "nfft3.h"
 #endif
 
 #include <float.h>
