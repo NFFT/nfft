@@ -29,13 +29,16 @@
  * - every psi mode, in place and out of place, with and without sorting, and
  *   for NFFT with the blockwise adjoint,
  * - plans that allocate their grids (FFTW_INIT, B works in place on the padded
- *   FFTW grid) and plans whose caller provides plain grids and FFTW plans (no
- *   FFTW_INIT, B works on a scratch grid of the plan).
+ *   FFTW grid), plans without FFTW_INIT that borrow the padded grids, FFTW
+ *   plans and halo of such a plan, and plans whose caller provides plain grids
+ *   and FFTW plans (no FFTW_INIT, B works on a scratch grid of the plan),
+ * - for NFCT and NFST also nodes outside [0, 0.5], whose windows leave the
+ *   padded grid.
  * Each fast transform is compared with the direct transform. The tolerance
  * is loose: a wrong halo point gives an error of the order of the samples,
- * far above the window error. The two kinds of plans differ only in the
- * layout of their grids and must agree to rounding. Only failures are
- * printed (all results with -DHALO_VERBOSE). */
+ * far above the window error. The kinds of plans differ only in the layout
+ * of their grids and must agree to rounding. Only failures are printed (all
+ * results with -DHALO_VERBOSE). */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,16 +144,18 @@ static int halo_report(const char *module, const int d, const int *n,
 }
 
 /* The check for one module. T is the sample type (C or R), ERR its distance,
- * XLO and XHI the node interval [XLO, XHI), NVARIANTS the number of variants
- * to test, PLAIN_GRIDS(p, nn, out_of_place) gives a plan without FFTW_INIT
- * its grids and FFTW plans, FREE_GRIDS(p, out_of_place) frees them. */
-#define HALO_CHECK(MODULE, NAME, T, ERR, XLO, XHI, NVARIANTS, PLAIN_GRIDS, \
-  FREE_GRIDS, INIT) \
-static void MODULE(halo_nodes)(R *x, const int d, const int M) \
+ * NVARIANTS the number of variants to test, PLAIN_GRIDS(p, nn, out_of_place)
+ * gives a plan without FFTW_INIT its grids and FFTW plans, FREE_GRIDS(p,
+ * out_of_place) frees them, SHARE_GRIDS(q, p) hands the grids, FFTW plans and
+ * halo of plan p to plan q. The nodes lie in [xlo, xhi). */
+#define HALO_CHECK(MODULE, NAME, T, ERR, NVARIANTS, PLAIN_GRIDS, FREE_GRIDS, \
+  SHARE_GRIDS, INIT) \
+static void MODULE(halo_nodes)(R *x, const int d, const int M, const R xlo, \
+  const R xhi) \
 { \
   /* nodes on and next to the ends of the interval, then random ones */ \
-  const R edge[] = {XLO, XLO + EPSILON, XHI - K(4.0) * EPSILON, XHI \
-    - K(0.25) / (R)(M), XLO + K(0.25) / (R)(M), (XLO + XHI) / K(2.0)}; \
+  const R edge[] = {xlo, xlo + EPSILON, xhi - K(4.0) * EPSILON, xhi \
+    - K(0.25) / (R)(M), xlo + K(0.25) / (R)(M), (xlo + xhi) / K(2.0)}; \
   const int nedge = (int)(sizeof(edge) / sizeof(edge[0])); \
   int j, t; \
 \
@@ -160,7 +165,7 @@ static void MODULE(halo_nodes)(R *x, const int d, const int M) \
       if (j < nedge * nedge) \
         x[j * d + t] = edge[(t == 0 ? j : j / nedge + t) % nedge]; \
       else \
-        x[j * d + t] = XLO + (XHI - XLO) * Y(drand48)(); \
+        x[j * d + t] = xlo + (xhi - xlo) * Y(drand48)(); \
     } \
 } \
 \
@@ -207,9 +212,9 @@ static int MODULE(halo_run)(MODULE(plan) *p, const R *x, const T *f_hat, \
 \
 static int MODULE(halo_one)(const int d, int *N, int *n, const int m, \
   const unsigned mode, const char *mode_name, const unsigned variant, \
-  const char *variant_name, const R tol) \
+  const char *variant_name, const R tol, const R xlo, const R xhi) \
 { \
-  MODULE(plan) p; \
+  MODULE(plan) p, q; \
   INT N_total = 1; \
   int t, ok = 1; \
   const int M = HALO_M; \
@@ -226,7 +231,7 @@ static int MODULE(halo_one)(const int d, int *N, int *n, const int m, \
   tr1 = (T*)Y(malloc)((size_t)M * sizeof(T)); \
   ad0 = (T*)Y(malloc)((size_t)N_total * sizeof(T)); \
   ad1 = (T*)Y(malloc)((size_t)N_total * sizeof(T)); \
-  MODULE(halo_nodes)(x, d, M); \
+  MODULE(halo_nodes)(x, d, M, xlo, xhi); \
   MODULE(halo_random)(f_hat, N_total); \
   MODULE(halo_random)(f, (INT)M); \
 \
@@ -235,6 +240,17 @@ static int MODULE(halo_one)(const int d, int *N, int *n, const int m, \
     HALO_FFTW_FLAGS); \
   ok &= MODULE(halo_run)(&p, x, f_hat, f, tr0, ad0, d, n, variant_name, \
     mode_name, "padded", tol); \
+\
+  /* a plan without FFTW_INIT borrows the padded grids of p */ \
+  INIT(&q, d, N, M, n, m, HALO_FLAGS | mode | variant, HALO_FFTW_FLAGS); \
+  SHARE_GRIDS(q, p); \
+  ok &= MODULE(halo_run)(&q, x, f_hat, f, tr1, ad1, d, n, variant_name, \
+    mode_name, "shared", tol); \
+  ok &= halo_report(NAME, d, n, variant_name, mode_name, "shared", \
+    "trafo agrees", ERR(tr1, tr0, (INT)M), HALO_TOL_LAYOUT); \
+  ok &= halo_report(NAME, d, n, variant_name, mode_name, "shared", \
+    "adj. agrees", ERR(ad1, ad0, q.N_total), HALO_TOL_LAYOUT); \
+  MODULE(finalize)(&q); \
   MODULE(finalize)(&p); \
 \
   /* the caller provides plain grids: B works on a scratch grid */ \
@@ -264,9 +280,9 @@ static int MODULE(halo_one)(const int d, int *N, int *n, const int m, \
   return ok; \
 } \
 \
-/* all modes and variants for one grid */ \
+/* all modes and variants for one grid, nodes in [xlo, xhi) */ \
 static int MODULE(halo_grid)(const int d, int *N, int *n, const int m, \
-  const R tol) \
+  const R tol, const R xlo, const R xhi) \
 { \
   int ok = 1; \
   size_t i, v; \
@@ -275,7 +291,8 @@ static int MODULE(halo_grid)(const int d, int *N, int *n, const int m, \
     for (v = 0; v < (size_t)(NVARIANTS); v++) \
       ok &= MODULE(halo_one)(d, N, n, m, halo_modes[i], halo_mode_names[i], \
         halo_variants[v], halo_variant_names[v], \
-        (halo_modes[i] & PRE_LIN_PSI) ? FMAX(tol, HALO_TOL_LIN) : tol); \
+        (halo_modes[i] & PRE_LIN_PSI) ? FMAX(tol, HALO_TOL_LIN) : tol, xlo, \
+        xhi); \
 \
   return ok; \
 }
@@ -301,6 +318,15 @@ static int MODULE(halo_grid)(const int d, int *N, int *n, const int m, \
   Y(free)((p).g1); \
 }
 
+#define NFFT_SHARE_GRIDS(q, p) \
+{ \
+  (q).g1 = (p).g1; \
+  (q).g2 = (p).g2; \
+  (q).my_fftw_plan1 = (p).my_fftw_plan1; \
+  (q).my_fftw_plan2 = (p).my_fftw_plan2; \
+  (q).halo_hi = (p).halo_hi; \
+}
+
 /* NFFT: PRE_LIN_PSI with a table of 2^12 (m+2) points per axis; the
  * default of init_guru grows to 2^24 (m+2) for large m. */
 #define NFFT_INIT(p, d, N, M, n, m, flags, fftw_flags) \
@@ -314,8 +340,8 @@ static int MODULE(halo_grid)(const int d, int *N, int *n, const int m, \
 
 #undef X
 #define X(name) NFFT(name)
-HALO_CHECK(X, "nfft", C, halo_err_c, K(-0.5), K(0.5), 5, NFFT_PLAIN_GRIDS,
-  NFFT_FREE_GRIDS, NFFT_INIT)
+HALO_CHECK(X, "nfft", C, halo_err_c, 5, NFFT_PLAIN_GRIDS, NFFT_FREE_GRIDS,
+  NFFT_SHARE_GRIDS, NFFT_INIT)
 
 void X(check_halo)(void)
 {
@@ -335,10 +361,10 @@ void X(check_halo)(void)
       N[t] = N0;
       n[t] = 2 * m + 4;
     }
-    ok &= X(halo_grid)(d, N, n, m, HALO_TOL);
+    ok &= X(halo_grid)(d, N, n, m, HALO_TOL, K(-0.5), K(0.5));
     for (t = 0; t < d; t++)
       n[t] = 4 * N0;
-    ok &= X(halo_grid)(d, N, n, m, HALO_TOL);
+    ok &= X(halo_grid)(d, N, n, m, HALO_TOL, K(-0.5), K(0.5));
   }
 
   /* generic d */
@@ -349,7 +375,7 @@ void X(check_halo)(void)
       N[t] = 6;
       n[t] = 2 * HALO_M_4D + 4;
     }
-    ok &= X(halo_grid)(4, N, n, HALO_M_4D, HALO_TOL_4D);
+    ok &= X(halo_grid)(4, N, n, HALO_M_4D, HALO_TOL_4D, K(-0.5), K(0.5));
   }
 
   CU_ASSERT(ok);
@@ -364,6 +390,14 @@ void X(check_halo)(void)
   (p).my_fftw_r2r_plan = FFTW(plan_r2r)((int)(p).d, nn, (p).g1, (p).g2, \
     (p).r2r_kind, (p).fftw_flags); \
 }
+#define TRIG_SHARE_GRIDS(q, p) \
+{ \
+  (q).g1 = (p).g1; \
+  (q).g2 = (p).g2; \
+  (q).my_fftw_r2r_plan = (p).my_fftw_r2r_plan; \
+  (q).halo_lo = (p).halo_lo; \
+  (q).halo_hi = (p).halo_hi; \
+}
 #define TRIG_FREE_GRIDS(p, oop) \
 { \
   FFTW(destroy_plan)((p).my_fftw_r2r_plan); \
@@ -373,7 +407,8 @@ void X(check_halo)(void)
 }
 
 /* NFCT and NFST: N = 4, where windows are reflected at both ends at once,
- * and N = 16; sigma = 2. OFS is n - 2N (+1 NFCT, -1 NFST). */
+ * and N = 16; sigma = 2. OFS is n - 2N (+1 NFCT, -1 NFST). Nodes in
+ * [0, 0.5), and for d <= 2 also in [-1, 1.5). */
 #define TRIG_CHECK_HALO(MODULE, OFS) \
 void MODULE(check_halo)(void) \
 { \
@@ -395,7 +430,9 @@ void MODULE(check_halo)(void) \
         N[t] = NN[i]; \
         n[t] = 2 * NN[i] + (OFS); \
       } \
-      ok &= MODULE(halo_grid)(d, N, n, m, HALO_TOL); \
+      ok &= MODULE(halo_grid)(d, N, n, m, HALO_TOL, K(0.0), K(0.5)); \
+      if (d <= 2) \
+        ok &= MODULE(halo_grid)(d, N, n, m, HALO_TOL, K(-1.0), K(1.5)); \
     } \
 \
   CU_ASSERT(ok); \
@@ -404,15 +441,15 @@ void MODULE(check_halo)(void) \
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
-HALO_CHECK(X, "nfct", R, halo_err_r, K(0.0), K(0.5), 4, TRIG_PLAIN_GRIDS,
-  TRIG_FREE_GRIDS, X(init_guru))
+HALO_CHECK(X, "nfct", R, halo_err_r, 4, TRIG_PLAIN_GRIDS, TRIG_FREE_GRIDS,
+  TRIG_SHARE_GRIDS, X(init_guru))
 TRIG_CHECK_HALO(X, 1)
 #endif
 
 #ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
-HALO_CHECK(X, "nfst", R, halo_err_r, K(0.0), K(0.5), 4, TRIG_PLAIN_GRIDS,
-  TRIG_FREE_GRIDS, X(init_guru))
+HALO_CHECK(X, "nfst", R, halo_err_r, 4, TRIG_PLAIN_GRIDS, TRIG_FREE_GRIDS,
+  TRIG_SHARE_GRIDS, X(init_guru))
 TRIG_CHECK_HALO(X, -1)
 #endif
