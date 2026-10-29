@@ -2199,6 +2199,15 @@ R Y(modified_multiquadric)(const R mu, const R c, const INT kk);
  *  w   w[t][l], l < L: window weights of dimensions t < d-1
  */
 
+/* d >= 4 (any d >= 2): Y(B_tensor_trafo) and Y(B_tensor_adjoint) with an
+ * odometer over the rows, out of line in kernel/util/btensor.c (it takes
+ * run-time sized arrays, which C++ sources including this header lack) */
+void Y(B_tensor_trafo_nd)(const INT d, const INT L, const INT es,
+    const INT *np, const INT *lo, const R *const *w, const R *wl,
+    const R *g, R *acc);
+void Y(B_tensor_adjoint_nd)(const INT d, const INT L, const INT es,
+    const INT *np, const INT *lo, const R *const *w, const R *wf, R *g);
+
 /** acc[i] += w * wl[i] * row[i], i < len: one row of the window (B). */
 static inline void Y(B_row_trafo)(R *restrict acc, const R *restrict wl,
     const R *restrict row, const R w, const INT len)
@@ -2256,33 +2265,7 @@ static inline void Y(B_tensor_trafo)(const INT d, const INT L, const INT es,
     }
   }
   else
-  {
-    /* odometer over the window indices of dimensions 0 .. d-2, with
-     * prefix products and prefix row offsets updated from the changed
-     * dimension on */
-    INT lj[d - 1], off[d - 1], s, t = 0;
-    R prod[d - 1];
-
-    for (s = 0; s < d - 1; s++)
-      lj[s] = 0;
-
-    for (;;)
-    {
-      for (s = t; s < d - 1; s++)
-      {
-        prod[s] = (s == 0 ? K(1.0) : prod[s - 1]) * w[s][lj[s]];
-        off[s] = (s == 0 ? 0 : off[s - 1] * np[s]) + lo[s] + lj[s];
-      }
-
-      Y(B_row_trafo)(acc, wl, g + es * (off[d - 2] * np[d - 1] + lo[d - 1]),
-          prod[d - 2], len);
-
-      for (t = d - 2; t >= 0 && ++lj[t] == L; t--)
-        lj[t] = 0;
-      if (t < 0)
-        break;
-    }
-  }
+    Y(B_tensor_trafo_nd)(d, L, es, np, lo, w, wl, g, acc);
 }
 
 /**
@@ -2322,30 +2305,7 @@ static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
     }
   }
   else
-  {
-    INT lj[d - 1], off[d - 1], s, t = 0;
-    R prod[d - 1];
-
-    for (s = 0; s < d - 1; s++)
-      lj[s] = 0;
-
-    for (;;)
-    {
-      for (s = t; s < d - 1; s++)
-      {
-        prod[s] = (s == 0 ? K(1.0) : prod[s - 1]) * w[s][lj[s]];
-        off[s] = (s == 0 ? 0 : off[s - 1] * np[s]) + lo[s] + lj[s];
-      }
-
-      Y(B_row_adjoint)(g + es * (off[d - 2] * np[d - 1] + lo[d - 1]), wf,
-          prod[d - 2], len);
-
-      for (t = d - 2; t >= 0 && ++lj[t] == L; t--)
-        lj[t] = 0;
-      if (t < 0)
-        break;
-    }
-  }
+    Y(B_tensor_adjoint_nd)(d, L, es, np, lo, w, wf, g);
 }
 
 /* always check */
