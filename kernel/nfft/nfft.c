@@ -1619,8 +1619,7 @@ static int adjoint_B_tiled(X(plan) *ths)
       INT ip_s = ths->K/(ths->m+2); \
       for (t2 = 0; t2 < ths->d; t2++) \
       { \
-        y[t2] = ((NX_SUB(ths->n[t2], xs[j*ths->d+t2], u[t2])) \
-          * ((R)ths->K))/((R)ths->m+2); \
+        y[t2] = (NX_SUB(ths->n[t2], xs[j*ths->d+t2], u[t2])) * ((R)ip_s); \
         ip_u  = LRINT(FLOOR(y[t2])); \
         ip_w  = y[t2]-ip_u; \
         for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
