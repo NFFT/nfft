@@ -1438,8 +1438,10 @@ static void B_serial_T(X(plan) *ths)
 #endif
 
 /**
- * Calculates adjoint NFFT for flag PRE_FULL_PSI without sorted nodes.
- * Parallel calculation (OpenMP) with atomic operations.
+ * Calculates adjoint NFFT for flag PRE_FULL_PSI.
+ * Parallel calculation (OpenMP) with atomic operations; with OpenMP, plans
+ * with NFFT_SORT_NODES take the tiled adjoint instead (adjoint_B_tiled), so
+ * index_x is only read in the serial build.
  *
  * \arg lprod stride (2*m+2)^d
  *
