@@ -606,6 +606,270 @@ static void scatter_f(X(plan) *ths)
     ths->f[ths->index_x[2 * k + 1]] = ths->f_sorted[k];
 }
 
+/**
+ * Halo of the grid of the matrix B. The window of a node covers the extended
+ * indices e = u - OFFSET, ..., u - OFFSET + 2m+1 (u from uo()), of the even
+ * (NFCT) or odd (NFST) periodic continuation of the grid, which run up to m+1
+ * (NFST: m+2) points past either end. The grid is padded with HALO_LO points
+ * before and HALO_HI points after each dimension (one spare point on either
+ * side), so that B never reflects an index. The halo holds the continuation:
+ * filled from the grid before B (trafo), added back to it after B^T
+ * (adjoint).
+ */
+#define HALO_LO(m) ((m) + 2)
+#define HALO_HI(m) ((m) + 3)
+#define HALO(m) (HALO_LO(m) + HALO_HI(m))
+
+/** Number of elements of the grid of ths padded with h points per dimension. */
+static inline INT padded_total(const X(plan) *ths, const INT h)
+{
+  INT t, p = 1;
+
+  for (t = 0; t < ths->d; t++)
+    p *= ths->n[t] + h;
+
+  return p;
+}
+
+/** Number of elements of the padded grid ths->g of the matrix B. */
+static inline INT grid_B_total(const X(plan) *ths)
+{
+  return padded_total(ths, HALO(ths->m));
+}
+
+/** Number of elements of the FFTW grids ths->g1 and ths->g2. */
+static inline INT grid_fftw_total(const X(plan) *ths)
+{
+  return padded_total(ths, ths->halo_lo + ths->halo_hi);
+}
+
+/** Offset of grid point 0 in a grid of ths padded with lo points before and
+ *  hi points after each dimension. */
+static inline INT padded_offset(const X(plan) *ths, const INT lo, const INT hi)
+{
+  INT t, off = 0;
+
+  for (t = 0; t < ths->d; t++)
+    off = off * (ths->n[t] + lo + hi) + lo;
+
+  return off;
+}
+
+/**
+ * Source of the extended index e of the continuation of a grid of n points:
+ * returns the grid index and sets *sign, or returns -1 for a zero (NFST).
+ */
+static inline INT halo_source(const INT e, const INT n, R *sign)
+{
+  const INT period = 2 * NN(n);
+  const INT q = ((e + OFFSET) % period + period) % period;
+
+#if OFFSET == 0
+  *sign = K(1.0);
+  return q <= NN(n) ? q : period - q;
+#else
+  if (q == 0 || q == NN(n))
+  {
+    *sign = K(0.0);
+    return -1;
+  }
+  if (q < NN(n))
+  {
+    *sign = K(1.0);
+    return q - 1;
+  }
+  *sign = K(-1.0);
+  return period - q - 1;
+#endif
+}
+
+/**
+ * Copies the n_0 x ... x n_{d-1} grid from src, padded with (los, his) points
+ * per dimension, to dst, padded with (lod, hid).
+ */
+static void copy_grid(const X(plan) *ths, R *dst, const INT lod, const INT hid,
+    const R *src, const INT los, const INT his)
+{
+  const INT d = ths->d, nl = ths->n[d - 1];
+  R *dst0 = dst + padded_offset(ths, lod, hid);
+  const R *src0 = src + padded_offset(ths, los, his);
+  INT rows = 1, t, q;
+
+  for (t = 0; t < d - 1; t++)
+    rows *= ths->n[t];
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(q, t)
+#endif
+  for (q = 0; q < rows; q++)
+  {
+    INT r = q, od = 0, os = 0, sd = nl + lod + hid, ss = nl + los + his;
+
+    for (t = d - 2; t >= 0; t--)
+    {
+      const INT i = r % ths->n[t];
+      r /= ths->n[t];
+      od += i * sd;
+      os += i * ss;
+      sd *= ths->n[t] + lod + hid;
+      ss *= ths->n[t] + los + his;
+    }
+
+    memcpy(dst0 + od, src0 + os, (size_t)(nl) * sizeof(R));
+  }
+}
+
+/**
+ * Fills the halo of the padded grid gp with the continuation of the grid,
+ * dimension by dimension: each halo row of dimension t is (plus or minus) a
+ * row of the grid, or zero, over the whole padded range of the other
+ * dimensions, so that corners come out right.
+ */
+static void fill_halo(const X(plan) *ths, R *gp)
+{
+  const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
+  INT t;
+
+  for (t = 0; t < d; t++)
+  {
+    const INT nt = ths->n[t], pt = nt + lo + hi, h = lo + hi;
+    INT outer = 1, inner = 1, s, q;
+    INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
+    R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+
+    for (s = 0; s < t; s++)
+      outer *= ths->n[s] + lo + hi;
+    for (s = t + 1; s < d; s++)
+      inner *= ths->n[s] + lo + hi;
+
+    for (q = 0; q < h; q++)
+    {
+      const INT e = q < lo ? q - lo : nt + q - lo;
+      dst[q] = e + lo;
+      src[q] = halo_source(e, nt, &sign[q]);
+    }
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(q)
+#endif
+    for (q = 0; q < outer * h; q++)
+    {
+      const INT o = q / h, r = q % h;
+      R *row = gp + o * pt * inner;
+      R *rd = row + dst[r] * inner;
+      INT i;
+
+      if (src[r] < 0)
+        memset(rd, 0, (size_t)(inner) * sizeof(R));
+      else
+      {
+        const R *rs = row + (src[r] + lo) * inner;
+        for (i = 0; i < inner; i++)
+          rd[i] = sign[r] * rs[i];
+      }
+    }
+
+    Y(free)(src);
+    Y(free)(sign);
+  }
+}
+
+/**
+ * Adds the halo of the padded grid gp back to the grid points it continues,
+ * dimension by dimension in reverse order (see fill_halo). The NFCT
+ * additionally doubles the first and last grid row of each dimension: its
+ * matrix B^T weights the inner points by 1/2, which D^T applies to all.
+ */
+static void fold_halo(const X(plan) *ths, R *gp)
+{
+  const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
+  INT t;
+
+  for (t = d - 1; t >= 0; t--)
+  {
+    const INT nt = ths->n[t], pt = nt + lo + hi, h = lo + hi;
+    INT outer = 1, inner = 1, s, q;
+    INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
+    R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+
+    for (s = 0; s < t; s++)
+      outer *= ths->n[s] + lo + hi;
+    for (s = t + 1; s < d; s++)
+      inner *= ths->n[s] + lo + hi;
+
+    for (q = 0; q < h; q++)
+    {
+      const INT e = q < lo ? q - lo : nt + q - lo;
+      dst[q] = e + lo;
+      src[q] = halo_source(e, nt, &sign[q]);
+    }
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(q)
+#endif
+    for (q = 0; q < outer * inner; q++)
+    {
+      R *base = gp + (q / inner) * pt * inner + q % inner;
+      INT r;
+
+      for (r = 0; r < h; r++)
+        if (src[r] >= 0)
+          base[(src[r] + lo) * inner] += sign[r] * base[dst[r] * inner];
+#if OFFSET == 0
+      base[lo * inner] *= K(2.0);
+      base[(nt - 1 + lo) * inner] *= K(2.0);
+#endif
+    }
+
+    Y(free)(src);
+    Y(free)(sign);
+  }
+}
+
+/** Points ths->g at the padded grid of the matrix B: the FFTW grid gf (g1 or
+ *  g2) when it is padded, else the plan's scratch grid ths->g_pad (allocated
+ *  on first use and grown if n has grown). */
+static void select_grid_B(X(plan) *ths, R *gf)
+{
+  if (ths->halo_lo == HALO_LO(ths->m) && ths->halo_hi == HALO_HI(ths->m))
+  {
+    ths->g = gf;
+    return;
+  }
+
+  {
+    const INT size = grid_B_total(ths);
+    if (ths->g_pad == NULL || ths->g_pad_size < size)
+    {
+      Y(free)(ths->g_pad);
+      ths->g_pad = (R*) Y(malloc)((size_t)(size) * sizeof(R));
+      ths->g_pad_size = size;
+    }
+  }
+  ths->g = ths->g_pad;
+}
+
+/** After the FFT of the trafo: makes ths->g the padded grid of B, holding the
+ *  FFT output gf and its filled halo. */
+static void grid_B_trafo(X(plan) *ths, R *gf)
+{
+  select_grid_B(ths, gf);
+  if (ths->g != gf)
+    copy_grid(ths, ths->g, HALO_LO(ths->m), HALO_HI(ths->m), gf,
+        ths->halo_lo, ths->halo_hi);
+  fill_halo(ths, ths->g);
+}
+
+/** After B^T of the adjoint: folds the halo of ths->g and leaves the result
+ *  in the FFT input gf. */
+static void grid_B_adjoint_done(X(plan) *ths, R *gf)
+{
+  fold_halo(ths, ths->g);
+  if (ths->g != gf)
+    copy_grid(ths, gf, ths->halo_lo, ths->halo_hi, ths->g, HALO_LO(ths->m),
+        HALO_HI(ths->m));
+}
+
 #define MACRO_D_compute_A \
 { \
   g_hat[kg_plain[ths->d]] = f_hat[k_L] * c_phi_inv_k[ths->d]; \
@@ -616,7 +880,7 @@ static void scatter_f(X(plan) *ths)
   f_hat[k_L] = g_hat[kg_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(R));
+#define MACRO_D_init_result_A memset(ths->g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(R));
 
 #define MACRO_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(R));
 
@@ -638,7 +902,8 @@ static void scatter_f(X(plan) *ths)
   for (t = i; t < ths->d; t++) \
   { \
     MACRO_update_c_phi_inv_k_ ## what_kind(which_phi); \
-    kg_plain[t+1] = kg_plain[t] * ths->n[t] + kg[t]; \
+    kg_plain[t+1] = kg_plain[t] * (ths->n[t] + ths->halo_lo + ths->halo_hi) \
+      + kg[t]; \
   } \
 }
 
@@ -677,7 +942,8 @@ static inline void D_ ## which_one (X(plan) *ths) \
   INT kg[ths->d]; /* multi index in g_hat */ \
   INT kg_plain[ths->d+1]; /* postfix plain index */ \
 \
-  f_hat = (R*)ths->f_hat; g_hat = (R*)ths->g_hat; \
+  f_hat = (R*)ths->f_hat; \
+  g_hat = (R*)ths->g_hat + padded_offset(ths, ths->halo_lo, ths->halo_hi); \
   MACRO_D_init_result_ ## which_one; \
 \
   c_phi_inv_k[0] = K(1.0); \
@@ -710,7 +976,7 @@ MACRO_D(T)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
 #define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
-#define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(R));
+#define MACRO_B_init_result_T memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(R));
 
 #define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
@@ -732,67 +998,34 @@ MACRO_D(T)
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
 }
 
+/* l[t]: index in the padded grid of B of the first point of the window of
+ * node j on axis t (clamped, so that nodes outside [0, 0.5] cannot leave the
+ * grid) */
 #define MACRO_init_uo_l_lj_t \
 { \
   for (t2 = 0; t2 < ths->d; t2++) \
   { \
     uo(ths, xs, j, &u[t2], &o[t2], t2); \
-    \
-    /* determine index in g-array corresponding to u[(t2)] */ \
-    if (u[(t2)] < 0) \
-      lg_offset[(t2)] = \
-        (u[(t2)] % (2 * NN(ths->n[(t2)]))) + (2 * NN(ths->n[(t2)])); \
-    else \
-      lg_offset[(t2)] = u[(t2)] % (2 * NN(ths->n[(t2)])); \
-      if (lg_offset[(t2)] > NN(ths->n[(t2)])) \
-        lg_offset[(t2)] = -(2 * NN(ths->n[(t2)]) - lg_offset[(t2)]); \
-    \
-    if (lg_offset[t2] <= 0) \
-    { \
-      l[t2] = -lg_offset[t2]; \
-      count_lg[t2] = -1; \
-    } \
-    else \
-    { \
-      l[t2] = +lg_offset[t2]; \
-      count_lg[t2] = +1; \
-    } \
- \
+    l[t2] = MIN(MAX(u[t2] - OFFSET + HALO_LO(ths->m), 0), \
+        ths->n[t2] + HALO(ths->m) - (2 * ths->m + 2)); \
     lj[t2] = 0; \
    } \
    t2 = 0; \
 }
 
-#define FOO_A ((R)count_lg[t])
-
-#define FOO_T ((R)count_lg[t])
-
+/* the halo of the grid of B holds the reflected (NFST: and negated) values,
+ * so B is a plain tensor product, for B^T alike (which_one) */
 #define MACRO_update_phi_prod_ll_plain(which_one,which_psi) \
 { \
   for (t = t2; t < ths->d; t++) \
   { \
-    if ((l[t] != 0) && (l[t] != NN(ths->n[t]))) \
-    { \
-      phi_prod[t+1] = (FOO_ ## which_one) * phi_prod[t] * (MACRO_ ## which_psi); \
-      ll_plain[t+1]  = ll_plain[t] * ths->n[t] + l[t] - 1; \
-    } \
-    else \
-    { \
-      phi_prod[t + 1] = K(0.0); \
-      ll_plain[t+1]  = ll_plain[t] * ths->n[t]; \
-    } \
+    phi_prod[t+1] = phi_prod[t] * (MACRO_ ## which_psi); \
+    ll_plain[t+1]  = ll_plain[t] * (ths->n[t] + HALO(ths->m)) + l[t] + lj[t]; \
   } \
 }
 
 #define MACRO_count_uo_l_lj_t \
 { \
-  /* turn around if we hit one of the boundaries */ \
-  if ((l[(ths->d-1)] == 0) || (l[(ths->d-1)] == NN(ths->n[(ths->d-1)]))) \
-    count_lg[(ths->d-1)] *= -1; \
- \
-  /* move array index */ \
-  l[(ths->d-1)] += count_lg[(ths->d-1)]; \
- \
   lj[ths->d - 1]++; \
   t2 = ths->d - 1; \
  \
@@ -800,26 +1033,6 @@ MACRO_D(T)
   { \
     lj[t2 - 1]++; \
     lj[t2] = 0; \
-    /* ansonsten lg[i-1] verschieben */ \
- \
-    /* turn around if we hit one of the boundaries */ \
-    if ((l[(t2 - 1)] == 0) || (l[(t2 - 1)] == NN(ths->n[(t2 - 1)]))) \
-      count_lg[(t2 - 1)] *= -1; \
-    /* move array index */ \
-    l[(t2 - 1)] += count_lg[(t2 - 1)]; \
- \
-    /* lg[i] = anfangswert */ \
-    if (lg_offset[t2] <= 0) \
-    { \
-      l[t2] = -lg_offset[t2]; \
-      count_lg[t2] = -1; \
-    } \
-    else \
-    { \
-      l[t2] = +lg_offset[t2]; \
-      count_lg[t2] = +1; \
-    } \
- \
     t2--; \
   } \
 }
@@ -833,7 +1046,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT j, k; /* index nodes: row in the node data, processing order */ \
   const R *xs = node_x(ths); \
   INT l_L, ix; /* index one row of B */ \
-  INT l[ths->d]; /* multi index u<=l<=o (real index of g in array) */ \
+  INT l[ths->d]; /* first index of the window in the padded grid of B */ \
   INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
   INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
@@ -849,8 +1062,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R ip_w; \
   INT ip_u; \
   INT ip_s = ths->K/(ths->m+2); \
-  INT lg_offset[ths->d]; /* offset in g according to u */ \
-  INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
   f = node_f(ths); g = (R*)ths->g; \
 \
@@ -1051,9 +1262,7 @@ void X(trafo)(X(plan) *ths)
       TIC_FFTW(1)
       FFTW(execute)(ths->my_fftw_r2r_plan);
       TOC_FFTW(1)
-
-      /*if (ths->flags & PRE_FULL_PSI)
-        full_psi__A(ths);*/
+      grid_B_trafo(ths, ths->g2);
 
       /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } j=0,\dots,M-1 \f$ */
@@ -1061,12 +1270,6 @@ void X(trafo)(X(plan) *ths)
       B_A(ths);
       scatter_f(ths);
       TOC(2)
-
-      /*if (ths->flags & PRE_FULL_PSI)
-      {
-        Y(free)(ths->psi_index_g);
-        Y(free)(ths->psi_index_f);
-      }*/
     }
   }
 } /* trafo */
@@ -1081,14 +1284,13 @@ void X(adjoint)(X(plan) *ths)
       ths->g_hat = ths->g2;
       ths->g = ths->g1;
 
-      /*if (ths->flags & PRE_FULL_PSI)
-        full_psi__T(ths);*/
-
       /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } l \in I_n,m(x_j) \f$ */
       TIC(2)
+      select_grid_B(ths, ths->g1);
       gather_f(ths);
       B_T(ths);
+      grid_B_adjoint_done(ths, ths->g1);
       TOC(2)
 
       /* Compute by d-variate discrete cosine transform
@@ -1218,13 +1420,11 @@ static void precompute_full_psi_sorted(X(plan) *ths)
   INT t, t2; /* index over all dimensions */
   INT j; /* index over all nodes */
   INT l_L; /* plain index 0 <= l_L < lprod */
-  INT l[ths->d]; /* multi index u<=l<=o */
+  INT l[ths->d]; /* first index of the window in the padded grid of B */
   INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
   INT ll_plain[ths->d+1]; /* postfix plain index */
   INT lprod; /* 'bandwidth' of matrix B */
   INT u[ths->d], o[ths->d]; /* depends on x_j */
-  INT count_lg[ths->d];
-  INT lg_offset[ths->d];
 
   R phi_prod[ths->d+1];
 
@@ -1340,23 +1540,39 @@ static inline void init_help(X(plan) *ths)
       ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
+  ths->halo_lo = 0;
+  ths->halo_hi = 0;
+
   if (ths->flags & FFTW_INIT)
   {
-    ths->g1 = (R*)Y(malloc)((size_t)(ths->n_total) * sizeof(R));
+    /* g1 and g2 are the padded grid of B, the FFT works on their
+     * n_0 x ... x n_{d-1} part */
+    ths->halo_lo = HALO_LO(ths->m);
+    ths->halo_hi = HALO_HI(ths->m);
+
+    ths->g1 = (R*)Y(malloc)((size_t)(grid_fftw_total(ths)) * sizeof(R));
 
     if (ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (R*) Y(malloc)((size_t)(ths->n_total) * sizeof(R));
+      ths->g2 = (R*) Y(malloc)((size_t)(grid_fftw_total(ths)) * sizeof(R));
     else
       ths->g2 = ths->g1;
 
     {
-      int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
+      const INT off = padded_offset(ths, ths->halo_lo, ths->halo_hi);
+      FFTW(iodim64) *dims = Y(malloc)((size_t)(ths->d) * sizeof(FFTW(iodim64)));
+      ptrdiff_t stride = 1;
 
-      for (t = 0; t < ths->d; t++)
-        _n[t] = (int)(ths->n[t]);
+      for (t = ths->d - 1; t >= 0; t--)
+      {
+        dims[t].n = (ptrdiff_t)(ths->n[t]);
+        dims[t].is = stride;
+        dims[t].os = stride;
+        stride *= (ptrdiff_t)(ths->n[t] + ths->halo_lo + ths->halo_hi);
+      }
 
-      ths->my_fftw_r2r_plan = FFTW(plan_r2r)((int)ths->d, _n, ths->g1, ths->g2, ths->r2r_kind, ths->fftw_flags);
-      Y(free)(_n);
+      ths->my_fftw_r2r_plan = FFTW(plan_guru64_r2r)((int)ths->d, dims, 0,
+          NULL, ths->g1 + off, ths->g2 + off, ths->r2r_kind, ths->fftw_flags);
+      Y(free)(dims);
     }
   }
 
@@ -1367,6 +1583,8 @@ static inline void init_help(X(plan) *ths)
 
   ths->x_sorted = NULL;
   ths->f_sorted = NULL;
+  ths->g_pad = NULL;
+  ths->g_pad_size = 0;
 
   ths->mv_trafo = (void (*) (void* ))X(trafo);
   ths->mv_adjoint = (void (*) (void* ))X(adjoint);
@@ -1516,6 +1734,9 @@ void X(finalize)(X(plan) *ths)
     Y(free)(ths->x_sorted);
     Y(free)(ths->f_sorted);
   }
+
+  if (ths->g_pad != NULL)
+    Y(free)(ths->g_pad);
 
   if (ths->flags & FFTW_INIT)
   {

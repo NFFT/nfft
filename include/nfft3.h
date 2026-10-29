@@ -302,10 +302,18 @@ typedef struct\
   NFFT_INT *psi_index_g; /**< only for thin B */\
   NFFT_INT *psi_index_f; /**< only for thin B */\
 \
-  R *g;\
-  R *g_hat;\
-  R *g1; /**< input of fftw */\
-  R *g2; /**< output of fftw */\
+  R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
+             with m+2 points before and m+3 after each dimension, row-major \
+             with the padded lengths \f$n_t+2m+5\f$: \ref g1 or \ref g2 \
+             when they are padded, else \ref g_pad */\
+  R *g_hat; /**< Zero-padded vector of Fourier coefficients, laid out as \
+                 \ref g1 */\
+  R *g1; /**< input of fftw. With \ref FFTW_INIT, the grid padded with \
+              \ref halo_lo and \ref halo_hi points per dimension (the \
+              transforms use only the \f$n_0\times\dots\times n_{d-1}\f$ \
+              part); without it, provided by the caller with \ref n_total \
+              elements */\
+  R *g2; /**< output of fftw, laid out as \ref g1 */\
 \
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
@@ -315,6 +323,22 @@ typedef struct\
                     NULL until then */\
   R *f_sorted; /**< Samples in the order of \ref index_x, scratch array of \
                     the fast transforms once \ref x_sorted is set */\
+\
+  NFFT_INT halo_lo; /**< Number of halo points before the start of each \
+                         dimension of \ref g1 and \ref g2: m+2 when the plan \
+                         allocates them (\ref FFTW_INIT), 0 when the caller \
+                         provides them as plain arrays of \ref n_total \
+                         elements. The matrix B works on a grid padded with \
+                         m+2 points before and m+3 after each dimension, \
+                         which hold the even (NFCT) or odd (NFST) \
+                         continuation of the grid, so that the window \
+                         indices are never reflected; see \ref g. */\
+  NFFT_INT halo_hi; /**< Number of halo points after the end of each \
+                         dimension of \ref g1 and \ref g2: m+3 with \
+                         \ref FFTW_INIT, else 0 */\
+  R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
+                 (allocated by the first transform), else NULL */\
+  NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -393,10 +417,18 @@ typedef struct\
   NFFT_INT *psi_index_g; /**< only for thin B */\
   NFFT_INT *psi_index_f; /**< only for thin B */\
 \
-  R *g;\
-  R *g_hat;\
-  R *g1; /**< input of fftw */\
-  R *g2; /**< output of fftw */\
+  R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
+             with m+2 points before and m+3 after each dimension, row-major \
+             with the padded lengths \f$n_t+2m+5\f$: \ref g1 or \ref g2 \
+             when they are padded, else \ref g_pad */\
+  R *g_hat; /**< Zero-padded vector of Fourier coefficients, laid out as \
+                 \ref g1 */\
+  R *g1; /**< input of fftw. With \ref FFTW_INIT, the grid padded with \
+              \ref halo_lo and \ref halo_hi points per dimension (the \
+              transforms use only the \f$n_0\times\dots\times n_{d-1}\f$ \
+              part); without it, provided by the caller with \ref n_total \
+              elements */\
+  R *g2; /**< output of fftw, laid out as \ref g1 */\
 \
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
@@ -408,6 +440,22 @@ typedef struct\
                     NULL until then */\
   R *f_sorted; /**< Samples in the order of \ref index_x, scratch array of \
                     the fast transforms once \ref x_sorted is set */\
+\
+  NFFT_INT halo_lo; /**< Number of halo points before the start of each \
+                         dimension of \ref g1 and \ref g2: m+2 when the plan \
+                         allocates them (\ref FFTW_INIT), 0 when the caller \
+                         provides them as plain arrays of \ref n_total \
+                         elements. The matrix B works on a grid padded with \
+                         m+2 points before and m+3 after each dimension, \
+                         which hold the even (NFCT) or odd (NFST) \
+                         continuation of the grid, so that the window \
+                         indices are never reflected; see \ref g. */\
+  NFFT_INT halo_hi; /**< Number of halo points after the end of each \
+                         dimension of \ref g1 and \ref g2: m+3 with \
+                         \ref FFTW_INIT, else 0 */\
+  R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
+                 (allocated by the first transform), else NULL */\
+  NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
