@@ -208,6 +208,187 @@ static void scatter_f(X(plan) *ths)
     ths->f[ths->index_x[2 * k + 1]] = ths->f_sorted[k];
 }
 
+/**
+ * Halo of the grid of the matrix B: the window of a node covers the 2m+2 grid
+ * points u, ..., u+2m+1 with the lower corner u wrapped into [0, n). The grid
+ * is padded with this many points after the end of each dimension, so that
+ * these indices never wrap around. The halo holds periodic copies of the
+ * first points: filled from them before B (trafo), added back to them after
+ * B^T (adjoint).
+ */
+#define HALO(m) (2 * (m) + 2)
+
+/** Number of elements of the grid of ths padded with h points per dimension. */
+static inline INT padded_total(const X(plan) *ths, const INT h)
+{
+  INT t, p = 1;
+
+  for (t = 0; t < ths->d; t++)
+    p *= ths->n[t] + h;
+
+  return p;
+}
+
+/** Number of elements of the padded grid ths->g of the matrix B. */
+static inline INT grid_B_total(const X(plan) *ths)
+{
+  return padded_total(ths, HALO(ths->m));
+}
+
+/** Number of elements of the FFTW grids ths->g1 and ths->g2. */
+static inline INT grid_fftw_total(const X(plan) *ths)
+{
+  return padded_total(ths, ths->halo_hi);
+}
+
+/**
+ * Copies the n_0 x ... x n_{d-1} grid from src, padded with hs points per
+ * dimension, to dst, padded with hd points per dimension.
+ */
+static void copy_grid(const X(plan) *ths, C *dst, const INT hd, const C *src,
+    const INT hs)
+{
+  const INT d = ths->d, nl = ths->n[d - 1];
+  INT rows = 1, t, q;
+
+  for (t = 0; t < d - 1; t++)
+    rows *= ths->n[t];
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(q, t)
+#endif
+  for (q = 0; q < rows; q++)
+  {
+    INT r = q, od = 0, os = 0, sd = nl + hd, ss = nl + hs;
+
+    for (t = d - 2; t >= 0; t--)
+    {
+      const INT i = r % ths->n[t];
+      r /= ths->n[t];
+      od += i * sd;
+      os += i * ss;
+      sd *= ths->n[t] + hd;
+      ss *= ths->n[t] + hs;
+    }
+
+    memcpy(dst + od, src + os, (size_t)(nl) * sizeof(C));
+  }
+}
+
+/**
+ * Fills the halo of the padded grid gp periodically from its first points,
+ * dimension by dimension: rows n_t, ..., n_t+h-1 of dimension t are copies of
+ * rows 0, ..., h-1, over the whole padded range of the other dimensions, so
+ * that corners come out right.
+ */
+static void fill_halo(const X(plan) *ths, C *gp)
+{
+  const INT d = ths->d, h = HALO(ths->m);
+  INT t;
+
+  for (t = 0; t < d; t++)
+  {
+    const INT nt = ths->n[t], pt = nt + h;
+    INT outer = 1, inner = 1, s, q;
+
+    for (s = 0; s < t; s++)
+      outer *= ths->n[s] + h;
+    for (s = t + 1; s < d; s++)
+      inner *= ths->n[s] + h;
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(q)
+#endif
+    for (q = 0; q < outer * h; q++)
+    {
+      const INT o = q / h, r = q % h;
+      C *row = gp + o * pt * inner;
+
+      memcpy(row + (nt + r) * inner, row + (r % nt) * inner,
+          (size_t)(inner) * sizeof(C));
+    }
+  }
+}
+
+/**
+ * Adds the halo of the padded grid gp back to the points it is a periodic copy
+ * of, dimension by dimension in reverse order (see fill_halo). Afterwards the
+ * n_0 x ... x n_{d-1} part of gp holds the result.
+ */
+static void fold_halo(const X(plan) *ths, C *gp)
+{
+  const INT d = ths->d, h = HALO(ths->m);
+  INT t;
+
+  for (t = d - 1; t >= 0; t--)
+  {
+    const INT nt = ths->n[t], pt = nt + h;
+    INT outer = 1, inner = 1, s, q;
+
+    for (s = 0; s < t; s++)
+      outer *= ths->n[s] + h;
+    for (s = t + 1; s < d; s++)
+      inner *= ths->n[s] + h;
+
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(q)
+#endif
+    for (q = 0; q < outer * inner; q++)
+    {
+      C *base = gp + (q / inner) * pt * inner + q % inner;
+      INT r;
+
+      for (r = 0; r < h; r++)
+        base[(r % nt) * inner] += base[(nt + r) * inner];
+    }
+  }
+}
+
+/** Points ths->g at the padded grid of the matrix B: ths->g2 when it is
+ *  padded, else the plan's scratch grid ths->g_pad (allocated on first use and
+ *  grown if n has grown). */
+static void select_grid_B(X(plan) *ths)
+{
+  if (ths->halo_hi == HALO(ths->m))
+  {
+    ths->g = ths->g2;
+    return;
+  }
+
+  {
+    const INT size = grid_B_total(ths);
+    if (ths->g_pad == NULL || ths->g_pad_size < size)
+    {
+      Y(free)(ths->g_pad);
+      ths->g_pad = (C*) Y(malloc)((size_t)(size) * sizeof(C));
+      ths->g_pad_size = size;
+    }
+  }
+  ths->g = ths->g_pad;
+}
+
+/** After the FFT of the trafo: makes ths->g the padded grid of B, holding
+ *  ths->g2 and its filled halo. */
+static void grid_B_trafo(X(plan) *ths)
+{
+  select_grid_B(ths);
+  if (ths->g != ths->g2)
+    copy_grid(ths, ths->g, HALO(ths->m), ths->g2, ths->halo_hi);
+  fill_halo(ths, ths->g);
+}
+
+/** After B^T of the adjoint: folds the halo of ths->g and leaves the result
+ *  in ths->g2, the input of the FFT. */
+static void grid_B_adjoint_done(X(plan) *ths)
+{
+  fold_halo(ths, ths->g);
+  if (ths->g != ths->g2)
+    copy_grid(ths, ths->g2, ths->halo_hi, ths->g, HALO(ths->m));
+}
+
+/** Logical row of dimension 0 of a row index of the padded grid. */
+#define ROW0(r, n0) ((r) < (n0) ? (r) : (r) - (n0))
+
 /** direct computation of non equispaced fourier transforms
  *  nfft_trafo_direct, ndft_conjugated, nfft_adjoint_direct, ndft_transposed
  *  require O(M_total N^d) arithemtical operations
@@ -601,6 +782,15 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
+/** Lower corner of the window of node x, wrapped into [0, n): the window
+ *  covers the points uo_wrap, ..., uo_wrap+2m+1 of the padded grid of B. */
+static inline INT uo_wrap(const R x, const INT n, const INT m)
+{
+  INT c = LRINT(FLOOR(x * (R)(n)));
+
+  return (c - m + n) % n;
+}
+
 #define MACRO_D_compute_A \
 { \
   g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d]; \
@@ -890,7 +1080,7 @@ static void D_T(X(plan) *ths)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
 #define MACRO_B_init_result_A memset(fs, 0, (size_t)(ths->M_total) * sizeof(C));
-#define MACRO_B_init_result_T memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_B_init_result_T memset(ths->g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
 
 #define MACRO_B_PRE_FULL_PSI_compute_A \
 { \
@@ -930,8 +1120,9 @@ INT l_all[ths->d*(2*ths->m+2)]; \
   { \
     uo(ths, xs, j,&u[t],&o[t],t); \
     INT lj_t; \
+    const INT uw_t = ((u[t] % ths->n[t]) + ths->n[t]) % ths->n[t]; \
     for (lj_t = 0; lj_t < 2*ths->m+2; lj_t++) \
-      l_all[t*(2*ths->m+2) + lj_t] = (u[t] + lj_t + ths->n[t]) % ths->n[t]; \
+      l_all[t*(2*ths->m+2) + lj_t] = uw_t + lj_t; \
     lj[t] = 0; \
   } \
   t++; \
@@ -941,7 +1132,7 @@ INT l_all[ths->d*(2*ths->m+2)]; \
   for (t2 = t; t2 < ths->d; t2++) \
     { \
       phi_prod[t2+1] = phi_prod[t2] * MACRO_ ## which_one; \
-      ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+      ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
     } \
 }
 
@@ -972,25 +1163,25 @@ INT l_all[ths->d*(2*ths->m+2)]; \
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                 MACRO_B_compute_ ## whichone_AT; \
               } \
@@ -1006,31 +1197,31 @@ INT l_all[ths->d*(2*ths->m+2)]; \
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
                 for (l4 = 0; l4 < 2*ths->m+2; l4++) \
                 { \
                   lj[4] = l4; \
                   t2 = 4; \
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                   MACRO_B_compute_ ## whichone_AT; \
                 } \
@@ -1312,25 +1503,25 @@ MACRO_B(A)
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                 fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
               } \
@@ -1346,31 +1537,31 @@ MACRO_B(A)
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
                 for (l4 = 0; l4 < 2*ths->m+2; l4++) \
                 { \
                   lj[4] = l4; \
                   t2 = 4; \
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                   fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
                 } \
@@ -1680,8 +1871,9 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
       const INT *ar_x = index_x;
       INT n_prod_rest = 1;
 
+      /* rows of dimension 0 of the padded grid of B */
       for (k = 1; k < d; k++)
-        n_prod_rest *= n[k];
+        n_prod_rest *= n[k] + HALO(m);
 
       nfft_adjoint_B_omp_blockwise_init(&my_u0, &my_o0, &min_u_a, &max_u_a, &min_u_b, &max_u_b, d, n, m);
 
@@ -1705,8 +1897,9 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
           for (l0 = 0; l0 < 2 * m + 2; l0++)
           {
             const INT start_index = psi_index_g[j * lprod + l0 * lprod_m1];
+            const INT row0 = ROW0(start_index / n_prod_rest, n[0]);
 
-            if (start_index < my_u0 * n_prod_rest || start_index > (my_o0+1) * n_prod_rest - 1)
+            if (row0 < my_u0 || row0 > my_o0)
               continue;
 
             for (lrest = 0; lrest < lprod_m1; lrest++)
@@ -1740,8 +1933,9 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
           for (l0 = 0; l0 < 2 * m + 2; l0++)
           {
             const INT start_index = psi_index_g[j * lprod + l0 * lprod_m1];
+            const INT row0 = ROW0(start_index / n_prod_rest, n[0]);
 
-            if (start_index < my_u0 * n_prod_rest || start_index > (my_o0+1) * n_prod_rest - 1)
+            if (row0 < my_u0 || row0 > my_o0)
               continue;
             for (lrest = 0; lrest < lprod_m1; lrest++)
             {
@@ -1903,28 +2097,29 @@ MACRO_B(T)
         { \
           lj[0] = l0; \
           t2 = 0; \
-          if (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0) \
+          if (ROW0(l_all[lj[0]], ths->n[0]) < my_u0 \
+              || ROW0(l_all[lj[0]], ths->n[0]) > my_o0) \
             continue; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                 ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * fs[j]; \
               } \
@@ -1939,34 +2134,35 @@ MACRO_B(T)
         { \
           lj[0] = l0; \
           t2 = 0; \
-          if (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0) \
+          if (ROW0(l_all[lj[0]], ths->n[0]) < my_u0 \
+              || ROW0(l_all[lj[0]], ths->n[0]) > my_o0) \
             continue; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
                 for (l4 = 0; l4 < 2*ths->m+2; l4++) \
                 { \
                   lj[4] = l4; \
                   t2 = 4; \
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                   ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * fs[j]; \
                 } \
@@ -1979,7 +2175,8 @@ MACRO_B(T)
         l_L = 0; \
         while (l_L < lprod) \
         { \
-          if (t == 0 && (l_all[lj[0]] < my_u0 || l_all[lj[0]] > my_o0)) \
+          if (t == 0 && (ROW0(l_all[lj[0]], ths->n[0]) < my_u0 \
+              || ROW0(l_all[lj[0]], ths->n[0]) > my_o0)) \
           { \
             lj[0]++; \
             l_L += lprodrest; \
@@ -2075,25 +2272,25 @@ MACRO_B(T)
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                 C *lhs = ths->g + ll_plain[ths->d]; \
                 R *lhs_real = (R*)lhs; \
@@ -2117,31 +2314,31 @@ MACRO_B(T)
           lj[0] = l0; \
           t2 = 0; \
           phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
           for (l1 = 0; l1 < 2*ths->m+2; l1++) \
           { \
             lj[1] = l1; \
             t2 = 1; \
             phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
             for (l2 = 0; l2 < 2*ths->m+2; l2++) \
             { \
               lj[2] = l2; \
               t2 = 2; \
               phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
               for (l3 = 0; l3 < 2*ths->m+2; l3++) \
               { \
                 lj[3] = l3; \
                 t2 = 3; \
                 phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
                 for (l4 = 0; l4 < 2*ths->m+2; l4++) \
                 { \
                   lj[4] = l4; \
                   t2 = 4; \
                   phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                  ll_plain[t2+1] = ll_plain[t2] * ths->n[t2] + l_all[t2*(2*ths->m+2) + lj[t2]]; \
+                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
  \
                   C *lhs = ths->g + ll_plain[ths->d]; \
                   R *lhs_real = (R*)lhs; \
@@ -2189,7 +2386,7 @@ static inline void B_openmp_T(X(plan) *ths)
   INT lprod; /* 'regular bandwidth' of matrix B  */
   INT k;
 
-  memset(ths->g, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(ths->g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
 
   for (k = 0, lprod = 1; k < ths->d; k++)
     lprod *= (2*ths->m+2);
@@ -2314,25 +2511,13 @@ static void nfft_init_fg(R *e, R *q, const R b)
 static void nfft_trafo_1d_compute(C *fj, const C *g,const R *psij_const,
   const R *xj, const INT n, const INT m)
 {
-  INT u, o, l;
-  const C *gj;
-  const R *psij;
-  psij = psij_const;
+  const INT u = uo_wrap(*xj, n, m);
+  const C *gj = g + u;
+  const R *psij = psij_const;
+  INT l;
 
-  uo2(&u, &o, *xj, n, m);
-
-  if (u < o)
-  {
-    for (l = 1, gj = g + u, (*fj) = (*psij++) * (*gj++); l <= 2*m+1; l++)
-      (*fj) += (*psij++) * (*gj++);
-  }
-  else
-  {
-    for (l = 1, gj = g + u, (*fj) = (*psij++) * (*gj++); l < 2*m+1 - o; l++)
-      (*fj) += (*psij++) * (*gj++);
-    for (l = 0, gj = g; l <= o; l++)
-      (*fj) += (*psij++) * (*gj++);
-  }
+  for (l = 1, (*fj) = (*psij++) * (*gj++); l <= 2*m+1; l++)
+    (*fj) += (*psij++) * (*gj++);
 }
 
 #ifndef _OPENMP
@@ -2340,25 +2525,13 @@ static void nfft_adjoint_1d_compute_serial(const C *restrict fj,
     C *restrict g, const R *restrict psij_const, const R *restrict xj,
     const INT n, const INT m)
 {
-  INT u,o,l;
-  C *gj;
-  const R *psij;
-  psij = psij_const;
+  const INT u = uo_wrap(*xj, n, m);
+  C *gj = g + u;
+  const R *psij = psij_const;
+  INT l;
 
-  uo2(&u,&o,*xj, n, m);
-
-  if (u < o)
-  {
-    for (l = 0, gj = g+u; l <= 2*m+1; l++)
-      (*gj++) += (*psij++) * (*fj);
-  }
-  else
-  {
-    for (l = 0, gj = g+u; l < 2*m+1-o; l++)
-      (*gj++) += (*psij++) * (*fj);
-    for (l = 0, gj = g; l <= o; l++)
-      (*gj++) += (*psij++) * (*fj);
-  }
+  for (l = 0; l <= 2*m+1; l++)
+    (*gj++) += (*psij++) * (*fj);
 }
 #endif
 
@@ -2368,19 +2541,12 @@ static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *restrict g,
     const R *restrict psij_const, const R *restrict xj, const INT n,
     const INT m)
 {
-  INT u,o,l;
-  C *gj;
-  INT index_temp[2*m+2];
+  const INT u = uo_wrap(*xj, n, m);
+  INT l;
 
-  uo2(&u,&o,*xj, n, m);
-
-  for (l=0; l<=2*m+1; l++)
-    index_temp[l] = (l+u)%n;
-
-  for (l = 0, gj = g+u; l <= 2*m+1; l++)
+  for (l = 0; l <= 2*m+1; l++)
   {
-    INT i = index_temp[l];
-    C *lhs = g+i;
+    C *lhs = g+u+l;
     R *lhs_real = (R*)lhs;
     C val = psij_const[l] * f;
     #pragma omp atomic
@@ -2790,7 +2956,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   INT k;
   C *g = (C*)ths->g;
 
-  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
 
   if (ths->flags & PRE_FULL_PSI)
   {
@@ -3030,6 +3196,7 @@ void X(trafo_1d)(X(plan) *ths)
     TIC_FFTW(1)
     FFTW(execute)(ths->my_fftw_plan1);
     TOC_FFTW(1);
+    grid_B_trafo(ths);
 
     TIC(2);
     nfft_trafo_1d_B(ths);
@@ -3062,8 +3229,10 @@ void X(adjoint_1d)(X(plan) *ths)
   g_hat2=(C*)ths->g_hat;
 
   TIC(2)
+  select_grid_B(ths);
   gather_f(ths);
   nfft_adjoint_1d_B(ths);
+  grid_B_adjoint_done(ths);
   TOC(2)
 
   TIC_FFTW(1)
@@ -3110,79 +3279,23 @@ static void nfft_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
     const R *psij_const1, const R *xj0, const R *xj1, const INT n0,
     const INT n1, const INT m)
 {
-  INT u0,o0,l0,u1,o1,l1;
+  const INT p1 = n1 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
+  INT l0, l1;
   const C *gj;
-  const R *psij0,*psij1;
+  const R *psij0, *psij1;
 
   psij0=psij_const0;
-  psij1=psij_const1;
-
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
 
   *fj=0;
 
-  if (u0 < o0)
-      if(u1 < o1)
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
+  for(l0=0; l0<=2*m+1; l0++,psij0++)
+  {
+    psij1=psij_const1;
+    gj=g+(u0+l0)*p1+u1;
+    for(l1=0; l1<=2*m+1; l1++)
       (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      else
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-  else
-      if(u1<o1)
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      }
-      else
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-        gj=g+l0*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-    }
-      }
+  }
 }
 
 #ifdef _OPENMP
@@ -3192,25 +3305,15 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *restrict g,
             const R *restrict xj0, const R *restrict xj1, const INT n0,
             const INT n1, const INT m)
 {
-  INT u0,o0,l0,u1,o1,l1;
-
-  INT index_temp0[2*m+2];
-  INT index_temp1[2*m+2];
-
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-
-  for (l0=0; l0<=2*m+1; l0++)
-    index_temp0[l0] = (u0+l0)%n0;
-
-  for (l1=0; l1<=2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
+  const INT p1 = n1 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
+  INT l0, l1;
 
   for(l0=0; l0<=2*m+1; l0++)
   {
     for(l1=0; l1<=2*m+1; l1++)
     {
-      INT i = index_temp0[l0] * n1 + index_temp1[l1];
+      INT i = (u0+l0) * p1 + u1+l1;
       C *lhs = g+i;
       R *lhs_real = (R*)lhs;
       C val = psij_const0[l0] * psij_const1[l1] * f;
@@ -3249,15 +3352,14 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
             const R *restrict xj0, const R *restrict xj1, const INT n0,
             const INT n1, const INT m, const INT my_u0, const INT my_o0)
 {
-  INT ar_u0,ar_o0,l0,u1,o1,l1;
-  INT index_temp1[2*m+2];
+  const INT p1 = n1 + HALO(m);
+  INT ar_u0,ar_o0,l0,u1,l1;
 
   uo2(&ar_u0,&ar_o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
+  u1 = uo_wrap(*xj1, n1, m);
 
-  for (l1 = 0; l1 <= 2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
-
+  /* dimension 0: only the rows of this thread, wrapped; dimension 1:
+   * contiguous in the halo */
   if(ar_u0 < ar_o0)
   {
     INT u0 = MAX(my_u0,ar_u0);
@@ -3271,11 +3373,11 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      INT i0 = (u0+l0) * n1;
+      C *gi = g + (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
+        gi[l1] += val0 * psij_const1[l1] * f;
     }
   }
   else
@@ -3291,11 +3393,11 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      INT i0 = (u0+l0) * n1;
+      C *gi = g + (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
+        gi[l1] += val0 * psij_const1[l1] * f;
     }
 
     u0 = my_u0;
@@ -3312,11 +3414,11 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      INT i0 = (u0+l0) * n1;
+      C *gi = g + (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
-        g[i0 + index_temp1[l1]] += val0 * psij_const1[l1] * f;
+        gi[l1] += val0 * psij_const1[l1] * f;
     }
   }
 }
@@ -3328,77 +3430,21 @@ static void nfft_adjoint_2d_compute_serial(const C *restrict fj,
             const R *restrict psij_const1, const R *restrict xj0,
             const R *restrict xj1, const INT n0, const INT n1, const INT m)
 {
-  INT u0,o0,l0,u1,o1,l1;
+  const INT p1 = n1 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
+  INT l0, l1;
   C *gj;
   const R *psij0,*psij1;
 
   psij0=psij_const0;
-  psij1=psij_const1;
 
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-
-  if(u0<o0)
-      if(u1<o1)
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-    (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      else
-    for(l0=0; l0<=2*m+1; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
+  for(l0=0; l0<=2*m+1; l0++,psij0++)
+  {
+    psij1=psij_const1;
+    gj=g+(u0+l0)*p1+u1;
+    for(l1=0; l1<=2*m+1; l1++)
       (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-  else
-      if(u1<o1)
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<=2*m+1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      }
-      else
-      {
-    for(l0=0; l0<2*m+1-o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+(u0+l0)*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+(u0+l0)*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-    for(l0=0; l0<=o0; l0++,psij0++)
-    {
-        psij1=psij_const1;
-        gj=g+l0*n1+u1;
-        for(l1=0; l1<2*m+1-o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-        gj=g+l0*n1;
-        for(l1=0; l1<=o1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-    }
-      }
+  }
 }
 #endif
 
@@ -3755,7 +3801,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
   C* g = (C*) ths->g;
   INT k;
 
-  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
 
   if(ths->flags & PRE_FULL_PSI)
   {
@@ -4055,6 +4101,7 @@ void X(trafo_2d)(X(plan) *ths)
   TIC_FFTW(1)
   FFTW(execute)(ths->my_fftw_plan1);
   TOC_FFTW(1);
+  grid_B_trafo(ths);
 
   TIC(2);
   nfft_trafo_2d_B(ths);
@@ -4088,8 +4135,10 @@ void X(adjoint_2d)(X(plan) *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(2);
+  select_grid_B(ths);
   gather_f(ths);
   nfft_adjoint_2d_B(ths);
+  grid_B_adjoint_done(ths);
   TOC(2);
 
   TIC_FFTW(1)
@@ -4162,247 +4211,28 @@ static void nfft_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
     const R *psij_const1, const R *psij_const2, const R *xj0, const R *xj1,
     const R *xj2, const INT n0, const INT n1, const INT n2, const INT m)
 {
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
+    u2 = uo_wrap(*xj2, n2, m);
+  INT l0, l1, l2;
   const C *gj;
   const R *psij0, *psij1, *psij2;
 
   psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
-
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
 
   *fj = 0;
 
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-          }
-        }
-      }
+  for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
+  {
+    psij1 = psij_const1;
+    for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
+    {
+      psij2 = psij_const2;
+      gj = g + ((u0 + l0) * p1 + (u1 + l1)) * p2 + u2;
+      for (l2 = 0; l2 <= 2 * m + 1; l2++)
+        (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
+    }
+  }
 }
 
 #ifdef _OPENMP
@@ -4433,21 +4263,15 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
     const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
     const INT n2, const INT m, const INT my_u0, const INT my_o0)
 {
-  INT ar_u0,ar_o0,l0,u1,o1,l1,u2,o2,l2;
-
-  INT index_temp1[2*m+2];
-  INT index_temp2[2*m+2];
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
+  INT ar_u0,ar_o0,l0,u1,l1,u2,l2;
 
   uo2(&ar_u0,&ar_o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-  uo2(&u2,&o2,*xj2, n2, m);
+  u1 = uo_wrap(*xj1, n1, m);
+  u2 = uo_wrap(*xj2, n2, m);
 
-  for (l1=0; l1<=2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
-
-  for (l2=0; l2<=2*m+1; l2++)
-    index_temp2[l2] = (u2+l2)%n2;
-
+  /* dimension 0: only the rows of this thread, wrapped; dimensions 1 and 2:
+   * contiguous in the halo */
   if(ar_u0<ar_o0)
   {
     INT u0 = MAX(my_u0,ar_u0);
@@ -4461,16 +4285,16 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
 
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      const INT i0 = (u0+l0) * n1;
+      const INT i0 = (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
       {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
+        C *gi = g + (i0 + l1) * p2 + u2;
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
+          gi[l2] += val0 * val1 * psij_const2[l2] * f;
       }
     }
   }
@@ -4487,16 +4311,16 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
 
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      INT i0 = (u0+l0) * n1;
+      const INT i0 = (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
       {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
+        C *gi = g + (i0 + l1) * p2 + u2;
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
+          gi[l2] += val0 * val1 * psij_const2[l2] * f;
       }
     }
 
@@ -4513,16 +4337,16 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
 #endif
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
-      INT i0 = (u0+l0) * n1;
+      const INT i0 = (u0+l0) * p1 + u1;
       const C val0 = psij_const0[offset_psij+l0];
 
       for(l1=0; l1<=2*m+1; l1++)
       {
-        const INT i1 = (i0 + index_temp1[l1]) * n2;
+        C *gi = g + (i0 + l1) * p2 + u2;
         const C val1 = psij_const1[l1];
 
         for(l2=0; l2<=2*m+1; l2++)
-          g[i1 + index_temp2[l2]] += val0 * val1 * psij_const2[l2] * f;
+          gi[l2] += val0 * val1 * psij_const2[l2] * f;
       }
     }
   }
@@ -4537,24 +4361,10 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *restrict g,
     const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
     const INT n2, const INT m)
 {
-  INT u0,o0,l0,u1,o1,l1,u2,o2,l2;
-
-  INT index_temp0[2*m+2];
-  INT index_temp1[2*m+2];
-  INT index_temp2[2*m+2];
-
-  uo2(&u0,&o0,*xj0, n0, m);
-  uo2(&u1,&o1,*xj1, n1, m);
-  uo2(&u2,&o2,*xj2, n2, m);
-
-  for (l0=0; l0<=2*m+1; l0++)
-    index_temp0[l0] = (u0+l0)%n0;
-
-  for (l1=0; l1<=2*m+1; l1++)
-    index_temp1[l1] = (u1+l1)%n1;
-
-  for (l2=0; l2<=2*m+1; l2++)
-    index_temp2[l2] = (u2+l2)%n2;
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
+    u2 = uo_wrap(*xj2, n2, m);
+  INT l0, l1, l2;
 
   for(l0=0; l0<=2*m+1; l0++)
   {
@@ -4562,7 +4372,7 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *restrict g,
     {
       for(l2=0; l2<=2*m+1; l2++)
       {
-        INT i = (index_temp0[l0] * n1 + index_temp1[l1]) * n2 + index_temp2[l2];
+        INT i = ((u0+l0) * p1 + u1+l1) * p2 + u2+l2;
         C *lhs = g+i;
         R *lhs_real = (R*)lhs;
         C val = psij_const0[l0] * psij_const1[l1] * psij_const2[l2] * f;
@@ -4585,245 +4395,26 @@ static void nfft_adjoint_3d_compute_serial(const C *restrict fj,
     const R *restrict xj0, const R *restrict xj1, const R *restrict xj2,
     const INT n0, const INT n1, const INT n2, const INT m)
 {
-  INT u0, o0, l0, u1, o1, l1, u2, o2, l2;
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
+  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
+    u2 = uo_wrap(*xj2, n2, m);
+  INT l0, l1, l2;
   C *gj;
   const R *psij0, *psij1, *psij2;
 
   psij0 = psij_const0;
-  psij1 = psij_const1;
-  psij2 = psij_const2;
 
-  uo2(&u0, &o0, *xj0, n0, m);
-  uo2(&u1, &o1, *xj1, n1, m);
-  uo2(&u2, &o2, *xj2, n2, m);
-
-  if (u0 < o0)
-    if (u1 < o1)
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else
-        /* asserts (u2>o2)*/
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-    else /* asserts (u1>o1)*/
-      if (u2 < o2)
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-  else /* asserts (u0>o0) */
-    if (u1 < o1)
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
-    else /* asserts (u1>o1) */
-      if (u2 < o2)
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 <= 2 * m + 1; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      } else/* asserts (u2>o2) */
-      {
-        for (l0 = 0; l0 < 2 * m + 1 - o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + ((u0 + l0) * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + ((u0 + l0) * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-
-        for (l0 = 0; l0 <= o0; l0++, psij0++)
-        {
-          psij1 = psij_const1;
-          for (l1 = 0; l1 < 2 * m + 1 - o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + (u1 + l1)) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + (u1 + l1)) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-          for (l1 = 0; l1 <= o1; l1++, psij1++)
-          {
-            psij2 = psij_const2;
-            gj = g + (l0 * n1 + l1) * n2 + u2;
-            for (l2 = 0; l2 < 2 * m + 1 - o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-            gj = g + (l0 * n1 + l1) * n2;
-            for (l2 = 0; l2 <= o2; l2++)
-              (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-          }
-        }
-      }
+  for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
+  {
+    psij1 = psij_const1;
+    for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
+    {
+      psij2 = psij_const2;
+      gj = g + ((u0 + l0) * p1 + (u1 + l1)) * p2 + u2;
+      for (l2 = 0; l2 <= 2 * m + 1; l2++)
+        (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
+    }
+  }
 }
 #endif
 
@@ -5249,7 +4840,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
 
   C* g = (C*) ths->g;
 
-  memset(g, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
 
   if(ths->flags & PRE_FULL_PSI)
   {
@@ -5615,6 +5206,7 @@ void X(trafo_3d)(X(plan) *ths)
   TIC_FFTW(1)
   FFTW(execute)(ths->my_fftw_plan1);
   TOC_FFTW(1);
+  grid_B_trafo(ths);
 
   TIC(2);
   nfft_trafo_3d_B(ths);
@@ -5651,8 +5243,10 @@ void X(adjoint_3d)(X(plan) *ths)
   g_hat=(C*)ths->g_hat;
 
   TIC(2);
+  select_grid_B(ths);
   gather_f(ths);
   nfft_adjoint_3d_B(ths);
+  grid_B_adjoint_done(ths);
   TOC(2);
 
   TIC_FFTW(1)
@@ -5791,6 +5385,7 @@ void X(trafo)(X(plan) *ths)
       TIC_FFTW(1)
       FFTW(execute)(ths->my_fftw_plan1);
       TOC_FFTW(1)
+      grid_B_trafo(ths);
 
       /** set \f$ f_j =\sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
        *  \text{ for } j=0,\dots,M_total-1 \f$
@@ -5830,8 +5425,10 @@ void X(adjoint)(X(plan) *ths)
        *  \text{ for } l \in I_n,m(x_j) \f$
        */
       TIC(2)
+      select_grid_B(ths);
       gather_f(ths);
       B_T(ths);
+      grid_B_adjoint_done(ths);
       TOC(2)
 
       /** compute by d-variate discrete Fourier transform
@@ -6141,6 +5738,8 @@ static void init_help(X(plan) *ths)
       ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
+  ths->halo_hi = 0;
+
   if(ths->flags & FFTW_INIT)
   {
 #ifdef _OPENMP
@@ -6180,6 +5779,8 @@ static void init_help(X(plan) *ths)
     ths->index_x = NULL;
   ths->x_sorted = NULL;
   ths->f_sorted = NULL;
+  ths->g_pad = NULL;
+  ths->g_pad_size = 0;
 
   ths->mv_trafo = (void (*) (void* ))X(trafo);
   ths->mv_adjoint = (void (*) (void* ))X(adjoint);
@@ -6375,6 +5976,9 @@ void X(finalize)(X(plan) *ths)
     Y(free)(ths->x_sorted);
     Y(free)(ths->f_sorted);
   }
+
+  if (ths->g_pad != NULL)
+    Y(free)(ths->g_pad);
 
   if(ths->flags & FFTW_INIT)
   {

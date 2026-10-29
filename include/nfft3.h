@@ -154,10 +154,18 @@ typedef struct\
   NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
   NFFT_INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
 \
-  C *g; /**< Oversampled vector of samples, size is \ref n_total double complex */\
-  C *g_hat; /**< Zero-padded vector of Fourier coefficients, size is \ref n_total fftw_complex */\
-  C *g1; /**< Input of fftw */\
-  C *g2; /**< Output of fftw */\
+  C *g; /**< Oversampled vector of samples as the matrix B reads and writes \
+             it: the \f$n_0\times\dots\times n_{d-1}\f$ grid with a halo of \
+             2m+2 points after the end of each dimension, row-major with \
+             the padded lengths \f$n_t+2m+2\f$. It is \ref g2 when \
+             \ref halo_hi is 2m+2, else \ref g_pad */\
+  C *g_hat; /**< Zero-padded vector of Fourier coefficients, laid out as \
+                 \ref g1 */\
+  C *g1; /**< Input of fftw. With \ref FFTW_INIT, the grid padded with \
+              \ref halo_hi points per dimension (the transforms use only the \
+              \f$n_0\times\dots\times n_{d-1}\f$ part); without it, provided \
+              by the caller with \ref n_total elements */\
+  C *g2; /**< Output of fftw, laid out as \ref g1 */\
 \
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
@@ -167,6 +175,17 @@ typedef struct\
                     NULL until then */\
   C *f_sorted; /**< Samples in the order of \ref index_x, scratch array of \
                     the fast transforms once \ref x_sorted is set */\
+\
+  NFFT_INT halo_hi; /**< Number of halo points after the end of each \
+                         dimension of \ref g1 and \ref g2: 2m+2 when the plan \
+                         allocates them (\ref FFTW_INIT), 0 when the caller \
+                         provides them as plain arrays of \ref n_total \
+                         elements. The matrix B works on a grid padded with \
+                         2m+2 halo points per dimension, so that the window \
+                         indices never wrap around; see \ref g. */\
+  C *g_pad; /**< Padded grid of the matrix B when \ref halo_hi is 0 \
+                 (allocated by the first transform), else NULL */\
+  NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
 } X(plan); \
 \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
