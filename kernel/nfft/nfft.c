@@ -814,6 +814,74 @@ static inline INT uo_wrap(const R x, const INT n, const INT m)
   return (c - m + n) % n;
 }
 
+/* Helpers of the tensor product kernels Y(B_tensor_trafo) and
+ * Y(B_tensor_adjoint) (infft.h) on the complex grid, 2 reals per point. */
+
+/** wl[2l] = wl[2l+1] = p[l], l < L: weights in the row layout of the grid. */
+static inline void dup_weights(R *restrict wl, const R *restrict p,
+    const INT L)
+{
+  INT l;
+
+  for (l = 0; l < L; l++)
+    wl[2 * l] = wl[2 * l + 1] = p[l];
+}
+
+/** wf[2l] = p[l] Re(f), wf[2l+1] = p[l] Im(f), l < L: weights times the
+ *  sample f in the row layout of the grid. */
+static inline void scale_weights(R *restrict wf, const R *restrict p,
+    const C f, const INT L)
+{
+  const R fr = CREAL(f), fi = CIMAG(f);
+  INT l;
+
+  for (l = 0; l < L; l++)
+  {
+    wf[2 * l] = p[l] * fr;
+    wf[2 * l + 1] = p[l] * fi;
+  }
+}
+
+static inline void zero_reals(R *a, const INT len)
+{
+  INT i;
+
+  for (i = 0; i < len; i++)
+    a[i] = K(0.0);
+}
+
+/** Sum of the L (re, im) pairs of acc. */
+static inline C sum_pairs(const R *acc, const INT L)
+{
+  R re = K(0.0), im = K(0.0);
+  INT l;
+
+  for (l = 0; l < L; l++)
+  {
+    re += acc[2 * l];
+    im += acc[2 * l + 1];
+  }
+
+  return re + II * im;
+}
+
+/** f_j = sum of psi[l] g[idx[l]], l < len (even): one node of B with
+ *  PRE_FULL_PSI, into local accumulators. */
+static inline C full_psi_trafo(const R *restrict psi, const INT *restrict idx,
+    const C *g, const INT len)
+{
+  C a0 = K(0.0), a1 = K(0.0);
+  INT l;
+
+  for (l = 0; l < len; l += 2)
+  {
+    a0 += psi[l] * g[idx[l]];
+    a1 += psi[l+1] * g[idx[l+1]];
+  }
+
+  return a0 + a1;
+}
+
 #define MACRO_D_compute_A \
 { \
   g_hat[k_plain[ths->d]] = f_hat[ks_plain[ths->d]] * c_phi_inv_k[ths->d]; \
@@ -1177,6 +1245,41 @@ INT l_all[ths->d*(2*ths->m+2)]; \
 #define MACRO_COMPUTE_without_PRE_PSI MACRO_without_PRE_PSI_improved
 #define MACRO_COMPUTE_without_PRE_PSI_improved MACRO_without_PRE_PSI_improved
 
+/* B for node j in any dimension: the weights of all dimensions from the
+ * expression of the psi mode, then the tensor product kernel on the rows of
+ * the last dimension */
+#define MACRO_B_A_NODE(whichone_FLAGS) \
+{ \
+  const INT L_ = 2*ths->m+2; \
+  R w_all_[ths->d * L_], wl_[2 * L_], acc_[2 * L_]; \
+  const R *w_[ths->d]; \
+  INT lo_[ths->d], np_[ths->d]; \
+ \
+  for (t2 = 0; t2 < ths->d; t2++) \
+  { \
+    for (lj[t2] = 0; lj[t2] < L_; lj[t2]++) \
+      w_all_[t2 * L_ + lj[t2]] = MACRO_COMPUTE_ ## whichone_FLAGS; \
+    w_[t2] = w_all_ + t2 * L_; \
+    lo_[t2] = l_all[t2 * L_]; \
+    np_[t2] = ths->n[t2] + HALO(ths->m); \
+  } \
+ \
+  dup_weights(wl_, w_all_ + (ths->d - 1) * L_, L_); \
+  zero_reals(acc_, 2 * L_); \
+  Y(B_tensor_trafo)(ths->d, L_, 2, np_, lo_, w_, wl_, (const R*)ths->g, \
+      acc_); \
+  fs[j] = sum_pairs(acc_, L_); \
+}
+
+#define MACRO_B_NODE_A(whichone_FLAGS) \
+{ \
+  UNUSED(phi_prod); /* the per-tap state of B^T */ \
+  UNUSED(ll_plain); \
+  MACRO_B_A_NODE(whichone_FLAGS); \
+}
+#define MACRO_B_NODE_T(whichone_FLAGS) \
+  MACRO_B_COMPUTE_ONE_NODE(T, whichone_FLAGS)
+
 #define MACRO_B_COMPUTE_ONE_NODE(whichone_AT,whichone_FLAGS) \
       if (ths->d == 4) \
       { \
@@ -1322,7 +1425,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
  \
       MACRO_init_uo_l_lj_t; \
  \
-      MACRO_B_COMPUTE_ONE_NODE(which_one,with_PRE_PSI); \
+      MACRO_B_NODE_ ## which_one(with_PRE_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_PSI) */ \
@@ -1349,7 +1452,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         fg_p[t2] = FG_RUN_START(fg_psi[t2], ths->psi[2*(j*ths->d+t2)]); \
       } \
  \
-      MACRO_B_COMPUTE_ONE_NODE(which_one,with_FG_PSI); \
+      MACRO_B_NODE_ ## which_one(with_FG_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_FG_PSI) */ \
@@ -1381,7 +1484,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         fg_p[t2] = FG_RUN_START(fg_psi[t2], fg_d); \
       } \
  \
-      MACRO_B_COMPUTE_ONE_NODE(which_one,with_FG_PSI); \
+      MACRO_B_NODE_ ## which_one(with_FG_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(FG_PSI) */ \
@@ -1410,7 +1513,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
         } \
       } \
  \
-      MACRO_B_COMPUTE_ONE_NODE(which_one,with_LIN_PSI); \
+      MACRO_B_NODE_ ## which_one(with_LIN_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_LIN_PSI) */ \
@@ -1432,7 +1535,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
           xs[j*ths->d+t2], u[t2], t2); \
     } \
  \
-    MACRO_B_COMPUTE_ONE_NODE(which_one,without_PRE_PSI_improved); \
+    MACRO_B_NODE_ ## which_one(without_PRE_PSI_improved); \
   } /* for(j) */ \
 } /* nfft_B */ \
 
@@ -1505,104 +1608,14 @@ MACRO_B(A)
 #define MACRO_B_openmp_A_COMPUTE(whichone) \
 { \
       INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
-      INT l_L; /* index one row of B */ \
       INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
-      INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
-      R phi_prod[ths->d+1]; /* postfix product of PHI */ \
       INT j = NODE_J(ths, k); \
- \
-      phi_prod[0] = K(1.0); \
-      ll_plain[0] = 0; \
  \
       MACRO_init_uo_l_lj_t; \
  \
       MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_ ##whichone \
  \
-      if (ths->d == 4) \
-      { \
-        INT l0, l1, l2, l3; \
-        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
-        { \
-          lj[0] = l0; \
-          t2 = 0; \
-          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
-          { \
-            lj[1] = l1; \
-            t2 = 1; \
-            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
-            { \
-              lj[2] = l2; \
-              t2 = 2; \
-              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
-              { \
-                lj[3] = l3; \
-                t2 = 3; \
-                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
- \
-                fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
-              } \
-            } \
-          } \
-        } \
-      } /* if(d==4) */ \
-      else if (ths->d == 5) \
-      { \
-        INT l0, l1, l2, l3, l4; \
-        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
-        { \
-          lj[0] = l0; \
-          t2 = 0; \
-          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
-          { \
-            lj[1] = l1; \
-            t2 = 1; \
-            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
-            { \
-              lj[2] = l2; \
-              t2 = 2; \
-              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
-              { \
-                lj[3] = l3; \
-                t2 = 3; \
-                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
-                { \
-                  lj[4] = l4; \
-                  t2 = 4; \
-                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone; \
-                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
- \
-                  fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
-                } \
-              } \
-            } \
-          } \
-        } \
-      } /* if(d==5) */ \
-      else { \
-        for (l_L = 0; l_L < lprod; l_L++) \
-        { \
-          MACRO_B_openmp_A_COMPUTE_UPDATE_ ##whichone \
- \
-          fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
- \
-          MACRO_count_uo_l_lj_t; \
-        } /* for(l_L) */ \
-      } \
+      MACRO_B_A_NODE(whichone); \
 }
 
 static inline void B_openmp_A (X(plan) *ths)
@@ -1622,11 +1635,9 @@ static inline void B_openmp_A (X(plan) *ths)
     #pragma omp parallel for default(shared) private(k)
     for (k = 0; k < ths->M_total; k++)
     {
-      INT l;
       INT j = NODE_J(ths, k);
-      fs[j] = K(0.0);
-      for (l = 0; l < lprod; l++)
-        fs[j] += ths->psi[j*lprod+l] * ths->g[ths->psi_index_g[j*lprod+l]];
+      fs[j] = full_psi_trafo(ths->psi + j*lprod, ths->psi_index_g + j*lprod,
+          ths->g, lprod);
     }
     return;
   }
@@ -2536,11 +2547,17 @@ static void nfft_trafo_1d_compute(C *fj, const C *g,const R *psij_const,
 {
   const INT u = uo_wrap(*xj, n, m);
   const C *gj = g + u;
-  const R *psij = psij_const;
+  C a0 = K(0.0), a1 = K(0.0);
   INT l;
 
-  for (l = 1, (*fj) = (*psij++) * (*gj++); l <= 2*m+1; l++)
-    (*fj) += (*psij++) * (*gj++);
+  /* local accumulators (fj may alias g), two of them for the 2m+2 taps */
+  for (l = 0; l < 2*m+2; l += 2)
+  {
+    a0 += psij_const[l] * gj[l];
+    a1 += psij_const[l+1] * gj[l+1];
+  }
+
+  *fj = a0 + a1;
 }
 
 #ifndef _OPENMP
@@ -2672,11 +2689,9 @@ static void nfft_trafo_1d_B(X(plan) *ths)
 #endif
     for (k = 0; k < M; k++)
     {
-      INT l;
       INT j = NODE_J(ths, k);
-      fs[j] = K(0.0);
-      for (l = 0; l < m2p2; l++)
-        fs[j] += ths->psi[j*m2p2+l] * g[ths->psi_index_g[j*m2p2+l]];
+      fs[j] = full_psi_trafo(ths->psi + j*m2p2, ths->psi_index_g + j*m2p2,
+          g, m2p2);
     }
     return;
   } /* if(PRE_FULL_PSI) */
@@ -3302,23 +3317,16 @@ static void nfft_trafo_2d_compute(C *fj, const C *g, const R *psij_const0,
     const R *psij_const1, const R *xj0, const R *xj1, const INT n0,
     const INT n1, const INT m)
 {
-  const INT p1 = n1 + HALO(m);
-  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
-  INT l0, l1;
-  const C *gj;
-  const R *psij0, *psij1;
+  const INT L = 2 * m + 2;
+  const INT np[2] = {n0 + HALO(m), n1 + HALO(m)};
+  const INT lo[2] = {uo_wrap(*xj0, n0, m), uo_wrap(*xj1, n1, m)};
+  const R *w[1] = {psij_const0};
+  R wl[2 * L], acc[2 * L];
 
-  psij0=psij_const0;
-
-  *fj=0;
-
-  for(l0=0; l0<=2*m+1; l0++,psij0++)
-  {
-    psij1=psij_const1;
-    gj=g+(u0+l0)*p1+u1;
-    for(l1=0; l1<=2*m+1; l1++)
-      (*fj) += (*psij0) * (*psij1++) * (*gj++);
-  }
+  dup_weights(wl, psij_const1, L);
+  zero_reals(acc, 2 * L);
+  Y(B_tensor_trafo)(2, L, 2, np, lo, w, wl, (const R*)g, acc);
+  *fj = sum_pairs(acc, L);
 }
 
 #ifdef _OPENMP
@@ -3328,24 +3336,25 @@ static void nfft_adjoint_2d_compute_omp_atomic(const C f, C *restrict g,
             const R *restrict xj0, const R *restrict xj1, const INT n0,
             const INT n1, const INT m)
 {
-  const INT p1 = n1 + HALO(m);
+  const INT p1 = n1 + HALO(m), L = 2 * m + 2;
   const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
   INT l0, l1;
+  R wf[2 * L];
 
-  for(l0=0; l0<=2*m+1; l0++)
+  scale_weights(wf, psij_const1, f, L);
+
+  for(l0=0; l0<L; l0++)
   {
-    for(l1=0; l1<=2*m+1; l1++)
+    const R w0 = psij_const0[l0];
+    R *row = (R*)(g + (u0+l0) * p1 + u1);
+
+    for(l1=0; l1<L; l1++)
     {
-      INT i = (u0+l0) * p1 + u1+l1;
-      C *lhs = g+i;
-      R *lhs_real = (R*)lhs;
-      C val = psij_const0[l0] * psij_const1[l1] * f;
+      #pragma omp atomic
+      row[2*l1] += w0 * wf[2*l1];
 
       #pragma omp atomic
-      lhs_real[0] += CREAL(val);
-
-      #pragma omp atomic
-      lhs_real[1] += CIMAG(val);
+      row[2*l1+1] += w0 * wf[2*l1+1];
     }
   }
 }
@@ -3375,11 +3384,13 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
             const R *restrict xj0, const R *restrict xj1, const INT n0,
             const INT n1, const INT m, const INT my_u0, const INT my_o0)
 {
-  const INT p1 = n1 + HALO(m);
-  INT ar_u0,ar_o0,l0,u1,l1;
+  const INT p1 = n1 + HALO(m), L = 2 * m + 2;
+  INT ar_u0,ar_o0,l0,u1;
+  R wf[2 * L];
 
   uo2(&ar_u0,&ar_o0,*xj0, n0, m);
   u1 = uo_wrap(*xj1, n1, m);
+  scale_weights(wf, psij_const1, f, L);
 
   /* dimension 0: only the rows of this thread, wrapped; dimension 1:
    * contiguous in the halo */
@@ -3395,13 +3406,8 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 #endif
 
     for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      C *gi = g + (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        gi[l1] += val0 * psij_const1[l1] * f;
-    }
+      Y(B_row_adjoint)((R*)(g + (u0+l0) * p1 + u1), wf,
+          psij_const0[offset_psij+l0], 2 * L);
   }
   else
   {
@@ -3415,13 +3421,8 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 #endif
 
     for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      C *gi = g + (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        gi[l1] += val0 * psij_const1[l1] * f;
-    }
+      Y(B_row_adjoint)((R*)(g + (u0+l0) * p1 + u1), wf,
+          psij_const0[offset_psij+l0], 2 * L);
 
     u0 = my_u0;
     o0 = MIN(my_o0,ar_o0);
@@ -3436,13 +3437,8 @@ static void nfft_adjoint_2d_compute_omp_blockwise(const C f, C *restrict g,
 #endif
 
     for (l0 = 0; l0 <= o0-u0; l0++)
-    {
-      C *gi = g + (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
-
-      for(l1=0; l1<=2*m+1; l1++)
-        gi[l1] += val0 * psij_const1[l1] * f;
-    }
+      Y(B_row_adjoint)((R*)(g + (u0+l0) * p1 + u1), wf,
+          psij_const0[offset_psij+l0], 2 * L);
   }
 }
 #endif
@@ -3453,21 +3449,14 @@ static void nfft_adjoint_2d_compute_serial(const C *restrict fj,
             const R *restrict psij_const1, const R *restrict xj0,
             const R *restrict xj1, const INT n0, const INT n1, const INT m)
 {
-  const INT p1 = n1 + HALO(m);
-  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m);
-  INT l0, l1;
-  C *gj;
-  const R *psij0,*psij1;
+  const INT L = 2 * m + 2;
+  const INT np[2] = {n0 + HALO(m), n1 + HALO(m)};
+  const INT lo[2] = {uo_wrap(*xj0, n0, m), uo_wrap(*xj1, n1, m)};
+  const R *w[1] = {psij_const0};
+  R wf[2 * L];
 
-  psij0=psij_const0;
-
-  for(l0=0; l0<=2*m+1; l0++,psij0++)
-  {
-    psij1=psij_const1;
-    gj=g+(u0+l0)*p1+u1;
-    for(l1=0; l1<=2*m+1; l1++)
-      (*gj++) += (*psij0) * (*psij1++) * (*fj);
-  }
+  scale_weights(wf, psij_const1, *fj, L);
+  Y(B_tensor_adjoint)(2, L, 2, np, lo, w, wf, (R*)g);
 }
 #endif
 
@@ -3491,11 +3480,9 @@ static void nfft_trafo_2d_B(X(plan) *ths)
 #endif
     for (k = 0; k < M; k++)
     {
-      INT l;
       INT j = NODE_J(ths, k);
-      fs[j] = K(0.0);
-      for (l = 0; l < lprod; l++)
-        fs[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
+      fs[j] = full_psi_trafo(ths->psi + j*lprod, ths->psi_index_g + j*lprod,
+          g, lprod);
     }
     return;
   } /* if(PRE_FULL_PSI) */
@@ -4236,28 +4223,17 @@ static void nfft_trafo_3d_compute(C *fj, const C *g, const R *psij_const0,
     const R *psij_const1, const R *psij_const2, const R *xj0, const R *xj1,
     const R *xj2, const INT n0, const INT n1, const INT n2, const INT m)
 {
-  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
-  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
-    u2 = uo_wrap(*xj2, n2, m);
-  INT l0, l1, l2;
-  const C *gj;
-  const R *psij0, *psij1, *psij2;
+  const INT L = 2 * m + 2;
+  const INT np[3] = {n0 + HALO(m), n1 + HALO(m), n2 + HALO(m)};
+  const INT lo[3] = {uo_wrap(*xj0, n0, m), uo_wrap(*xj1, n1, m),
+    uo_wrap(*xj2, n2, m)};
+  const R *w[2] = {psij_const0, psij_const1};
+  R wl[2 * L], acc[2 * L];
 
-  psij0 = psij_const0;
-
-  *fj = 0;
-
-  for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-  {
-    psij1 = psij_const1;
-    for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-    {
-      psij2 = psij_const2;
-      gj = g + ((u0 + l0) * p1 + (u1 + l1)) * p2 + u2;
-      for (l2 = 0; l2 <= 2 * m + 1; l2++)
-        (*fj) += (*psij0) * (*psij1) * (*psij2++) * (*gj++);
-    }
-  }
+  dup_weights(wl, psij_const2, L);
+  zero_reals(acc, 2 * L);
+  Y(B_tensor_trafo)(3, L, 2, np, lo, w, wl, (const R*)g, acc);
+  *fj = sum_pairs(acc, L);
 }
 
 #ifdef _OPENMP
@@ -4288,12 +4264,14 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
     const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
     const INT n2, const INT m, const INT my_u0, const INT my_o0)
 {
-  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
-  INT ar_u0,ar_o0,l0,u1,l1,u2,l2;
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m), L = 2 * m + 2;
+  INT ar_u0,ar_o0,l0,u1,l1,u2;
+  R wf[2 * L];
 
   uo2(&ar_u0,&ar_o0,*xj0, n0, m);
   u1 = uo_wrap(*xj1, n1, m);
   u2 = uo_wrap(*xj2, n2, m);
+  scale_weights(wf, psij_const2, f, L);
 
   /* dimension 0: only the rows of this thread, wrapped; dimensions 1 and 2:
    * contiguous in the halo */
@@ -4311,16 +4289,11 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
       const INT i0 = (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
+      const R w0 = psij_const0[offset_psij+l0];
 
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        C *gi = g + (i0 + l1) * p2 + u2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          gi[l2] += val0 * val1 * psij_const2[l2] * f;
-      }
+      for(l1=0; l1<L; l1++)
+        Y(B_row_adjoint)((R*)(g + (i0 + l1) * p2 + u2), wf,
+            w0 * psij_const1[l1], 2 * L);
     }
   }
   else
@@ -4337,16 +4310,11 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
       const INT i0 = (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
+      const R w0 = psij_const0[offset_psij+l0];
 
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        C *gi = g + (i0 + l1) * p2 + u2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          gi[l2] += val0 * val1 * psij_const2[l2] * f;
-      }
+      for(l1=0; l1<L; l1++)
+        Y(B_row_adjoint)((R*)(g + (i0 + l1) * p2 + u2), wf,
+            w0 * psij_const1[l1], 2 * L);
     }
 
     u0 = my_u0;
@@ -4363,16 +4331,11 @@ static void nfft_adjoint_3d_compute_omp_blockwise(const C f, C *restrict g,
     for (l0 = 0; l0 <= o0-u0; l0++)
     {
       const INT i0 = (u0+l0) * p1 + u1;
-      const C val0 = psij_const0[offset_psij+l0];
+      const R w0 = psij_const0[offset_psij+l0];
 
-      for(l1=0; l1<=2*m+1; l1++)
-      {
-        C *gi = g + (i0 + l1) * p2 + u2;
-        const C val1 = psij_const1[l1];
-
-        for(l2=0; l2<=2*m+1; l2++)
-          gi[l2] += val0 * val1 * psij_const2[l2] * f;
-      }
+      for(l1=0; l1<L; l1++)
+        Y(B_row_adjoint)((R*)(g + (i0 + l1) * p2 + u2), wf,
+            w0 * psij_const1[l1], 2 * L);
     }
   }
 }
@@ -4386,27 +4349,28 @@ static void nfft_adjoint_3d_compute_omp_atomic(const C f, C *restrict g,
     const R *restrict xj1, const R *restrict xj2, const INT n0, const INT n1,
     const INT n2, const INT m)
 {
-  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
+  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m), L = 2 * m + 2;
   const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
     u2 = uo_wrap(*xj2, n2, m);
   INT l0, l1, l2;
+  R wf[2 * L];
 
-  for(l0=0; l0<=2*m+1; l0++)
+  scale_weights(wf, psij_const2, f, L);
+
+  for(l0=0; l0<L; l0++)
   {
-    for(l1=0; l1<=2*m+1; l1++)
+    for(l1=0; l1<L; l1++)
     {
-      for(l2=0; l2<=2*m+1; l2++)
+      const R w01 = psij_const0[l0] * psij_const1[l1];
+      R *row = (R*)(g + ((u0+l0) * p1 + u1+l1) * p2 + u2);
+
+      for(l2=0; l2<L; l2++)
       {
-        INT i = ((u0+l0) * p1 + u1+l1) * p2 + u2+l2;
-        C *lhs = g+i;
-        R *lhs_real = (R*)lhs;
-        C val = psij_const0[l0] * psij_const1[l1] * psij_const2[l2] * f;
+#pragma omp atomic
+        row[2*l2] += w01 * wf[2*l2];
 
 #pragma omp atomic
-        lhs_real[0] += CREAL(val);
-
-#pragma omp atomic
-        lhs_real[1] += CIMAG(val);
+        row[2*l2+1] += w01 * wf[2*l2+1];
       }
     }
   }
@@ -4420,26 +4384,15 @@ static void nfft_adjoint_3d_compute_serial(const C *restrict fj,
     const R *restrict xj0, const R *restrict xj1, const R *restrict xj2,
     const INT n0, const INT n1, const INT n2, const INT m)
 {
-  const INT p1 = n1 + HALO(m), p2 = n2 + HALO(m);
-  const INT u0 = uo_wrap(*xj0, n0, m), u1 = uo_wrap(*xj1, n1, m),
-    u2 = uo_wrap(*xj2, n2, m);
-  INT l0, l1, l2;
-  C *gj;
-  const R *psij0, *psij1, *psij2;
+  const INT L = 2 * m + 2;
+  const INT np[3] = {n0 + HALO(m), n1 + HALO(m), n2 + HALO(m)};
+  const INT lo[3] = {uo_wrap(*xj0, n0, m), uo_wrap(*xj1, n1, m),
+    uo_wrap(*xj2, n2, m)};
+  const R *w[2] = {psij_const0, psij_const1};
+  R wf[2 * L];
 
-  psij0 = psij_const0;
-
-  for (l0 = 0; l0 <= 2 * m + 1; l0++, psij0++)
-  {
-    psij1 = psij_const1;
-    for (l1 = 0; l1 <= 2 * m + 1; l1++, psij1++)
-    {
-      psij2 = psij_const2;
-      gj = g + ((u0 + l0) * p1 + (u1 + l1)) * p2 + u2;
-      for (l2 = 0; l2 <= 2 * m + 1; l2++)
-        (*gj++) += (*psij0) * (*psij1) * (*psij2++) * (*fj);
-    }
-  }
+  scale_weights(wf, psij_const2, *fj, L);
+  Y(B_tensor_adjoint)(3, L, 2, np, lo, w, wf, (R*)g);
 }
 #endif
 
@@ -4465,11 +4418,9 @@ static void nfft_trafo_3d_B(X(plan) *ths)
 #endif
     for (k = 0; k < M; k++)
     {
-      INT l;
       INT j = NODE_J(ths, k);
-      fs[j] = K(0.0);
-      for (l = 0; l < lprod; l++)
-        fs[j] += ths->psi[j*lprod+l] * g[ths->psi_index_g[j*lprod+l]];
+      fs[j] = full_psi_trafo(ths->psi + j*lprod, ths->psi_index_g + j*lprod,
+          g, lprod);
     }
     return;
   } /* if(PRE_FULL_PSI) */

@@ -2180,6 +2180,174 @@ R Y(modified_sobolev)(const R mu, const INT kk);
 /** Comput damping factor for modified multiquadric kernel. */
 R Y(modified_multiquadric)(const R mu, const R c, const INT kk);
 
+/*
+ * Tensor product kernels of the matrices B and B^T of NFFT, NFCT and NFST.
+ *
+ * The window of a node covers L = 2m+2 consecutive points per dimension of
+ * the padded grid of B, which never wrap there. Grids are viewed as arrays of
+ * reals with es reals per grid point (2 for complex, 1 for real grids), so a
+ * row of the window along the last (contiguous) dimension is es*L consecutive
+ * reals. The kernels form the weight product of the outer dimensions once per
+ * row and run over the row with an elementwise, vectorisable loop.
+ *
+ * Arguments shared by Y(B_tensor_trafo) and Y(B_tensor_adjoint):
+ *  d   dimension
+ *  L   window length 2m+2
+ *  es  reals per grid point
+ *  np  padded grid sizes, np[t] grid points in dimension t
+ *  lo  first window index per dimension in the padded grid
+ *  w   w[t][l], l < L: window weights of dimensions t < d-1
+ */
+
+/** acc[i] += w * wl[i] * row[i], i < len: one row of the window (B). */
+static inline void Y(B_row_trafo)(R *restrict acc, const R *restrict wl,
+    const R *restrict row, const R w, const INT len)
+{
+  INT i;
+
+  for (i = 0; i < len; i++)
+    acc[i] += w * wl[i] * row[i];
+}
+
+/** row[i] += w * wf[i], i < len: one row of the window (B^T). */
+static inline void Y(B_row_adjoint)(R *restrict row, const R *restrict wf,
+    const R w, const INT len)
+{
+  INT i;
+
+  for (i = 0; i < len; i++)
+    row[i] += w * wf[i];
+}
+
+/**
+ * B for one node: acc[i] += sum over the rows r of the window of
+ * w_r * wl[i] * row_r[i], i < es*L, where w_r is the product of the weights
+ * of the outer dimensions and wl the weights of the last dimension in row
+ * layout (each weight repeated es times). acc must be initialised.
+ */
+static inline void Y(B_tensor_trafo)(const INT d, const INT L, const INT es,
+    const INT *np, const INT *lo, const R *const *w, const R *wl,
+    const R *g, R *acc)
+{
+  const INT len = es * L;
+
+  if (d == 1)
+    Y(B_row_trafo)(acc, wl, g + es * lo[0], K(1.0), len);
+  else if (d == 2)
+  {
+    INT l0;
+
+    for (l0 = 0; l0 < L; l0++)
+      Y(B_row_trafo)(acc, wl, g + es * ((lo[0] + l0) * np[1] + lo[1]),
+          w[0][l0], len);
+  }
+  else if (d == 3)
+  {
+    INT l0, l1;
+
+    for (l0 = 0; l0 < L; l0++)
+    {
+      const R w0 = w[0][l0];
+      const INT r0 = (lo[0] + l0) * np[1] + lo[1];
+
+      for (l1 = 0; l1 < L; l1++)
+        Y(B_row_trafo)(acc, wl, g + es * ((r0 + l1) * np[2] + lo[2]),
+            w0 * w[1][l1], len);
+    }
+  }
+  else
+  {
+    /* odometer over the window indices of dimensions 0 .. d-2, with
+     * prefix products and prefix row offsets updated from the changed
+     * dimension on */
+    INT lj[d - 1], off[d - 1], s, t = 0;
+    R prod[d - 1];
+
+    for (s = 0; s < d - 1; s++)
+      lj[s] = 0;
+
+    for (;;)
+    {
+      for (s = t; s < d - 1; s++)
+      {
+        prod[s] = (s == 0 ? K(1.0) : prod[s - 1]) * w[s][lj[s]];
+        off[s] = (s == 0 ? 0 : off[s - 1] * np[s]) + lo[s] + lj[s];
+      }
+
+      Y(B_row_trafo)(acc, wl, g + es * (off[d - 2] * np[d - 1] + lo[d - 1]),
+          prod[d - 2], len);
+
+      for (t = d - 2; t >= 0 && ++lj[t] == L; t--)
+        lj[t] = 0;
+      if (t < 0)
+        break;
+    }
+  }
+}
+
+/**
+ * B^T for one node: row_r[i] += w_r * wf[i], i < es*L, for the rows r of the
+ * window, where w_r is the product of the weights of the outer dimensions and
+ * wf the weights of the last dimension times the node's sample, in row
+ * layout.
+ */
+static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
+    const INT es, const INT *np, const INT *lo, const R *const *w,
+    const R *wf, R *g)
+{
+  const INT len = es * L;
+
+  if (d == 1)
+    Y(B_row_adjoint)(g + es * lo[0], wf, K(1.0), len);
+  else if (d == 2)
+  {
+    INT l0;
+
+    for (l0 = 0; l0 < L; l0++)
+      Y(B_row_adjoint)(g + es * ((lo[0] + l0) * np[1] + lo[1]), wf,
+          w[0][l0], len);
+  }
+  else if (d == 3)
+  {
+    INT l0, l1;
+
+    for (l0 = 0; l0 < L; l0++)
+    {
+      const R w0 = w[0][l0];
+      const INT r0 = (lo[0] + l0) * np[1] + lo[1];
+
+      for (l1 = 0; l1 < L; l1++)
+        Y(B_row_adjoint)(g + es * ((r0 + l1) * np[2] + lo[2]), wf,
+            w0 * w[1][l1], len);
+    }
+  }
+  else
+  {
+    INT lj[d - 1], off[d - 1], s, t = 0;
+    R prod[d - 1];
+
+    for (s = 0; s < d - 1; s++)
+      lj[s] = 0;
+
+    for (;;)
+    {
+      for (s = t; s < d - 1; s++)
+      {
+        prod[s] = (s == 0 ? K(1.0) : prod[s - 1]) * w[s][lj[s]];
+        off[s] = (s == 0 ? 0 : off[s - 1] * np[s]) + lo[s] + lj[s];
+      }
+
+      Y(B_row_adjoint)(g + es * (off[d - 2] * np[d - 1] + lo[d - 1]), wf,
+          prod[d - 2], len);
+
+      for (t = d - 2; t >= 0 && ++lj[t] == L; t--)
+        lj[t] = 0;
+      if (t < 0)
+        break;
+    }
+  }
+}
+
 /* always check */
 #define CK(ex) \
   (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))
