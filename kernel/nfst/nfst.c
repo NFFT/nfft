@@ -632,6 +632,40 @@ static inline R *node_f(const X(plan) *ths)
 #define NODE_J(ths, k) (((ths)->x_sorted == NULL \
   && ((ths)->flags & NFFT_SORT_NODES)) ? (ths)->index_x[2 * (k) + 1] : (k))
 
+/** Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
+ *  fewer in the last block. */
+static inline INT block_len(const INT k0, const INT k1)
+{
+  return IF(k1 - k0 < NFFT_NODE_BLOCK, k1 - k0, NFFT_NODE_BLOCK);
+}
+
+/**
+ * Window weights of the nodes k0, ..., k0+nb-1 in processing order (nb <=
+ * NFFT_NODE_BLOCK), evaluated a block at a time (PHI_RUN_BLOCK), in the
+ * layout of the PRE_PSI table: w[(v d + t)(2m+2) + l] is weight l on axis t of
+ * node k0+v.
+ */
+static void window_block(const X(plan) *ths, const R *xs, const INT k0,
+    const INT nb, R *w)
+{
+  const INT d = ths->d, L = 2 * ths->m + 2;
+  R xv[NFFT_NODE_BLOCK];
+  INT uv[NFFT_NODE_BLOCK], t, v;
+
+  for (t = 0; t < d; t++)
+  {
+    for (v = 0; v < nb; v++)
+    {
+      const INT j = NODE_J(ths, k0 + v);
+      INT o;
+
+      uo(ths, xs, j, &uv[v], &o, t);
+      xv[v] = xs[j * d + t];
+    }
+    PHI_RUN_BLOCK(w + t * L, d * L, (2 * NN(ths->n[t])), xv, uv, nb, t);
+  }
+}
+
 /** Before the adjoint B: copy ths->f into the sorted scratch array. */
 static void gather_f(X(plan) *ths)
 {
@@ -1583,24 +1617,17 @@ void X(precompute_fg_psi)(X(plan) *ths)
 
 static void precompute_psi_sorted(X(plan) *ths)
 {
-  INT t; /* index over all dimensions */
-  INT u, o; /* depends on x_j */
-  const R *xs;
+  const R *xs = node_x(ths);
+  const INT dL = ths->d * (2 * ths->m + 2);
+  INT k;
 
-  xs = node_x(ths);
-
-  for (t = 0; t < ths->d; t++)
-  {
-    INT j;
-
-    for (j = 0; j < ths->M_total; j++)
-    {
-      uo(ths, xs, j, &u, &o, t);
-
-      PHI_RUN(ths->psi + (j * ths->d + t) * (2 * ths->m + 2),
-          (2 * NN(ths->n[t])), xs[(j) * ths->d + (t)], u, t);
-    } /* for (j) */
-  } /* for (t) */
+  /* a block of nodes at a time (window_block); the table rows are in
+   * processing order, which NODE_J leaves alone once the nodes are sorted */
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(k)
+#endif
+  for (k = 0; k < ths->M_total; k += NFFT_NODE_BLOCK)
+    window_block(ths, xs, k, block_len(k, ths->M_total), ths->psi + k * dL);
 } /* precompute_psi */
 
 void X(precompute_psi)(X(plan) *ths)
