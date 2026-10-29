@@ -22,8 +22,8 @@
  * radical and ra^2 is a polynomial in the offset, so the fit converges
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
- * infft.h evaluate the tables, a run of 2m + 2 taps as one Horner sweep in s^2
- * over m + 1 mirrored columns. */
+ * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
+ * m + 1 mirrored columns. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -87,29 +87,6 @@ static void cheb_to_monomial(R *coef, const R *cheb, R *tp, const INT w,
     }
 }
 
-/* All columns at offset s, evaluated as Y(kb_poly_run) does. */
-static void eval_split(R *out, const R *coef, const INT w, const INT deg,
-    const R s)
-{
-  const INT h = KB_POLY_HALF(deg);
-  const R u = s * s;
-  INT j, l;
-
-  for (l = 0; l < w; l++)
-  {
-    R e = coef[(2 * h) * w + l], o = coef[(2 * h - 1) * w + l];
-
-    for (j = h - 1; j >= 1; j--)
-    {
-      e = e * u + coef[(2 * j) * w + l];
-      o = o * u + coef[(2 * j - 1) * w + l];
-    }
-
-    e = e * u + coef[l];
-    out[l] = e + s * o;
-  }
-}
-
 INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
 {
   const R sigma = KPI / (K2PI - b);
@@ -136,10 +113,10 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R reach, const INT m, const INT deg)
 {
   const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
-  /* val, cheb, res are n by w; cm and tp are n by n; node is n; out is w. */
-  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n + w) * sizeof(R));
+  /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
-  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n, *out = node + n;
+  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n;
   INT j, k, l;
 
   for (k = 0; k < n; k++)
@@ -157,16 +134,17 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
   cheb_of(cheb, val, cm, w, dg);
   cheb_to_monomial(coef, cheb, tp, w, dg);
 
-  /* One refinement step against the run-time evaluator absorbs the rounding of
-   * the fit and of the monomial conversion. The residual is a few ulp, so its
-   * own fit error is negligible; a second step changes nothing. */
+  /* One refinement step absorbs the rounding of the fit and of the monomial
+   * conversion. The residual is a few ulp, so its own fit error is
+   * negligible; a second step changes nothing. */
   for (k = 0; k < n; k++)
-  {
-    eval_split(out, coef, w, dg, node[k]);
-
     for (l = 0; l < w; l++)
-      res[k * w + l] = val[k * w + l] - out[l];
-  }
+    {
+      R v, mirror;
+
+      Y(kb_poly_cols)(&v, &mirror, coef + l, w, KB_POLY_HALF(dg), node[k], 1);
+      res[k * w + l] = val[k * w + l] - v;
+    }
 
   cheb_of(cheb, res, cm, w, dg);
   cheb_to_monomial(res, cheb, tp, w, dg);

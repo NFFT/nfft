@@ -1820,32 +1820,61 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m);
 #define KB_POLY_HALF(deg) (((deg) + 1) / 2)
 #define KB_POLY_ROWS(deg) (2 * KB_POLY_HALF(deg) + 1)
 
-/* Body of Y(kb_poly_run) for a compile-time pair count P, so the pair loops
- * vectorise. Row stride KB_POLY_COLS(m) = P + 1. Uses coef, h, u, s and dst
- * from the enclosing function and returns from it. */
-#define KB_POLY_RUN_PAIRS(P) \
-  { \
-    R e[P], o[P]; \
-    INT j, l; \
-    for (l = 0; l < (P); l++) \
-    { \
-      e[l] = coef[(2 * h) * ((P) + 1) + l]; \
-      o[l] = coef[(2 * h - 1) * ((P) + 1) + l]; \
-    } \
-    for (j = h - 1; j >= 1; j--) \
-      for (l = 0; l < (P); l++) \
-      { \
-        e[l] = e[l] * u + coef[(2 * j) * ((P) + 1) + l]; \
-        o[l] = o[l] * u + coef[(2 * j - 1) * ((P) + 1) + l]; \
-      } \
-    for (l = 0; l < (P); l++) \
-    { \
-      e[l] = e[l] * u + coef[l]; \
-      dst[l] = e[l] + s * o[l]; \
-      dst[2 * (P) - 1 - l] = e[l] - s * o[l]; \
-    } \
-    return; \
+/* Y(kb_poly_cols) vectorises only with nb constant at each call site. Its 21
+ * call sites in Y(kb_poly_run) exceed the default inline budget. */
+#if defined(__GNUC__)
+  #define KB_POLY_INLINE static inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+  #define KB_POLY_INLINE static __forceinline
+#else
+  #define KB_POLY_INLINE static inline
+#endif
+
+/* Widest column block. Y(kb_poly_run) evaluates a run of up to this many
+ * column pairs, m <= 16, as one block. */
+#define KB_POLY_NB_MAX 17
+
+/* nb <= KB_POLY_NB_MAX adjacent columns c[0 .. nb-1] at offsets s and -s:
+ * lo[l] = E + s O, hi[-l] = E - s O, cs the row stride. Every evaluation of
+ * the tables goes through here, so the fit sees the arithmetic of the
+ * transforms. */
+KB_POLY_INLINE void Y(kb_poly_cols)(R *lo, R *hi,
+    const R *restrict c, const INT cs, const INT h, const R s, const INT nb)
+{
+  const R u = s * s;
+  R e[KB_POLY_NB_MAX], o[KB_POLY_NB_MAX];
+  INT j, l;
+
+  for (l = 0; l < nb; l++)
+  {
+    e[l] = c[(2 * h) * cs + l];
+    o[l] = c[(2 * h - 1) * cs + l];
   }
+
+  for (j = h - 1; j >= 1; j--)
+    for (l = 0; l < nb; l++)
+    {
+      e[l] = e[l] * u + c[(2 * j) * cs + l];
+      o[l] = o[l] * u + c[(2 * j - 1) * cs + l];
+    }
+
+  for (l = 0; l < nb; l++)
+  {
+    e[l] = e[l] * u + c[l];
+    lo[l] = e[l] + s * o[l];
+    hi[-l] = e[l] - s * o[l];
+  }
+}
+
+/* The whole run of Y(kb_poly_run) as one block of P column pairs. */
+#define KB_POLY_RUN_CASE(P) \
+  case P: \
+    Y(kb_poly_cols)(dst, dst + 2 * (P) - 1, coef, (P) + 1, h, s, P); \
+    return;
+
+/* Columns l .. l + B - 1 of a wider run. */
+#define KB_POLY_RUN_BLOCK(B) \
+  Y(kb_poly_cols)(dst + l, dst + 2 * p - 1 - l, coef + l, cs, h, s, B)
 
 /* dst[l] = phi(nx0 - l), l = 0 .. 2m+1, for a run anchored at the grid point
  * below the node, nx0 in [m, m + 1]. Tap l and tap 2m+1-l fall in mirror
@@ -1854,51 +1883,30 @@ static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict tab,
     const INT m, const INT deg, const R nx0)
 {
   const INT p = m + 1, cs = KB_POLY_COLS(m), h = KB_POLY_HALF(deg);
-  const R s = nx0 - ((R)m + K(0.5)), u = s * s;
-  const R *restrict coef = tab + 1;
-  INT j, l;
+  const R s = nx0 - ((R)m + K(0.5));
+  const R *coef = tab + 1;
+  INT l;
 
-  /* m = 2 .. 16; others take the generic loop below. */
   switch (p)
   {
-  case 3: KB_POLY_RUN_PAIRS(3)
-  case 4: KB_POLY_RUN_PAIRS(4)
-  case 5: KB_POLY_RUN_PAIRS(5)
-  case 6: KB_POLY_RUN_PAIRS(6)
-  case 7: KB_POLY_RUN_PAIRS(7)
-  case 8: KB_POLY_RUN_PAIRS(8)
-  case 9: KB_POLY_RUN_PAIRS(9)
-  case 10: KB_POLY_RUN_PAIRS(10)
-  case 11: KB_POLY_RUN_PAIRS(11)
-  case 12: KB_POLY_RUN_PAIRS(12)
-  case 13: KB_POLY_RUN_PAIRS(13)
-  case 14: KB_POLY_RUN_PAIRS(14)
-  case 15: KB_POLY_RUN_PAIRS(15)
-  case 16: KB_POLY_RUN_PAIRS(16)
-  case 17: KB_POLY_RUN_PAIRS(17)
+  KB_POLY_RUN_CASE(1) KB_POLY_RUN_CASE(2) KB_POLY_RUN_CASE(3)
+  KB_POLY_RUN_CASE(4) KB_POLY_RUN_CASE(5) KB_POLY_RUN_CASE(6)
+  KB_POLY_RUN_CASE(7) KB_POLY_RUN_CASE(8) KB_POLY_RUN_CASE(9)
+  KB_POLY_RUN_CASE(10) KB_POLY_RUN_CASE(11) KB_POLY_RUN_CASE(12)
+  KB_POLY_RUN_CASE(13) KB_POLY_RUN_CASE(14) KB_POLY_RUN_CASE(15)
+  KB_POLY_RUN_CASE(16) KB_POLY_RUN_CASE(17)
   default: break;
   }
 
-  /* E in dst[l], O in dst[2p - 1 - l], so each pair combines in place. */
-  for (l = 0; l < p; l++)
+  for (l = 0; l + 4 <= p; l += 4)
+    KB_POLY_RUN_BLOCK(4);
+
+  switch (p - l)
   {
-    dst[l] = coef[(2 * h) * cs + l];
-    dst[2 * p - 1 - l] = coef[(2 * h - 1) * cs + l];
-  }
-
-  for (j = h - 1; j >= 1; j--)
-    for (l = 0; l < p; l++)
-    {
-      dst[l] = dst[l] * u + coef[(2 * j) * cs + l];
-      dst[2 * p - 1 - l] = dst[2 * p - 1 - l] * u + coef[(2 * j - 1) * cs + l];
-    }
-
-  for (l = 0; l < p; l++)
-  {
-    const R e = dst[l] * u + coef[l], o = dst[2 * p - 1 - l];
-
-    dst[l] = e + s * o;
-    dst[2 * p - 1 - l] = e - s * o;
+  case 1: KB_POLY_RUN_BLOCK(1); break;
+  case 2: KB_POLY_RUN_BLOCK(2); break;
+  case 3: KB_POLY_RUN_BLOCK(3); break;
+  default: break;
   }
 }
 
@@ -1907,20 +1915,13 @@ static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,
     const R nx)
 {
   const R a = FABS(nx);
-  const INT f = IF((INT)a > m + 1, m + 1, (INT)a), cs = KB_POLY_COLS(m);
-  const INT h = KB_POLY_HALF(deg);
-  const R s = (a - (R)f) - K(0.5), u = s * s;
-  const R *coef = tab + (m + 1 - f);
-  R e = coef[(2 * h) * cs], o = coef[(2 * h - 1) * cs];
-  INT j;
+  const INT f = IF((INT)a > m + 1, m + 1, (INT)a);
+  R v, w;
 
-  for (j = h - 1; j >= 1; j--)
-  {
-    e = e * u + coef[(2 * j) * cs];
-    o = o * u + coef[(2 * j - 1) * cs];
-  }
+  Y(kb_poly_cols)(&v, &w, tab + (m + 1 - f), KB_POLY_COLS(m),
+      KB_POLY_HALF(deg), (a - (R)f) - K(0.5), 1);
 
-  return e * u + coef[0] + s * o;
+  return v;
 }
 
 /* Fits coef, KB_POLY_ROWS(deg) x KB_POLY_COLS(m), coef[k * KB_POLY_COLS(m) + c]
