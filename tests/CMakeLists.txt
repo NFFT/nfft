@@ -13,6 +13,7 @@ set(NFFT_TEST_SOURCES
   nfft.c    nfft.h
   sort.c    sort.h
   halo.c    halo.h
+  kernel.c  kernel.h
   nsfft.c   nsfft.h
   nfct.c    nfct.h
   nfst.c    nfst.h)
