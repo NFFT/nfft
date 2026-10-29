@@ -2308,6 +2308,56 @@ static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
     Y(B_tensor_adjoint_nd)(d, L, es, np, lo, w, wf, g);
 }
 
+/*
+ * Tiles of the grid of B (kernel/util/tile.c). With NFFT_SORT_NODES the nodes
+ * are sorted by tile and, within a tile, by cell, so that the nodes of each
+ * tile form a range of the sorted order (the plan's tile_ptr). The threaded
+ * B^T spreads whole tiles at a time in 2^d colour phases: a tile edge of at
+ * least L-1 makes the windows of the nodes of two tiles of the same colour
+ * (the parities of the tile coordinates) disjoint, so the threads of one phase
+ * need no atomics, and every grid point receives its contributions in an
+ * order that does not depend on the threads.
+ */
+
+/** Tile edges edge[t] and tile counts ntiles[t] for ext[t] cell values on
+ *  axis t and window length L; returns the number of tiles. */
+INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
+    INT *ntiles);
+
+/** Sort key of the cell c (c[t] < ext[t]): the tile index, row-major, times
+ *  the tile volume prod(edge), plus the index of the cell in the tile,
+ *  row-major. Keys lie below ntiles_total * prod(edge). */
+static inline INT Y(tile_key)(const INT d, const INT *c, const INT *edge,
+    const INT *ntiles)
+{
+  INT t, tile = 0, local = 0;
+
+  for (t = 0; t < d; t++)
+  {
+    tile = tile * ntiles[t] + c[t] / edge[t];
+    local = local * edge[t] + c[t] % edge[t];
+  }
+
+  for (t = 0; t < d; t++)
+    tile *= edge[t];
+
+  return tile + local;
+}
+
+/** From the sorted (key, index) pairs ar_x of M nodes: tile_ptr[b], b <=
+ *  nbuckets, the first node of bucket key / tilevol = b or later, so the nodes
+ *  of bucket b are tile_ptr[b], ..., tile_ptr[b+1]-1. */
+void Y(tile_ptr_from_keys)(const INT M, const INT *ar_x, const INT tilevol,
+    const INT nbuckets, INT *tile_ptr);
+
+/** Work on the sorted nodes k0, ..., k1-1 of one tile. */
+typedef void (*Y(tile_fn))(void *ctx, const INT k0, const INT k1);
+
+/** Calls fn for every tile with nodes, in 2^d colour phases, the tiles of a
+ *  phase shared among the OpenMP threads (serial without OpenMP). */
+void Y(tiles_by_colour)(const INT d, const INT *ntiles, const INT *tile_ptr,
+    Y(tile_fn) fn, void *ctx);
+
 /* always check */
 #define CK(ex) \
   (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))
