@@ -1588,14 +1588,17 @@ static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
   N[0]=1;            n[0]=ths->sigma*N[0];
   N[1]=X(exp2i)(J); n[1]=ths->sigma*N[1];
 
-  nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
+  /* without FFTW_INIT: the grids and FFTW plans of the plan are ours, plain
+   * arrays of the same size sigma^2 2^J for every r, whose FFTW plans are
+   * swapped in for each r together with n */
+  nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F, FFTW_MEASURE);
 
   nfft_precompute_one_psi(ths->act_nfft_plan);
 
-  ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
-  ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
+  ths->act_nfft_plan->g1 = nfft_malloc(ths->sigma*ths->sigma*X(exp2i)(J)*sizeof(double _Complex));
+  ths->act_nfft_plan->g2 = nfft_malloc(ths->sigma*ths->sigma*X(exp2i)(J)*sizeof(double _Complex));
 
-  for(r=1;r<=J/2;r++)
+  for(r=0;r<=J/2;r++)
     {
       N[0]=X(exp2i)(r);   n[0]=ths->sigma*N[0];
       N[1]=X(exp2i)(J-r); n[1]=ths->sigma*N[1];
@@ -1805,17 +1808,16 @@ static void nsfft_finalize_2d(nsfft_plan *ths)
       nfft_finalize(&(ths->set_nfft_plan_1d[r]));
     }
 
-  /* finalize the small nffts */
-  ths->act_nfft_plan->my_fftw_plan2=ths->set_fftw_plan2[0];
-  ths->act_nfft_plan->my_fftw_plan1=ths->set_fftw_plan1[0];
-
-  for(r=1;r<=ths->J/2;r++)
+  /* finalize the small nffts, whose grids and FFTW plans are ours */
+  for(r=0;r<=ths->J/2;r++)
     {
       fftw_destroy_plan(ths->set_fftw_plan2[r]);
       fftw_destroy_plan(ths->set_fftw_plan1[r]);
     }
 
-  /* r=0 */
+  nfft_free(ths->act_nfft_plan->g2);
+  nfft_free(ths->act_nfft_plan->g1);
+
   nfft_finalize(ths->act_nfft_plan);
 
   nfft_free(ths->set_nfft_plan_1d);
