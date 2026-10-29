@@ -237,6 +237,12 @@ int main(void)
 #endif
 #endif
 #endif
+#ifdef SORT_NNFFT
+  {
+    CU_pSuite nnfft = CU_add_suite("nnfft", 0, 0);
+    CU_add_test(nnfft, "nnfft_sort", nnfft_check_sort);
+  }
+#endif
   CU_automated_run_tests();
   //CU_basic_run_tests();
   {

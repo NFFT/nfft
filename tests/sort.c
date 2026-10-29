@@ -22,6 +22,7 @@
  * plan without it, for every psi mode:
  * - after the precomputation, which sorts the nodes and keeps a sorted copy,
  * - after the nodes have changed and the precomputation has run again,
+ *   by *_precompute_one_psi and by the precomputation routine of the mode,
  * - without any precomputation of the nodes (psi modes that allow it), where
  *   the transforms sort the current nodes themselves, also after the nodes
  *   have changed.
@@ -134,6 +135,18 @@ static void MODULE(sort_random)(T *v, const INT n) \
     v[j] = (T)(Y(drand48)() - K(0.5)); \
 } \
 \
+/* the precomputation routine of a single psi mode */ \
+static void MODULE(sort_precompute_mode)(MODULE(plan) *p, \
+  const unsigned mode) \
+{ \
+  if (mode & PRE_PSI) \
+    MODULE(precompute_psi)(p); \
+  else if (mode & PRE_FULL_PSI) \
+    MODULE(precompute_full_psi)(p); \
+  else if (mode & PRE_FG_PSI) \
+    MODULE(precompute_fg_psi)(p); \
+} \
+\
 /* trafo and adjoint of the sorted plan s and the unsorted plan u, on the \
  * same input */ \
 static int MODULE(sort_compare)(MODULE(plan) *s, MODULE(plan) *u, \
@@ -202,6 +215,16 @@ static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
   MODULE(precompute_one_psi)(&u); \
   ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
     "new nodes, precomputed"); \
+  /* the precomputation routine of the mode on its own, which sorts too */ \
+  if (mode & (PRE_PSI | PRE_FULL_PSI | PRE_FG_PSI)) \
+  { \
+    MODULE(sort_fill)(&s, x0); \
+    MODULE(sort_fill)(&u, x0); \
+    MODULE(sort_precompute_mode)(&s, mode); \
+    MODULE(sort_precompute_mode)(&u, mode); \
+    ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
+      mode_name, "new nodes, own routine"); \
+  } \
   MODULE(finalize)(&s); \
 \
   /* never precomputed: the transforms sort the current nodes */ \
@@ -271,4 +294,115 @@ SORT_CHECK(X, "nfct", R, sort_err_r, K(0.0), K(0.5), 1)
 #undef X
 #define X(name) NFST(name)
 SORT_CHECK(X, "nfst", R, sort_err_r, K(0.0), K(0.5), 1)
+#endif
+
+#ifdef SORT_NNFFT
+/* NNFFT: its inner NFFT plan gets NFFT_SORT_NODES from
+ * NFFT_OMP_BLOCKWISE_ADJOINT and is precomputed with the nodes divided by the
+ * oversampling factors, which the transforms divide by again. Compares with
+ * the same NNFFT plan whose inner plan has the sort switched off. */
+static void sort_nnfft_x(double *x, const int n)
+{
+  int j;
+  for (j = 0; j < n; j++)
+    x[j] = -0.5 + Y(drand48)();
+}
+
+static int sort_nnfft_compare(nnfft_plan *s, nnfft_plan *u,
+  const double _Complex *f_hat, const double _Complex *f, const int d,
+  const char *mode, const char *stage)
+{
+  int ok = 1;
+  memcpy(s->f_hat, f_hat, (size_t)(s->N_total) * sizeof(double _Complex));
+  memcpy(u->f_hat, f_hat, (size_t)(u->N_total) * sizeof(double _Complex));
+  nnfft_trafo(s);
+  nnfft_trafo(u);
+  ok &= sort_report("nnfft", d, "SORT", mode, stage, "trafo",
+    sort_err_c((const C*)s->f, (const C*)u->f, s->M_total));
+  memcpy(s->f, f, (size_t)(s->M_total) * sizeof(double _Complex));
+  memcpy(u->f, f, (size_t)(u->M_total) * sizeof(double _Complex));
+  nnfft_adjoint(s);
+  nnfft_adjoint(u);
+  ok &= sort_report("nnfft", d, "SORT", mode, stage, "adjoint",
+    sort_err_c((const C*)s->f_hat, (const C*)u->f_hat, s->N_total));
+  return ok;
+}
+
+void nnfft_check_sort(void)
+{
+  static const unsigned modes[] = {0U, PRE_PSI, PRE_FULL_PSI};
+  static const char *mode_names[] = {"no psi", "PRE_PSI", "PRE_FULL_PSI"};
+  const unsigned unsorted = NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT;
+  const int M = 200, N_total = 60;
+  int d, ok = 1;
+  size_t i;
+
+  Y(srand48)(SORT_SEED);
+
+  for (d = 1; d <= 3; d++)
+  {
+    int N[3], N1[3], t, j;
+    double *x0 = (double*)Y(malloc)((size_t)(d * M) * sizeof(double));
+    double *x1 = (double*)Y(malloc)((size_t)(d * M) * sizeof(double));
+    double *v = (double*)Y(malloc)((size_t)(d * N_total) * sizeof(double));
+    double _Complex *f_hat = (double _Complex*)Y(malloc)((size_t)N_total
+      * sizeof(double _Complex));
+    double _Complex *f = (double _Complex*)Y(malloc)((size_t)M
+      * sizeof(double _Complex));
+
+    for (t = 0; t < d; t++)
+    {
+      N[t] = 12;
+      N1[t] = 24;
+    }
+    sort_nnfft_x(x0, d * M);
+    sort_nnfft_x(x1, d * M);
+    sort_nnfft_x(v, d * N_total);
+    for (j = 0; j < N_total; j++)
+      f_hat[j] = (Y(drand48)() - 0.5) + (Y(drand48)() - 0.5) * _Complex_I;
+    for (j = 0; j < M; j++)
+      f[j] = (Y(drand48)() - 0.5) + (Y(drand48)() - 0.5) * _Complex_I;
+
+    for (i = 0; i < sizeof(modes) / sizeof(modes[0]); i++)
+    {
+      nnfft_plan s, u;
+      const unsigned flags = PRE_PHI_HUT | MALLOC_X | MALLOC_V | MALLOC_F
+        | MALLOC_F_HAT | modes[i];
+      unsigned u_flags;
+
+      nnfft_init_guru(&s, d, N_total, M, N, N1, SORT_M, flags);
+      nnfft_init_guru(&u, d, N_total, M, N, N1, SORT_M, flags);
+      ok &= ((s.direct_plan->flags & NFFT_SORT_NODES) != 0U);
+      u_flags = u.direct_plan->flags;
+      u.direct_plan->flags &= ~unsorted;
+
+      memcpy(s.v, v, (size_t)(d * N_total) * sizeof(double));
+      memcpy(u.v, v, (size_t)(d * N_total) * sizeof(double));
+      memcpy(s.x, x0, (size_t)(d * M) * sizeof(double));
+      memcpy(u.x, x0, (size_t)(d * M) * sizeof(double));
+      nnfft_precompute_one_psi(&s);
+      nnfft_precompute_one_psi(&u);
+      ok &= sort_nnfft_compare(&s, &u, f_hat, f, d, mode_names[i],
+        "precomputed");
+      memcpy(s.x, x1, (size_t)(d * M) * sizeof(double));
+      memcpy(u.x, x1, (size_t)(d * M) * sizeof(double));
+      nnfft_precompute_one_psi(&s);
+      nnfft_precompute_one_psi(&u);
+      ok &= sort_nnfft_compare(&s, &u, f_hat, f, d, mode_names[i],
+        "new nodes, precomputed");
+
+      u.direct_plan->flags = u_flags;
+      nnfft_finalize(&s);
+      nnfft_finalize(&u);
+    }
+
+    Y(free)(x0);
+    Y(free)(x1);
+    Y(free)(v);
+    Y(free)(f_hat);
+    Y(free)(f);
+  }
+
+  CU_ASSERT(ok);
+}
 #endif

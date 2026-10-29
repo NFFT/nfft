@@ -18,8 +18,16 @@
 
 #include "infft.h"
 
+/* NNFFT is built in double precision only. */
+#if defined(HAVE_NNFFT) && !defined(NFFT_SINGLE) && !defined(NFFT_LDOUBLE)
+#define SORT_NNFFT
+#endif
+
 /* Flag NFFT_SORT_NODES: sorted and unsorted plans agree, before and after a
  * change of the nodes, with and without precomputation. */
 void NFFT(check_sort)(void);
 void NFCT(check_sort)(void);
 void NFST(check_sort)(void);
+#ifdef SORT_NNFFT
+void nnfft_check_sort(void);
+#endif
