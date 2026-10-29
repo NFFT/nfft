@@ -112,11 +112,6 @@ static inline R X(base_reduced)(const INT k, const R x)
   return BASE(X(reduced_omega)((R)(k + OFFSET), x));
 }
 
-/* uo() anchors the run at the grid point below the node, run index m,
- * which FG_RUN puts at buffer index m + 2 for a fill based at fg_psi[t] + 1 */
-#define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
-#define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
-#define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI psij_const[t * (2 * ths->m + 2) + lj[t]]
 
 /* Window runs of node j on all axes, for MACRO_without_PRE_PSI. */
@@ -1010,24 +1005,27 @@ MACRO_D(T)
 #define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
 #define MACRO_B_init_result_T memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(R));
 
-#define MACRO_B_PRE_FULL_PSI_compute_A \
+/* one node of B and B^T with PRE_FULL_PSI: node k in the node data */
+#define MACRO_B_PRE_FULL_PSI_node_A \
 { \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
+  const R *psik = ths->psi + k * lprod; \
+  const INT *ixk = ths->psi_index_g + k * lprod; \
+  R a = K(0.0); \
+  INT l_L; \
+ \
+  for (l_L = 0; l_L < lprod; l_L++) \
+    a += psik[l_L] * g[ixk[l_L]]; \
+  f[k] = a; \
 }
 
-#define MACRO_B_PRE_FULL_PSI_compute_T \
+#define MACRO_B_PRE_FULL_PSI_node_T \
 { \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
-}
-
-#define MACRO_B_compute_A \
-{ \
-  (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
-}
-
-#define MACRO_B_compute_T \
-{ \
-  g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj); \
+  const R *psik = ths->psi + k * lprod; \
+  const INT *ixk = ths->psi_index_g + k * lprod; \
+  INT l_L; \
+ \
+  for (l_L = 0; l_L < lprod; l_L++) \
+    g[ixk[l_L]] += psik[l_L] * f[k]; \
 }
 
 /* l[t]: index in the padded grid of B of the first point of the window of
@@ -1085,186 +1083,200 @@ MACRO_D(T)
   } \
 }
 
-/* all 2m+2 to the power d points of the window of node j */
-#define MACRO_B_taps(which_one, which_psi) \
-{ \
-  if (fits) \
-    for (l_L = 0; l_L < lprod; l_L++) \
-    { \
-      MACRO_update_phi_prod_ll_plain(which_one, which_psi); \
-      MACRO_B_compute_ ## which_one; \
-      MACRO_count_uo_l_lj_t; \
-    } \
-  else \
-    for (l_L = 0; l_L < lprod; l_L++) \
-    { \
-      MACRO_update_phi_prod_ll_reflected(which_psi); \
-      MACRO_B_compute_ ## which_one; \
-      MACRO_count_uo_l_lj_t; \
-    } \
+/* all 2m+2 to the power d points of the window of node j, for a node whose
+ * window leaves the padded grid (a node outside [0, 0.5]): each index is
+ * reflected into the grid as the halo would be, with its sign. B (trafo):
+ * returns the sum; B^T (adjoint, fj != 0 on entry is added): adds into g. */
+static R taps_reflected(const X(plan) *ths, const INT *u, const R *const *w,
+    R *g, const int adjoint, const R fj)
+{
+  const INT d = ths->d, L = 2 * ths->m + 2;
+  INT lj[d], t;
+  R sum = K(0.0);
+
+  for (t = 0; t < d; t++)
+    lj[t] = 0;
+
+  for (;;)
+  {
+    INT ix = 0;
+    R prod = K(1.0);
+
+    for (t = 0; t < d; t++)
+    {
+      R sg;
+      const INT s = halo_source(u[t] - OFFSET + lj[t], ths->n[t], &sg);
+      prod *= w[t][lj[t]] * sg;
+      ix = ix * (ths->n[t] + HALO(ths->m)) + HALO_LO(ths->m)
+        + (s < 0 ? 0 : s);
+    }
+
+    if (adjoint)
+      g[ix] += prod * fj;
+    else
+      sum += prod * g[ix];
+
+    for (t = d - 1; t >= 0 && ++lj[t] == L; t--)
+      lj[t] = 0;
+    if (t < 0)
+      break;
+  }
+
+  return sum;
 }
 
+/* B (A) and B^T (T) for node j, whose window lies in the padded grid: the
+ * tensor product kernels of infft.h on the rows of the last dimension */
+#define MACRO_B_node_A \
+{ \
+  R acc[L]; \
+  INT i; \
+ \
+  for (i = 0; i < L; i++) \
+    acc[i] = K(0.0); \
+  Y(B_tensor_trafo)(d, L, 1, np, l, w, w[d - 1], g, acc); \
+  for (i = 0; i < L; i++) \
+    f[j] += acc[i]; \
+}
+
+#define MACRO_B_node_T \
+{ \
+  R wf[L]; \
+  INT i; \
+ \
+  for (i = 0; i < L; i++) \
+    wf[i] = w[d - 1][i] * f[j]; \
+  Y(B_tensor_adjoint)(d, L, 1, np, l, w, wf, g); \
+}
+
+#define MACRO_B_node_reflected_A f[j] = taps_reflected(ths, u, w, g, 0, K(0.0));
+#define MACRO_B_node_reflected_T taps_reflected(ths, u, w, g, 1, f[j]);
+
+/* B is parallel over the nodes, each node writes its own f[j]; B^T would
+ * need the nodes to write disjoint parts of g and runs serially */
+#ifdef _OPENMP
+#define MACRO_B_parallel_A _Pragma("omp parallel for default(shared) private(k)")
+#else
+#define MACRO_B_parallel_A
+#endif
+#define MACRO_B_parallel_T
+
 #define MACRO_B(which_one) \
+/* B (B^T) for node k of the node data, in a function of its own so that the \
+ * OpenMP region of B_ holds no run-time sized arrays (see nfft_trafo_1d_B) */ \
+static void B_node_ ## which_one (const X(plan) *ths, const R *xs, R *f, \
+    R *g, const INT *np, const R *fg_e, const R *fg_q, const INT k) \
+{ \
+  const INT d = ths->d, m = ths->m, L = 2 * m + 2; \
+  INT t; \
+  INT u[d], o[d]; /* multi band with respect to x_j */ \
+  INT l[d]; /* first index of the window in the padded grid of B */ \
+  INT lj[d]; /* set, but not needed, by MACRO_init_uo_l_lj_t */ \
+  int fits; /* window of node j inside the padded grid */ \
+  INT t2; \
+  /* window weights per axis; 2m+4, not the 2m+3 FG_RUN fills: an even \
+   * row stride */ \
+  R wbuf[d][2 * m + 4]; \
+  const R *w[d]; /* w[t][lj], lj < 2m+2: weights of node j on axis t */ \
+  const INT j = NODE_J(ths, k); \
+\
+  MACRO_init_uo_l_lj_t; \
+  UNUSED(lj); \
+\
+  for (t = 0; t < d; t++) \
+  { \
+    if (ths->flags & PRE_PSI) \
+      w[t] = ths->psi + (j * d + t) * L; \
+    else if (ths->flags & PRE_FG_PSI) \
+    { \
+      /* uo() anchors the run at the grid point below the node, run \
+       * index m, which FG_RUN puts at buffer index m + 2 for a fill \
+       * based at wbuf[t] + 1 */ \
+      FG_RUN(wbuf[t] + 1, m, ths->psi[2 * (j * d + t)], \
+          ths->psi[2 * (j * d + t) + 1], fg_e[t], fg_q[t]); \
+      w[t] = wbuf[t] + 2; \
+    } \
+    else if (ths->flags & FG_PSI) \
+    { \
+      const INT fg_c = u[t] + m; \
+      FG_RUN(wbuf[t] + 1, m, \
+          (PHI((2 * NN(ths->n[t])), \
+               NX_SUB((2 * NN(ths->n[t])), xs[j * d + t], fg_c) \
+               / ((R)(2 * NN(ths->n[t]))), (t))), \
+          EXP(K(2.0) \
+              * NX_SUB((2 * NN(ths->n[t])), xs[j * d + t], fg_c) \
+              / ths->b[t]), \
+          fg_e[t], fg_q[t]); \
+      w[t] = wbuf[t] + 2; \
+    } \
+    else if (ths->flags & PRE_LIN_PSI) \
+    { \
+      const INT ip_s = ths->K / (m + 2); \
+      const R y = ((NX_SUB((2 * NN(ths->n[t])), xs[j * d + t], u[t])) \
+              * ((R)ths->K)) / (m + 2); \
+      const INT ip_u = LRINT(FLOOR(y)); \
+      const R ip_w = y - ip_u; \
+      INT lj_fg; \
+\
+      for (lj_fg = 0; lj_fg < L; lj_fg++) \
+        wbuf[t][lj_fg] = ths->psi[(ths->K + 1) * t \
+            + ABS(ip_u - lj_fg * ip_s)] * (1 - ip_w) \
+          + ths->psi[(ths->K + 1) * t + ABS(ip_u - lj_fg * ip_s + 1)] \
+            * (ip_w); \
+      w[t] = wbuf[t]; \
+    } \
+    else \
+    { \
+      PHI_RUN(wbuf[t], (2 * NN(ths->n[t])), xs[j * d + t], u[t], t); \
+      w[t] = wbuf[t]; \
+    } \
+  } \
+\
+  if (fits) \
+    MACRO_B_node_ ## which_one \
+  else \
+    MACRO_B_node_reflected_ ## which_one \
+} \
+\
 static inline void B_ ## which_one (X(plan) *ths) \
 { \
-  INT lprod; /* 'regular bandwidth' of matrix B  */ \
-  INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
-  INT t, t2; /* index dimensions */ \
-  INT j, k; /* index nodes: row in the node data, processing order */ \
+  const INT d = ths->d, m = ths->m, L = 2 * m + 2; \
   const R *xs = node_x(ths); \
-  INT l_L, ix; /* index one row of B */ \
-  INT l[ths->d]; /* first index of the window in the padded grid of B */ \
-  INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
-  int fits; /* window of node j inside the padded grid */ \
-  INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
-  R phi_prod[ths->d+1]; /* postfix product of PHI */ \
-  R *f, *g; /* local copy */ \
-  R *fj; /* local copy */ \
-  R y[ths->d]; \
-  /* 2m+4, not the 2m+3 FG_RUN fills: an even row stride and an even offset \
-   * to the used run keep the read base of the l_L loop aligned as it was \
-   * before the run gained its extra point. */ \
-  R fg_psi[ths->d][2*ths->m+4]; \
-  R fg_e[ths->d], fg_q[ths->d]; \
-  INT l_fg,lj_fg; \
-  R ip_w; \
-  INT ip_u; \
-  INT ip_s = ths->K/(ths->m+2); \
-\
-  f = node_f(ths); g = (R*)ths->g; \
+  R *f = node_f(ths), *g = (R*)ths->g; \
+  INT np[d]; /* sizes of the padded grid of B */ \
+  R fg_e[d], fg_q[d]; \
+  INT k, t; \
 \
   MACRO_B_init_result_ ## which_one \
 \
   if (ths->flags & PRE_FULL_PSI) \
   { \
-    for (ix = 0, j = 0; j < ths->M_total; j++) \
-    { \
-      fj = f + j; \
-      for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
-      { \
-        MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
-      } \
-    } \
+    INT lprod = 1; \
+\
+    for (t = 0; t < d; t++) \
+      lprod *= L; \
+\
+    MACRO_B_parallel_ ## which_one \
+    for (k = 0; k < ths->M_total; k++) \
+      MACRO_B_PRE_FULL_PSI_node_ ## which_one; \
     return; \
   } \
 \
   sort(ths); \
- \
-  phi_prod[0] = K(1.0); \
-  ll_plain[0] = 0; \
 \
-  for (t = 0, lprod = 1; t < ths->d; t++) \
-    lprod *= (2 * ths->m + 2); \
-\
-  if (ths->flags & PRE_PSI) \
+  for (t = 0; t < d; t++) \
   { \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      j = NODE_J(ths, k); \
-      fj = f + j; \
-      MACRO_init_uo_l_lj_t; \
- \
-      MACRO_B_taps(which_one, with_PRE_PSI); \
-    } /* for(j) */ \
-    return; \
-  } /* if(PRE_PSI) */ \
- \
-  if (ths->flags & PRE_FG_PSI) \
-  { \
-    for (t = 0; t < ths->d; t++) \
+    np[t] = ths->n[t] + HALO(m); \
+    if (ths->flags & (PRE_FG_PSI | FG_PSI)) \
     { \
       fg_e[t] = EXP(K(-1.0) / ths->b[t]); \
       fg_q[t] = fg_e[t] * fg_e[t]; \
     } \
- \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      j = NODE_J(ths, k); \
-      fj = f + j; \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t = 0; t < ths->d; t++) \
-      { \
-        FG_RUN(fg_psi[t] + 1, ths->m, ths->psi[2 * (j * ths->d + t)], \
-            ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t]); \
-      } \
- \
-      MACRO_B_taps(which_one, with_FG_PSI); \
-    } \
-    return; \
   } \
- \
-  if (ths->flags & FG_PSI) \
-  { \
-    for (t = 0; t < ths->d; t++) \
-    { \
-      fg_e[t] = EXP(K(-1.0) / ths->b[t]); \
-      fg_q[t] = fg_e[t] * fg_e[t]; \
-    } \
- \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      j = NODE_J(ths, k); \
-      fj = f + j; \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t = 0; t < ths->d; t++) \
-      { \
-        const INT fg_c = u[t] + ths->m; \
-        FG_RUN(fg_psi[t] + 1, ths->m, \
-            (PHI((2 * NN(ths->n[t])), \
-                 NX_SUB((2 * NN(ths->n[t])), xs[j*ths->d+t], fg_c) \
-                 / ((R)(2 * NN(ths->n[t]))), (t))), \
-            EXP(K(2.0) \
-                * NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], fg_c) \
-                / ths->b[t]), \
-            fg_e[t], fg_q[t]); \
-      } \
-  \
-      MACRO_B_taps(which_one, with_FG_PSI); \
-    } \
-    return; \
-  } \
- \
-  if (ths->flags & PRE_LIN_PSI) \
-  { \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      j = NODE_J(ths, k); \
-      fj = f + j; \
-      MACRO_init_uo_l_lj_t; \
-  \
-      for (t = 0; t < ths->d; t++) \
-      { \
-        y[t] = ((NX_SUB((2 * NN(ths->n[t])), xs[j * ths->d + t], u[t])) \
-                * ((R)ths->K))/(ths->m + 2); \
-        ip_u  = LRINT(FLOOR(y[t])); \
-        ip_w  = y[t]-ip_u; \
-        for (l_fg = u[t], lj_fg = 0; l_fg <= o[t]; l_fg++, lj_fg++) \
-        { \
-          fg_psi[t][lj_fg] = ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
-        } \
-      } \
-  \
-      MACRO_B_taps(which_one, with_LIN_PSI); \
-    } /* for(j) */  \
-    return; \
-  } /* if(PRE_LIN_PSI) */ \
-  \
-  /* no precomputed psi at all */ \
+\
+  MACRO_B_parallel_ ## which_one \
   for (k = 0; k < ths->M_total; k++) \
-  { \
-    R psij_const[ths->d * (2 * ths->m + 2)]; \
- \
-    j = NODE_J(ths, k); \
-    fj = f + j; \
-    MACRO_init_uo_l_lj_t; \
-    MACRO_fill_psij_const; \
- \
-    MACRO_B_taps(which_one, without_PRE_PSI); \
-  } /* for (j) */ \
+    B_node_ ## which_one (ths, xs, f, g, np, fg_e, fg_q, k); \
 } /* B */
 
 MACRO_B(A)
