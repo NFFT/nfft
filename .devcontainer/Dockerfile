@@ -86,7 +86,7 @@ RUN curl -fsSL https://install.julialang.org | sh -s -- -y \
     && curl -fsSL https://astral.sh/uv/install.sh | sh \
     && uv python install --default 3.13 \
     && uv tool install zizmor \
-    && uv tool install ruff \
+    && uv tool install ruff==0.17.3 \
     && uv tool install pre-commit
 
 # Install the CodSpeed CLI (drives the instrumented benchmarks on the CodSpeed /

@@ -45,7 +45,9 @@
         // preserve across container rebuilds.
         "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
     },
-    "postCreateCommand": "pre-commit install",
+    // Installs the git hook and fetches the hook environments, so the first
+    // commit does not wait for downloads.
+    "postCreateCommand": "pre-commit install --install-hooks",
     "remoteUser": "vscode",
     "containerUser": "vscode",
     "mounts": [

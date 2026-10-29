@@ -53,6 +53,24 @@ Key rules:
 - Indentation is 2 spaces, BSD brace style. A `.clang-format` is provided.
 - New code must keep the float/double/long-double build matrix working.
 
+### Python conventions
+
+Python is used for generators, test tooling and maintenance scripts.
+
+- **Dependencies inline:** a script declares its dependencies in a PEP 723
+  `# /// script` comment block and runs with `uv run <file>`. Do not add a
+  `pyproject.toml`, `requirements*.txt` or lock file. `support/update_copyright.py`
+  is an example.
+- **Exception:** the generator packages (`gen/*`, `tests/refgen`,
+  `tests/windowref`, `tests/accuracy`) use relative imports and run as
+  `uv run --with <dep> python -m <module>`. uv does not read inline metadata
+  in that mode, so keep the `--with` arguments for them.
+- **Lint and format with ruff:** default settings, no config file. The
+  pre-commit hooks run `ruff check --fix` and `ruff format`. A commit with ruff
+  findings fails the hook. Fix the code. Use `# noqa: <rule> <reason>` only
+  for a false positive on that line, e.g. printf-style formatting of C code
+  with braces.
+
 ## 2. Building (local host)
 
 This is a source checkout, so the configure script must be generated first.
@@ -228,7 +246,7 @@ reuses the minimax fitter in `gen/besselgen/remez.py`.
 | Measure (walltime) | `CODSPEED_PROFILE_FOLDER=/tmp/wt build-cmake/benchmarks/bench_nfft_direct` → `/tmp/wt/results/*.json` |
 | Clean | `make clean` / full reset: `make distclean` |
 | Format C code | `clang-format -i <file>` (uses repo `.clang-format`) |
-| Pre-commit checks (zizmor on workflows) | `pre-commit install` once; `pre-commit run --all-files`. Do not bypass with `--no-verify`. |
+| Pre-commit checks (zizmor on workflows, ruff on Python) | `pre-commit install` once; `pre-commit run --all-files`. Do not bypass with `--no-verify`. |
 | Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m gen.besselgen.generate` (§5) |
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m gen.sincgen.generate` (§5) |
 | Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate` (§5) |
