@@ -1672,7 +1672,9 @@ static void precompute_fg_psi_sorted(X(plan) *ths)
 void X(precompute_fg_psi)(X(plan) *ths)
 {
   sort_nodes(ths);
-  precompute_fg_psi_sorted(ths);
+  /* without the flag, there is no table to fill */
+  if (ths->flags & PRE_FG_PSI)
+    precompute_fg_psi_sorted(ths);
 }
 
 static void precompute_psi_sorted(X(plan) *ths)
@@ -1693,7 +1695,9 @@ static void precompute_psi_sorted(X(plan) *ths)
 void X(precompute_psi)(X(plan) *ths)
 {
   sort_nodes(ths);
-  precompute_psi_sorted(ths);
+  /* without the flag, there is no table to fill */
+  if (ths->flags & PRE_PSI)
+    precompute_psi_sorted(ths);
 }
 
 static void precompute_full_psi_sorted(X(plan) *ths)
@@ -1749,7 +1753,9 @@ static void precompute_full_psi_sorted(X(plan) *ths)
 void X(precompute_full_psi)(X(plan) *ths)
 {
   sort_nodes(ths);
-  precompute_full_psi_sorted(ths);
+  /* without the flag, there is no table to fill */
+  if (ths->flags & PRE_FULL_PSI)
+    precompute_full_psi_sorted(ths);
 }
 
 void X(precompute_one_psi)(X(plan) *ths)
