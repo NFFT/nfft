@@ -2088,7 +2088,6 @@ void Y(next_power_of_2_exp_int)(const int N, int *N2, int *t);
 /* not used */ R Y(error_l_infty_double)(const R *x, const R *y, const INT n);
 /* not used */ R Y(error_l_infty_1_double)(const R *x, const R *y, const INT n, const R *z,
   const INT m);
-R Y(error_l_2_complex)(const C *x, const C *y, const INT n);
 /* not used */ R Y(error_l_2_double)(const R *x, const R *y, const INT n);
 
 /* sort.c: */

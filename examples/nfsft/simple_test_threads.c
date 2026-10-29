@@ -116,11 +116,11 @@ static void simple_test_nfsft(void)
 
 int main(void)
 {
-  printf("nthreads = %d\n", nfft_get_num_threads());
+  printf("nthreads = %ld\n", (long) nfft_get_num_threads());
 
   /* init */
   #ifdef HAVE_FFTW_THREADS
-    FFTW(init_threads)();
+    fftw_init_threads();
   #endif
 
   printf("Computing an NDSFT, an NFSFT, an adjoint NDSFT, and an adjoint NFSFT"

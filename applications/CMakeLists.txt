@@ -36,11 +36,13 @@ set(_fastsum_inc
 add_library(fastsum_lib STATIC ${_fastsum_src}/fastsum.c)
 set_target_properties(fastsum_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(fastsum_lib PRIVATE ${_fastsum_inc})
+target_compile_definitions(fastsum_lib PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
 target_link_libraries(fastsum_lib PRIVATE FFTW3::fftw3)
 
 add_library(fastsum_kernels STATIC ${_fastsum_src}/kernels.c)
 set_target_properties(fastsum_kernels PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(fastsum_kernels PRIVATE ${_fastsum_inc})
+target_compile_definitions(fastsum_kernels PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
 # kernels.c -> kernels.h -> nfft3.h -> <fftw3.h>, so it needs FFTW's include dir.
 # Link FFTW3::fftw3 (as fastsum_lib does) to pick it up portably; ${_fastsum_inc}
 # alone omits it, which only breaks where FFTW is non-system (macOS/Homebrew at
@@ -57,12 +59,14 @@ endif()
 # fastsum_test (serial)
 nfft_add_serial_program(app_fastsum_test fastsum fastsum_test ${_fastsum_src}/fastsum_test.c)
 target_include_directories(app_fastsum_test PRIVATE ${_fastsum_src})
+target_compile_definitions(app_fastsum_test PRIVATE ${NFFT_PRECISION_MACRO})
 target_link_libraries(app_fastsum_test PRIVATE fastsum_lib fastsum_kernels)
 
 if(NFFT_ENABLE_OPENMP)
   add_library(fastsum_threads_lib STATIC ${_fastsum_src}/fastsum.c)
   set_target_properties(fastsum_threads_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_include_directories(fastsum_threads_lib PRIVATE ${_fastsum_inc})
+  target_compile_definitions(fastsum_threads_lib PRIVATE ${NFFT_PRECISION_MACRO} ${NFFT_PROGRAM_DEFS})
   target_link_libraries(fastsum_threads_lib PRIVATE OpenMP::OpenMP_C FFTW3::fftw3)
   if(FFTW3_OMP_FOUND)
     target_link_libraries(fastsum_threads_lib PRIVATE FFTW3::fftw3_omp)
@@ -73,44 +77,53 @@ if(NFFT_ENABLE_OPENMP)
   # fastsum_matlab (OpenMP stack when OpenMP on).
   nfft_add_omp_program(app_fastsum_matlab fastsum fastsum_matlab ${_fastsum_src}/fastsum_matlab.c)
   target_include_directories(app_fastsum_matlab PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_matlab PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_matlab PRIVATE fastsum_threads_lib fastsum_kernels)
 
   # fastsum_test_threads (OpenMP stack; same source as fastsum_test).
   nfft_add_omp_program(app_fastsum_test_threads fastsum fastsum_test_threads ${_fastsum_src}/fastsum_test.c)
   target_include_directories(app_fastsum_test_threads PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_test_threads PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_test_threads PRIVATE fastsum_threads_lib fastsum_kernels)
 
   # benchomp: full-OpenMP (benchomp, detail_threads) link the threads stack.
   nfft_add_omp_program(app_fastsum_benchomp fastsum fastsum_benchomp ${_fastsum_src}/fastsum_benchomp.c)
   target_include_directories(app_fastsum_benchomp PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_benchomp PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_benchomp PRIVATE fastsum_threads_lib fastsum_kernels)
 
   nfft_add_omp_program(app_fastsum_benchomp_detail_threads fastsum
     fastsum_benchomp_detail_threads ${_fastsum_src}/fastsum_benchomp_detail.c)
   target_include_directories(app_fastsum_benchomp_detail_threads PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_benchomp_detail_threads PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_benchomp_detail_threads PRIVATE fastsum_threads_lib fastsum_kernels)
 
   # Serial benchomp helpers (serial library).
   nfft_add_serial_program(app_fastsum_benchomp_createdataset fastsum
     fastsum_benchomp_createdataset ${_fastsum_src}/fastsum_benchomp_createdataset.c)
   target_include_directories(app_fastsum_benchomp_createdataset PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_benchomp_createdataset PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_benchomp_createdataset PRIVATE fastsum_lib fastsum_kernels)
 
   nfft_add_serial_program(app_fastsum_benchomp_detail_single fastsum
     fastsum_benchomp_detail_single ${_fastsum_src}/fastsum_benchomp_detail.c)
   target_include_directories(app_fastsum_benchomp_detail_single PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_benchomp_detail_single PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_benchomp_detail_single PRIVATE fastsum_lib fastsum_kernels)
 else()
   # fastsum_matlab (serial stack when OpenMP off).
   nfft_add_serial_program(app_fastsum_matlab fastsum fastsum_matlab ${_fastsum_src}/fastsum_matlab.c)
   target_include_directories(app_fastsum_matlab PRIVATE ${_fastsum_src})
+  target_compile_definitions(app_fastsum_matlab PRIVATE ${NFFT_PRECISION_MACRO})
   target_link_libraries(app_fastsum_matlab PRIVATE fastsum_lib fastsum_kernels)
 endif()
 
 # Double-only applications
 if(HAVE_NFSFT)
   nfft_add_serial_program(app_fastsumS2    fastsumS2    fastsumS2    fastsumS2/fastsumS2.c)
+  target_compile_definitions(app_fastsumS2 PRIVATE ${NFFT_PRECISION_MACRO})
   nfft_add_serial_program(app_quadratureS2 quadratureS2 quadratureS2 quadratureS2/quadratureS2.c)
+  target_compile_definitions(app_quadratureS2 PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 if(HAVE_MRI)

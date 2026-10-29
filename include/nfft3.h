@@ -829,10 +829,34 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 #define PRECOMPUTE_WEIGHT     (1U<< 5)
 #define PRECOMPUTE_DAMP       (1U<< 6)
 
+/* common */
+
+/* Library-wide functions that belong to no transform.
+ *   Y: nfft name-mangling macro
+ */
+#define NFFT_DEFINE_COMMON_API(Y) \
+/* thread.c */ \
+NFFT_INT Y(get_num_threads)(void); \
+void Y(set_num_threads)(NFFT_INT nthreads); \
+NFFT_INT Y(has_threads_enabled)(void); \
+/** Return library version. */ \
+void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
+/** \
+ * Return name of window function. \
+ * \
+ * The window function to be used is configured at compile time. \
+ */ \
+const char *Y(get_window_name)(); \
+NFFT_INT Y(get_default_window_cut_off)();
+
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_FLOAT)
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_DOUBLE)
+NFFT_DEFINE_COMMON_API(NFFT_MANGLE_LONG_DOUBLE)
+
 /* util */
 
-/* huge second-order macro that defines prototypes for all utility API functions.
- * We expand this macro for each supported precision.
+/* Convenience helpers, not part of the core library: random data, printing,
+ * timing, error norms, integer and vector utilities.
  *   Y: nfft name-mangling macro
  *   R: real data type
  *   C: complex data type
@@ -841,34 +865,24 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
 /* rand.c */ \
 R Y(drand48)(void); \
 void Y(srand48)(long int seed); \
-\
-/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. \
- */ \
+/** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. */ \
 void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
-\
-/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. \
- */ \
+/** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. */ \
 void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
-\
 void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
-\
 /* print.c */ \
 /** Print real vector to standard output. */ \
 void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
-\
 /** Print complex vector to standard output. */ \
 void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
-/* thread.c */ \
-NFFT_INT Y(get_num_threads)(void); \
-void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_INT Y(has_threads_enabled)(void); \
 /* time.c */ \
 R Y(clock_gettime_seconds)(void); \
-/* error.c: */ \
+/* error.c */ \
 R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
 R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
   const C *z, const NFFT_INT m); \
-/* int.c: */ \
+R Y(error_l_2_complex)(const C *x, const C *y, const NFFT_INT n); \
+/* int.c */ \
 NFFT_INT Y(exp2i)(const NFFT_INT a); \
 NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
 /* vector1.c */ \
@@ -879,16 +893,7 @@ R Y(dot_complex)(C *x, NFFT_INT n); \
 void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
 void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-void Y(fftshift_complex_int)(C *x, int d, int* N); \
-/** Return library version. */ \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
-/** \
- * Return name of window function. \
- * \
- * The window function to be used is configured at compile time. \
- */ \
-const char *Y(get_window_name)(); \
-NFFT_INT Y(get_default_window_cut_off)();
+void Y(fftshift_complex_int)(C *x, int d, int* N);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)

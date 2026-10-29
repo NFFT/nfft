@@ -14,7 +14,6 @@
 
 #include "fastsum.h"
 #include "kernels.h"
-#include "infft.h"
 
 fastsum_plan* jfastsum_alloc(){
 	fastsum_plan* p = nfft_malloc(sizeof(fastsum_plan));
@@ -23,7 +22,7 @@ fastsum_plan* jfastsum_alloc(){
 // c wird von Julia als Float64-Pointer übergeben
 
 int jfastsum_init( fastsum_plan* p, int d, char* s, double* c, unsigned int f, int n, int ps, double eps_I, double eps_B, int N, int M, int nn_x, int nn_y, int m_x, int m_y ){
-	C (*kernel)(R, int, const R *);
+	NFFT_C (*kernel)(NFFT_R, int, const NFFT_R *);
 	
 	if ( strcmp(s, "gaussian") == 0 )
 		kernel = gaussian;
