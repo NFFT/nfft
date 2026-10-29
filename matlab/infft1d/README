@@ -74,6 +74,7 @@ infft - Class file for fast computation of an inverse NFFT
  n - Expansion degree                             default: n = N
  m - Cut-off parameter for NFFT                   default: m = 4
  sigma - Oversampling factor                      default: sigma = 2
+         in [1.1, 4] for a library built with the Kaiser-Bessel window
 
  SPECIFIC FOR QUADRATIC SETTING M=N:
  p - Degree of smoothness of regularization       default: p = 4

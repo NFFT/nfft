@@ -1,11 +1,11 @@
 """Tests for the log|sinc| coefficient generator.
 
-    uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/sincgen/tests -q
+    uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/sincgen/tests -q
 """
 import mpmath as mp
 import pytest
 
-from tests.sincgen import emulate, generate, scheme
+from gen.sincgen import emulate, generate, scheme
 
 
 def setup_module(_module):

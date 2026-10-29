@@ -117,9 +117,15 @@ static inline R X(base_reduced)(const INT k, const R x)
 #define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
 #define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
-#define MACRO_without_PRE_PSI PHI((2 * NN(ths->n[t])), \
-  NX_SUB((2 * NN(ths->n[t])), ths->x[(j) * ths->d + t], lj[t] + u[t]) \
-  / ((R)(2 * NN(ths->n[t]))), t)
+#define MACRO_without_PRE_PSI psij_const[t * (2 * ths->m + 2) + lj[t]]
+
+/* Window runs of node j on all axes, for MACRO_without_PRE_PSI. */
+#define MACRO_fill_psij_const \
+{ \
+  for (t = 0; t < ths->d; t++) \
+    PHI_RUN(psij_const + t * (2 * ths->m + 2), (2 * NN(ths->n[t])), \
+        ths->x[j * ths->d + t], u[t], t); \
+}
 #define MACRO_compute_PSI PHI((2 * NN(ths->n[t])), \
   NX_SUB((2 * NN(ths->n[t])), NODE(j,t), lj[t] + u[t]) \
   / ((R)(2 * NN(ths->n[t]))), t)
@@ -859,7 +865,10 @@ static inline void B_ ## which_one (X(plan) *ths) \
   /* no precomputed psi at all */ \
   for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
   { \
+    R psij_const[ths->d * (2 * ths->m + 2)]; \
+ \
     MACRO_init_uo_l_lj_t; \
+    MACRO_fill_psij_const; \
  \
     for (l_L = 0; l_L < lprod; l_L++) \
     { \
@@ -1078,7 +1087,10 @@ void X(precompute_full_psi)(X(plan) *ths)
 
   for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
   {
+    R psij_const[ths->d * (2 * ths->m + 2)];
+
     MACRO_init_uo_l_lj_t;
+    MACRO_fill_psij_const;
 
     for (l_L = 0; l_L < lprod; l_L++, ix++)
     {
@@ -1314,6 +1326,11 @@ const char* X(check)(X(plan) *ths)
   {
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
+
+#ifdef WINDOW_IS_KAISER_BESSEL
+    if (!KB_POLY_SIGMA_OK(ths->sigma[j]))
+      return "Oversampling factor outside [1.1, 4]";
+#endif
 
     if(ths->N[j] - 1 <= ths->m)
       return "Polynomial degree N is smaller than cut-off m";

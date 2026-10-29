@@ -5857,11 +5857,17 @@ static void nfft_precompute_full_psi_omp(X(plan) *ths)
       phi_prod[0]=1;
       ll_plain[0]=0;
 
+      R psij_const[ths->d * (2*ths->m+2)];
+
       MACRO_init_uo_l_lj_t;
+
+      for (t2 = 0; t2 < ths->d; t2++)
+        PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2],
+            ths->x[j*ths->d+t2], u[t2], t2);
 
       for(l_L=0; l_L<lprod; l_L++, ix++)
       {
-        MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
+        MACRO_update_phi_prod_ll_plain(without_PRE_PSI_improved);
 
         ths->psi_index_g[ix]=ll_plain[ths->d];
         ths->psi[ix]=phi_prod[ths->d];
@@ -5903,11 +5909,17 @@ void X(precompute_full_psi)(X(plan) *ths)
 
   for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
   {
+    R psij_const[ths->d * (2 * ths->m + 2)];
+
     MACRO_init_uo_l_lj_t;
+
+    for (t2 = 0; t2 < ths->d; t2++)
+      PHI_RUN(psij_const + t2 * (2 * ths->m + 2), ths->n[t2],
+          ths->x[j * ths->d + t2], u[t2], t2);
 
     for (l_L = 0; l_L < lprod; l_L++, ix++)
     {
-      MACRO_update_phi_prod_ll_plain(without_PRE_PSI);
+      MACRO_update_phi_prod_ll_plain(without_PRE_PSI_improved);
 
       ths->psi_index_g[ix] = ll_plain[ths->d];
       ths->psi[ix] = phi_prod[ths->d];
@@ -6180,6 +6192,11 @@ const char* X(check)(X(plan) *ths)
   {
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
+
+#ifdef WINDOW_IS_KAISER_BESSEL
+    if (!KB_POLY_SIGMA_OK(ths->sigma[j]))
+      return "Oversampling factor outside [1.1, 4]";
+#endif
     
     /* Automatically calls trafo_direct if 
     if(ths->N[j] <= ths->m)

@@ -112,7 +112,8 @@ typedef struct\
 \
   NFFT_INT d; /**< Dimension (rank). */\
   NFFT_INT *N; /**< Multi-bandwidth. */\
-  R *sigma; /**< Oversampling factor. */\
+  R *sigma; /**< Oversampling factor. Kaiser-Bessel window: tested for
+               \f$1.1\le\sigma\le4\f$, nfft_check() rejects others. */\
   NFFT_INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
                is to use a power of two that satifies  \f$2\le\sigma<4\f$. */\
   NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
@@ -155,7 +156,7 @@ typedef struct\
   C *g1; /**< Input of fftw */\
   C *g2; /**< Output of fftw */\
 \
-  R *spline_coeffs; /**< Input for de Boor algorithm if B_SPLINE or SINC_POWER is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
   NFFT_INT *index_x; /**< Index array for nodes x used when flag \ref NFFT_SORT_NODES is set. */\
 } X(plan); \
@@ -261,7 +262,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined   */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -341,7 +342,7 @@ typedef struct\
   R *g1; /**< input of fftw */\
   R *g2; /**< output of fftw */\
 \
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 \
   R X(full_psi_eps);\
 } X(plan);\
@@ -412,7 +413,7 @@ typedef struct\
   int *psi_index_g; /**< only for thin B */\
   int *psi_index_f; /**< only for thin B */\
   C *F;\
-  R *spline_coeffs; /**< input for de Boor algorithm, if B_SPLINE or SINC_2m is defined */\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init)(X(plan) *ths_plan, int d, int N_total, int M_total, int *N); \

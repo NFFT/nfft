@@ -15,7 +15,7 @@ only dependency, `mpmath`, is declared inline on the command; there is no
 
 ```bash
 # from the repository root
-uv run --with mpmath==1.3.0 python -m tests.besselgen.generate
+uv run --with mpmath==1.3.0 python -m gen.besselgen.generate
 ```
 
 Deterministic: same `SPEC` in, same bytes out. Nothing here reads a clock or a
@@ -24,7 +24,7 @@ random seed. Takes a few minutes, mostly in the quadruple-precision fits.
 ## Run the generator's own tests
 
 ```bash
-uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/besselgen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/besselgen/tests -q
 ```
 
 ## Options
