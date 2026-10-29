@@ -151,7 +151,8 @@ typedef struct\
     is \f$N_0+\dots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
-  NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  NFFT_INT *psi_index_g; /**< Indices in the padded grid \ref g for \
+                              \ref PRE_FULL_PSI */\
   NFFT_INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
 \
   C *g; /**< Oversampled vector of samples as the matrix B reads and writes \
@@ -182,7 +183,10 @@ typedef struct\
                          provides them as plain arrays of \ref n_total \
                          elements. The matrix B works on a grid padded with \
                          2m+2 halo points per dimension, so that the window \
-                         indices never wrap around; see \ref g. */\
+                         indices never wrap around; see \ref g. A plan \
+                         without \ref FFTW_INIT that takes \ref g1, \ref g2 \
+                         and the FFTW plans of a plan with \ref FFTW_INIT \
+                         must take this field too. */\
   C *g_pad; /**< Padded grid of the matrix B when \ref halo_hi is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
@@ -299,7 +303,8 @@ typedef struct\
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
   NFFT_INT size_psi; /**< only for thin B */\
-  NFFT_INT *psi_index_g; /**< only for thin B */\
+  NFFT_INT *psi_index_g; /**< only for thin B: indices in the padded \
+                              grid \ref g */\
   NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
@@ -335,7 +340,10 @@ typedef struct\
                          indices are never reflected; see \ref g. */\
   NFFT_INT halo_hi; /**< Number of halo points after the end of each \
                          dimension of \ref g1 and \ref g2: m+3 with \
-                         \ref FFTW_INIT, else 0 */\
+                         \ref FFTW_INIT, else 0. A plan without \
+                         \ref FFTW_INIT that takes \ref g1, \ref g2 and \
+                         the FFTW plan of a plan with \ref FFTW_INIT must \
+                         take \ref halo_lo and \ref halo_hi too. */\
   R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
@@ -414,7 +422,8 @@ typedef struct\
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
   NFFT_INT size_psi; /**< only for thin B */\
-  NFFT_INT *psi_index_g; /**< only for thin B */\
+  NFFT_INT *psi_index_g; /**< only for thin B: indices in the padded \
+                              grid \ref g */\
   NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
@@ -452,7 +461,10 @@ typedef struct\
                          indices are never reflected; see \ref g. */\
   NFFT_INT halo_hi; /**< Number of halo points after the end of each \
                          dimension of \ref g1 and \ref g2: m+3 with \
-                         \ref FFTW_INIT, else 0 */\
+                         \ref FFTW_INIT, else 0. A plan without \
+                         \ref FFTW_INIT that takes \ref g1, \ref g2 and \
+                         the FFTW plan of a plan with \ref FFTW_INIT must \
+                         take \ref halo_lo and \ref halo_hi too. */\
   R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\

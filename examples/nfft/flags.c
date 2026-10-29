@@ -64,6 +64,8 @@ static void flags_cp(NFFT(plan) *dst, NFFT(plan) *src)
   dst->g2 = src->g2;
   dst->my_fftw_plan1 = src->my_fftw_plan1;
   dst->my_fftw_plan2 = src->my_fftw_plan2;
+  /* the layout of the padded grids g1 and g2 of src */
+  dst->halo_hi = src->halo_hi;
 }
 
 static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
