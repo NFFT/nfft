@@ -154,6 +154,23 @@ metric**; the metric name is identical across testbeds so `diff.py` joins PR-vs-
 baseline figures by name (metric-name stability is what makes the diff align).
 _Avoid_: cell, matrix testbed.
 
+### Fast transforms
+
+**Padded grid**:
+The oversampled grid as the matrix B of the NFFT, NFCT and NFST reads and writes it:
+the n_0 x ... x n_{d-1} grid with a **halo** per dimension (NFFT: 2m+2 points after
+the end; NFCT, NFST: m+2 before and m+3 after), row-major with the padded lengths.
+With `FFTW_INIT` the FFTW grids `g1`/`g2` are padded and the FFT works on their
+interior; caller-provided grids stay plain and B uses a scratch padded grid.
+_Avoid_: extended grid, ghost cells.
+
+**Halo**:
+The extra points of the padded grid. They hold the periodic (NFFT), even (NFCT) or
+odd (NFST) continuation of the grid, so that window indices never wrap around or are
+reflected: *filled* from the grid before B (trafo), *folded* back into it after B^T
+(adjoint).
+_Avoid_: padding (ambiguous with zero-padding of `g_hat`), border.
+
 ### Language interfaces
 
 **Interface kernel**:
