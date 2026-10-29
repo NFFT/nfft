@@ -163,7 +163,7 @@ you are using NFFT for!
 
 Legal Information & Credits
 ---------------------------
-Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
+Copyright (c) 2002-2026 The NFFT Authors
 
 This software was written by Jens Keiner, Stefan Kunis and Daniel Potts,
 with contributions from the further people listed in AUTHORS. Together they
