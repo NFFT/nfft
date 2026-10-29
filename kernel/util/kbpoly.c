@@ -142,7 +142,7 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     {
       R v, mirror;
 
-      Y(kb_poly_cols)(&v, &mirror, coef + l, w, KB_POLY_HALF(dg), node[k], 1);
+      KB_POLY_HORNER(1, &v, &mirror, coef + l, w, KB_POLY_HALF(dg), node[k]);
       res[k * w + l] = val[k * w + l] - v;
     }
 
