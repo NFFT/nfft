@@ -165,9 +165,15 @@ Legal Information & Credits
 ---------------------------
 Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
-This software was written by Jens Keiner, Stefan Kunis and Daniel Potts.
-It was developed at the Mathematical Institute, University of
-Luebeck, and at the Faculty of Mathematics, Chemnitz University of Technology.
+This software was written by Jens Keiner, Stefan Kunis and Daniel Potts,
+with contributions from the further people listed in AUTHORS. Together they
+are "The NFFT Authors" named in the copyright notices. It was developed at the
+Mathematical Institute, University of Luebeck, and at the Faculty of
+Mathematics, Chemnitz University of Technology.
+
+The years in a copyright notice are the years in which that file changed. A
+range of years, such as 2002-2005, includes every year in it. The script
+`support/update_copyright.py` derives the years from the version history.
 
 NFFT3 is free software. You can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
@@ -180,9 +186,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+You should have received a copy of the GNU General Public License along
+with this program; if not, see <https://www.gnu.org/licenses/>.
 
 Directory structure
 -------------------

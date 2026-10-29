@@ -1,0 +1,13 @@
+# Commits that only change copyright notices. git blame skips them with
+# git config blame.ignoreRevsFile .git-blame-ignore-revs; GitHub reads this file.
+# support/update_copyright.py also skips them when it derives the years.
+# 2009-03-03 Changed copyright header format one more time.
+572f88284b7b7a812748674fa7d5af1031d7a937
+# 2012-06-02 Updated copyright statements.
+a203fc8ba0cb558f7216f8e7a44ec4f0210407a0
+# 2012-09-28 Fixed my email address and the copyright statement in README.
+66d9713150f1bea34d352d1b4ff43c454cbba6de
+# 2016-02-04 Update copyright year. Remove SVN-style keywords.
+95b124c3f365c0f0277eb2063c2c32c1cfa27213
+# 2018-05-27 added copyright
+d7b5135cac8db31c6f58111d98237ca361f9c363

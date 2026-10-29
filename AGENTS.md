@@ -233,6 +233,7 @@ reuses the minimax fitter in `gen/besselgen/remez.py`.
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m gen.sincgen.generate` (§5) |
 | Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |
+| Check / update copyright notices | `uv run support/update_copyright.py [--fix]` |
 
 CI mirrors these steps in `.github/workflows/build-linux.yml`, `bench-linux.yml`,
 `build-macos.yml`, and `build-windows.yml` across different window × precision × OpenMP 
