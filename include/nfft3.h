@@ -153,7 +153,10 @@ typedef struct\
                     on precomputation scheme */\
   NFFT_INT *psi_index_g; /**< Indices in the padded grid \ref g for \
                               \ref PRE_FULL_PSI */\
-  NFFT_INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
+  NFFT_INT *psi_index_f; /**< Number of entries of psi and psi_index_g per \
+                              node for \ref PRE_FULL_PSI, \
+                              \f$(2m+2)^d\f$ for every node: B takes the \
+                              entries of node j at \f$j(2m+2)^d\f$ */\
 \
   C *g; /**< Oversampled vector of samples as the matrix B reads and writes \
              it: the \f$n_0\times\dots\times n_{d-1}\f$ grid with a halo of \
@@ -305,7 +308,9 @@ typedef struct\
   NFFT_INT size_psi; /**< only for thin B */\
   NFFT_INT *psi_index_g; /**< only for thin B: indices in the padded \
                               grid \ref g */\
-  NFFT_INT *psi_index_f; /**< only for thin B */\
+  NFFT_INT *psi_index_f; /**< only for thin B: number of entries per \
+                              node, \f$(2m+2)^d\f$ for every node, the \
+                              layout B takes */\
 \
   R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
              with m+2 points before and m+3 after each dimension, row-major \
@@ -424,7 +429,9 @@ typedef struct\
   NFFT_INT size_psi; /**< only for thin B */\
   NFFT_INT *psi_index_g; /**< only for thin B: indices in the padded \
                               grid \ref g */\
-  NFFT_INT *psi_index_f; /**< only for thin B */\
+  NFFT_INT *psi_index_f; /**< only for thin B: number of entries per \
+                              node, \f$(2m+2)^d\f$ for every node, the \
+                              layout B takes */\
 \
   R *g; /**< Oversampled grid as the matrix B reads and writes it, padded \
              with m+2 points before and m+3 after each dimension, row-major \
