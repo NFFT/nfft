@@ -30,6 +30,7 @@
 
 /* NFFT3 header */
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -578,7 +579,7 @@ int main (int argc, char **argv)
   double temp;                 /*                                             */
   double err_f;                /* Error E_infty for fast algorithm            */
   double err_fd;               /* Error E_\infty for fast direct algorithm    */
-  NFFT_R t0, t1;                /*                                             */
+  double t0, t1;                /*                                             */
   int precompute = NO;         /*                                             */
   fftw_complex *ptr;         /*                                             */
   double* steed;               /*                                             */

@@ -26,6 +26,7 @@
 #include <complex.h>
 #include "nfft3.h"
 #include "nfft3mp.h"
+#include "nfft3util.h"
 #include "imex.h"
 #include "fastsum.c"
 #include "kernels.c"

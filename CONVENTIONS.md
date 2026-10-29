@@ -4,12 +4,13 @@
 
 Header            | Installed | Contents                                     | Who includes it
 :-----------------|:----------|:---------------------------------------------|:---------------
-`nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`, thread count, version, window name, helpers (random data, printing, timing, error norms) | anyone
+`nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`, thread count, version, window name | anyone
 `nfft3mp.h`       | yes       | precision-agnostic aliases: `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`, `FFTW(...)`, format strings | anyone writing precision-agnostic code
+`nfft3util.h`     | yes       | helpers that belong to no transform: random data, printing, timing, error norms | anyone
 `infft.h`         | no        | the internal names below (`R`, `C`, `Y`, `X`, `A`, `CK`, `DM`, window macros, `ticks`) | `kernel/` and `tests/` only
 
-Examples, applications and the Julia and Matlab bindings use the installed
-headers `nfft3.h` and `nfft3mp.h`. They must not include `infft.h`.
+Examples, applications and the Julia and Matlab bindings use the three
+installed headers. They must not include `infft.h`.
 
 The rest of this document describes `infft.h`'s names.
 
@@ -22,6 +23,7 @@ arithmetic works on. This is FFTW's contract, not ours. Canonical order:
 ```c
 #include <complex.h>
 #include <nfft3.h>
+#include <nfft3util.h>
 #define NFFT_PRECISION_SINGLE   /* or -DNFFT_PRECISION_* on the command line */
 #include <nfft3mp.h>
 ```

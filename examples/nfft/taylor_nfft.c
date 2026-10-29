@@ -32,6 +32,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -174,7 +175,7 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   int r;
   NFFT_R t_ndft, t_nfft, t_taylor, t;
   NFFT_C *swapndft = NULL;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   taylor_plan tp;
   NFFT(plan) np;

@@ -53,12 +53,12 @@ Key rules:
   `C` (complex); `A(...)` for assert, `CK(...)` for check. These live in
   `include/infft.h` and are for `kernel/` and `tests/` only. Examples,
   applications and the Julia/Matlab bindings use the installed headers
-  `nfft3.h` and `nfft3mp.h`, and the `NFFT_`-prefixed spellings
+  `nfft3.h`, `nfft3mp.h` and `nfft3util.h`, and the `NFFT_`-prefixed spellings
   `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`.
 - Include order matters. `<complex.h>` must precede anything that pulls in
   `<fftw3.h>`, or `fftw_complex` and `NFFT_C` become a two-element array. The
-  canonical order is `<complex.h>`, `nfft3.h`, the precision macro, then
-  `nfft3mp.h`.
+  canonical order is `<complex.h>`, `nfft3.h`, `nfft3util.h`, the precision
+  macro, then `nfft3mp.h`.
 - Indentation is 2 spaces, BSD brace style. A `.clang-format` is provided.
 - New code must keep the float/double/long-double build matrix working.
 

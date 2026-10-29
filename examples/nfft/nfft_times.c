@@ -22,6 +22,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -82,7 +83,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -218,7 +219,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -338,7 +339,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -458,7 +459,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -591,7 +592,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -720,7 +721,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;
@@ -850,7 +851,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
 {
   int r, M, NN[d], nn[d];
   NFFT_R t, t_fft, t_ndft, t_nfft;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   FFTW(plan) p_fft;

@@ -50,6 +50,7 @@
 
 #include <fftw3.h>
 
+#include "nfft3util.h"
 #include "ticks.h"
 
 /**

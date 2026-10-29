@@ -65,8 +65,8 @@ endif()
 
 # Function checks
 foreach(fn gethrtime read_real_time time_base_to_time clock_gettime
-           mach_absolute_time memset posix_memalign memalign sysctl abort
-           snprintf sqrt sleep usleep nanosleep drand48 srand48)
+           mach_absolute_time gettimeofday memset posix_memalign memalign
+           sysctl abort snprintf sqrt sleep usleep nanosleep drand48 srand48)
   string(TOUPPER "${fn}" FN)
   check_function_exists("${fn}" HAVE_${FN})
 endforeach()

@@ -51,7 +51,7 @@ int main(int argc, char **argv)
   NFFT_R c; /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan; /**< plan for fast summation */
   NFFT_C *direct; /**< array for direct computation */
-  NFFT_R t0, t1; /**< for time measurement    */
+  double t0, t1; /**< for time measurement    */
   NFFT_R time; /**< for time measurement    */
   NFFT_R error = NFFT_K(0.0); /**< for error computation   */
   NFFT_R eps_I; /**< inner boundary          */

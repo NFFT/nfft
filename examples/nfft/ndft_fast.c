@@ -29,6 +29,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -84,7 +85,7 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   int r;
   NFFT_R t, t_ndft, t_horner, t_pre_full, t_nfft;
   NFFT_C *A = NULL;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) np;
 

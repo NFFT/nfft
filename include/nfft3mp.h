@@ -23,6 +23,7 @@
  *
  *   #include <complex.h>
  *   #include <nfft3.h>
+ *   #include <nfft3util.h>
  *   #define NFFT_PRECISION_SINGLE  // or NFFT_PRECISION_DOUBLE, NFFT_PRECISION_LONG_DOUBLE
  *   #include <nfft3mp.h>
  *

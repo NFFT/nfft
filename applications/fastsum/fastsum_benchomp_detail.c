@@ -37,7 +37,7 @@ int bench_openmp(FILE *infile, int n, int m, int p,
   int t, j;
   NFFT_R re, im;
   NFFT_R r_max = NFFT_K(0.25) - my_fastsum_plan.eps_B / NFFT_K(2.0);
-  NFFT_R t0, t1;
+  double t0, t1;
   NFFT_R tt_total;
 
   fscanf(infile, "%d %d %d", &d, &L, &M);

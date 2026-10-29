@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <complex.h>
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -78,7 +79,7 @@ static void simple_test_nfft_1d(void)
 static void simple_test_nfft_2d(void)
 {
   int K, N[2], n[2], M;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
 
@@ -108,7 +109,7 @@ static void simple_test_nfft_2d(void)
 
   t1 = NFFT(clock_gettime_seconds)();
   NFFT(vpr_complex)(p.f_hat,K, "given Fourier coefficients, vector f_hat (first few entries)");
-  printf(" ... initialisation took %.2" NFFT__FES__ " seconds.\n",t1-t0);
+  printf(" ... initialisation took %.2E seconds.\n",t1-t0);
 
   /** check for valid parameters before calling any trafo/adjoint method */
   error_str = NFFT(check)(&p);
@@ -123,28 +124,28 @@ static void simple_test_nfft_2d(void)
   NFFT(trafo_direct)(&p);
   t1 = NFFT(clock_gettime_seconds)();
   NFFT(vpr_complex)(p.f, K, "ndft, vector f (first few entries)");
-  printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
+  printf(" took %.2E seconds.\n",t1-t0);
 
   /** approx. trafo and show the result */
   t0 = NFFT(clock_gettime_seconds)();
   NFFT(trafo)(&p);
   t1 = NFFT(clock_gettime_seconds)();
   NFFT(vpr_complex)(p.f, K, "nfft, vector f (first few entries)");
-  printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
+  printf(" took %.2E seconds.\n",t1-t0);
 
   /** direct adjoint and show the result */
   t0 = NFFT(clock_gettime_seconds)();
   NFFT(adjoint_direct)(&p);
   t1 = NFFT(clock_gettime_seconds)();
   NFFT(vpr_complex)(p.f_hat, K, "adjoint ndft, vector f_hat (first few entries)");
-  printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
+  printf(" took %.2E seconds.\n",t1-t0);
 
   /** approx. adjoint and show the result */
   t0 = NFFT(clock_gettime_seconds)();
   NFFT(adjoint)(&p);
   t1 = NFFT(clock_gettime_seconds)();
   NFFT(vpr_complex)(p.f_hat, K, "adjoint nfft, vector f_hat (first few entries)");
-  printf(" took %.2" NFFT__FES__ " seconds.\n",t1-t0);
+  printf(" took %.2E seconds.\n",t1-t0);
 
   /** finalise the two dimensional plan */
   NFFT(finalize)(&p);

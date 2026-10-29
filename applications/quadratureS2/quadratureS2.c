@@ -33,6 +33,7 @@
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
@@ -135,7 +136,7 @@ int main (int argc, char **argv)
   nfsft_plan *plan_ptr;
   double *w_temp;
   int testmode;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);

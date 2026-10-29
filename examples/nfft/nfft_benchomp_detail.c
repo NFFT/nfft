@@ -23,6 +23,7 @@
 #include <complex.h>
 
 #include "nfft3.h"
+#include "nfft3util.h"
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 #ifdef _OPENMP
@@ -37,7 +38,7 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   int M, d, trafo_adjoint;
   int t, j;
   double re,im;
-  NFFT_R t0, t1;
+  double t0, t1;
   double tt_total, tt_preonepsi;
 
   fscanf(infile, "%d %d", &d, &trafo_adjoint);
