@@ -106,7 +106,7 @@ STYLES = {
 # comment block is the toolbox description.
 NO_ADD = re.compile(
     r"^(tests/data/generated/|kernel/util/kbpoly_data\.h$"
-    r"|cmake/test-fixtures/|\.claude/|matlab/nfsft/lgwt\.m$"
+    r"|cmake/test-fixtures/|\.claude/|.*/lgwt\.m$"
     r"|.*/Contents\.m$)"
 )
 
