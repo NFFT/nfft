@@ -33,6 +33,7 @@
 #include "nfst.h"
 #include "sort.h"
 #include "halo.h"
+#include "nsfft.h"
 
 int main(void)
 {
@@ -78,6 +79,9 @@ int main(void)
   CU_add_test(nfft, "nfft_sort", X(check_sort));
   CU_add_test(nfft, "nfft_halo", X(check_halo));
   CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
+#ifdef CHECK_NSFFT
+  CU_add_test(nfft, "nsfft", NFFT(check_nsfft));
+#endif
   CU_add_test(nfft, "nfft_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
   CU_add_test(nfft, "nfft_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
