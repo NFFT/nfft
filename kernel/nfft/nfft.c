@@ -801,7 +801,7 @@ static inline INT uo_wrap(const R x, const INT n, const INT m)
   f_hat[ks_plain[ths->d]] = g_hat[k_plain[ths->d]] * c_phi_inv_k[ths->d]; \
 }
 
-#define MACRO_D_init_result_A memset(g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+#define MACRO_D_init_result_A memset(g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(C));
 
 #define MACRO_D_init_result_T memset(f_hat, 0, (size_t)(ths->N_total) * sizeof(C));
 
@@ -825,7 +825,7 @@ static inline INT uo_wrap(const R x, const INT n, const INT m)
   { \
     c_phi_inv_k[t2+1] = c_phi_inv_k[t2] MACRO_ ##which_one; \
     ks_plain[t2+1] = ks_plain[t2]*ths->N[t2] + ks[t2]; \
-    k_plain[t2+1] = k_plain[t2]*ths->n[t2] + k[t2]; \
+    k_plain[t2+1] = k_plain[t2]*(ths->n[t2] + ths->halo_hi) + k[t2]; \
   } \
 }
 
@@ -895,7 +895,7 @@ static inline void D_openmp_A(X(plan) *ths)
   INT k_L;                              /**< plain index                    */
 
   f_hat = (C*)ths->f_hat; g_hat = (C*)ths->g_hat;
-  memset(g_hat, 0, ths->n_total * sizeof(C));
+  memset(g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(C));
 
   if (ths->flags & PRE_PHI_HUT)
   {
@@ -926,7 +926,7 @@ static inline void D_openmp_A(X(plan) *ths)
       {
         c_phi_inv_k_val *= ths->c_phi_inv[t][ks[t]];
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
-        k_plain_val = k_plain_val*ths->n[t] + k[t];
+        k_plain_val = k_plain_val*(ths->n[t] + ths->halo_hi) + k[t];
       }
 
       g_hat[k_plain_val] = f_hat[ks_plain_val] * c_phi_inv_k_val;
@@ -961,7 +961,7 @@ static inline void D_openmp_A(X(plan) *ths)
       {
         c_phi_inv_k_val /= (PHI_HUT(ths->n[t],ks[t]-(ths->N[t]/2),t));
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
-        k_plain_val = k_plain_val*ths->n[t] + k[t];
+        k_plain_val = k_plain_val*(ths->n[t] + ths->halo_hi) + k[t];
       }
 
       g_hat[k_plain_val] = f_hat[ks_plain_val] * c_phi_inv_k_val;
@@ -1021,7 +1021,7 @@ static void D_openmp_T(X(plan) *ths)
       {
         c_phi_inv_k_val *= ths->c_phi_inv[t][ks[t]];
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
-        k_plain_val = k_plain_val*ths->n[t] + k[t];
+        k_plain_val = k_plain_val*(ths->n[t] + ths->halo_hi) + k[t];
       }
 
       f_hat[ks_plain_val] = g_hat[k_plain_val] * c_phi_inv_k_val;
@@ -1056,7 +1056,7 @@ static void D_openmp_T(X(plan) *ths)
       {
         c_phi_inv_k_val /= (PHI_HUT(ths->n[t],ks[t]-(ths->N[t]/2),t));
         ks_plain_val = ks_plain_val*ths->N[t] + ks[t];
-        k_plain_val = k_plain_val*ths->n[t] + k[t];
+        k_plain_val = k_plain_val*(ths->n[t] + ths->halo_hi) + k[t];
       }
 
       f_hat[ks_plain_val] = g_hat[k_plain_val] * c_phi_inv_k_val;
@@ -3158,11 +3158,11 @@ void X(trafo_1d)(X(plan) *ths)
     {
       INT k;
       #pragma omp parallel for default(shared) private(k)
-      for (k = 0; k < ths->n_total; k++)
+      for (k = 0; k < grid_fftw_total(ths); k++)
         ths->g_hat[k] = 0.0;
     }
 #else
-    memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+    memset(ths->g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(C));
 #endif
     if(ths->flags & PRE_PHI_HUT)
     {
@@ -4015,7 +4015,7 @@ void X(trafo_2d)(X(plan) *ths)
     return;
   }
   
-  INT k0,k1,n0,n1,N0,N1;
+  INT k0,k1,n0,n1,N0,N1,p1;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
   R ck01, ck02, ck11, ck12;
@@ -4028,6 +4028,7 @@ void X(trafo_2d)(X(plan) *ths)
   N1=ths->N[1];
   n0=ths->n[0];
   n1=ths->n[1];
+  p1=n1+ths->halo_hi; /* row length of g_hat */
 
   f_hat=(C*)ths->f_hat;
   g_hat=(C*)ths->g_hat;
@@ -4035,10 +4036,10 @@ void X(trafo_2d)(X(plan) *ths)
   TIC(0)
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k0)
-  for (k0 = 0; k0 < ths->n_total; k0++)
+  for (k0 = 0; k0 < grid_fftw_total(ths); k0++)
     ths->g_hat[k0] = 0.0;
 #else
-  memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(ths->g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(C));
 #endif
   if(ths->flags & PRE_PHI_HUT)
     {
@@ -4056,13 +4057,13 @@ void X(trafo_2d)(X(plan) *ths)
         c_phi_inv11=ths->c_phi_inv[1];
         c_phi_inv12=&ths->c_phi_inv[1][N1/2];
 
-        g_hat11=g_hat + (n0-(N0/2)+k0)*n1+n1-(N1/2);
+        g_hat11=g_hat + (n0-(N0/2)+k0)*p1+n1-(N1/2);
         f_hat11=f_hat + k0*N1;
-        g_hat21=g_hat + k0*n1+n1-(N1/2);
+        g_hat21=g_hat + k0*p1+n1-(N1/2);
         f_hat21=f_hat + ((N0/2)+k0)*N1;
-        g_hat12=g_hat + (n0-(N0/2)+k0)*n1;
+        g_hat12=g_hat + (n0-(N0/2)+k0)*p1;
         f_hat12=f_hat + k0*N1+(N1/2);
-        g_hat22=g_hat + k0*n1;
+        g_hat22=g_hat + k0*p1;
         f_hat22=f_hat + ((N0/2)+k0)*N1+(N1/2);
 
         for(k1=0;k1<N1/2;k1++)
@@ -4089,10 +4090,10 @@ void X(trafo_2d)(X(plan) *ths)
     {
       ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
       ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
-      g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] = f_hat[k0*N1+k1]             * ck01 * ck11;
-      g_hat[k0*n1+n1-N1/2+k1]           = f_hat[(N0/2+k0)*N1+k1]      * ck02 * ck11;
-      g_hat[(n0-N0/2+k0)*n1+k1]         = f_hat[k0*N1+N1/2+k1]        * ck01 * ck12;
-      g_hat[k0*n1+k1]                   = f_hat[(N0/2+k0)*N1+N1/2+k1] * ck02 * ck12;
+      g_hat[(n0-N0/2+k0)*p1+n1-N1/2+k1] = f_hat[k0*N1+k1]             * ck01 * ck11;
+      g_hat[k0*p1+n1-N1/2+k1]           = f_hat[(N0/2+k0)*N1+k1]      * ck02 * ck11;
+      g_hat[(n0-N0/2+k0)*p1+k1]         = f_hat[k0*N1+N1/2+k1]        * ck01 * ck12;
+      g_hat[k0*p1+k1]                   = f_hat[(N0/2+k0)*N1+N1/2+k1] * ck02 * ck12;
     }
       }
 
@@ -4117,7 +4118,7 @@ void X(adjoint_2d)(X(plan) *ths)
     return;
   }
   
-  INT k0,k1,n0,n1,N0,N1;
+  INT k0,k1,n0,n1,N0,N1,p1;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12;
   R ck01, ck02, ck11, ck12;
@@ -4130,6 +4131,7 @@ void X(adjoint_2d)(X(plan) *ths)
   N1=ths->N[1];
   n0=ths->n[0];
   n1=ths->n[1];
+  p1=n1+ths->halo_hi; /* row length of g_hat */
 
   f_hat=(C*)ths->f_hat;
   g_hat=(C*)ths->g_hat;
@@ -4162,13 +4164,13 @@ void X(adjoint_2d)(X(plan) *ths)
         c_phi_inv11=ths->c_phi_inv[1];
         c_phi_inv12=&ths->c_phi_inv[1][N1/2];
 
-        g_hat11=g_hat + (n0-(N0/2)+k0)*n1+n1-(N1/2);
+        g_hat11=g_hat + (n0-(N0/2)+k0)*p1+n1-(N1/2);
         f_hat11=f_hat + k0*N1;
-        g_hat21=g_hat + k0*n1+n1-(N1/2);
+        g_hat21=g_hat + k0*p1+n1-(N1/2);
         f_hat21=f_hat + ((N0/2)+k0)*N1;
-        g_hat12=g_hat + (n0-(N0/2)+k0)*n1;
+        g_hat12=g_hat + (n0-(N0/2)+k0)*p1;
         f_hat12=f_hat + k0*N1+(N1/2);
-        g_hat22=g_hat + k0*n1;
+        g_hat22=g_hat + k0*p1;
         f_hat22=f_hat + ((N0/2)+k0)*N1+(N1/2);
 
         for(k1=0;k1<N1/2;k1++)
@@ -4195,10 +4197,10 @@ void X(adjoint_2d)(X(plan) *ths)
     {
       ck11=K(1.0)/(PHI_HUT(ths->n[1],k1-N1/2,1));
       ck12=K(1.0)/(PHI_HUT(ths->n[1],k1,1));
-      f_hat[k0*N1+k1]             = g_hat[(n0-N0/2+k0)*n1+n1-N1/2+k1] * ck01 * ck11;
-      f_hat[(N0/2+k0)*N1+k1]      = g_hat[k0*n1+n1-N1/2+k1]           * ck02 * ck11;
-      f_hat[k0*N1+N1/2+k1]        = g_hat[(n0-N0/2+k0)*n1+k1]         * ck01 * ck12;
-      f_hat[(N0/2+k0)*N1+N1/2+k1] = g_hat[k0*n1+k1]                   * ck02 * ck12;
+      f_hat[k0*N1+k1]             = g_hat[(n0-N0/2+k0)*p1+n1-N1/2+k1] * ck01 * ck11;
+      f_hat[(N0/2+k0)*N1+k1]      = g_hat[k0*p1+n1-N1/2+k1]           * ck02 * ck11;
+      f_hat[k0*N1+N1/2+k1]        = g_hat[(n0-N0/2+k0)*p1+k1]         * ck01 * ck12;
+      f_hat[(N0/2+k0)*N1+N1/2+k1] = g_hat[k0*p1+k1]                   * ck02 * ck12;
     }
       }
   TOC(0)
@@ -5083,7 +5085,7 @@ void X(trafo_3d)(X(plan) *ths)
     return;
   }
   
-  INT k0,k1,k2,n0,n1,n2,N0,N1,N2;
+  INT k0,k1,k2,n0,n1,n2,N0,N1,N2,p1,p2;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12, *c_phi_inv21, *c_phi_inv22;
   R ck01, ck02, ck11, ck12, ck21, ck22;
@@ -5099,6 +5101,8 @@ void X(trafo_3d)(X(plan) *ths)
   n0=ths->n[0];
   n1=ths->n[1];
   n2=ths->n[2];
+  p1=n1+ths->halo_hi; /* row lengths of g_hat */
+  p2=n2+ths->halo_hi;
 
   f_hat=(C*)ths->f_hat;
   g_hat=(C*)ths->g_hat;
@@ -5106,10 +5110,10 @@ void X(trafo_3d)(X(plan) *ths)
   TIC(0)
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k0)
-  for (k0 = 0; k0 < ths->n_total; k0++)
+  for (k0 = 0; k0 < grid_fftw_total(ths); k0++)
     ths->g_hat[k0] = 0.0;
 #else
-  memset(ths->g_hat, 0, (size_t)(ths->n_total) * sizeof(C));
+  memset(ths->g_hat, 0, (size_t)(grid_fftw_total(ths)) * sizeof(C));
 #endif
 
   if(ths->flags & PRE_PHI_HUT)
@@ -5134,22 +5138,22 @@ void X(trafo_3d)(X(plan) *ths)
         c_phi_inv21=ths->c_phi_inv[2];
         c_phi_inv22=&ths->c_phi_inv[2][N2/2];
 
-        g_hat111=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
+        g_hat111=g_hat + ((n0-(N0/2)+k0)*p1+n1-(N1/2)+k1)*p2+n2-(N2/2);
         f_hat111=f_hat + (k0*N1+k1)*N2;
-        g_hat211=g_hat + (k0*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
+        g_hat211=g_hat + (k0*p1+n1-(N1/2)+k1)*p2+n2-(N2/2);
         f_hat211=f_hat + (((N0/2)+k0)*N1+k1)*N2;
-        g_hat121=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2+n2-(N2/2);
+        g_hat121=g_hat + ((n0-(N0/2)+k0)*p1+k1)*p2+n2-(N2/2);
         f_hat121=f_hat + (k0*N1+(N1/2)+k1)*N2;
-        g_hat221=g_hat + (k0*n1+k1)*n2+n2-(N2/2);
+        g_hat221=g_hat + (k0*p1+k1)*p2+n2-(N2/2);
         f_hat221=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2;
 
-        g_hat112=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2;
+        g_hat112=g_hat + ((n0-(N0/2)+k0)*p1+n1-(N1/2)+k1)*p2;
         f_hat112=f_hat + (k0*N1+k1)*N2+(N2/2);
-        g_hat212=g_hat + (k0*n1+n1-(N1/2)+k1)*n2;
+        g_hat212=g_hat + (k0*p1+n1-(N1/2)+k1)*p2;
         f_hat212=f_hat + (((N0/2)+k0)*N1+k1)*N2+(N2/2);
-        g_hat122=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2;
+        g_hat122=g_hat + ((n0-(N0/2)+k0)*p1+k1)*p2;
         f_hat122=f_hat + (k0*N1+N1/2+k1)*N2+(N2/2);
-        g_hat222=g_hat + (k0*n1+k1)*n2;
+        g_hat222=g_hat + (k0*p1+k1)*p2;
         f_hat222=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2+(N2/2);
 
         for(k2=0;k2<N2/2;k2++)
@@ -5188,15 +5192,15 @@ void X(trafo_3d)(X(plan) *ths)
     ck21=K(1.0)/(PHI_HUT(ths->n[2],k2-N2/2,2));
     ck22=K(1.0)/(PHI_HUT(ths->n[2],k2,2));
 
-    g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+n2-N2/2+k2] = f_hat[(k0*N1+k1)*N2+k2]                  * ck01 * ck11 * ck21;
-    g_hat[(k0*n1+n1-N1/2+k1)*n2+n2-N2/2+k2]           = f_hat[((N0/2+k0)*N1+k1)*N2+k2]           * ck02 * ck11 * ck21;
-    g_hat[((n0-N0/2+k0)*n1+k1)*n2+n2-N2/2+k2]         = f_hat[(k0*N1+N1/2+k1)*N2+k2]             * ck01 * ck12 * ck21;
-    g_hat[(k0*n1+k1)*n2+n2-N2/2+k2]                   = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+k2]      * ck02 * ck12 * ck21;
+    g_hat[((n0-N0/2+k0)*p1+n1-N1/2+k1)*p2+n2-N2/2+k2] = f_hat[(k0*N1+k1)*N2+k2]                  * ck01 * ck11 * ck21;
+    g_hat[(k0*p1+n1-N1/2+k1)*p2+n2-N2/2+k2]           = f_hat[((N0/2+k0)*N1+k1)*N2+k2]           * ck02 * ck11 * ck21;
+    g_hat[((n0-N0/2+k0)*p1+k1)*p2+n2-N2/2+k2]         = f_hat[(k0*N1+N1/2+k1)*N2+k2]             * ck01 * ck12 * ck21;
+    g_hat[(k0*p1+k1)*p2+n2-N2/2+k2]                   = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+k2]      * ck02 * ck12 * ck21;
 
-    g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+k2]         = f_hat[(k0*N1+k1)*N2+N2/2+k2]             * ck01 * ck11 * ck22;
-    g_hat[(k0*n1+n1-N1/2+k1)*n2+k2]                   = f_hat[((N0/2+k0)*N1+k1)*N2+N2/2+k2]      * ck02 * ck11 * ck22;
-    g_hat[((n0-N0/2+k0)*n1+k1)*n2+k2]                 = f_hat[(k0*N1+N1/2+k1)*N2+N2/2+k2]        * ck01 * ck12 * ck22;
-    g_hat[(k0*n1+k1)*n2+k2]                           = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+N2/2+k2] * ck02 * ck12 * ck22;
+    g_hat[((n0-N0/2+k0)*p1+n1-N1/2+k1)*p2+k2]         = f_hat[(k0*N1+k1)*N2+N2/2+k2]             * ck01 * ck11 * ck22;
+    g_hat[(k0*p1+n1-N1/2+k1)*p2+k2]                   = f_hat[((N0/2+k0)*N1+k1)*N2+N2/2+k2]      * ck02 * ck11 * ck22;
+    g_hat[((n0-N0/2+k0)*p1+k1)*p2+k2]                 = f_hat[(k0*N1+N1/2+k1)*N2+N2/2+k2]        * ck01 * ck12 * ck22;
+    g_hat[(k0*p1+k1)*p2+k2]                           = f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+N2/2+k2] * ck02 * ck12 * ck22;
         }
     }
       }
@@ -5222,7 +5226,7 @@ void X(adjoint_3d)(X(plan) *ths)
     return;
   }
   
-  INT k0,k1,k2,n0,n1,n2,N0,N1,N2;
+  INT k0,k1,k2,n0,n1,n2,N0,N1,N2,p1,p2;
   C *g_hat,*f_hat;
   R *c_phi_inv01, *c_phi_inv02, *c_phi_inv11, *c_phi_inv12, *c_phi_inv21, *c_phi_inv22;
   R ck01, ck02, ck11, ck12, ck21, ck22;
@@ -5238,6 +5242,8 @@ void X(adjoint_3d)(X(plan) *ths)
   n0=ths->n[0];
   n1=ths->n[1];
   n2=ths->n[2];
+  p1=n1+ths->halo_hi; /* row lengths of g_hat */
+  p2=n2+ths->halo_hi;
 
   f_hat=(C*)ths->f_hat;
   g_hat=(C*)ths->g_hat;
@@ -5276,22 +5282,22 @@ void X(adjoint_3d)(X(plan) *ths)
         c_phi_inv21=ths->c_phi_inv[2];
         c_phi_inv22=&ths->c_phi_inv[2][N2/2];
 
-        g_hat111=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
+        g_hat111=g_hat + ((n0-(N0/2)+k0)*p1+n1-(N1/2)+k1)*p2+n2-(N2/2);
         f_hat111=f_hat + (k0*N1+k1)*N2;
-        g_hat211=g_hat + (k0*n1+n1-(N1/2)+k1)*n2+n2-(N2/2);
+        g_hat211=g_hat + (k0*p1+n1-(N1/2)+k1)*p2+n2-(N2/2);
         f_hat211=f_hat + (((N0/2)+k0)*N1+k1)*N2;
-        g_hat121=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2+n2-(N2/2);
+        g_hat121=g_hat + ((n0-(N0/2)+k0)*p1+k1)*p2+n2-(N2/2);
         f_hat121=f_hat + (k0*N1+(N1/2)+k1)*N2;
-        g_hat221=g_hat + (k0*n1+k1)*n2+n2-(N2/2);
+        g_hat221=g_hat + (k0*p1+k1)*p2+n2-(N2/2);
         f_hat221=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2;
 
-        g_hat112=g_hat + ((n0-(N0/2)+k0)*n1+n1-(N1/2)+k1)*n2;
+        g_hat112=g_hat + ((n0-(N0/2)+k0)*p1+n1-(N1/2)+k1)*p2;
         f_hat112=f_hat + (k0*N1+k1)*N2+(N2/2);
-        g_hat212=g_hat + (k0*n1+n1-(N1/2)+k1)*n2;
+        g_hat212=g_hat + (k0*p1+n1-(N1/2)+k1)*p2;
         f_hat212=f_hat + (((N0/2)+k0)*N1+k1)*N2+(N2/2);
-        g_hat122=g_hat + ((n0-(N0/2)+k0)*n1+k1)*n2;
+        g_hat122=g_hat + ((n0-(N0/2)+k0)*p1+k1)*p2;
         f_hat122=f_hat + (k0*N1+(N1/2)+k1)*N2+(N2/2);
-        g_hat222=g_hat + (k0*n1+k1)*n2;
+        g_hat222=g_hat + (k0*p1+k1)*p2;
         f_hat222=f_hat + (((N0/2)+k0)*N1+(N1/2)+k1)*N2+(N2/2);
 
         for(k2=0;k2<N2/2;k2++)
@@ -5330,15 +5336,15 @@ void X(adjoint_3d)(X(plan) *ths)
     ck21=K(1.0)/(PHI_HUT(ths->n[2],k2-N2/2,2));
     ck22=K(1.0)/(PHI_HUT(ths->n[2],k2,2));
 
-    f_hat[(k0*N1+k1)*N2+k2]                  = g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+n2-N2/2+k2] * ck01 * ck11 * ck21;
-    f_hat[((N0/2+k0)*N1+k1)*N2+k2]           = g_hat[(k0*n1+n1-N1/2+k1)*n2+n2-N2/2+k2]           * ck02 * ck11 * ck21;
-    f_hat[(k0*N1+N1/2+k1)*N2+k2]             = g_hat[((n0-N0/2+k0)*n1+k1)*n2+n2-N2/2+k2]         * ck01 * ck12 * ck21;
-    f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+k2]      = g_hat[(k0*n1+k1)*n2+n2-N2/2+k2]                   * ck02 * ck12 * ck21;
+    f_hat[(k0*N1+k1)*N2+k2]                  = g_hat[((n0-N0/2+k0)*p1+n1-N1/2+k1)*p2+n2-N2/2+k2] * ck01 * ck11 * ck21;
+    f_hat[((N0/2+k0)*N1+k1)*N2+k2]           = g_hat[(k0*p1+n1-N1/2+k1)*p2+n2-N2/2+k2]           * ck02 * ck11 * ck21;
+    f_hat[(k0*N1+N1/2+k1)*N2+k2]             = g_hat[((n0-N0/2+k0)*p1+k1)*p2+n2-N2/2+k2]         * ck01 * ck12 * ck21;
+    f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+k2]      = g_hat[(k0*p1+k1)*p2+n2-N2/2+k2]                   * ck02 * ck12 * ck21;
 
-    f_hat[(k0*N1+k1)*N2+N2/2+k2]             = g_hat[((n0-N0/2+k0)*n1+n1-N1/2+k1)*n2+k2]         * ck01 * ck11 * ck22;
-    f_hat[((N0/2+k0)*N1+k1)*N2+N2/2+k2]      = g_hat[(k0*n1+n1-N1/2+k1)*n2+k2]                   * ck02 * ck11 * ck22;
-    f_hat[(k0*N1+N1/2+k1)*N2+N2/2+k2]        = g_hat[((n0-N0/2+k0)*n1+k1)*n2+k2]                 * ck01 * ck12 * ck22;
-    f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+N2/2+k2] = g_hat[(k0*n1+k1)*n2+k2]                           * ck02 * ck12 * ck22;
+    f_hat[(k0*N1+k1)*N2+N2/2+k2]             = g_hat[((n0-N0/2+k0)*p1+n1-N1/2+k1)*p2+k2]         * ck01 * ck11 * ck22;
+    f_hat[((N0/2+k0)*N1+k1)*N2+N2/2+k2]      = g_hat[(k0*p1+n1-N1/2+k1)*p2+k2]                   * ck02 * ck11 * ck22;
+    f_hat[(k0*N1+N1/2+k1)*N2+N2/2+k2]        = g_hat[((n0-N0/2+k0)*p1+k1)*p2+k2]                 * ck01 * ck12 * ck22;
+    f_hat[((N0/2+k0)*N1+N1/2+k1)*N2+N2/2+k2] = g_hat[(k0*p1+k1)*p2+k2]                           * ck02 * ck12 * ck22;
         }
     }
       }
@@ -5746,10 +5752,14 @@ static void init_help(X(plan) *ths)
     INT nthreads = Y(get_num_threads)();
 #endif
 
-    ths->g1 = (C*)Y(malloc)((size_t)(ths->n_total) * sizeof(C));
+    /* g1 and g2 are the padded grid of B, the FFT works on their
+     * n_0 x ... x n_{d-1} part */
+    ths->halo_hi = HALO(ths->m);
+
+    ths->g1 = (C*)Y(malloc)((size_t)(grid_fftw_total(ths)) * sizeof(C));
 
     if(ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (C*) Y(malloc)((size_t)(ths->n_total) * sizeof(C));
+      ths->g2 = (C*) Y(malloc)((size_t)(grid_fftw_total(ths)) * sizeof(C));
     else
       ths->g2 = ths->g1;
 
@@ -5759,14 +5769,22 @@ static void init_help(X(plan) *ths)
     FFTW(plan_with_nthreads)(nthreads);
 #endif
     {
-      int *_n = Y(malloc)((size_t)(ths->d) * sizeof(int));
+      FFTW(iodim64) *dims = Y(malloc)((size_t)(ths->d) * sizeof(FFTW(iodim64)));
+      ptrdiff_t stride = 1;
 
-      for (t = 0; t < ths->d; t++)
-        _n[t] = (int)(ths->n[t]);
+      for (t = ths->d - 1; t >= 0; t--)
+      {
+        dims[t].n = (ptrdiff_t)(ths->n[t]);
+        dims[t].is = stride;
+        dims[t].os = stride;
+        stride *= (ptrdiff_t)(ths->n[t] + ths->halo_hi);
+      }
 
-      ths->my_fftw_plan1 = FFTW(plan_dft)((int)ths->d, _n, ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
-      ths->my_fftw_plan2 = FFTW(plan_dft)((int)ths->d, _n, ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
-      Y(free)(_n);
+      ths->my_fftw_plan1 = FFTW(plan_guru64_dft)((int)ths->d, dims, 0, NULL,
+          ths->g1, ths->g2, FFTW_FORWARD, ths->fftw_flags);
+      ths->my_fftw_plan2 = FFTW(plan_guru64_dft)((int)ths->d, dims, 0, NULL,
+          ths->g2, ths->g1, FFTW_BACKWARD, ths->fftw_flags);
+      Y(free)(dims);
     }
 #if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
 }
