@@ -472,49 +472,83 @@ static inline void uo(const X(plan) *ths, const R *xs, const INT j, INT *up,
   (*op) = c + 1 + (ths->m);
 }
 
+/** Tiles of the grid of B (see Y(tile_layout)): the cells are the cells c in
+ *  [0, NN(n_t)] of the nodes in [0, 0.5] on axis t. */
+static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
+{
+  const INT d = ths->d;
+  INT ext[d], t;
+
+  for (t = 0; t < d; t++)
+    ext[t] = NN(ths->n[t]) + 1;
+
+  return Y(tile_layout)(d, 2 * ths->m + 2, ext, edge, ntiles);
+}
+
+/** Sort key of node i of ths->x: tile, then cell in the tile; nodes outside
+ *  [0, 0.5] on some axis, whose window may leave the padded grid, get the key
+ *  nt * tilevol of the bucket after the nt tiles. */
+static INT node_key(const X(plan) *ths, const INT i, const INT *edge,
+    const INT *ntiles, const INT overflow)
+{
+  const INT d = ths->d;
+  INT c[d], t;
+
+  for (t = 0; t < d; t++)
+  {
+    /* as uo() */
+    c[t] = (INT)FLOOR(ths->x[i * d + t] * (2 * NN(ths->n[t])));
+    if (c[t] < 0 || c[t] > NN(ths->n[t]))
+      return overflow;
+  }
+
+  return Y(tile_key)(d, c, edge, ntiles);
+}
+
 /**
- * Sorts the nodes by the row-major index of the cell they lie in, for better
- * cache utilisation in the multiplication with the matrix B. The result is
- * written to ar_x as (key, node index) pairs, the nodes remain unchanged.
+ * Sorts the nodes by the tile of the grid of B and, within a tile, by the
+ * cell they lie in, for better cache utilisation in the multiplication with
+ * the matrix B and for the threaded B^T (see Y(tiles_by_colour)). The result
+ * is written to ths->index_x as (key, node index) pairs and the node range of
+ * each tile, and of the bucket of nodes outside [0, 0.5] after them, to
+ * ths->tile_ptr; the nodes remain unchanged.
  */
-static void sort0(const X(plan) *ths, INT *ar_x)
+static void sort0(X(plan) *ths)
 {
   const INT d = ths->d, M = ths->M_total;
-  INT j, t, nprod, rhigh;
-  INT *ar_x_temp;
+  INT edge[d], ntiles[d], nt, tilevol = 1, j, t, rhigh;
+  INT *ar_x = ths->index_x, *ar_x_temp;
 
-  for (t = 0, nprod = 1; t < d; t++)
-    nprod *= NN(ths->n[t]) + 1;
+  nt = tile_layout(ths, edge, ntiles);
+  for (t = 0; t < d; t++)
+    tilevol *= edge[t];
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j, t)
+  #pragma omp parallel for default(shared) private(j)
 #endif
   for (j = 0; j < M; j++)
   {
-    INT key = 0;
-    for (t = 0; t < d; t++)
-    {
-      INT c = (INT)FLOOR(ths->x[j * d + t] * (R)(2 * NN(ths->n[t])));
-      c = MIN(MAX(c, 0), NN(ths->n[t]));
-      key = key * (NN(ths->n[t]) + 1) + c;
-    }
-    ar_x[2 * j] = key;
+    ar_x[2 * j] = node_key(ths, j, edge, ntiles, nt * tilevol);
     ar_x[2 * j + 1] = j;
   }
 
-  rhigh = (INT) LRINT(CEIL(LOG2((R)nprod))) - 1;
+  rhigh = (INT) LRINT(CEIL(LOG2((R)(nt * tilevol + 1)))) - 1;
 
   ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(M) * sizeof(INT));
   Y(sort_node_indices_radix_lsdf)(M, ar_x, ar_x_temp, rhigh);
   Y(free)(ar_x_temp);
+
+  if (ths->tile_ptr == NULL)
+    ths->tile_ptr = (INT*) Y(malloc)((size_t)(nt + 2) * sizeof(INT));
+  Y(tile_ptr_from_keys)(M, ar_x, tilevol, nt + 1, ths->tile_ptr);
 }
 
 /** Sorts the nodes for one transform, if flag NFFT_SORT_NODES is set and no
  *  precomputation has taken a snapshot of them (see sort_nodes). */
-static inline void sort(const X(plan) *ths)
+static inline void sort(X(plan) *ths)
 {
   if ((ths->flags & NFFT_SORT_NODES) && ths->x_sorted == NULL)
-    sort0(ths, ths->index_x);
+    sort0(ths);
 }
 
 /**
@@ -532,7 +566,7 @@ static void sort_nodes(X(plan) *ths)
   if (!(ths->flags & NFFT_SORT_NODES))
     return;
 
-  sort0(ths, ths->index_x);
+  sort0(ths);
 
   if (ths->x_sorted == NULL)
   {
@@ -1004,7 +1038,7 @@ MACRO_D(T)
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
 #define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
-#define MACRO_B_init_result_T memset(g, 0, (size_t)(grid_B_total(ths)) * sizeof(R));
+#define MACRO_B_init_result_T Y(zero_reals_parallel)(g, grid_B_total(ths));
 
 /* one node of B and B^T with PRE_FULL_PSI: node k in the node data */
 #define MACRO_B_PRE_FULL_PSI_node_A \
@@ -1153,14 +1187,21 @@ static R taps_reflected(const X(plan) *ths, const INT *u, const R *const *w,
 #define MACRO_B_node_reflected_A f[j] = taps_reflected(ths, u, w, g, 0, K(0.0));
 #define MACRO_B_node_reflected_T taps_reflected(ths, u, w, g, 1, f[j]);
 
-/* B is parallel over the nodes, each node writes its own f[j]; B^T would
- * need the nodes to write disjoint parts of g and runs serially */
+/* B is parallel over the nodes, each node writes its own f[j]. B^T with
+ * OpenMP and sorted nodes spreads tiles of the grid in colour phases
+ * (adjoint_B_tiled), else it runs serially. */
 #ifdef _OPENMP
 #define MACRO_B_parallel_A _Pragma("omp parallel for default(shared) private(k)")
+static int adjoint_B_tiled(X(plan) *ths);
+#define MACRO_B_tiled_T \
+  if (adjoint_B_tiled(ths)) \
+    return;
 #else
 #define MACRO_B_parallel_A
+#define MACRO_B_tiled_T
 #endif
 #define MACRO_B_parallel_T
+#define MACRO_B_tiled_A
 
 #define MACRO_B(which_one) \
 /* B (B^T) for node k of the node data, in a function of its own so that the \
@@ -1249,6 +1290,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT k, t; \
 \
   MACRO_B_init_result_ ## which_one \
+  MACRO_B_tiled_ ## which_one \
 \
   if (ths->flags & PRE_FULL_PSI) \
   { \
@@ -1282,6 +1324,86 @@ static inline void B_ ## which_one (X(plan) *ths) \
 
 MACRO_B(A)
 MACRO_B(T)
+
+#ifdef _OPENMP
+/* What the nodes of one tile of the threaded B^T need (adjoint_B_tile). */
+typedef struct
+{
+  X(plan) *ths;
+  const R *xs; /* node data, as node_x(ths) */
+  R *f; /* samples, as node_f(ths) */
+  const INT *np; /* sizes of the padded grid of B */
+  const R *fg_e, *fg_q; /* factors of the FG modes per axis */
+  INT lprod; /* (2m+2)^d, the PRE_FULL_PSI entries per node */
+} adjoint_tile_ctx;
+
+/** B^T for the sorted nodes k0, ..., k1-1 of one tile (or of the bucket of
+ *  nodes outside [0, 0.5]), straight into the padded grid of B. */
+static void adjoint_B_tile(void *p, const INT k0, const INT k1)
+{
+  const adjoint_tile_ctx *c = (const adjoint_tile_ctx*)p;
+  const X(plan) *ths = c->ths;
+  R *g = (R*)ths->g, *f = c->f;
+  INT k;
+
+  if (ths->flags & PRE_FULL_PSI)
+  {
+    const INT lprod = c->lprod;
+
+    for (k = k0; k < k1; k++)
+      MACRO_B_PRE_FULL_PSI_node_T;
+    return;
+  }
+
+  for (k = k0; k < k1; k++)
+    B_node_T(ths, c->xs, c->f, g, c->np, c->fg_e, c->fg_q, k);
+}
+
+/**
+ * Threaded B^T for sorted nodes (flag NFFT_SORT_NODES), any d and psi mode:
+ * the tiles of the grid are spread in colour phases, the threads of a phase
+ * taking whole tiles, without atomics (see Y(tiles_by_colour)); then the
+ * nodes outside [0, 0.5], whose windows are reflected anywhere into the
+ * grid, one by one. The result does not depend on the number of threads.
+ * ths->g must be zero. Returns 0 and does nothing without sorted nodes.
+ */
+static int adjoint_B_tiled(X(plan) *ths)
+{
+  const INT d = ths->d, m = ths->m;
+  INT np[d], edge[d], ntiles[d], nt, t;
+  R fg_e[d], fg_q[d];
+  adjoint_tile_ctx c;
+
+  if (!(ths->flags & NFFT_SORT_NODES))
+    return 0;
+
+  sort(ths);
+  nt = tile_layout(ths, edge, ntiles);
+
+  for (t = 0; t < d; t++)
+  {
+    np[t] = ths->n[t] + HALO(m);
+    if (ths->flags & (PRE_FG_PSI | FG_PSI))
+    {
+      fg_e[t] = EXP(K(-1.0) / ths->b[t]);
+      fg_q[t] = fg_e[t] * fg_e[t];
+    }
+  }
+
+  c.ths = ths;
+  c.xs = node_x(ths);
+  c.f = node_f(ths);
+  c.np = np;
+  c.fg_e = fg_e;
+  c.fg_q = fg_q;
+  for (t = 0, c.lprod = 1; t < d; t++)
+    c.lprod *= 2 * m + 2;
+
+  Y(tiles_by_colour)(d, ntiles, ths->tile_ptr, adjoint_B_tile, &c);
+  adjoint_B_tile(&c, ths->tile_ptr[nt], ths->tile_ptr[nt + 1]);
+  return 1;
+}
+#endif
 
 /**
  * user routines
