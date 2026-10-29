@@ -284,7 +284,7 @@ static void MOD##_poly_trafo(void) \
       ea = MOD##_edge_err(&pa); \
       uk = Y(float_property)(NFFT_EPSILON) \
           * pa.c_phi_inv[0][KB_N - 1 - (OFF)] / pa.c_phi_inv[0][0]; \
-      bound = K(1.05) * ea + uk; \
+      bound = K(1.05) * ea + K(2.0) * uk; \
       ok = IF(ep <= bound, 1, 0); \
 \
       printf(NAME "[sigma=%5.2f, m=%2td, deg=%2td] poly %10.3e analytic " \
@@ -347,11 +347,12 @@ void X(check_kaiser_bessel_poly_trafo)(void)
       ea = edge_err(&pa);
 
       {
-        /* The polynomial may add 5% where truncation dominates, and one u
-         * kappa at the round-off floor, kappa the spread of c_phi_inv. */
+        /* The polynomial may add 5% where truncation dominates, and two u
+         * kappa of float Horner round-off, kappa the spread of c_phi_inv. The
+         * round-off varies with FMA contraction, so with the build CPU. */
         const R uk = Y(float_property)(NFFT_EPSILON) * pa.c_phi_inv[0][0]
             / pa.c_phi_inv[0][KB_N / 2];
-        const R bound = K(1.05) * ea + uk;
+        const R bound = K(1.05) * ea + K(2.0) * uk;
         const int ok = IF(ep <= bound, 1, 0);
 
         printf("trafo[sigma=%5.2f, m=%2td, deg=%2td] poly %10.3e analytic "
