@@ -30,10 +30,15 @@
 #include "nfft3.h"
 #include "infft.h"
 
+/* Fewest tiles that the smallest colour phase of the threaded B^T should
+ * hold. It does not depend on the number of threads, so that neither the
+ * node order nor the sum order of B^T do. */
+#define TILE_MIN_PER_PHASE 8
+
 INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
     INT *ntiles)
 {
-  INT t, total = 1;
+  INT t, total;
   /* NFFT.jl's default tile edges (src/binning.jl), at least L-1 so that the
    * windows of two tiles of the same colour are disjoint */
   INT e = d == 1 ? 1024 : d == 2 ? 64 : d == 3 ? (L <= 6 ? 16 : L <= 10 ? 12
@@ -41,16 +46,30 @@ INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
 
   e = MAX(e, L - 1);
 
-  for (t = 0; t < d; t++)
+  for (;;)
   {
-    /* d >= 3: the tiles span the last axis. Cubes spread directly into the
-     * grid read and write each grid point ((e+L-1)/e)^d times, 5 times for
-     * d = 3 and m = 4, from memory, as the tiles of one colour lie apart;
-     * columns cut that to ((e+L-1)/e)^(d-1) with long contiguous rows
-     * (measured: 3D adjoint with 4 threads twice as fast as with cubes). */
-    edge[t] = (d >= 3 && t == d - 1) ? ext[t] : MAX(MIN(e, ext[t]), 1);
-    ntiles[t] = (ext[t] + edge[t] - 1) / edge[t];
-    total *= ntiles[t];
+    INT phase = 1;
+
+    total = 1;
+    for (t = 0; t < d; t++)
+    {
+      /* d >= 3: the tiles span the last axis. Cubes spread directly into the
+       * grid read and write each grid point ((e+L-1)/e)^d times, 5 times for
+       * d = 3 and m = 4, from memory, as the tiles of one colour lie apart;
+       * columns cut that to ((e+L-1)/e)^(d-1) with long contiguous rows
+       * (measured: 3D adjoint with 4 threads twice as fast as with cubes). */
+      edge[t] = (d >= 3 && t == d - 1) ? ext[t] : MAX(MIN(e, ext[t]), 1);
+      ntiles[t] = (ext[t] + edge[t] - 1) / edge[t];
+      total *= ntiles[t];
+      /* tiles of the smallest colour phase that has any */
+      phase *= ntiles[t] == 1 ? 1 : ntiles[t] / 2;
+    }
+
+    /* small grids: halve the edge, down to L-1, so that the colour phases
+     * still give every thread tiles to spread */
+    if (phase >= TILE_MIN_PER_PHASE || e <= L - 1)
+      break;
+    e = MAX(e / 2, L - 1);
   }
 
   return total;

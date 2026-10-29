@@ -46,8 +46,11 @@
 /* agreement of two transforms that sum the same terms in a different order */
 #define TILE_TOL (K(1000.0) * EPSILON)
 
-/* d, N per axis, m, number of nodes: tile edges 1024 (d = 1), 64 (d = 2),
- * 16, 12 and 2m+1 = 17 (d = 3, columns over the last axis) and 2m+2 (d = 4) */
+/* d, N per axis, m, number of nodes. The edges are halved from 1024 (d = 1),
+ * 64 (d = 2), 16, 12 and 2m+1 = 17 (d = 3, columns over the last axis) and
+ * 2m+2 (d = 4) until the smallest colour phase has 8 tiles or the edge is
+ * 2m+1: for the NFFT here 128 and 64 (d = 1), 32 (d = 2), 8, 9 and 17
+ * (d = 3), 4 and 5 (d = 4). */
 static const int tile_cases[][4] = {
   {1, 1100, 3, 4000}, {1, 600, 6, 3000},
   {2, 80, 2, 3000}, {2, 150, 4, 4000},

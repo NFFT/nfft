@@ -174,7 +174,8 @@ _Avoid_: padding (ambiguous with zero-padding of `g_hat`), border.
 **Tile**:
 A block of cells of the **padded grid** (the cells of the lower window corners for the
 NFFT, of the nodes in [0, 0.5] for NFCT and NFST): edge 1024 (d = 1), 64 (d = 2), at
-least 2m+1, and for d >= 3 a column that spans the last axis. With `NFFT_SORT_NODES` the
+least 2m+1, halved on small grids (down to 2m+1) until each colour phase has 8 tiles,
+and for d >= 3 a column that spans the last axis. With `NFFT_SORT_NODES` the
 nodes are sorted by tile, then by cell, and `tile_ptr` holds each tile's node range (NFCT,
 NFST: plus a bucket of nodes outside [0, 0.5]). The threaded B^T spreads tiles in
 **colour phases**: tiles whose coordinates have the same parities never share grid

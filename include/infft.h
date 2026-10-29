@@ -2321,7 +2321,9 @@ static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
  */
 
 /** Tile edges edge[t] and tile counts ntiles[t] for ext[t] cell values on
- *  axis t and window length L; returns the number of tiles. */
+ *  axis t and window length L; returns the number of tiles. On small grids
+ *  the edges are halved, down to L-1, until the smallest colour phase has a
+ *  few tiles. */
 INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
     INT *ntiles);
 
