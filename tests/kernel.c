@@ -22,14 +22,17 @@
  * The kernels run over the rows of the window along the last dimension with
  * loops whose length is the row length (2m+2 points), which the compiler
  * splits into vector code and a remainder. For a sweep of window lengths m
- * and d = 1, ..., 4, the fast transforms with the kernels (no psi table and
- * PRE_PSI, with and without sorting, for NFFT also the blockwise adjoint)
- * must agree to rounding with the PRE_FULL_PSI transform of the same plan
+ * and d = 1, ..., 4, the fast transforms with the kernels (no psi table,
+ * PRE_PSI, PRE_LIN_PSI and, for the Gaussian window, FG_PSI and PRE_FG_PSI,
+ * with and without sorting, for NFFT also the blockwise adjoint) must agree
+ * to rounding with the PRE_FULL_PSI transform of the same plan
  * parameters, whose B is a plain gather over the precomputed indices and
  * products of the same window values. A tap dropped, counted twice or given
  * a wrong weight shows as an error of the order of the samples, whatever the
- * accuracy of the window for that m. Only failures are printed (all results
- * with -DKERNEL_VERBOSE). */
+ * accuracy of the window for that m. The NFCT and NFST nodes lie in
+ * [-0.25, 0.75), so that windows leaving the padded grid, which take the path
+ * with reflected indices, are covered too. Only failures are printed (all
+ * results with -DKERNEL_VERBOSE). */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,15 +49,27 @@
 
 /* agreement of two transforms that sum the same terms in a different order */
 #define KERNEL_TOL (K(1000.0) * EPSILON)
+/* the same with the window interpolated linearly from a table (PRE_LIN_PSI) */
+#define KERNEL_TOL_LIN (KERNEL_TOL > K(1.0E-5) ? KERNEL_TOL : K(1.0E-5))
 
 /* window lengths: d <= 3, and d = 4 */
 static const int kernel_m[] = {1, 2, 3, 4, 5, 6, 7, 8, 11};
 static const int kernel_m_4d[] = {1, 2, 3};
 
 /* psi modes and variants compared with PRE_FULL_PSI (blockwise: NFFT only,
- * the last one) */
-static const unsigned kernel_modes[] = {0U, PRE_PSI};
-static const char *kernel_mode_names[] = {"no psi", "PRE_PSI"};
+ * the last one). PRE_LIN_PSI interpolates the window from a table, so its
+ * weights differ from the exact ones by the interpolation error, of the order
+ * of 1/K^2; a tap dropped or counted twice still shows far above that. */
+static const unsigned kernel_modes[] = {0U, PRE_PSI, PRE_LIN_PSI
+#if defined(GAUSSIAN)
+  , FG_PSI, FG_PSI | PRE_FG_PSI
+#endif
+};
+static const char *kernel_mode_names[] = {"no psi", "PRE_PSI", "LIN_PSI"
+#if defined(GAUSSIAN)
+  , "FG_PSI", "PRE_FG"
+#endif
+};
 static const unsigned kernel_variants[] = {0U, NFFT_SORT_NODES,
   NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT};
 static const char *kernel_variant_names[] = {"", "SORT", "SORT|BLOCKWISE"};
@@ -92,9 +107,11 @@ static R kernel_err_r(const R *a, const R *b, const INT n)
 }
 
 static int kernel_report(const char *module, const int d, const int m,
-  const char *mode, const char *variant, const char *which, const R err)
+  const unsigned mode_flags, const char *mode, const char *variant,
+  const char *which, const R err)
 {
-  const int ok = (err <= KERNEL_TOL);
+  const R tol = (mode_flags & PRE_LIN_PSI) ? KERNEL_TOL_LIN : KERNEL_TOL;
+  const int ok = (err <= tol);
 
 #ifndef KERNEL_VERBOSE
   if (ok)
@@ -103,7 +120,7 @@ static int kernel_report(const char *module, const int d, const int m,
 
   printf("%s_kernel d = %d, m = %2d, %-8s %-15s %-7s -> %-4s %.3e (%.3e)\n",
     module, d, m, mode, variant, which, ok ? "OK" : "FAIL", (double)err,
-    (double)KERNEL_TOL);
+    (double)tol);
 
   return ok;
 }
@@ -128,8 +145,7 @@ static INT MODULE(kernel_run)(const int d, int *N, int *n, const int m, \
   MODULE(plan) p; \
   INT n_hat; \
 \
-  MODULE(init_guru)(&p, d, N, KERNEL_M, n, m, KERNEL_FLAGS | flags, \
-    KERNEL_FFTW_FLAGS); \
+  MODULE(kernel_init)(&p, d, N, n, m, KERNEL_FLAGS | flags); \
   memcpy(p.x, x, (size_t)(d * KERNEL_M) * sizeof(R)); \
   MODULE(precompute_one_psi)(&p); \
 \
@@ -184,9 +200,9 @@ static int MODULE(kernel_one)(const int d, const int m) \
     { \
       MODULE(kernel_run)(d, N, n, m, kernel_modes[i] | kernel_variants[v], \
         x, f_hat, f, tr, ad); \
-      ok &= kernel_report(NAME, d, m, kernel_mode_names[i], \
+      ok &= kernel_report(NAME, d, m, kernel_modes[i], kernel_mode_names[i], \
         kernel_variant_names[v], "trafo", ERR(tr, tr0, (INT)(KERNEL_M))); \
-      ok &= kernel_report(NAME, d, m, kernel_mode_names[i], \
+      ok &= kernel_report(NAME, d, m, kernel_modes[i], kernel_mode_names[i], \
         kernel_variant_names[v], "adjoint", ERR(ad, ad0, n_hat)); \
     } \
 \
@@ -217,18 +233,43 @@ void MODULE(check_kernel)(void) \
   CU_ASSERT(ok); \
 }
 
+/* PRE_LIN_PSI: the NFFT takes the table size K of the accuracy of the window
+ * for m by default, as coarse as 1/K^2 ~ 1e-3 for m = 1; NFCT and NFST take
+ * K = 2^10 (m+2), which the NFFT is given here too. */
+static void NFFT(kernel_init)(NFFT(plan) *p, const int d, int *N, int *n,
+  const int m, const unsigned flags)
+{
+  if (flags & PRE_LIN_PSI)
+    NFFT(init_lin)(p, d, N, KERNEL_M, n, m, (1 << 10) * (m + 2), flags,
+      KERNEL_FFTW_FLAGS);
+  else
+    NFFT(init_guru)(p, d, N, KERNEL_M, n, m, flags, KERNEL_FFTW_FLAGS);
+}
+
 #undef X
 #define X(name) NFFT(name)
 KERNEL_CHECK(X, "nfft", C, kernel_err_c, 3, 2, K(-0.5), K(1.0))
 
 #ifdef HAVE_NFCT
+static void NFCT(kernel_init)(NFCT(plan) *p, const int d, int *N, int *n,
+  const int m, const unsigned flags)
+{
+  NFCT(init_guru)(p, d, N, KERNEL_M, n, m, flags, KERNEL_FFTW_FLAGS);
+}
+
 #undef X
 #define X(name) NFCT(name)
-KERNEL_CHECK(X, "nfct", R, kernel_err_r, 2, 1, K(0.0), K(0.5))
+KERNEL_CHECK(X, "nfct", R, kernel_err_r, 2, 1, K(-0.25), K(1.0))
 #endif
 
 #ifdef HAVE_NFST
+static void NFST(kernel_init)(NFST(plan) *p, const int d, int *N, int *n,
+  const int m, const unsigned flags)
+{
+  NFST(init_guru)(p, d, N, KERNEL_M, n, m, flags, KERNEL_FFTW_FLAGS);
+}
+
 #undef X
 #define X(name) NFST(name)
-KERNEL_CHECK(X, "nfst", R, kernel_err_r, 2, -1, K(0.0), K(0.5))
+KERNEL_CHECK(X, "nfst", R, kernel_err_r, 2, -1, K(-0.25), K(1.0))
 #endif
