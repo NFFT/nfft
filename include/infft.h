@@ -185,6 +185,11 @@ typedef ptrdiff_t INT;
 #define RSWAP(x,y) {R* NFFT_SWAP_temp__; NFFT_SWAP_temp__=(x); \
   (x)=(y); (y)=NFFT_SWAP_temp__;}
 
+/* Nodes per block where the matrix B evaluates the window on the fly: the
+ * window runs of a block are formed together (PHI_RUN_BLOCK), then applied
+ * node by node. */
+#define NFFT_NODE_BLOCK 32
+
 /* macros for window functions */
 
 /* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance
@@ -378,6 +383,9 @@ typedef ptrdiff_t INT;
   /* dst[l] = phi(x - (u + l)/n), l = 0 .. 2m+1. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
+  #define PHI_RUN_BLOCK(dst,ld,n,x,u,nb,ax) \
+    Y(kb_poly_run_block)((dst), (ld), KB_POLY(ax), ths->m, KB_POLY_DEG, \
+        (R)(n), (x), (u), (nb))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -425,6 +433,20 @@ typedef ptrdiff_t INT;
       for (PHI_RUN_l = 0; PHI_RUN_l < 2 * ths->m + 2; PHI_RUN_l++) \
         (dst)[PHI_RUN_l] = PHI((n), \
             NX_SUB(n, x, PHI_RUN_l + (u)) / ((R)(n)), (ax)); \
+    } while (0)
+#endif
+
+/* Runs of nb <= NFFT_NODE_BLOCK nodes at once: dst[v ld + l] = phi(x[v] -
+ * (u[v] + l)/n), l = 0 .. 2m+1, v < nb. The matrix B evaluates the window on
+ * the fly through this, a block of nodes at a time. Windows with a block
+ * evaluator override it above; the others fill one run after the other. */
+#ifndef PHI_RUN_BLOCK
+  #define PHI_RUN_BLOCK(dst,ld,n,x,u,nb,ax) \
+    do { \
+      INT PHI_RUN_BLOCK_v; \
+      for (PHI_RUN_BLOCK_v = 0; PHI_RUN_BLOCK_v < (nb); PHI_RUN_BLOCK_v++) \
+        PHI_RUN((dst) + PHI_RUN_BLOCK_v * (ld), n, (x)[PHI_RUN_BLOCK_v], \
+            (u)[PHI_RUN_BLOCK_v], ax); \
     } while (0)
 #endif
 
@@ -1901,6 +1923,15 @@ static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict tab,
     dst[2 * p - 1 - l] = e - s * o;
   }
 }
+
+/* Y(kb_poly_run) for the nb <= NFFT_NODE_BLOCK nodes x[v] with run anchors
+ * u[v]: dst[v ld + l] = phi(n x[v] - u[v] - l), l = 0 .. 2m+1. The Horner
+ * sweeps run across the nodes, which vectorises far better than across the
+ * m + 1 columns of one run, with the same arithmetic per value. Takes
+ * Y(kb_poly_run) node by node past m = KB_POLY_RUN_BLOCK_MAX_M. */
+#define KB_POLY_RUN_BLOCK_MAX_M 16
+void Y(kb_poly_run_block)(R *dst, const INT ld, const R *tab, const INT m,
+    const INT deg, const R n, const R *x, const INT *u, const INT nb);
 
 /* phi(nx) from the cell of |nx|. Extrapolates past |nx| = m + 2. */
 static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,

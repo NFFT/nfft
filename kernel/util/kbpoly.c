@@ -229,3 +229,64 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
 
   return tab;
 }
+
+void Y(kb_poly_run_block)(R *dst, const INT ld, const R *tab, const INT m,
+    const INT deg, const R n, const R *x, const INT *u, const INT nb)
+{
+  const INT p = m + 1, cs = KB_POLY_COLS(m), h = KB_POLY_HALF(deg);
+  const R *coef = tab + 1;
+  /* the block in the innermost loop, so the Horner sweeps of nb nodes run
+   * side by side in the vector lanes; the runs land in tmp column by column
+   * and are transposed into dst at the end */
+  R s[NFFT_NODE_BLOCK], q[NFFT_NODE_BLOCK], e[NFFT_NODE_BLOCK],
+    o[NFFT_NODE_BLOCK];
+  R tmp[NFFT_NODE_BLOCK * 2 * (KB_POLY_RUN_BLOCK_MAX_M + 1)];
+  INT v, l, j;
+
+  if (m > KB_POLY_RUN_BLOCK_MAX_M)
+  {
+    for (v = 0; v < nb; v++)
+      Y(kb_poly_run)(dst + v * ld, tab, m, deg, NX_SUB(n, x[v], u[v]));
+    return;
+  }
+
+  for (v = 0; v < nb; v++)
+  {
+    s[v] = NX_SUB(n, x[v], u[v]) - ((R)m + K(0.5));
+    q[v] = s[v] * s[v];
+  }
+
+  for (l = 0; l < p; l++)
+  {
+    const R ce = coef[(2 * h) * cs + l], co = coef[(2 * h - 1) * cs + l];
+
+    for (v = 0; v < nb; v++)
+    {
+      e[v] = ce;
+      o[v] = co;
+    }
+
+    for (j = h - 1; j >= 1; j--)
+    {
+      const R a = coef[(2 * j) * cs + l], b = coef[(2 * j - 1) * cs + l];
+
+      for (v = 0; v < nb; v++)
+      {
+        e[v] = e[v] * q[v] + a;
+        o[v] = o[v] * q[v] + b;
+      }
+    }
+
+    for (v = 0; v < nb; v++)
+    {
+      const R ev = e[v] * q[v] + coef[l];
+
+      tmp[l * NFFT_NODE_BLOCK + v] = ev + s[v] * o[v];
+      tmp[(2 * p - 1 - l) * NFFT_NODE_BLOCK + v] = ev - s[v] * o[v];
+    }
+  }
+
+  for (v = 0; v < nb; v++)
+    for (l = 0; l < 2 * p; l++)
+      dst[v * ld + l] = tmp[l * NFFT_NODE_BLOCK + v];
+}
