@@ -193,6 +193,11 @@ typedef struct\
   C *g_pad; /**< Padded grid of the matrix B when \ref halo_hi is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
+  NFFT_INT *tile_ptr; /**< With \ref NFFT_SORT_NODES: the sorted nodes \
+                          tile_ptr[b], ..., tile_ptr[b+1]-1 lie in tile b of \
+                          the grid of B (the last bucket holds nodes whose \
+                          window leaves the padded grid), set with \
+                          \ref index_x by the sort; NULL until then */\
 } X(plan); \
 \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
@@ -352,6 +357,11 @@ typedef struct\
   R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
+  NFFT_INT *tile_ptr; /**< With \ref NFFT_SORT_NODES: the sorted nodes \
+                          tile_ptr[b], ..., tile_ptr[b+1]-1 lie in tile b of \
+                          the grid of B (the last bucket holds nodes whose \
+                          window leaves the padded grid), set with \
+                          \ref index_x by the sort; NULL until then */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -475,6 +485,11 @@ typedef struct\
   R *g_pad; /**< Padded grid of the matrix B when \ref halo_lo is 0 \
                  (allocated by the first transform), else NULL */\
   NFFT_INT g_pad_size; /**< Number of elements allocated for \ref g_pad */\
+  NFFT_INT *tile_ptr; /**< With \ref NFFT_SORT_NODES: the sorted nodes \
+                          tile_ptr[b], ..., tile_ptr[b+1]-1 lie in tile b of \
+                          the grid of B (the last bucket holds nodes whose \
+                          window leaves the padded grid), set with \
+                          \ref index_x by the sort; NULL until then */\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \

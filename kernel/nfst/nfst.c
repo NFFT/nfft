@@ -1631,6 +1631,7 @@ static inline void init_help(X(plan) *ths)
     ths->index_x = NULL;
 
   ths->x_sorted = NULL;
+  ths->tile_ptr = NULL;
   ths->f_sorted = NULL;
   ths->g_pad = NULL;
   ths->g_pad_size = 0;
@@ -1783,6 +1784,9 @@ void X(finalize)(X(plan) *ths)
     Y(free)(ths->x_sorted);
     Y(free)(ths->f_sorted);
   }
+
+  if (ths->tile_ptr != NULL)
+    Y(free)(ths->tile_ptr);
 
   if (ths->g_pad != NULL)
     Y(free)(ths->g_pad);
