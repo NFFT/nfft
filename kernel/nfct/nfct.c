@@ -1216,11 +1216,6 @@ void X(precompute_psi)(X(plan) *ths)
 
 static void precompute_full_psi_sorted(X(plan) *ths)
 {
-//#ifdef _OPENMP
-//  sort(ths);
-//
-//  nfft_precompute_full_psi_omp(ths);
-//#else
   INT t, t2; /* index over all dimensions */
   INT j; /* index over all nodes */
   INT l_L; /* plain index 0 <= l_L < lprod */
@@ -1265,7 +1260,6 @@ static void precompute_full_psi_sorted(X(plan) *ths)
     ths->psi_index_f[j] = ix - ix_old;
     ix_old = ix;
   } /* for(j) */
-//#endif
 }
 
 void X(precompute_full_psi)(X(plan) *ths)
