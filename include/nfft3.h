@@ -256,8 +256,17 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *  flag the precomputation must not be called before the nodes are set
  *  (without it, these two modes need no nodes in the precomputation). The
  *  samples \c f stay in the order of \c x. A plan that has never been
- *  precomputed sorts the current nodes in every transform instead. */
+ *  precomputed sorts the current nodes in every transform instead.
+ *  The nodes are sorted by tile of the oversampled grid and by cell within a
+ *  tile (\c tile_ptr holds the node range of each tile). With OpenMP the
+ *  adjoint transforms then spread whole tiles in parallel without atomic
+ *  operations, and their result does not depend on the number of threads;
+ *  without this flag the threaded NFFT adjoint uses atomic operations and
+ *  the NFCT and NFST adjoints run serially. */
 #define NFFT_SORT_NODES            (1U<<11)
+/** Flag NFFT_OMP_BLOCKWISE_ADJOINT: kept for compatibility, implies
+ *  \ref NFFT_SORT_NODES, which selects the tiled threaded adjoint (it used
+ *  to select a blockwise adjoint over rows of the first dimension). */
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
