@@ -2316,7 +2316,8 @@ static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
  * least L-1 makes the windows of the nodes of two tiles of the same colour
  * (the parities of the tile coordinates) disjoint, so the threads of one phase
  * need no atomics, and every grid point receives its contributions in an
- * order that does not depend on the threads.
+ * order that does not depend on the threads. For d >= 3 the tiles are
+ * columns that span the last axis.
  */
 
 /** Tile edges edge[t] and tile counts ntiles[t] for ext[t] cell values on
