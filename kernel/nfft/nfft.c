@@ -856,6 +856,16 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
+/** Whether B evaluates the window on the fly a block of nodes at a time
+ *  (window_block): in 1D without a psi table. With d >= 2 the window is a
+ *  smaller part of the work per node, and forming it node by node right
+ *  before its taps measured as fast or faster. */
+static inline int window_blocked(const X(plan) *ths)
+{
+  return ths->d == 1 && !(ths->flags & (PRE_PSI | PRE_FG_PSI | FG_PSI
+      | PRE_LIN_PSI | PRE_FULL_PSI));
+}
+
 /** Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
  *  fewer in the last block. */
 static inline INT block_len(const INT k0, const INT k1)
@@ -1303,10 +1313,11 @@ INT l_all[ths->d*(2*ths->m+2)]; \
  * Window of node j for the psi mode of the plan, any d: the weights w[t][l],
  * l < 2m+2, on axis t, and the first window index lo[t] of axis t in the
  * padded grid of B. wbuf holds d rows of 2m+4 reals for the modes that form
- * the weights on the fly.
+ * the weights on the fly. wv holds the weights of node j from window_block,
+ * or is NULL.
  */
 static void node_window(const X(plan) *ths, const R *xs, const INT j,
-    const R *fg_e, const R *fg_q, R *wbuf, const R **w, INT *lo)
+    const R *fg_e, const R *fg_q, R *wbuf, const R *wv, const R **w, INT *lo)
 {
   const INT d = ths->d, m = ths->m, L = 2 * m + 2;
   INT t;
@@ -1351,6 +1362,8 @@ static void node_window(const X(plan) *ths, const R *xs, const INT j,
             + ths->psi[(ths->K + 1) * t + ABS(ip_u - l * ip_s + 1)] * (ip_w);
       w[t] = b;
     }
+    else if (wv != NULL)
+      w[t] = wv + t * L;
     else
     {
       PHI_RUN(b, ths->n[t], xs[j * d + t], u, t);
@@ -1371,7 +1384,7 @@ static void B_node_A(const X(plan) *ths, const R *xs, C *fs, const INT *np,
   const R *w[d];
   INT lo[d];
 
-  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, NULL, w, lo);
   dup_weights(wl, w[d - 1], L);
   zero_reals(acc, 2 * L);
   Y(B_tensor_trafo)(d, L, 2, np, lo, w, wl, (const R*)ths->g, acc);
@@ -1388,7 +1401,7 @@ static void B_node_T(const X(plan) *ths, const R *xs, const C *fs,
   const R *w[d];
   INT lo[d];
 
-  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, NULL, w, lo);
   scale_weights(wf, w[d - 1], fs[j], L);
   Y(B_tensor_adjoint)(d, L, 2, np, lo, w, wf, (R*)ths->g);
 }
@@ -1580,15 +1593,22 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
   }
 
   {
-    R wbuf[d * (L + 2)], wf[2 * L];
+    /* the window block buffer only on the block path, which is 1D */
+    const int blocked = window_blocked(ths);
+    R wbuf[d * (L + 2)], wf[2 * L], wv[blocked ? NFFT_NODE_BLOCK * L : 1];
     const R *w[d];
     INT lo[d];
 
     for (k = k0; k < k1; k++)
     {
       const INT j = NODE_J(ths, k);
+      const INT v = (k - k0) % NFFT_NODE_BLOCK;
 
-      node_window(ths, c->xs, j, c->fg_e, c->fg_q, wbuf, w, lo);
+      if (blocked && v == 0)
+        window_block(ths, c->xs, k, block_len(k, k1), wv);
+
+      node_window(ths, c->xs, j, c->fg_e, c->fg_q, wbuf,
+          blocked ? wv + v * d * L : NULL, w, lo);
       scale_weights(wf, w[d - 1], c->fs[j], L);
       Y(B_tensor_adjoint)(d, L, 2, c->np, lo, w, wf, (R*)g);
     }
@@ -2008,6 +2028,47 @@ static void nfft_adjoint_1d_compute_omp_atomic(const C f, C *restrict g,
 }
 #endif
 
+/* B for the block of nodes from node k0 without a psi table (window_block).
+ * In a function of its own, as the window buffer is a run-time sized stack
+ * array (see nfft_trafo_1d_B). */
+static void nfft_trafo_1d_block(const X(plan) *ths, const R *xs, C *fs,
+    const INT k0)
+{
+  const INT n = ths->n[0], m = ths->m, L = 2 * m + 2;
+  const INT nb = block_len(k0, ths->M_total);
+  R wv[NFFT_NODE_BLOCK * L];
+  INT v;
+
+  window_block(ths, xs, k0, nb, wv);
+  for (v = 0; v < nb; v++)
+  {
+    const INT j = NODE_J(ths, k0 + v);
+    nfft_trafo_1d_compute(fs + j, ths->g, wv + v * L, xs + j, n, m);
+  }
+}
+
+/* B^T for the block of nodes from node k0 without a psi table. */
+static void nfft_adjoint_1d_block(const X(plan) *ths, const R *xs,
+    const C *fs, const INT k0)
+{
+  const INT n = ths->n[0], m = ths->m, L = 2 * m + 2;
+  const INT nb = block_len(k0, ths->M_total);
+  R wv[NFFT_NODE_BLOCK * L];
+  INT v;
+
+  window_block(ths, xs, k0, nb, wv);
+  for (v = 0; v < nb; v++)
+  {
+    const INT j = NODE_J(ths, k0 + v);
+#ifdef _OPENMP
+    nfft_adjoint_1d_compute_omp_atomic(fs[j], ths->g, wv + v * L, xs + j, n,
+        m);
+#else
+    nfft_adjoint_1d_compute_serial(fs + j, ths->g, wv + v * L, xs + j, n, m);
+#endif
+  }
+}
+
 /* Window buffers come from the heap, once per thread: GCC 13 and newer abort
  * expanding this function's OpenMP regions on aarch64-apple-darwin when they
  * hold a run-time sized stack array. */
@@ -2162,32 +2223,16 @@ static void nfft_trafo_1d_B(X(plan) *ths)
   } /* if(PRE_LIN_PSI) */
   else
   {
-    /* no precomputed psi at all */
+    /* no precomputed psi at all: the window a block of nodes at a time */
+    INT k;
 
     sort(ths);
 
 #ifdef _OPENMP
-    #pragma omp parallel default(shared)
+    #pragma omp parallel for default(shared) private(k)
 #endif
-    {
-    INT k;
-    R *psij_const = (R*)Y(malloc)((size_t)(m2p2) * sizeof(R));
-#ifdef _OPENMP
-    #pragma omp for
-#endif
-    for (k = 0; k < M; k++)
-    {
-      INT u, o;
-      INT j = NODE_J(ths, k);
-
-      uo(ths, xs, (INT)j, &u, &o, (INT)0);
-
-      PHI_RUN(psij_const, ths->n[0], xs[j], u, 0);
-
-      nfft_trafo_1d_compute(&fs[j], g, psij_const, &xs[j], n, m);
-    }
-    Y(free)(psij_const);
-    }
+    for (k = 0; k < M; k += NFFT_NODE_BLOCK)
+      nfft_trafo_1d_block(ths, xs, fs, k);
   }
 }
 
@@ -2344,25 +2389,12 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
   /* no precomputed psi at all */
   sort(ths);
 
+  /* the window a block of nodes at a time */
 #ifdef _OPENMP
   #pragma omp parallel for default(shared) private(k)
 #endif
-  for (k = 0; k < M; k++)
-  {
-    INT u,o;
-    R psij_const[2 * m + 2];
-    INT j = NODE_J(ths, k);
-
-    uo(ths, xs, j, &u, &o, (INT)0);
-
-    PHI_RUN(psij_const, ths->n[0], xs[j], u, 0);
-
-#ifdef _OPENMP
-    nfft_adjoint_1d_compute_omp_atomic(fs[j], g, psij_const, xs + j, n, m);
-#else
-    nfft_adjoint_1d_compute_serial(fs + j, g, psij_const, xs + j, n, m);
-#endif
-  }
+  for (k = 0; k < M; k += NFFT_NODE_BLOCK)
+    nfft_adjoint_1d_block(ths, xs, fs, k);
 }
 
 void X(trafo_1d)(X(plan) *ths)
