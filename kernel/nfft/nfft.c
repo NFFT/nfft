@@ -1170,28 +1170,6 @@ static void D_T(X(plan) *ths)
 }
 
 /* sub routines for the fast transforms matrix vector multiplication with B, B^T */
-#define MACRO_B_init_result_A memset(fs, 0, (size_t)(ths->M_total) * sizeof(C));
-#define MACRO_B_init_result_T memset(ths->g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
-
-#define MACRO_B_PRE_FULL_PSI_compute_A \
-{ \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
-}
-
-#define MACRO_B_PRE_FULL_PSI_compute_T \
-{ \
-  g[ths->psi_index_g[ix]] += ths->psi[ix] * (*fj); \
-}
-
-#define MACRO_B_compute_A \
-{ \
-  fs[j] += phi_prod[ths->d] * ths->g[ll_plain[ths->d]]; \
-}
-
-#define MACRO_B_compute_T \
-{ \
-  ths->g[ll_plain[ths->d]] += phi_prod[ths->d] * fs[j]; \
-}
 
 #define MACRO_with_FG_PSI fg_p[t2][lj[t2]]
 
@@ -1245,494 +1223,192 @@ INT l_all[ths->d*(2*ths->m+2)]; \
 #define MACRO_COMPUTE_without_PRE_PSI MACRO_without_PRE_PSI_improved
 #define MACRO_COMPUTE_without_PRE_PSI_improved MACRO_without_PRE_PSI_improved
 
-/* B for node j in any dimension: the weights of all dimensions from the
- * expression of the psi mode, then the tensor product kernel on the rows of
- * the last dimension */
-#define MACRO_B_A_NODE(whichone_FLAGS) \
-{ \
-  const INT L_ = 2*ths->m+2; \
-  R w_all_[ths->d * L_], wl_[2 * L_], acc_[2 * L_]; \
-  const R *w_[ths->d]; \
-  INT lo_[ths->d], np_[ths->d]; \
- \
-  for (t2 = 0; t2 < ths->d; t2++) \
-  { \
-    for (lj[t2] = 0; lj[t2] < L_; lj[t2]++) \
-      w_all_[t2 * L_ + lj[t2]] = MACRO_COMPUTE_ ## whichone_FLAGS; \
-    w_[t2] = w_all_ + t2 * L_; \
-    lo_[t2] = l_all[t2 * L_]; \
-    np_[t2] = ths->n[t2] + HALO(ths->m); \
-  } \
- \
-  dup_weights(wl_, w_all_ + (ths->d - 1) * L_, L_); \
-  zero_reals(acc_, 2 * L_); \
-  Y(B_tensor_trafo)(ths->d, L_, 2, np_, lo_, w_, wl_, (const R*)ths->g, \
-      acc_); \
-  fs[j] = sum_pairs(acc_, L_); \
+/**
+ * Window of node j for the psi mode of the plan, any d: the weights w[t][l],
+ * l < 2m+2, on axis t, and the first window index lo[t] of axis t in the
+ * padded grid of B. wbuf holds d rows of 2m+4 reals for the modes that form
+ * the weights on the fly.
+ */
+static void node_window(const X(plan) *ths, const R *xs, const INT j,
+    const R *fg_e, const R *fg_q, R *wbuf, const R **w, INT *lo)
+{
+  const INT d = ths->d, m = ths->m, L = 2 * m + 2;
+  INT t;
+
+  for (t = 0; t < d; t++)
+  {
+    R *b = wbuf + t * (L + 2);
+    INT u, o;
+
+    uo(ths, xs, j, &u, &o, t);
+    lo[t] = ((u % ths->n[t]) + ths->n[t]) % ths->n[t];
+
+    if (ths->flags & PRE_PSI)
+      w[t] = ths->psi + (j * d + t) * L;
+    else if (ths->flags & PRE_FG_PSI)
+    {
+      FG_RUN(b, m, FABS(ths->psi[2 * (j * d + t)]),
+          ths->psi[2 * (j * d + t) + 1], fg_e[t], fg_q[t]);
+      w[t] = FG_RUN_START(b, ths->psi[2 * (j * d + t)]);
+    }
+    else if (ths->flags & FG_PSI)
+    {
+      const R fg_nx = (R)(ths->n[t]) * xs[j * d + t];
+      const R fg_d = NX_SUB(ths->n[t], xs[j * d + t], FLOOR(fg_nx + K(0.5)));
+
+      FG_RUN(b, m, (PHI(ths->n[t], fg_d / ((R)(ths->n[t])), t)),
+          EXP(K(2.0) * fg_d / ths->b[t]), fg_e[t], fg_q[t]);
+      w[t] = FG_RUN_START(b, fg_d);
+    }
+    else if (ths->flags & PRE_LIN_PSI)
+    {
+      const INT ip_s = ths->K / (m + 2);
+      const R y = ((NX_SUB(ths->n[t], xs[j * d + t], u)) * ((R)(ths->K)))
+          / (R)(m + 2);
+      const INT ip_u = LRINT(FLOOR(y));
+      const R ip_w = y - ip_u;
+      INT l;
+
+      for (l = 0; l < L; l++)
+        b[l] = ths->psi[(ths->K + 1) * t + ABS(ip_u - l * ip_s)] * (1 - ip_w)
+            + ths->psi[(ths->K + 1) * t + ABS(ip_u - l * ip_s + 1)] * (ip_w);
+      w[t] = b;
+    }
+    else
+    {
+      PHI_RUN(b, ths->n[t], xs[j * d + t], u, t);
+      w[t] = b;
+    }
+  }
 }
 
-#define MACRO_B_NODE_A(whichone_FLAGS) \
-{ \
-  UNUSED(phi_prod); /* the per-tap state of B^T */ \
-  UNUSED(ll_plain); \
-  MACRO_B_A_NODE(whichone_FLAGS); \
+/* B and B^T for node k of the node data, any d, with the tensor product
+ * kernels of infft.h. Each in a function of its own so that the OpenMP region
+ * of B_A holds no run-time sized arrays (see nfft_trafo_1d_B). */
+static void B_node_A(const X(plan) *ths, const R *xs, C *fs, const INT *np,
+    const R *fg_e, const R *fg_q, const INT k)
+{
+  const INT d = ths->d, L = 2 * ths->m + 2;
+  const INT j = NODE_J(ths, k);
+  R wbuf[d * (L + 2)], wl[2 * L], acc[2 * L];
+  const R *w[d];
+  INT lo[d];
+
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
+  dup_weights(wl, w[d - 1], L);
+  zero_reals(acc, 2 * L);
+  Y(B_tensor_trafo)(d, L, 2, np, lo, w, wl, (const R*)ths->g, acc);
+  fs[j] = sum_pairs(acc, L);
 }
-#define MACRO_B_NODE_T(whichone_FLAGS) \
-  MACRO_B_COMPUTE_ONE_NODE(T, whichone_FLAGS)
-
-#define MACRO_B_COMPUTE_ONE_NODE(whichone_AT,whichone_FLAGS) \
-      if (ths->d == 4) \
-      { \
-        INT l0, l1, l2, l3; \
-        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
-        { \
-          lj[0] = l0; \
-          t2 = 0; \
-          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
-          { \
-            lj[1] = l1; \
-            t2 = 1; \
-            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
-            { \
-              lj[2] = l2; \
-              t2 = 2; \
-              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
-              { \
-                lj[3] = l3; \
-                t2 = 3; \
-                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
- \
-                MACRO_B_compute_ ## whichone_AT; \
-              } \
-            } \
-          } \
-        } \
-      } /* if(d==4) */ \
-      else if (ths->d == 5) \
-      { \
-        INT l0, l1, l2, l3, l4; \
-        for (l0 = 0; l0 < 2*ths->m+2; l0++) \
-        { \
-          lj[0] = l0; \
-          t2 = 0; \
-          phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-          ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-          for (l1 = 0; l1 < 2*ths->m+2; l1++) \
-          { \
-            lj[1] = l1; \
-            t2 = 1; \
-            phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-            ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-            for (l2 = 0; l2 < 2*ths->m+2; l2++) \
-            { \
-              lj[2] = l2; \
-              t2 = 2; \
-              phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-              ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-              for (l3 = 0; l3 < 2*ths->m+2; l3++) \
-              { \
-                lj[3] = l3; \
-                t2 = 3; \
-                phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
-                for (l4 = 0; l4 < 2*ths->m+2; l4++) \
-                { \
-                  lj[4] = l4; \
-                  t2 = 4; \
-                  phi_prod[t2+1] = phi_prod[t2] * MACRO_COMPUTE_ ## whichone_FLAGS; \
-                  ll_plain[t2+1] = ll_plain[t2] * (ths->n[t2] + HALO(ths->m)) + l_all[t2*(2*ths->m+2) + lj[t2]]; \
- \
-                  MACRO_B_compute_ ## whichone_AT; \
-                } \
-              } \
-            } \
-          } \
-        } \
-      } /* if(d==5) */ \
-      else { \
-        for (l_L = 0; l_L < lprod; l_L++) \
-        { \
-          MACRO_update_phi_prod_ll_plain(whichone_FLAGS); \
- \
-          MACRO_B_compute_ ## whichone_AT; \
- \
-          MACRO_count_uo_l_lj_t; \
-        } /* for(l_L) */ \
-      }
-
-#define MACRO_B(which_one) \
-static inline void B_serial_ ## which_one (X(plan) *ths) \
-{ \
-  const R *xs = node_x(ths); \
-  C *fs = node_f(ths); \
-  INT lprod; /* 'regular bandwidth' of matrix B  */ \
-  INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
-  INT t, t2; /* index dimensions */ \
-  INT k; /* index nodes */ \
-  INT l_L, ix; /* index one row of B */ \
-  INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
-  INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
-  R phi_prod[ths->d+1]; /* postfix product of PHI */ \
-  R y[ths->d]; \
-  R fg_psi[ths->d][2*ths->m+3]; \
-  const R *fg_p[ths->d]; \
-  R fg_e[ths->d], fg_q[ths->d]; \
-  INT l_fg,lj_fg; \
-  R ip_w; \
-  INT ip_u; \
-  INT ip_s = ths->K/(ths->m+2); \
- \
-  MACRO_B_init_result_ ## which_one; \
- \
-  if (ths->flags & PRE_FULL_PSI) \
-  { \
-    INT j; \
-    C *f, *g; /* local copy */ \
-    C *fj; /* local copy */ \
-    f = fs; g = (C*)ths->g; \
- \
-    for (ix = 0, j = 0; j < ths->M_total; j++) \
-    { \
-      fj = f + j; \
-      for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
-      { \
-        MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
-      } \
-    } \
-    return; \
-  } \
-\
-  phi_prod[0] = K(1.0); \
-  ll_plain[0] = 0; \
-\
-  for (t = 0, lprod = 1; t < ths->d; t++) \
-    lprod *= (2 * ths->m + 2); \
-\
-  if (ths->flags & PRE_PSI) \
-  { \
-    sort(ths); \
- \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      INT j = NODE_J(ths, k); \
- \
-      MACRO_init_uo_l_lj_t; \
- \
-      MACRO_B_NODE_ ## which_one(with_PRE_PSI); \
-    } /* for(j) */ \
-    return; \
-  } /* if(PRE_PSI) */ \
- \
-  if (ths->flags & PRE_FG_PSI) \
-  { \
-    sort(ths); \
- \
-    for(t2 = 0; t2 < ths->d; t2++) \
-    { \
-      fg_e[t2] = EXP(K(-1.0) / ths->b[t2]); \
-      fg_q[t2] = fg_e[t2] * fg_e[t2]; \
-    } \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      INT j = NODE_J(ths, k); \
- \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        FG_RUN(fg_psi[t2], ths->m, FABS(ths->psi[2*(j*ths->d+t2)]), \
-            ths->psi[2*(j*ths->d+t2)+1], fg_e[t2], fg_q[t2]); \
-        fg_p[t2] = FG_RUN_START(fg_psi[t2], ths->psi[2*(j*ths->d+t2)]); \
-      } \
- \
-      MACRO_B_NODE_ ## which_one(with_FG_PSI); \
-    } /* for(j) */ \
-    return; \
-  } /* if(PRE_FG_PSI) */ \
- \
-  if (ths->flags & FG_PSI) \
-  { \
-    sort(ths); \
- \
-    for (t2 = 0; t2 < ths->d; t2++) \
-    { \
-      fg_e[t2] = EXP(K(-1.0)/ths->b[t2]); \
-      fg_q[t2] = fg_e[t2] * fg_e[t2]; \
-    } \
-    for (k = 0; k < ths->M_total; k++) \
-    { \
-      INT j = NODE_J(ths, k); \
- \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        const R fg_nx = (R)(ths->n[t2]) * xs[j*ths->d+t2]; \
-        const R fg_d = \
-            NX_SUB(ths->n[t2], xs[j*ths->d+t2], FLOOR(fg_nx + K(0.5))); \
-        FG_RUN(fg_psi[t2], ths->m, \
-            (PHI(ths->n[t2], fg_d / ((R)(ths->n[t2])), t2)), \
-            EXP(K(2.0) * fg_d / ths->b[t2]), \
-            fg_e[t2], fg_q[t2]); \
-        fg_p[t2] = FG_RUN_START(fg_psi[t2], fg_d); \
-      } \
- \
-      MACRO_B_NODE_ ## which_one(with_FG_PSI); \
-    } /* for(j) */ \
-    return; \
-  } /* if(FG_PSI) */ \
- \
-  if (ths->flags & PRE_LIN_PSI) \
-  { \
-    sort(ths); \
- \
-    for (k = 0; k<ths->M_total; k++) \
-    { \
-      INT j = NODE_J(ths, k); \
- \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        y[t2] = ((NX_SUB(ths->n[t2], xs[j * ths->d + t2], u[t2])) \
-          * ((R)(ths->K))) / (R)(ths->m + 2); \
-        ip_u  = LRINT(FLOOR(y[t2])); \
-        ip_w  = y[t2]-ip_u; \
-        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
-        { \
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
-        } \
-      } \
- \
-      MACRO_B_NODE_ ## which_one(with_LIN_PSI); \
-    } /* for(j) */ \
-    return; \
-  } /* if(PRE_LIN_PSI) */ \
- \
-  sort(ths); \
- \
-  /* no precomputed psi at all */ \
-  for (k = 0; k < ths->M_total; k++) \
-  { \
-    INT j = NODE_J(ths, k); \
- \
-    R psij_const[ths->d * (2*ths->m+2)]; \
- \
-    MACRO_init_uo_l_lj_t; \
- \
-    for (t2 = 0; t2 < ths->d; t2++) \
-    { \
-      PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
-          xs[j*ths->d+t2], u[t2], t2); \
-    } \
- \
-    MACRO_B_NODE_ ## which_one(without_PRE_PSI_improved); \
-  } /* for(j) */ \
-} /* nfft_B */ \
 
 #ifndef _OPENMP
-MACRO_B(A)
+static void B_node_T(const X(plan) *ths, const R *xs, const C *fs,
+    const INT *np, const R *fg_e, const R *fg_q, const INT k)
+{
+  const INT d = ths->d, L = 2 * ths->m + 2;
+  const INT j = NODE_J(ths, k);
+  R wbuf[d * (L + 2)], wf[2 * L];
+  const R *w[d];
+  INT lo[d];
+
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
+  scale_weights(wf, w[d - 1], fs[j], L);
+  Y(B_tensor_adjoint)(d, L, 2, np, lo, w, wf, (R*)ths->g);
+}
 #endif
 
-#ifdef _OPENMP
-#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_PSI
-#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_PSI \
-  MACRO_update_phi_prod_ll_plain(with_PRE_PSI);
+/** Sizes of the padded grid of B and the factors of the FG modes per axis. */
+static void B_init(const X(plan) *ths, INT *np, R *fg_e, R *fg_q)
+{
+  INT t;
 
-#define MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI \
-    for (t2 = 0; t2 < ths->d; t2++) \
-    { \
-      fg_e[t2] = EXP(K(-1.0)/ths->b[t2]); \
-      fg_q[t2] = fg_e[t2] * fg_e[t2]; \
+  for (t = 0; t < ths->d; t++)
+  {
+    np[t] = ths->n[t] + HALO(ths->m);
+    if (ths->flags & (PRE_FG_PSI | FG_PSI))
+    {
+      fg_e[t] = EXP(K(-1.0) / ths->b[t]);
+      fg_q[t] = fg_e[t] * fg_e[t];
     }
-#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_FG_PSI \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        FG_RUN(fg_psi[t2], ths->m, FABS(ths->psi[2*(j*ths->d+t2)]), \
-            ths->psi[2*(j*ths->d+t2)+1], fg_e[t2], fg_q[t2]); \
-        fg_p[t2] = FG_RUN_START(fg_psi[t2], ths->psi[2*(j*ths->d+t2)]); \
-      }
-#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_FG_PSI \
-  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_FG_PSI \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        const R fg_nx = (R)(ths->n[t2]) * xs[j*ths->d+t2]; \
-        const R fg_d = \
-            NX_SUB(ths->n[t2], xs[j*ths->d+t2], FLOOR(fg_nx + K(0.5))); \
-        FG_RUN(fg_psi[t2], ths->m, \
-            (PHI(ths->n[t2], fg_d / ((R)(ths->n[t2])), t2)), \
-            EXP(K(2.0) * fg_d / ths->b[t2]), \
-            fg_e[t2], fg_q[t2]); \
-        fg_p[t2] = FG_RUN_START(fg_psi[t2], fg_d); \
-      }
-#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_FG_PSI \
-  MACRO_update_phi_prod_ll_plain(with_FG_PSI);
-
-#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_with_PRE_LIN_PSI \
-      for (t2 = 0; t2 < ths->d; t2++) \
-      { \
-        y[t2] = ((NX_SUB(ths->n[t2], xs[j*ths->d+t2], u[t2])) \
-          * ((R)ths->K))/(ths->m+2); \
-        ip_u  = LRINT(FLOOR(y[t2])); \
-        ip_w  = y[t2]-ip_u; \
-        for (l_fg = u[t2], lj_fg = 0; l_fg <= o[t2]; l_fg++, lj_fg++) \
-        { \
-          fg_psi[t2][lj_fg] = ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t2 + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
-        } \
-      }
-#define MACRO_B_openmp_A_COMPUTE_UPDATE_with_PRE_LIN_PSI \
-  MACRO_update_phi_prod_ll_plain(with_LIN_PSI);
-
-#define MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_without_PRE_PSI \
-    for (t2 = 0; t2 < ths->d; t2++) \
-    { \
-      PHI_RUN(psij_const + t2 * (2*ths->m+2), ths->n[t2], \
-          xs[j*ths->d+t2], u[t2], t2); \
-    }
-#define MACRO_B_openmp_A_COMPUTE_UPDATE_without_PRE_PSI \
-  MACRO_update_phi_prod_ll_plain(without_PRE_PSI_improved);
-
-#define MACRO_B_openmp_A_COMPUTE(whichone) \
-{ \
-      INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
-      INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */ \
-      INT j = NODE_J(ths, k); \
- \
-      MACRO_init_uo_l_lj_t; \
- \
-      MACRO_B_openmp_A_COMPUTE_BEFORE_LOOP_ ##whichone \
- \
-      MACRO_B_A_NODE(whichone); \
+  }
 }
 
-static inline void B_openmp_A (X(plan) *ths)
+/** B for d >= 4: f_j = sum over the window of node j of psi * g. */
+static void B_A(X(plan) *ths)
 {
   const R *xs = node_x(ths);
   C *fs = node_f(ths);
-  INT lprod; /* 'regular bandwidth' of matrix B  */
+  INT np[ths->d];
+  R fg_e[ths->d], fg_q[ths->d];
   INT k;
-
-  memset(fs, 0, (size_t)(ths->M_total) * sizeof(C));
-
-  for (k = 0, lprod = 1; k < ths->d; k++)
-    lprod *= (2*ths->m+2);
 
   if (ths->flags & PRE_FULL_PSI)
   {
+    INT lprod = 1;
+
+    for (k = 0; k < ths->d; k++)
+      lprod *= (2 * ths->m + 2);
+
+#ifdef _OPENMP
     #pragma omp parallel for default(shared) private(k)
+#endif
     for (k = 0; k < ths->M_total; k++)
     {
-      INT j = NODE_J(ths, k);
-      fs[j] = full_psi_trafo(ths->psi + j*lprod, ths->psi_index_g + j*lprod,
+      const INT j = NODE_J(ths, k);
+      fs[j] = full_psi_trafo(ths->psi + j * lprod, ths->psi_index_g + j * lprod,
           ths->g, lprod);
     }
     return;
   }
 
-  if (ths->flags & PRE_PSI)
-  {
-    #pragma omp parallel for default(shared) private(k)
-    for (k = 0; k < ths->M_total; k++)
-    {
-      INT t, t2; /* index dimensions */
-      MACRO_B_openmp_A_COMPUTE(with_PRE_PSI);
-    } /* for(j) */
-    return;
-  } /* if(PRE_PSI) */
-
-  if (ths->flags & PRE_FG_PSI)
-  {
-    INT t, t2; /* index dimensions */
-    R fg_e[ths->d], fg_q[ths->d];
-
-    MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI
-
-    #pragma omp parallel for default(shared) private(k,t,t2)
-    for (k = 0; k < ths->M_total; k++)
-    {
-      R fg_psi[ths->d][2*ths->m+3];
-      const R *fg_p[ths->d];
-
-      MACRO_B_openmp_A_COMPUTE(with_PRE_FG_PSI);
-    } /* for(j) */
-    return;
-  } /* if(PRE_FG_PSI) */
-
-  if (ths->flags & FG_PSI)
-  {
-    INT t, t2; /* index dimensions */
-    R fg_e[ths->d], fg_q[ths->d];
-
-    sort(ths);
-
-    MACRO_B_openmp_A_COMPUTE_INIT_FG_PSI
-
-    #pragma omp parallel for default(shared) private(k,t,t2)
-    for (k = 0; k < ths->M_total; k++)
-    {
-      R fg_psi[ths->d][2*ths->m+3];
-      const R *fg_p[ths->d];
-
-      MACRO_B_openmp_A_COMPUTE(with_FG_PSI);
-    } /* for(j) */
-    return;
-  } /* if(FG_PSI) */
-
-  if (ths->flags & PRE_LIN_PSI)
-  {
-    sort(ths);
-
-    #pragma omp parallel for default(shared) private(k)
-    for (k = 0; k<ths->M_total; k++)
-    {
-      INT t, t2; /* index dimensions */
-      R y[ths->d];
-      R fg_psi[ths->d][2*ths->m+2];
-      INT l_fg,lj_fg;
-      R ip_w;
-      INT ip_u;
-      INT ip_s = ths->K/(ths->m+2);
-
-      MACRO_B_openmp_A_COMPUTE(with_PRE_LIN_PSI);
-    } /* for(j) */
-    return;
-  } /* if(PRE_LIN_PSI) */
-
-  /* no precomputed psi at all */
   sort(ths);
+  B_init(ths, np, fg_e, fg_q);
 
-  #pragma omp parallel for default(shared) private(k)
-  for (k = 0; k < ths->M_total; k++)
-  {
-    INT t, t2; /* index dimensions */
-    R psij_const[ths->d * (2*ths->m+2)];
-
-    MACRO_B_openmp_A_COMPUTE(without_PRE_PSI);
-  } /* for(j) */
-}
-#endif
-
-static void B_A(X(plan) *ths)
-{
 #ifdef _OPENMP
-  B_openmp_A(ths);
-#else
-  B_serial_A(ths);
+  #pragma omp parallel for default(shared) private(k)
 #endif
+  for (k = 0; k < ths->M_total; k++)
+    B_node_A(ths, xs, fs, np, fg_e, fg_q, k);
 }
+
+#ifndef _OPENMP
+/** B^T for d >= 4, serial: g = sum over the nodes j of psi * f_j on the
+ *  window of node j. */
+static void B_serial_T(X(plan) *ths)
+{
+  const R *xs = node_x(ths);
+  const C *fs = node_f(ths);
+  INT np[ths->d];
+  R fg_e[ths->d], fg_q[ths->d];
+  INT k;
+
+  memset(ths->g, 0, (size_t)(grid_B_total(ths)) * sizeof(C));
+
+  if (ths->flags & PRE_FULL_PSI)
+  {
+    INT lprod = 1, l;
+
+    for (k = 0; k < ths->d; k++)
+      lprod *= (2 * ths->m + 2);
+
+    for (k = 0; k < ths->M_total; k++)
+    {
+      const R *psi = ths->psi + k * lprod;
+      const INT *idx = ths->psi_index_g + k * lprod;
+
+      for (l = 0; l < lprod; l++)
+        ths->g[idx[l]] += psi[l] * fs[k];
+    }
+    return;
+  }
+
+  sort(ths);
+  B_init(ths, np, fg_e, fg_q);
+
+  for (k = 0; k < ths->M_total; k++)
+    B_node_T(ths, xs, fs, np, fg_e, fg_q, k);
+}
+#endif
 
 #ifdef _OPENMP
 /**
@@ -2013,9 +1689,6 @@ static void nfft_adjoint_B_compute_full_psi(C *g, const INT *psi_index_g,
   }
 }
 
-#ifndef _OPENMP
-MACRO_B(T)
-#endif
 
 
 #ifdef _OPENMP
