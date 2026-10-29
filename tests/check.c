@@ -32,6 +32,7 @@
 #include "nfct.h"
 #include "nfst.h"
 #include "sort.h"
+#include "halo.h"
 
 int main(void)
 {
@@ -75,6 +76,7 @@ int main(void)
 #define X(name) NFFT(name)
   nfft = CU_add_suite("nfft", 0, 0);
   CU_add_test(nfft, "nfft_sort", X(check_sort));
+  CU_add_test(nfft, "nfft_halo", X(check_halo));
   CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfft, "nfft_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfft, "nfft_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
@@ -136,6 +138,7 @@ int main(void)
   CU_add_test(nfct, "nfct_3d_direct_file", X(check_3d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_sort", X(check_sort));
+  CU_add_test(nfct, "nfct_halo", X(check_halo));
 #ifndef _OPENMP
   CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
@@ -193,6 +196,7 @@ int main(void)
   CU_add_test(nfst, "nfst_3d_direct_file", X(check_3d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_sort", X(check_sort));
+  CU_add_test(nfst, "nfst_halo", X(check_halo));
 #ifndef _OPENMP
   CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));

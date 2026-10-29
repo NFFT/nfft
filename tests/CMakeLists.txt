@@ -12,6 +12,7 @@ set(NFFT_TEST_SOURCES
   kbpoly.c  kbpoly.h
   nfft.c    nfft.h
   sort.c    sort.h
+  halo.c    halo.h
   nfct.c    nfct.h
   nfst.c    nfst.h)
 
