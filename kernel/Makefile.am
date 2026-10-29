@@ -1,16 +1,28 @@
 if HAVE_NFCT
   LIB_NFCT=nfct/libnfct.la
   DIR_NFCT=nfct
+if ENABLE_OPENMP
+  LIB_NFCT_THREADS=nfct/libnfct_threads.la
+else
+  LIB_NFCT_THREADS=
+endif
 else
   LIB_NFCT=
+  LIB_NFCT_THREADS=
 endif
 
 if HAVE_NFST
   LIB_NFST=nfst/libnfst.la
   DIR_NFST=nfst
+if ENABLE_OPENMP
+  LIB_NFST_THREADS=nfst/libnfst_threads.la
+else
+  LIB_NFST_THREADS=
+endif
 else
   LIB_NFST=
   DIR_NFST=
+  LIB_NFST_THREADS=
 endif
 
 if HAVE_NFSFT
@@ -99,7 +111,7 @@ libkernel_la_LIBADD = util/libutil.la nfft/libnfft.la $(LIB_NFCT) $(LIB_NFST) \
 
 if ENABLE_OPENMP
 libkernel_threads_la_SOURCES =
-libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT) $(LIB_NFST) \
+libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(LIB_NFCT_THREADS) $(LIB_NFST_THREADS) \
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
   solver/libsolver.la
 libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)

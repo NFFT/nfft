@@ -132,9 +132,8 @@ int main(void)
 #undef X
 #define X(name) NFCT(name)
   nfct = CU_add_suite("nfct", 0, 0);
-  /* The direct/adjoint transforms are OpenMP-parallelised in every dimension, so validate them
-     in both the serial and the threaded (checkall_threads) build. The remaining NFCT paths
-     (fast, online) are exercised single-threaded only. */
+  /* The direct transforms and the fast trafo are OpenMP-parallelised, so all NFCT tests run
+     in both the serial and the threaded (checkall_threads) build. */
   CU_add_test(nfct, "nfct_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfct, "nfct_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
   CU_add_test(nfct, "nfct_2d_direct_file", X(check_2d_direct_file));
@@ -143,7 +142,6 @@ int main(void)
   CU_add_test(nfct, "nfct_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfct, "nfct_sort", X(check_sort));
   CU_add_test(nfct, "nfct_halo", X(check_halo));
-#ifndef _OPENMP
   CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfct, "nfct_1d_online", X(check_1d_online));
@@ -186,13 +184,11 @@ int main(void)
   CU_add_test(nfct, "nfct_adjoint_4d_online", X(check_adjoint_4d_online));
 #endif
 #endif
-#endif
 #ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
   nfst = CU_add_suite("nfst", 0, 0);
-  /* As for NFCT: the direct/adjoint transforms are OpenMP-parallelised, so validate them in
-     both serial and threaded builds; the fast and online NFST paths stay serial-only. */
+  /* As for NFCT: all NFST tests run in both the serial and the threaded build. */
   CU_add_test(nfst, "nfst_1d_direct_file", X(check_1d_direct_file));
   CU_add_test(nfst, "nfst_adjoint_1d_direct_file", X(check_adjoint_1d_direct_file));
   CU_add_test(nfst, "nfst_2d_direct_file", X(check_2d_direct_file));
@@ -201,7 +197,6 @@ int main(void)
   CU_add_test(nfst, "nfst_adjoint_3d_direct_file", X(check_adjoint_3d_direct_file));
   CU_add_test(nfst, "nfst_sort", X(check_sort));
   CU_add_test(nfst, "nfst_halo", X(check_halo));
-#ifndef _OPENMP
   CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfst, "nfst_1d_online", X(check_1d_online));
@@ -242,7 +237,6 @@ int main(void)
 
   CU_add_test(nfst, "nfst_4d_online", X(check_4d_online));
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
-#endif
 #endif
 #endif
 #ifdef SORT_NNFFT
