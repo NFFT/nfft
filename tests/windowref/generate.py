@@ -11,6 +11,7 @@ the truncated power basis in exact rational arithmetic: that formula cancels
 catastrophically in floating point, but over the rationals it is exact, and it
 shares nothing with the de Boor scheme it is used to check.
 """
+
 import argparse
 import sys
 from fractions import Fraction
@@ -67,10 +68,10 @@ def cnum(v):
 
 def emit(name, values, comment, out):
     out.append(comment)
-    out.append("static const R %s[] =" % name)
+    out.append(f"static const R {name}[] =")
     out.append("{")
     for v in values:
-        out.append("  K(%s)," % cnum(v))
+        out.append(f"  K({cnum(v)}),")
     out.append("};")
     out.append("")
 
@@ -88,10 +89,14 @@ def bspline_phi_hut(out):
         t = mp.pi * k / n
         vals.append((mp.sin(t) / t) ** (2 * m) / n)
 
-    emit("bspline_phi_hut_ref_512_256_11", vals,
-         "/* B-spline phi_hut for n = %d, N = %d, m = %d, k = 0, %d, .. %d, at\n"
-         " * %d digits. Regenerate with tests/windowref. */"
-         % (n, N_FREQ, m, K_STEP, N_FREQ // 2, DIGITS), out)
+    emit(
+        "bspline_phi_hut_ref_512_256_11",
+        vals,
+        f"/* B-spline phi_hut for n = {n}, N = {N_FREQ}, m = {m}, k = 0, {K_STEP},"
+        f" .. {N_FREQ // 2}, at\n"
+        f" * {DIGITS} digits. Regenerate with tests/windowref. */",
+        out,
+    )
 
 
 def bspline_phi(out):
@@ -101,12 +106,16 @@ def bspline_phi(out):
     vals = [mpf(bspline(2 * m, t - l) / n) for l in range(2 * m + 2)]
     peak = max(vals)
 
-    emit("bspline_phi_ref_512_11", vals,
-         "/* B-spline phi over one full run for n = %d, m = %d, with the node\n"
-         " * %s of a cell past a grid point, exactly. The run straddles the\n"
-         " * support, so its ends are zero and its tail is 1e-30 of the peak.\n"
-         " * Regenerate with tests/windowref. */" % (n, m, FRAC), out)
-    out.append("#define BSPLINE_PHI_PEAK_512_11 K(%s)" % cnum(peak))
+    emit(
+        "bspline_phi_ref_512_11",
+        vals,
+        f"/* B-spline phi over one full run for n = {n}, m = {m}, with the node\n"
+        f" * {FRAC} of a cell past a grid point, exactly. The run straddles the\n"
+        " * support, so its ends are zero and its tail is 1e-30 of the peak.\n"
+        " * Regenerate with tests/windowref. */",
+        out,
+    )
+    out.append(f"#define BSPLINE_PHI_PEAK_512_11 K({cnum(peak)})")
     out.append("")
 
 
@@ -121,11 +130,15 @@ def sincpow_phi(out):
         a = mp.pi * mpf(w) * mpf(nx0 - l)
         vals.append(mpf(w) * (mp.sin(a) / a) ** (2 * m))
 
-    emit("sincpow_phi_ref_512_8", vals,
-         "/* Sinc-power phi over one full run for n = %d, m = %d, sigma = 2,\n"
-         " * with the node %s of a cell past a grid point, at %d digits.\n"
-         " * Regenerate with tests/windowref. */" % (n, m, FRAC, DIGITS), out)
-    out.append("#define SINCPOW_PHI_PEAK_512_8 K(%s)" % cnum(max(vals)))
+    emit(
+        "sincpow_phi_ref_512_8",
+        vals,
+        f"/* Sinc-power phi over one full run for n = {n}, m = {m}, sigma = 2,\n"
+        f" * with the node {FRAC} of a cell past a grid point, at {DIGITS} digits.\n"
+        " * Regenerate with tests/windowref. */",
+        out,
+    )
+    out.append(f"#define SINCPOW_PHI_PEAK_512_8 K({cnum(max(vals))})")
     out.append("")
 
 
@@ -136,10 +149,14 @@ def sincpow_phi_hut(out):
     ks = range(0, N_FREQ // 2 + 1, K_STEP)
     vals = [mpf(bspline(2 * m, Fraction(k, 1) / (w * n) + m)) for k in ks]
 
-    emit("sincpow_phi_hut_ref_512_256_8", vals,
-         "/* Sinc-power phi_hut for n = %d, N = %d, m = %d, sigma = 2,\n"
-         " * k = 0, %d, .. %d, exactly. Regenerate with tests/windowref. */"
-         % (n, N_FREQ, m, K_STEP, N_FREQ // 2), out)
+    emit(
+        "sincpow_phi_hut_ref_512_256_8",
+        vals,
+        f"/* Sinc-power phi_hut for n = {n}, N = {N_FREQ}, m = {m}, sigma = 2,\n"
+        f" * k = 0, {K_STEP}, .. {N_FREQ // 2}, exactly."
+        " Regenerate with tests/windowref. */",
+        out,
+    )
 
 
 def main(argv=None):

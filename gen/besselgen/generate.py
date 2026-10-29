@@ -8,6 +8,7 @@ tables. Everything here is deterministic: same spec in, same bytes out.
 `--search` re-derives the degrees from the accuracy target instead of using
 the pinned ones, and prints them so SPEC can be updated deliberately.
 """
+
 import argparse
 import sys
 
@@ -35,21 +36,27 @@ from . import scheme
 #
 # --search re-derives the degrees; the splits are deliberate, not searched.
 SPEC = {
-    24: dict(split=8, n1=11, n2=7),
-    53: dict(split=10, n1=19, n2=23),
-    64: dict(split=15, n1=23, n2=23),
-    113: dict(split=25, n1=43, n2=39),
+    24: {"split": 8, "n1": 11, "n2": 7},
+    53: {"split": 10, "n1": 19, "n2": 23},
+    64: {"split": 15, "n1": 23, "n2": 23},
+    113: {"split": 25, "n1": 43, "n2": 39},
 }
 
 # Working precision and printed digits per format. The printed digit count is
 # comfortably above the round-trip minimum (9/17/21/36).
 DIGITS = {24: 12, 53: 20, 64: 25, 113: 40}
-GUARD = {24: "MANT_DIG == 24", 53: "MANT_DIG == 53",
-         64: "MANT_DIG == 64", 113: "MANT_DIG == 113"}
-NAME = {24: "IEEE 754 single precision, 32 bits.",
-        53: "IEEE 754 double precision, 64 bits.",
-        64: "Intel double extended, 80 bits.",
-        113: "IEEE 754 quadruple precision, 128 bits."}
+GUARD = {
+    24: "MANT_DIG == 24",
+    53: "MANT_DIG == 53",
+    64: "MANT_DIG == 64",
+    113: "MANT_DIG == 113",
+}
+NAME = {
+    24: "IEEE 754 single precision, 32 bits.",
+    53: "IEEE 754 double precision, 64 bits.",
+    64: "Intel double extended, 80 bits.",
+    113: "IEEE 754 quadruple precision, 128 bits.",
+}
 
 HEADER = """/*
  * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -113,10 +120,10 @@ def cnum(v, digits):
 
 
 def emit_array(name, coeffs, digits, out):
-    out.append("  static const R %s[] =" % name)
+    out.append(f"  static const R {name}[] =")
     out.append("  {")
     for v in coeffs:
-        out.append("      K(%s)," % cnum(v, digits))
+        out.append(f"      K({cnum(v, digits)}),")
     out.append("  };")
 
 
@@ -127,13 +134,22 @@ def build(prec, spec, dps, search_target=None, log=None):
         n1 = _search(scheme.fit_branch1, split, search_target)
         n2 = _search(scheme.fit_branch2, split, search_target)
         if log:
-            log("  searched degrees: n1=%d n2=%d" % (n1, n2))
+            log(f"  searched degrees: n1={n1} n2={n2}")
     else:
         n1, n2 = spec["n1"], spec["n2"]
     P1, e1 = scheme.fit_branch1(split, n1)
     P2, e2 = scheme.fit_branch2(split, n2)
     g2 = scheme.branch2_growth(P2, split)
-    return dict(split=split, n1=n1, n2=n2, P1=P1, P2=P2, e1=e1, e2=e2, g2=g2)
+    return {
+        "split": split,
+        "n1": n1,
+        "n2": n2,
+        "P1": P1,
+        "P2": P2,
+        "e1": e1,
+        "e2": e2,
+        "g2": g2,
+    }
 
 
 def _search(fit, split, target, lo=3, hi=60):
@@ -141,23 +157,39 @@ def _search(fit, split, target, lo=3, hi=60):
         _, err = fit(split, n)
         if err <= target:
             return n
-    raise RuntimeError("no degree <= %d reaches %s" % (hi, target))
+    raise RuntimeError(f"no degree <= {hi} reaches {target}")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="kernel/util/bessel_i0_data.h")
     ap.add_argument("--precisions", default="24,53,64,113")
-    ap.add_argument("--dps", type=int, default=0,
-                    help="mpmath working digits (default: per-format)")
-    ap.add_argument("--search", action="store_true",
-                    help="re-derive degrees from the accuracy target")
-    ap.add_argument("--split", type=float, default=None,
-                    help="override the split (single precision only)")
-    ap.add_argument("--n1", type=int, default=None,
-                    help="override the branch-1 degree (single precision only)")
-    ap.add_argument("--n2", type=int, default=None,
-                    help="override the branch-2 degree (single precision only)")
+    ap.add_argument(
+        "--dps", type=int, default=0, help="mpmath working digits (default: per-format)"
+    )
+    ap.add_argument(
+        "--search",
+        action="store_true",
+        help="re-derive degrees from the accuracy target",
+    )
+    ap.add_argument(
+        "--split",
+        type=float,
+        default=None,
+        help="override the split (single precision only)",
+    )
+    ap.add_argument(
+        "--n1",
+        type=int,
+        default=None,
+        help="override the branch-1 degree (single precision only)",
+    )
+    ap.add_argument(
+        "--n2",
+        type=int,
+        default=None,
+        help="override the branch-2 degree (single precision only)",
+    )
     args = ap.parse_args(argv)
 
     precs = [int(p) for p in args.precisions.split(",")]
@@ -174,45 +206,56 @@ def main(argv=None):
     for prec in ordered:
         dps = args.dps or (60 if prec <= 64 else 90)
         target = mp.mpf(2) ** (-prec - 8)
-        sys.stderr.write("fitting MANT_DIG=%d (dps=%d)\n" % (prec, dps))
+        sys.stderr.write(f"fitting MANT_DIG={prec} (dps={dps})\n")
         spec = dict(SPEC[prec])
         for key, val in (("split", args.split), ("n1", args.n1), ("n2", args.n2)):
             if val is not None:
                 spec[key] = val
-        r = build(prec, spec, dps,
-                  search_target=target if args.search else None,
-                  log=lambda s: sys.stderr.write(s + "\n"))
-        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s"
-                         "  P2 growth %s\n"
-                         % (r["split"], r["n1"], r["n2"],
-                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3),
-                            mp.nstr(r["g2"], 6)))
+        r = build(
+            prec,
+            spec,
+            dps,
+            search_target=target if args.search else None,
+            log=lambda s: sys.stderr.write(s + "\n"),
+        )
+        sys.stderr.write(
+            f"  split={r['split']} n1={r['n1']} n2={r['n2']}"
+            f" design err {mp.nstr(r['e1'], 3)} / {mp.nstr(r['e2'], 3)}"
+            f"  P2 growth {mp.nstr(r['g2'], 6)}\n"
+        )
         out.append("")
-        out.append("#%s %s" % ("if" if first else "elif", GUARD[prec]))
+        out.append("#{} {}".format("if" if first else "elif", GUARD[prec]))
         first = False
-        out.append("  /* %s */" % NAME[prec])
-        out.append("#  define NFFT_I0_ASYMP_SPLIT K(%s)" % _split_literal(r["split"]))
+        out.append(f"  /* {NAME[prec]} */")
+        out.append(
+            "#  define NFFT_I0_ASYMP_SPLIT K({})".format(_split_literal(r["split"]))
+        )
         emit_array("NFFT_I0_P1", r["P1"], DIGITS[prec], out)
         emit_array("NFFT_I0_P2", r["P2"], DIGITS[prec], out)
 
     out.append("")
     if tail is None:
         out.append("#else")
-        out.append("#  error \"unsupported floating-point format: no I0 coefficients\"")
+        out.append('#  error "unsupported floating-point format: no I0 coefficients"')
     else:
         dps = args.dps or 60
-        sys.stderr.write("fitting MANT_DIG=%d (dps=%d, emitted as the fallback)\n"
-                         % (tail, dps))
+        sys.stderr.write(
+            f"fitting MANT_DIG={tail} (dps={dps}, emitted as the fallback)\n"
+        )
         r = build(tail, SPEC[tail], dps)
-        sys.stderr.write("  split=%s n1=%d n2=%d design err %s / %s"
-                         "  P2 growth %s\n"
-                         % (r["split"], r["n1"], r["n2"],
-                            mp.nstr(r["e1"], 3), mp.nstr(r["e2"], 3),
-                            mp.nstr(r["g2"], 6)))
+        sys.stderr.write(
+            f"  split={r['split']} n1={r['n1']} n2={r['n2']}"
+            f" design err {mp.nstr(r['e1'], 3)} / {mp.nstr(r['e2'], 3)}"
+            f"  P2 growth {mp.nstr(r['g2'], 6)}\n"
+        )
         out.append("#else")
-        out.append("  /* %s Also the fallback for any format not named above." % NAME[tail])
+        out.append(
+            f"  /* {NAME[tail]} Also the fallback for any format not named above."
+        )
         out.append("   * Correct there only if that format is no wider than double. */")
-        out.append("#  define NFFT_I0_ASYMP_SPLIT K(%s)" % _split_literal(r["split"]))
+        out.append(
+            "#  define NFFT_I0_ASYMP_SPLIT K({})".format(_split_literal(r["split"]))
+        )
         emit_array("NFFT_I0_P1", r["P1"], DIGITS[tail], out)
         emit_array("NFFT_I0_P2", r["P2"], DIGITS[tail], out)
     out.append("#endif")
@@ -222,12 +265,12 @@ def main(argv=None):
     text = text.replace("\n\n\n", "\n\n")
     with open(args.out, "w") as fh:
         fh.write(text)
-    sys.stderr.write("wrote %s\n" % args.out)
+    sys.stderr.write(f"wrote {args.out}\n")
     return 0
 
 
 def _split_literal(s):
-    return "%.1f" % float(s)
+    return f"{float(s):.1f}"
 
 
 if __name__ == "__main__":

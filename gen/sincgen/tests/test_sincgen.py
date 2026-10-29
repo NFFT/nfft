@@ -1,7 +1,8 @@
 """Tests for the log|sinc| coefficient generator.
 
-    uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/sincgen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/sincgen/tests -q
 """
+
 import mpmath as mp
 import pytest
 
@@ -29,8 +30,7 @@ def test_fq_extends_continuously_to_zero():
 def test_coefficients_start_at_the_taylor_series():
     # log sinc(x) = -x^2/6 - x^4/180 - x^6/2835 - x^8/37800 - ...
     Q, _ = scheme.fit_branch(2, 19)
-    want = [-mp.mpf(1) / 6, -mp.mpf(1) / 180, -mp.mpf(1) / 2835,
-            -mp.mpf(1) / 37800]
+    want = [-mp.mpf(1) / 6, -mp.mpf(1) / 180, -mp.mpf(1) / 2835, -mp.mpf(1) / 37800]
     # The minimax correction rides on top of the Taylor coefficients and grows
     # with the term index, so the match loosens along the series.
     for j, (got, ref) in enumerate(zip(Q, want)):
@@ -60,7 +60,7 @@ def test_shipped_form_reaches_the_target_at_every_pinned_degree():
         with mp.workdps(60 if prec <= 64 else 90):
             target = mp.mpf(2) ** (-prec - 8)
             _, err = scheme.fit_branch(spec["split"], spec["n"])
-            assert err <= target, "MANT_DIG=%d: %s > %s" % (prec, err, target)
+            assert err <= target, f"MANT_DIG={prec}: {err} > {target}"
 
 
 def test_verify_branch_measures_the_monomial_form_not_the_fit():
@@ -89,7 +89,7 @@ def test_emulated_evaluation_is_accurate_in_the_target_format(prec):
             x = +x
         got = emulate.log_sinc(x, prec, Q, spec["split"])
         worst = max(worst, emulate.ulp_error(got, scheme.log_sinc(x), prec))
-    assert worst < 8, "max %.2f ulp" % float(worst)
+    assert worst < 8, f"max {float(worst):.2f} ulp"
     mp.mp.dps = 40
 
 
@@ -114,5 +114,5 @@ def test_emulated_power_beats_the_pow_form(prec):
             vpow = +((+(mp.sin(t) / t)) ** (2 * m))
         wlog = max(wlog, emulate.ulp_error(vlog, ref, prec))
         wpow = max(wpow, emulate.ulp_error(vpow, ref, prec))
-    assert wlog < wpow, "log %.1f ulp, pow %.1f ulp" % (float(wlog), float(wpow))
+    assert wlog < wpow, f"log {float(wlog):.1f} ulp, pow {float(wpow):.1f} ulp"
     mp.mp.dps = 40

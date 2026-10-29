@@ -5,6 +5,7 @@
 `--search` re-derives the degrees from the accuracy target instead of using the
 pinned ones, and prints them so SPEC can be updated deliberately.
 """
+
 import argparse
 import sys
 
@@ -23,19 +24,25 @@ from . import scheme
 # four, which is what lets the four-chain loop in poly4 run without a
 # prologue. Rounding up only lowers the design error.
 SPEC = {
-    24: dict(split=2, n=11),
-    53: dict(split=2, n=19),
-    64: dict(split=2, n=23),
-    113: dict(split=2, n=39),
+    24: {"split": 2, "n": 11},
+    53: {"split": 2, "n": 19},
+    64: {"split": 2, "n": 23},
+    113: {"split": 2, "n": 39},
 }
 
 DIGITS = {24: 12, 53: 20, 64: 25, 113: 40}
-GUARD = {24: "MANT_DIG == 24", 53: "MANT_DIG == 53",
-         64: "MANT_DIG == 64", 113: "MANT_DIG == 113"}
-NAME = {24: "IEEE 754 single precision, 32 bits.",
-        53: "IEEE 754 double precision, 64 bits.",
-        64: "Intel double extended, 80 bits.",
-        113: "IEEE 754 quadruple precision, 128 bits."}
+GUARD = {
+    24: "MANT_DIG == 24",
+    53: "MANT_DIG == 53",
+    64: "MANT_DIG == 64",
+    113: "MANT_DIG == 113",
+}
+NAME = {
+    24: "IEEE 754 single precision, 32 bits.",
+    53: "IEEE 754 double precision, 64 bits.",
+    64: "Intel double extended, 80 bits.",
+    113: "IEEE 754 quadruple precision, 128 bits.",
+}
 
 HEADER = """/*
  * Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
@@ -96,10 +103,10 @@ def cnum(v, digits):
 
 
 def emit_array(name, coeffs, digits, out):
-    out.append("  static const R %s[] =" % name)
+    out.append(f"  static const R {name}[] =")
     out.append("  {")
     for v in coeffs:
-        out.append("      K(%s)," % cnum(v, digits))
+        out.append(f"      K({cnum(v, digits)}),")
     out.append("  };")
 
 
@@ -109,12 +116,12 @@ def build(spec, dps, search_target=None, log=None):
     if search_target is not None:
         n = _search(split, search_target)
         if log:
-            log("  searched degree: n=%d" % n)
+            log(f"  searched degree: n={n}")
     else:
         n = spec["n"]
     Q, err = scheme.fit_branch(split, n)
     growth = scheme.horner_growth(Q, split)
-    return dict(split=split, n=n, Q=Q, err=err, growth=growth)
+    return {"split": split, "n": n, "Q": Q, "err": err, "growth": growth}
 
 
 def _search(split, target, lo=3, hi=80):
@@ -122,21 +129,33 @@ def _search(split, target, lo=3, hi=80):
         _, err = scheme.fit_branch(split, n)
         if err <= target:
             return n
-    raise RuntimeError("no degree <= %d reaches %s" % (hi, target))
+    raise RuntimeError(f"no degree <= {hi} reaches {target}")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="kernel/util/sinc_data.h")
     ap.add_argument("--precisions", default="24,53,64,113")
-    ap.add_argument("--dps", type=int, default=0,
-                    help="mpmath working digits (default: per-format)")
-    ap.add_argument("--search", action="store_true",
-                    help="re-derive degrees from the accuracy target")
-    ap.add_argument("--split", type=float, default=None,
-                    help="override the split (single precision only)")
-    ap.add_argument("--n", type=int, default=None,
-                    help="override the degree (single precision only)")
+    ap.add_argument(
+        "--dps", type=int, default=0, help="mpmath working digits (default: per-format)"
+    )
+    ap.add_argument(
+        "--search",
+        action="store_true",
+        help="re-derive degrees from the accuracy target",
+    )
+    ap.add_argument(
+        "--split",
+        type=float,
+        default=None,
+        help="override the split (single precision only)",
+    )
+    ap.add_argument(
+        "--n",
+        type=int,
+        default=None,
+        help="override the degree (single precision only)",
+    )
     args = ap.parse_args(argv)
 
     precs = [int(p) for p in args.precisions.split(",")]
@@ -150,42 +169,56 @@ def main(argv=None):
     first = True
 
     def report(prec, r):
-        sys.stderr.write("  split=%s n=%d design err %s  Horner growth %s\n"
-                         % (r["split"], r["n"], mp.nstr(r["err"], 3),
-                            mp.nstr(r["growth"], 6)))
+        sys.stderr.write(
+            f"  split={r['split']} n={r['n']} design err {mp.nstr(r['err'], 3)}"
+            f"  Horner growth {mp.nstr(r['growth'], 6)}\n"
+        )
 
     for prec in ordered:
         dps = args.dps or (60 if prec <= 64 else 90)
         target = mp.mpf(2) ** (-prec - 8)
-        sys.stderr.write("fitting MANT_DIG=%d (dps=%d)\n" % (prec, dps))
+        sys.stderr.write(f"fitting MANT_DIG={prec} (dps={dps})\n")
         spec = dict(SPEC[prec])
         for key, val in (("split", args.split), ("n", args.n)):
             if val is not None:
                 spec[key] = val
-        r = build(spec, dps, search_target=target if args.search else None,
-                  log=lambda s: sys.stderr.write(s + "\n"))
+        r = build(
+            spec,
+            dps,
+            search_target=target if args.search else None,
+            log=lambda s: sys.stderr.write(s + "\n"),
+        )
         report(prec, r)
         out.append("")
-        out.append("#%s %s" % ("if" if first else "elif", GUARD[prec]))
+        out.append("#{} {}".format("if" if first else "elif", GUARD[prec]))
         first = False
-        out.append("  /* %s */" % NAME[prec])
-        out.append("#  define NFFT_LOG_SINC_SPLIT K(%s)" % _split_literal(r["split"]))
+        out.append(f"  /* {NAME[prec]} */")
+        out.append(
+            "#  define NFFT_LOG_SINC_SPLIT K({})".format(_split_literal(r["split"]))
+        )
         emit_array("NFFT_LOG_SINC_Q", r["Q"], DIGITS[prec], out)
 
     out.append("")
     if tail is None:
         out.append("#else")
-        out.append("#  error \"unsupported floating-point format: no log sinc coefficients\"")
+        out.append(
+            '#  error "unsupported floating-point format: no log sinc coefficients"'
+        )
     else:
         dps = args.dps or 60
-        sys.stderr.write("fitting MANT_DIG=%d (dps=%d, emitted as the fallback)\n"
-                         % (tail, dps))
+        sys.stderr.write(
+            f"fitting MANT_DIG={tail} (dps={dps}, emitted as the fallback)\n"
+        )
         r = build(SPEC[tail], dps)
         report(tail, r)
         out.append("#else")
-        out.append("  /* %s Also the fallback for any format not named above." % NAME[tail])
+        out.append(
+            f"  /* {NAME[tail]} Also the fallback for any format not named above."
+        )
         out.append("   * Correct there only if that format is no wider than double. */")
-        out.append("#  define NFFT_LOG_SINC_SPLIT K(%s)" % _split_literal(r["split"]))
+        out.append(
+            "#  define NFFT_LOG_SINC_SPLIT K({})".format(_split_literal(r["split"]))
+        )
         emit_array("NFFT_LOG_SINC_Q", r["Q"], DIGITS[tail], out)
     out.append("#endif")
     out.append(FOOTER)
@@ -194,12 +227,12 @@ def main(argv=None):
     text = text.replace("\n\n\n", "\n\n")
     with open(args.out, "w") as fh:
         fh.write(text)
-    sys.stderr.write("wrote %s\n" % args.out)
+    sys.stderr.write(f"wrote {args.out}\n")
     return 0
 
 
 def _split_literal(s):
-    return "%.1f" % float(s)
+    return f"{float(s):.1f}"
 
 
 if __name__ == "__main__":

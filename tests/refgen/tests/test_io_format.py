@@ -44,7 +44,7 @@ def test_write_then_parse_roundtrip_complex(tmp_path):
     f = [mpmath.mpc("0.4", "-0.5"), mpmath.mpc("-0.6", "0.7")]
     p = tmp_path / "nfft_1d_1_2.txt"
     IO.write_testcase(str(p), d, N, M, x, f_hat, f, is_complex=True, ndig=50)
-    rd, rN, rM, rx, rfh, rf = IO.parse_testcase(str(p), is_complex=True)
+    rd, rN, rM, _rx, _rfh, rf = IO.parse_testcase(str(p), is_complex=True)
     assert (rd, rN, rM) == (d, N, M)
     assert abs(rf[0] - f[0]) < mpmath.mpf(10) ** -40
 
@@ -72,11 +72,21 @@ def test_extra_dist_lists_all_modules():
 
 
 def test_quad_precision_digits(tmp_path):
-    import mpmath
     from tests.refgen import generate as GEN
+
     # Generate one nfft file at quad-target precision and check digit count.
-    GEN.main(["--module", "nfft", "--precision", "40",
-              "--data-dir", str(tmp_path), "--header-dir", str(tmp_path)])
+    GEN.main(
+        [
+            "--module",
+            "nfft",
+            "--precision",
+            "40",
+            "--data-dir",
+            str(tmp_path),
+            "--header-dir",
+            str(tmp_path),
+        ]
+    )
     # Use a file whose output is a genuine multi-term sum (N=10 > 1).
     p = tmp_path / "nfft_1d_10_1.txt"
     toks = p.read_text().split()

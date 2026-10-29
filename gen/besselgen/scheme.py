@@ -20,6 +20,7 @@ Two ranges, split at S:
            low, and that is what pins the split per format. See
            `branch2_growth` and the SPEC notes in generate.py.
 """
+
 import mpmath as mp
 
 from . import remez
@@ -116,7 +117,7 @@ def branch2_growth(P2, split, npts=800):
     worst = mp.mpf(0)
     for i in range(npts + 1):
         u = hi * i / npts
-        num = sum(abs(c) * u ** j for j, c in enumerate(P2))
+        num = sum(abs(c) * u**j for j, c in enumerate(P2))
         den = abs(_horner(P2, u))
         if den > 0:
             worst = max(worst, num / den)
@@ -140,4 +141,3 @@ def fit_branch2(split, n, prec_digits=None):
         c, _ = remez.minimax_poly(g2, w2, 0, hi, n)
         mono = [+v for v in remez.cheb_to_monomial(c, mp.mpf(0), hi)]
         return mono, +verify_branch2(mono, split)
-

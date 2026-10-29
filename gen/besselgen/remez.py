@@ -12,6 +12,7 @@ The polynomial is carried in the Chebyshev basis of [a,b] throughout; the
 monomial basis loses digits well before degree 30 at the interval widths used
 here.
 """
+
 import mpmath as mp
 
 
@@ -96,7 +97,7 @@ def _extrema(err, a, b, count, coarse):
         lo = xs[max(i - 1, 0)]
         hi = xs[min(i + 1, coarse)]
         sign = 1 if vs[i] >= 0 else -1
-        x = _refine(lambda z: sign * err(z), lo, hi)
+        x = _refine(lambda z, sign=sign: sign * err(z), lo, hi)
         v = err(x)
         # Keep the grid point if the refinement wandered downhill.
         if abs(v) < abs(vs[i]):
@@ -144,7 +145,7 @@ def _refine(g, lo, hi, rounds=6):
     for _ in range(rounds):
         m = (lo + hi) / 2
         gl, gm, gh = g(lo), g(m), g(hi)
-        denom = (gl - 2 * gm + gh)
+        denom = gl - 2 * gm + gh
         if denom != 0:
             step = (hi - lo) * (gl - gh) / (4 * denom)
             cand = m + step
@@ -176,7 +177,11 @@ def _memo(fn):
     return wrapped
 
 
-def minimax_poly(f, w, a, b, n, iters=30, tol=mp.mpf(10) ** -25, coarse=None):
+# Evaluated once at import, at the default working precision.
+_TOL = mp.mpf(10) ** -25
+
+
+def minimax_poly(f, w, a, b, n, iters=30, tol=_TOL, coarse=None):
     """Degree-n weighted minimax polynomial on [a, b].
 
     f, w: callables taking and returning mpf. w must be >= 0 and positive
@@ -233,11 +238,11 @@ def minimax_poly(f, w, a, b, n, iters=30, tol=mp.mpf(10) ** -25, coarse=None):
         for i, x in enumerate(ref):
             wi = w(x)
             row = [wi * t for t in cheb_basis(_to_unit(x, a, b), n)]
-            row.append(-mp.mpf(-1) ** i)
+            row.append(-(mp.mpf(-1) ** i))
             mat.append(row)
             rhs.append(wi * f(x))
         sol = _solve(mat, rhs)
-        c = sol[:n + 1]
+        c = sol[: n + 1]
 
         def errfun(x, c=c):
             return w(x) * (f(x) - clenshaw(c, _to_unit(x, a, b)))
@@ -272,8 +277,7 @@ def cheb_series(f, a, b, n):
     vals = [f(_from_unit(t, a, b)) for t in nodes]
     c = []
     for j in range(m):
-        s = sum(vals[k] * mp.cos(mp.pi * j * (k + mp.mpf(1) / 2) / m)
-                for k in range(m))
+        s = sum(vals[k] * mp.cos(mp.pi * j * (k + mp.mpf(1) / 2) / m) for k in range(m))
         c.append(2 * s / m)
     c[0] /= 2
     return c

@@ -19,6 +19,7 @@ error here. Branch 1 delivers |L| * eps, which is what makes the whole scheme
 worth having -- the direct LOG(SIN(x)/x) can only manage eps, independent of
 how small |L| is.
 """
+
 import mpmath as mp
 
 from ..besselgen import remez
@@ -89,8 +90,8 @@ def horner_growth(Q, split, npts=800):
     worst = mp.mpf(0)
     for i in range(npts + 1):
         y = (mp.mpf(split) ** 2) * i / npts
-        num = sum(abs(c) * y ** j for j, c in enumerate(Q))
-        den = abs(sum(c * y ** j for j, c in enumerate(Q)))
+        num = sum(abs(c) * y**j for j, c in enumerate(Q))
+        den = abs(sum(c * y**j for j, c in enumerate(Q)))
         if den > 0:
             worst = max(worst, num / den)
     return worst

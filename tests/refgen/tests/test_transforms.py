@@ -1,8 +1,6 @@
-import itertools
 import cmath
 
 import mpmath
-import pytest
 
 from tests.refgen import transforms as T
 
@@ -33,8 +31,12 @@ def test_ndft_equispaced_matches_dft():
     ks = list(range(-(N // 2), N - (N // 2)))
     for j in range(M):
         xj = float(x[j][0])
-        ref = sum((j_c.real + 1j * j_c.imag) * cmath.exp(-2j * cmath.pi * k * xj)
-                  for k, j_c in zip(ks, [complex(float(c.real), float(c.imag)) for c in f_hat]))
+        ref = sum(
+            (j_c.real + 1j * j_c.imag) * cmath.exp(-2j * cmath.pi * k * xj)
+            for k, j_c in zip(
+                ks, [complex(float(c.real), float(c.imag)) for c in f_hat]
+            )
+        )
         got = complex(float(f[j].real), float(f[j].imag))
         assert abs(got - ref) < 1e-10
 

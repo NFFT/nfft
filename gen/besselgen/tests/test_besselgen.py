@@ -1,7 +1,8 @@
 """Tests for the I0 coefficient generator.
 
-    uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/besselgen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/besselgen/tests -q
 """
+
 import mpmath as mp
 import pytest
 
@@ -36,7 +37,7 @@ def test_cheb_to_monomial_preserves_the_polynomial():
 
 def test_minimax_beats_chebyshev_interpolation_and_equioscillates():
     f = mp.exp
-    w = lambda x: 1 / mp.exp(x)          # noqa: E731  -> relative error
+    w = lambda x: 1 / mp.exp(x)
     a, b = mp.mpf(0), mp.mpf(2)
     c, err = remez.minimax_poly(f, w, a, b, 6)
     cheb = remez.cheb_series(f, a, b, 6)
@@ -81,10 +82,10 @@ def test_branch2_cannot_cancel_at_any_pinned_split():
     mp.mp.dps = 50
     for prec, spec in generate.SPEC.items():
         if prec > 64:
-            continue        # quad needs 90 digits; covered by the generator run
+            continue  # quad needs 90 digits; covered by the generator run
         P2, _ = scheme.fit_branch2(spec["split"], spec["n2"])
         g = scheme.branch2_growth(P2, spec["split"])
-        assert g < mp.mpf("1.05"), "MANT_DIG=%d: growth %s" % (prec, g)
+        assert g < mp.mpf("1.05"), f"MANT_DIG={prec}: growth {g}"
     mp.mp.dps = 40
 
 
@@ -92,8 +93,8 @@ def test_table_lengths_are_multiples_of_four():
     """poly4 in bessel_i0.c sums four chains with no prologue, so every table
     length must be divisible by four."""
     for prec, spec in generate.SPEC.items():
-        assert (spec["n1"] + 1) % 4 == 0, "MANT_DIG=%d n1" % prec
-        assert (spec["n2"] + 1) % 4 == 0, "MANT_DIG=%d n2" % prec
+        assert (spec["n1"] + 1) % 4 == 0, f"MANT_DIG={prec} n1"
+        assert (spec["n2"] + 1) % 4 == 0, f"MANT_DIG={prec} n2"
 
 
 def test_reported_error_is_the_error_of_the_shipped_form():
@@ -141,7 +142,7 @@ def test_emulated_evaluation_is_accurate_in_the_target_format(prec):
             x = +x
         got = emulate.i0_new(x, prec, P1, P2, spec["split"])
         worst = max(worst, emulate.ulp_error(got, mp.besseli(0, x), prec))
-    assert worst < 8, "max %.2f ulp" % float(worst)
+    assert worst < 8, f"max {float(worst):.2f} ulp"
     mp.mp.dps = 40
 
 

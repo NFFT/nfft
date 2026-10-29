@@ -4,14 +4,14 @@ File layout (blank line between sections, one scalar per line):
     d / N[0..d-1] / M / x (M*d node-major) / f_hat (NN) / f (M)
 NFFT scalars are complex ("re im"); NFCT/NFST are real (one value).
 """
+
 import mpmath
 
 
 def fmt_scalar(value, ndig, is_complex, strip_zeros=False):
     """Format one scalar. Complex -> 're im'; real -> 're'. Fixed-point, no exponent."""
     if is_complex:
-        return "%s %s" % (_fmt_real(value.real, ndig, strip_zeros),
-                          _fmt_real(value.imag, ndig, strip_zeros))
+        return f"{_fmt_real(value.real, ndig, strip_zeros)} {_fmt_real(value.imag, ndig, strip_zeros)}"
     return _fmt_real(value, ndig, strip_zeros)
 
 
@@ -19,8 +19,13 @@ def _fmt_real(v, ndig, strip_zeros=False):
     # mpmath.nstr with no exponent: values here are O(1)..O(M), safe as fixed-point.
     # strip_zeros=True drops trailing zeros: inputs are drawn as floats, so their
     # exact decimal is short and padding to ndig is pure waste (lossless to strip).
-    s = mpmath.nstr(mpmath.mpf(v), ndig, strip_zeros=strip_zeros, min_fixed=-mpmath.inf,
-                    max_fixed=mpmath.inf)
+    s = mpmath.nstr(
+        mpmath.mpf(v),
+        ndig,
+        strip_zeros=strip_zeros,
+        min_fixed=-mpmath.inf,
+        max_fixed=mpmath.inf,
+    )
     return s
 
 
@@ -79,9 +84,10 @@ def parse_testcase(path, is_complex):
 
     # NN is whatever remains minus M values; compute from remaining token count.
     per = 2 if is_complex else 1
-    remaining = sum(1 for _ in iter(lambda: next(it, None), None))
+    sum(1 for _ in iter(lambda: next(it, None), None))
     # re-tokenize because the generator above exhausted `it`; simpler: re-split.
-    toks2 = open(path).read().split()
+    with open(path) as f:
+        toks2 = f.read().split()
     base = 1 + d + 1 + M * d
     tail = toks2[base:]
     total_scalars = len(tail) // per

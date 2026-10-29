@@ -31,7 +31,9 @@ CAP = 10  # max itemized rows per group in the Changes section
 
 
 def _hex(rgb):
-    return "#%02x%02x%02x" % tuple(max(0, min(255, round(c * 255))) for c in rgb)
+    return "#{:02x}{:02x}{:02x}".format(
+        *tuple(max(0, min(255, round(c * 255))) for c in rgb)
+    )
 
 
 def _lerp(a, b, t):
@@ -130,7 +132,7 @@ def _module_subs(tree, testbeds):
 def _cell_html(cell, change=None):
     """One <td>. `cell` is the BMF entry or None (missing). `change` marks a diff."""
     if cell is None:
-        return '<td class="miss" style="background:%s"></td>' % GREY
+        return f'<td class="miss" style="background:{GREY}"></td>'
     digits = cell["accuracy-digits"]["value"]
     bound_digits = cell["bound-digits"]["value"]
     max_error = cell["max-error"]["value"]
@@ -215,8 +217,10 @@ def _render_changes(diff_result):
     )
     parts = [
         '<section class="changes"><h2>Changes</h2>',
-        f"<p>{diff_result.unchanged_count} unchanged &middot; {y} improved "
-        f"&middot; {z} regressed",
+        (
+            f"<p>{diff_result.unchanged_count} unchanged &middot; {y} improved "
+            f"&middot; {z} regressed"
+        ),
     ]
     if na or nr:
         parts.append(f" &middot; {na} added &middot; {nr} removed")

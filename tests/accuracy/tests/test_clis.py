@@ -1,7 +1,6 @@
 import json
 
-from tests.accuracy import dashboard
-from tests.accuracy import pr_report
+from tests.accuracy import dashboard, pr_report
 
 
 def _write_bmf(path, **digit_by_name):

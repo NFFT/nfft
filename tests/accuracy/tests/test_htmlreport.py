@@ -198,7 +198,9 @@ def test_changes_itemized_capped_at_10():
 
 def test_render_orders_precision_columns_by_mantissa():
     tree = {
-        f"ci_gcc_kaiserbessel_{p}": {"nfft/serial/file/fast/forward/1d/a": _cell(6.0, 5.0)}
+        f"ci_gcc_kaiserbessel_{p}": {
+            "nfft/serial/file/fast/forward/1d/a": _cell(6.0, 5.0)
+        }
         for p in ("long-double", "double", "float")
     }
     doc = render_report(tree, title="T")

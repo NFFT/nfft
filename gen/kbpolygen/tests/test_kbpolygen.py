@@ -1,7 +1,8 @@
 """Tests for the polynomial Kaiser-Bessel degree generator.
 
-    uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/kbpolygen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/kbpolygen/tests -q
 """
+
 from gen.kbpolygen import generate
 
 

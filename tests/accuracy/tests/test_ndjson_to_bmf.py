@@ -4,9 +4,9 @@ import pytest
 
 from tests.accuracy.ndjson_to_bmf import (
     convert,
-    read_ndjson,
     group_key,
     metric_name,
+    read_ndjson,
     slug,
 )
 
@@ -70,7 +70,7 @@ def test_convert_takes_max_error_and_digits():
         _rec(N=[64], accuracy=5e-13),
     ]  # worst error -> drives both measures
     bmf = convert(recs)
-    ((name, measures),) = bmf.items()
+    ((_name, measures),) = bmf.items()
     assert measures["max-error"]["value"] == pytest.approx(5e-13)
     # accuracy-digits is -log10 of the WORST error (fewest digits)
     assert measures["accuracy-digits"]["value"] == pytest.approx(-math.log10(5e-13))

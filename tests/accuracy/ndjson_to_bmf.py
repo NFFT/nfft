@@ -1,4 +1,4 @@
-"""Convert per-case accuracy NDJSON into the aggregated accuracy JSON consumed 
+"""Convert per-case accuracy NDJSON into the aggregated accuracy JSON consumed
 by the HTML report renderer.
 
 Each input line is one raw case:

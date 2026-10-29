@@ -3,6 +3,7 @@
 All functions operate at the current mpmath working precision (mpmath.mp.dps),
 which the caller sets.
 """
+
 import itertools
 
 import mpmath
@@ -15,10 +16,10 @@ def freqs(module, N):
     if module == "nfft":
         return [list(range(-(n // 2), n - (n // 2))) for n in N]
     if module == "nfct":
-        return [list(range(0, n)) for n in N]
+        return [list(range(n)) for n in N]
     if module == "nfst":
         return [list(range(1, n)) for n in N]
-    raise ValueError("unknown module: %r" % (module,))
+    raise ValueError(f"unknown module: {module!r}")
 
 
 def index_set(module, N):
@@ -51,7 +52,7 @@ def _basis(module, k, xj, adjoint):
         for ki, xji in zip(k, xj):
             prod *= mpmath.sin(twopi * ki * xji)
         return prod
-    raise ValueError("unknown module: %r" % (module,))
+    raise ValueError(f"unknown module: {module!r}")
 
 
 def _zero(module):
