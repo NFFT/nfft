@@ -477,12 +477,15 @@ static inline void uo(const X(plan) *ths, const R *xs, const INT j, INT *up,
 static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
 {
   const INT d = ths->d;
-  INT ext[d], t;
+  /* on the heap: GCC 13 takes a run-time sized array here for uninitialised */
+  INT *ext = (INT*) Y(malloc)((size_t)(d) * sizeof(INT)), t, nt;
 
   for (t = 0; t < d; t++)
     ext[t] = NN(ths->n[t]) + 1;
 
-  return Y(tile_layout)(d, 2 * ths->m + 2, ext, edge, ntiles);
+  nt = Y(tile_layout)(d, 2 * ths->m + 2, ext, edge, ntiles);
+  Y(free)(ext);
+  return nt;
 }
 
 /** Sort key of node i of ths->x: tile, then cell in the tile; nodes outside
