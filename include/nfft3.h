@@ -217,9 +217,12 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *  \c *_precompute_lin_psi) sorts the nodes once and stores a copy of them
  *  in that order in the plan; psi tables are built in the same order. From
  *  then on the transforms work on this copy: after changing \c x, call the
- *  precomputation again, as for the psi tables. The samples \c f stay in the
- *  order of \c x. A plan that has never been precomputed sorts the current
- *  nodes in every transform instead. */
+ *  precomputation again, as for the psi tables. This holds whatever the psi
+ *  flags, also for \ref PRE_LIN_PSI and without a psi flag, so with this
+ *  flag the precomputation must not be called before the nodes are set
+ *  (without it, these two modes need no nodes in the precomputation). The
+ *  samples \c f stay in the order of \c x. A plan that has never been
+ *  precomputed sorts the current nodes in every transform instead. */
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)

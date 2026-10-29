@@ -240,7 +240,10 @@ static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
   p.K = K;
   p.psi = (R*) NFFT(malloc)((size_t)((p.K + 1) * p.d) * sizeof(R));
 
-  /** precomputation can be done before the nodes are initialised */
+  /** precomputation can be done before the nodes are initialised, since the
+   *  table of PRE_LIN_PSI does not depend on them (not so with flag
+   *  NFFT_SORT_NODES, where the precomputation takes a sorted copy of the
+   *  nodes) */
   NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random nodes */
