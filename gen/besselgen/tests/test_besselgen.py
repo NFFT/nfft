@@ -1,11 +1,11 @@
 """Tests for the I0 coefficient generator.
 
-    uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/besselgen/tests -q
+    uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/besselgen/tests -q
 """
 import mpmath as mp
 import pytest
 
-from tests.besselgen import emulate, generate, remez, scheme
+from gen.besselgen import emulate, generate, remez, scheme
 
 
 def setup_module(_module):

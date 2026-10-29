@@ -5,13 +5,13 @@ Produces `kernel/util/kbpoly_data.h`, the table `Y(kb_poly_degree)`
 Kaiser-Bessel window, for every floating-point format the library builds for:
 
 ```bash
-uv run --with mpmath==1.3.0 python -m tests.kbpolygen.generate
+uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate
 ```
 
 About 50 s on 10 cores. Tests:
 
 ```bash
-uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/kbpolygen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/kbpolygen/tests -q
 ```
 
 ## The rule

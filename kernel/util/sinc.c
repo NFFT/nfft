@@ -50,7 +50,7 @@ R Y(sinc)(const R x)
  * POW(sinc(x), 2m). Absolute value, not log(sinc): 2m is even, so the callers
  * need a value past the first zero of sinc, which PHI for the sinc-power
  * window reaches at large sigma. Coefficients and their rationale in
- * tests/sincgen. */
+ * gen/sincgen. */
 R Y(log_sinc)(const R x)
 {
   const R a = FABS(x);

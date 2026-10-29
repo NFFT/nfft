@@ -2,7 +2,7 @@
 
 Produces `kernel/util/sinc_data.h`, the coefficient table behind `Y(log_sinc)`
 (`kernel/util/sinc.c`), for every floating-point format the library builds for.
-Built on the minimax fitter in `tests/besselgen/remez.py`.
+Built on the minimax fitter in `gen/besselgen/remez.py`.
 
 ## Why the logarithm
 
@@ -30,13 +30,13 @@ sinc-power window is sampled past the first zero of sinc when sigma is large.
 
 ## Dependencies (dev only; not a build dependency)
 
-Run via [uv](https://docs.astral.sh/uv/), the same way as `tests/besselgen`.
+Run via [uv](https://docs.astral.sh/uv/), the same way as `gen/besselgen`.
 
 ## Regenerate
 
 ```bash
 # from the repository root
-uv run --with mpmath==1.3.0 python -m tests.sincgen.generate
+uv run --with mpmath==1.3.0 python -m gen.sincgen.generate
 ```
 
 Deterministic: same `SPEC` in, same bytes out. Nothing here reads a clock or a
@@ -45,7 +45,7 @@ random seed.
 ## Run the generator's own tests
 
 ```bash
-uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/sincgen/tests -q
+uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/sincgen/tests -q
 ```
 
 ## Options

@@ -39,7 +39,7 @@
  *
  * References at 45 digits, for x = 0, 1, ... 99, which straddles the split in
  * every precision. The splits are 8, 10, 15 and 25, so x > 25 is above it
- * whatever the format, and x <= 25 may be either side. tests/besselgen pins
+ * whatever the format, and x <= 25 may be either side. gen/besselgen pins
  * the splits; raising one past 25 would show up here as a failure, not as a
  * silent pass. */
 #define I0_ABOVE_EVERY_SPLIT K(25.0)
