@@ -275,6 +275,11 @@ static void copy_grid(const X(plan) *ths, C *dst, const INT hd, const C *src,
   }
 }
 
+/** Length of the pieces of a row of the padded grid that fill_halo and
+ *  fold_halo hand to one thread: they work on (outer row, piece) pairs, so
+ *  that the first dimension, which has one outer row, runs in parallel too. */
+#define HALO_BLOCK 1024
+
 /**
  * Fills the halo of the padded grid gp periodically from its first points,
  * dimension by dimension: rows n_t, ..., n_t+h-1 of dimension t are copies of
@@ -289,18 +294,21 @@ static void fill_halo(const X(plan) *ths, C *gp)
   for (t = 0; t < d; t++)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, o;
+    INT outer = 1, inner = 1, nb, s, q;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
       inner *= ths->n[s] + h;
+    nb = (inner + HALO_BLOCK - 1) / HALO_BLOCK;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(o)
+    #pragma omp parallel for default(shared) private(q)
 #endif
-    for (o = 0; o < outer; o++)
+    for (q = 0; q < outer * nb; q++)
     {
+      const INT o = q / nb, i0 = (q - o * nb) * HALO_BLOCK;
+      const INT i1 = MIN(i0 + HALO_BLOCK, inner);
       C *row = gp + o * pt * inner;
       INT r, i;
 
@@ -309,7 +317,7 @@ static void fill_halo(const X(plan) *ths, C *gp)
         const C *src = row + (r < nt ? r : r % nt) * inner;
         C *dst = row + (nt + r) * inner;
 
-        for (i = 0; i < inner; i++)
+        for (i = i0; i < i1; i++)
           dst[i] = src[i];
       }
     }
@@ -329,18 +337,21 @@ static void fold_halo(const X(plan) *ths, C *gp)
   for (t = d - 1; t >= 0; t--)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, o;
+    INT outer = 1, inner = 1, nb, s, q;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
       inner *= ths->n[s] + h;
+    nb = (inner + HALO_BLOCK - 1) / HALO_BLOCK;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(o)
+    #pragma omp parallel for default(shared) private(q)
 #endif
-    for (o = 0; o < outer; o++)
+    for (q = 0; q < outer * nb; q++)
     {
+      const INT o = q / nb, i0 = (q - o * nb) * HALO_BLOCK;
+      const INT i1 = MIN(i0 + HALO_BLOCK, inner);
       C *row = gp + o * pt * inner;
       INT r, i;
 
@@ -349,7 +360,7 @@ static void fold_halo(const X(plan) *ths, C *gp)
         C *dst = row + (r < nt ? r : r % nt) * inner;
         const C *src = row + (nt + r) * inner;
 
-        for (i = 0; i < inner; i++)
+        for (i = i0; i < i1; i++)
           dst[i] += src[i];
       }
     }

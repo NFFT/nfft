@@ -719,6 +719,29 @@ static void copy_grid(const X(plan) *ths, R *dst, const INT lod, const INT hid,
   }
 }
 
+/** Length of the pieces of a row of the padded grid that fill_halo and
+ *  fold_halo hand to one thread: they work on (outer row, piece) pairs, so
+ *  that the first dimension, which has one outer row, runs in parallel too. */
+#define HALO_BLOCK 1024
+
+/**
+ * The h halo rows of a dimension of nt points, padded with lo points before:
+ * dst[q] is the padded index of halo row q, src[q] the grid row it continues
+ * (-1 for a zero) and sign[q] its sign.
+ */
+static inline void halo_rows(const INT nt, const INT lo, const INT h,
+    INT *src, INT *dst, R *sign)
+{
+  INT q;
+
+  for (q = 0; q < h; q++)
+  {
+    const INT e = q < lo ? q - lo : nt + q - lo;
+    dst[q] = e + lo;
+    src[q] = halo_source(e, nt, &sign[q]);
+  }
+}
+
 /**
  * Fills the halo of the padded grid gp with the continuation of the grid,
  * dimension by dimension: each halo row of dimension t is (plus or minus) a
@@ -729,32 +752,30 @@ static void fill_halo(const X(plan) *ths, R *gp)
 {
   const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
   const INT h = lo + hi;
-  INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
-  R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+  INT src[h], dst[h];
+  R sign[h];
   INT t;
 
   for (t = 0; t < d; t++)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, o, q;
+    INT outer = 1, inner = 1, nb, s, q;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
       inner *= ths->n[s] + h;
+    nb = (inner + HALO_BLOCK - 1) / HALO_BLOCK;
 
-    for (q = 0; q < h; q++)
-    {
-      const INT e = q < lo ? q - lo : nt + q - lo;
-      dst[q] = e + lo;
-      src[q] = halo_source(e, nt, &sign[q]);
-    }
+    halo_rows(nt, lo, h, src, dst, sign);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(o)
+    #pragma omp parallel for default(shared) private(q)
 #endif
-    for (o = 0; o < outer; o++)
+    for (q = 0; q < outer * nb; q++)
     {
+      const INT o = q / nb, i0 = (q - o * nb) * HALO_BLOCK;
+      const INT i1 = MIN(i0 + HALO_BLOCK, inner);
       R *row = gp + o * pt * inner;
       INT r, i;
 
@@ -763,21 +784,18 @@ static void fill_halo(const X(plan) *ths, R *gp)
         R *rd = row + dst[r] * inner;
 
         if (src[r] < 0)
-          for (i = 0; i < inner; i++)
+          for (i = i0; i < i1; i++)
             rd[i] = K(0.0);
         else
         {
           const R *rs = row + (src[r] + lo) * inner;
           const R sg = sign[r];
-          for (i = 0; i < inner; i++)
+          for (i = i0; i < i1; i++)
             rd[i] = sg * rs[i];
         }
       }
     }
   }
-
-  Y(free)(src);
-  Y(free)(sign);
 }
 
 /**
@@ -790,32 +808,30 @@ static void fold_halo(const X(plan) *ths, R *gp)
 {
   const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
   const INT h = lo + hi;
-  INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
-  R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+  INT src[h], dst[h];
+  R sign[h];
   INT t;
 
   for (t = d - 1; t >= 0; t--)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, o, q;
+    INT outer = 1, inner = 1, nb, s, q;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
       inner *= ths->n[s] + h;
+    nb = (inner + HALO_BLOCK - 1) / HALO_BLOCK;
 
-    for (q = 0; q < h; q++)
-    {
-      const INT e = q < lo ? q - lo : nt + q - lo;
-      dst[q] = e + lo;
-      src[q] = halo_source(e, nt, &sign[q]);
-    }
+    halo_rows(nt, lo, h, src, dst, sign);
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(o)
+    #pragma omp parallel for default(shared) private(q)
 #endif
-    for (o = 0; o < outer; o++)
+    for (q = 0; q < outer * nb; q++)
     {
+      const INT o = q / nb, i0 = (q - o * nb) * HALO_BLOCK;
+      const INT i1 = MIN(i0 + HALO_BLOCK, inner);
       R *row = gp + o * pt * inner;
       INT r, i;
 
@@ -825,13 +841,13 @@ static void fold_halo(const X(plan) *ths, R *gp)
           R *rd = row + (src[r] + lo) * inner;
           const R *rs = row + dst[r] * inner;
           const R sg = sign[r];
-          for (i = 0; i < inner; i++)
+          for (i = i0; i < i1; i++)
             rd[i] += sg * rs[i];
         }
 #if OFFSET == 0
       {
         R *r0 = row + lo * inner, *r1 = row + (nt - 1 + lo) * inner;
-        for (i = 0; i < inner; i++)
+        for (i = i0; i < i1; i++)
         {
           r0[i] *= K(2.0);
           r1[i] *= K(2.0);
@@ -840,9 +856,6 @@ static void fold_halo(const X(plan) *ths, R *gp)
 #endif
     }
   }
-
-  Y(free)(src);
-  Y(free)(sign);
 }
 
 /** Points ths->g at the padded grid of the matrix B: the FFTW grid gf (g1 or
