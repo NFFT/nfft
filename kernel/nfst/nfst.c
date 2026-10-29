@@ -728,19 +728,20 @@ static void copy_grid(const X(plan) *ths, R *dst, const INT lod, const INT hid,
 static void fill_halo(const X(plan) *ths, R *gp)
 {
   const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
+  const INT h = lo + hi;
+  INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
+  R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
   INT t;
 
   for (t = 0; t < d; t++)
   {
-    const INT nt = ths->n[t], pt = nt + lo + hi, h = lo + hi;
-    INT outer = 1, inner = 1, s, q;
-    INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
-    R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+    const INT nt = ths->n[t], pt = nt + h;
+    INT outer = 1, inner = 1, s, o, q;
 
     for (s = 0; s < t; s++)
-      outer *= ths->n[s] + lo + hi;
+      outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
-      inner *= ths->n[s] + lo + hi;
+      inner *= ths->n[s] + h;
 
     for (q = 0; q < h; q++)
     {
@@ -750,28 +751,33 @@ static void fill_halo(const X(plan) *ths, R *gp)
     }
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(q)
+    #pragma omp parallel for default(shared) private(o)
 #endif
-    for (q = 0; q < outer * h; q++)
+    for (o = 0; o < outer; o++)
     {
-      const INT o = q / h, r = q % h;
       R *row = gp + o * pt * inner;
-      R *rd = row + dst[r] * inner;
-      INT i;
+      INT r, i;
 
-      if (src[r] < 0)
-        memset(rd, 0, (size_t)(inner) * sizeof(R));
-      else
+      for (r = 0; r < h; r++)
       {
-        const R *rs = row + (src[r] + lo) * inner;
-        for (i = 0; i < inner; i++)
-          rd[i] = sign[r] * rs[i];
+        R *rd = row + dst[r] * inner;
+
+        if (src[r] < 0)
+          for (i = 0; i < inner; i++)
+            rd[i] = K(0.0);
+        else
+        {
+          const R *rs = row + (src[r] + lo) * inner;
+          const R sg = sign[r];
+          for (i = 0; i < inner; i++)
+            rd[i] = sg * rs[i];
+        }
       }
     }
-
-    Y(free)(src);
-    Y(free)(sign);
   }
+
+  Y(free)(src);
+  Y(free)(sign);
 }
 
 /**
@@ -783,19 +789,20 @@ static void fill_halo(const X(plan) *ths, R *gp)
 static void fold_halo(const X(plan) *ths, R *gp)
 {
   const INT d = ths->d, lo = HALO_LO(ths->m), hi = HALO_HI(ths->m);
+  const INT h = lo + hi;
+  INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
+  R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
   INT t;
 
   for (t = d - 1; t >= 0; t--)
   {
-    const INT nt = ths->n[t], pt = nt + lo + hi, h = lo + hi;
-    INT outer = 1, inner = 1, s, q;
-    INT *src = (INT*) Y(malloc)((size_t)(2 * h) * sizeof(INT)), *dst = src + h;
-    R *sign = (R*) Y(malloc)((size_t)(h) * sizeof(R));
+    const INT nt = ths->n[t], pt = nt + h;
+    INT outer = 1, inner = 1, s, o, q;
 
     for (s = 0; s < t; s++)
-      outer *= ths->n[s] + lo + hi;
+      outer *= ths->n[s] + h;
     for (s = t + 1; s < d; s++)
-      inner *= ths->n[s] + lo + hi;
+      inner *= ths->n[s] + h;
 
     for (q = 0; q < h; q++)
     {
@@ -805,25 +812,37 @@ static void fold_halo(const X(plan) *ths, R *gp)
     }
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(q)
+    #pragma omp parallel for default(shared) private(o)
 #endif
-    for (q = 0; q < outer * inner; q++)
+    for (o = 0; o < outer; o++)
     {
-      R *base = gp + (q / inner) * pt * inner + q % inner;
-      INT r;
+      R *row = gp + o * pt * inner;
+      INT r, i;
 
       for (r = 0; r < h; r++)
         if (src[r] >= 0)
-          base[(src[r] + lo) * inner] += sign[r] * base[dst[r] * inner];
+        {
+          R *rd = row + (src[r] + lo) * inner;
+          const R *rs = row + dst[r] * inner;
+          const R sg = sign[r];
+          for (i = 0; i < inner; i++)
+            rd[i] += sg * rs[i];
+        }
 #if OFFSET == 0
-      base[lo * inner] *= K(2.0);
-      base[(nt - 1 + lo) * inner] *= K(2.0);
+      {
+        R *r0 = row + lo * inner, *r1 = row + (nt - 1 + lo) * inner;
+        for (i = 0; i < inner; i++)
+        {
+          r0[i] *= K(2.0);
+          r1[i] *= K(2.0);
+        }
+      }
 #endif
     }
-
-    Y(free)(src);
-    Y(free)(sign);
   }
+
+  Y(free)(src);
+  Y(free)(sign);
 }
 
 /** Points ths->g at the padded grid of the matrix B: the FFTW grid gf (g1 or

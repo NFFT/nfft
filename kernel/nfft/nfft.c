@@ -289,7 +289,7 @@ static void fill_halo(const X(plan) *ths, C *gp)
   for (t = 0; t < d; t++)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, q;
+    INT outer = 1, inner = 1, s, o;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
@@ -297,15 +297,21 @@ static void fill_halo(const X(plan) *ths, C *gp)
       inner *= ths->n[s] + h;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(q)
+    #pragma omp parallel for default(shared) private(o)
 #endif
-    for (q = 0; q < outer * h; q++)
+    for (o = 0; o < outer; o++)
     {
-      const INT o = q / h, r = q % h;
       C *row = gp + o * pt * inner;
+      INT r, i;
 
-      memcpy(row + (nt + r) * inner, row + (r % nt) * inner,
-          (size_t)(inner) * sizeof(C));
+      for (r = 0; r < h; r++)
+      {
+        const C *src = row + (r < nt ? r : r % nt) * inner;
+        C *dst = row + (nt + r) * inner;
+
+        for (i = 0; i < inner; i++)
+          dst[i] = src[i];
+      }
     }
   }
 }
@@ -323,7 +329,7 @@ static void fold_halo(const X(plan) *ths, C *gp)
   for (t = d - 1; t >= 0; t--)
   {
     const INT nt = ths->n[t], pt = nt + h;
-    INT outer = 1, inner = 1, s, q;
+    INT outer = 1, inner = 1, s, o;
 
     for (s = 0; s < t; s++)
       outer *= ths->n[s] + h;
@@ -331,15 +337,21 @@ static void fold_halo(const X(plan) *ths, C *gp)
       inner *= ths->n[s] + h;
 
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(q)
+    #pragma omp parallel for default(shared) private(o)
 #endif
-    for (q = 0; q < outer * inner; q++)
+    for (o = 0; o < outer; o++)
     {
-      C *base = gp + (q / inner) * pt * inner + q % inner;
-      INT r;
+      C *row = gp + o * pt * inner;
+      INT r, i;
 
       for (r = 0; r < h; r++)
-        base[(r % nt) * inner] += base[(nt + r) * inner];
+      {
+        C *dst = row + (r < nt ? r : r % nt) * inner;
+        const C *src = row + (nt + r) * inner;
+
+        for (i = 0; i < inner; i++)
+          dst[i] += src[i];
+      }
     }
   }
 }
