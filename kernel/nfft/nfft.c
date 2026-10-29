@@ -443,18 +443,7 @@ static void grid_B_adjoint_done(X(plan) *ths)
 /** Sets the padded grid ths->g of B to zero, in parallel with OpenMP. */
 static void zero_grid_B(const X(plan) *ths)
 {
-  const INT total = grid_B_total(ths);
-  const INT nb = (total + HALO_BLOCK * 64 - 1) / (HALO_BLOCK * 64);
-  INT b;
-
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(b)
-#endif
-  for (b = 0; b < nb; b++)
-  {
-    const INT i0 = b * HALO_BLOCK * 64, i1 = MIN(i0 + HALO_BLOCK * 64, total);
-    memset(ths->g + i0, 0, (size_t)(i1 - i0) * sizeof(C));
-  }
+  Y(zero_reals_parallel)((R*)ths->g, 2 * grid_B_total(ths));
 }
 
 /** direct computation of non equispaced fourier transforms

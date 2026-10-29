@@ -2359,6 +2359,9 @@ typedef void (*Y(tile_fn))(void *ctx, const INT k0, const INT k1);
 void Y(tiles_by_colour)(const INT d, const INT *ntiles, const INT *tile_ptr,
     Y(tile_fn) fn, void *ctx);
 
+/** a[i] = 0, i < n, in parallel with OpenMP: the grid of B before B^T. */
+void Y(zero_reals_parallel)(R *a, const INT n);
+
 /* always check */
 #define CK(ex) \
   (void)((ex) || (Y(assertion_failed)(#ex, __LINE__, __FILE__), 0))

@@ -144,3 +144,19 @@ void Y(tiles_by_colour)(const INT d, const INT *ntiles, const INT *tile_ptr,
 
   Y(free)(cnt);
 }
+
+void Y(zero_reals_parallel)(R *a, const INT n)
+{
+  const INT block = 65536;
+  const INT nb = (n + block - 1) / block;
+  INT b;
+
+#ifdef _OPENMP
+  #pragma omp parallel for default(shared) private(b)
+#endif
+  for (b = 0; b < nb; b++)
+  {
+    const INT i0 = b * block, i1 = MIN(i0 + block, n);
+    memset(a + i0, 0, (size_t)(i1 - i0) * sizeof(R));
+  }
+}
