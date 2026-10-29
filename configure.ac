@@ -236,7 +236,7 @@ fi
 # select window function
 AC_ARG_WITH(window, [AS_HELP_STRING([--with-window=ARG],[choose window function
   (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
-  dirac)])],
+  dirac (deprecated))])],
   window=$withval, window="kaiserbessel")
 
 AC_MSG_CHECKING([window function])
@@ -256,6 +256,9 @@ case "$window" in
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac
 AC_MSG_RESULT([$window])
+if test "x$window" = "xdelta"; then
+  AC_MSG_WARN([The Dirac delta window is deprecated and will be removed in the next release.])
+fi
 AC_DEFINE_UNQUOTED(WINDOW_NAME,$window,[The name of the window function.])
 
 AC_ARG_ENABLE(exhaustive-unit-tests, [AS_HELP_STRING([--enable-exhaustive-unit-tests],[enable exhaustive unit tests])], ok=$enableval, ok=no)

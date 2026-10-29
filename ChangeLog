@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Improve efficiency and accuracy of Kaiser-Bessel window evaluations. (#261) @jenskeiner
 * Sync with upstream FFTW. (#241) @jenskeiner
 
+### Deprecated
+
+* Deprecate the Dirac delta window (`--with-window=dirac`/`delta`, `NFFT_WINDOW=dirac`). It will be removed in the next release. @jenskeiner
+
 ### Fixed
 
 * Fix an issue where NFCT and NFST use round to nearest instead flooring for run centering. (#310) @jenskeiner
