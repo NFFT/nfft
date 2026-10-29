@@ -94,8 +94,7 @@ static void simple_test_solver_nfft_1d(int N, int M, int iter)
   NFFT(vrand_shifted_unit_double)(p.x, p.M_total);
 
   /** precompute psi, the entries of the matrix B */
-  if (p.flags & PRE_ONE_PSI)
-    NFFT(precompute_one_psi)(&p);
+  NFFT(precompute_one_psi)(&p);
 
   /** initialise inverse plan */
   SOLVER(init_complex)(&ip, (NFFT(mv_plan_complex)*) (&p));

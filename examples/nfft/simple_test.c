@@ -37,8 +37,7 @@ static void simple_test_nfft_1d(void)
   NFFT(vrand_shifted_unit_double)(p.x, p.M_total);
  
   /** precompute psi, the entries of the matrix B */
-  if (p.flags & PRE_ONE_PSI)
-      NFFT(precompute_one_psi)(&p);
+  NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
@@ -97,8 +96,7 @@ static void simple_test_nfft_2d(void)
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   /** precompute psi, the entries of the matrix B */
-  if(p.flags & PRE_ONE_PSI)
-    NFFT(precompute_one_psi)(&p);
+  NFFT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);

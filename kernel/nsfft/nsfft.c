@@ -1590,8 +1590,7 @@ static void nsfft_init_2d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
 
   nfft_init_guru(ths->act_nfft_plan,2,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F| FFTW_INIT, FFTW_MEASURE);
 
-  if(ths->act_nfft_plan->flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(ths->act_nfft_plan);
+  nfft_precompute_one_psi(ths->act_nfft_plan);
 
   ths->set_fftw_plan1[0]=ths->act_nfft_plan->my_fftw_plan1;
   ths->set_fftw_plan2[0]=ths->act_nfft_plan->my_fftw_plan2;
@@ -1681,8 +1680,7 @@ static void nsfft_init_3d(nsfft_plan *ths, int J, int M, int m, unsigned snfft_f
 
   nfft_init_guru(ths->act_nfft_plan,3,N,M,n,m, FG_PSI| MALLOC_X| MALLOC_F, FFTW_MEASURE);
 
-  if(ths->act_nfft_plan->flags & PRE_ONE_PSI)
-    nfft_precompute_one_psi(ths->act_nfft_plan);
+  nfft_precompute_one_psi(ths->act_nfft_plan);
 
   /* malloc g1, g2 for maximal size */
   ths->act_nfft_plan->g1 = nfft_malloc(ths->sigma*ths->sigma*ths->sigma*X(exp2i)(J+(J+1)/2)*sizeof(double _Complex));

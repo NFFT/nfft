@@ -203,8 +203,7 @@ static R trafo_direct_cost(X(plan) *p)
           X(init)(&p2, d, N, M);
           for (i = 0; i < M; i++)
             p2.x[i] = K(0.0);
-          if(p2.flags & PRE_ONE_PSI)
-            X(precompute_one_psi)(&p2);
+          X(precompute_one_psi)(&p2);
           for (i = 0; i < d * Nd; i++)
           {
             p2.f_hat[i] = K(0.0) + K(0.0) * I;
@@ -390,8 +389,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+  X(precompute_one_psi)(&p);
 
   testcase->fill(testcase, &p, NN, M, f_hat, f);
 
@@ -1375,8 +1373,7 @@ static int check_single_file(const testcase_delegate_t *testcase,
   }
 
   /* Pre-compute Psi, maybe. */
-  if(p.flags & PRE_ONE_PSI)
-    X(precompute_one_psi)(&p);
+  X(precompute_one_psi)(&p);
 
   testcase->fill(testcase, &p, NN, M, f_hat, f);
 

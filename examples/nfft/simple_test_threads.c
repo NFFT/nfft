@@ -44,8 +44,7 @@ int main(void)
 
   /* precompute psi, that is, the entries of the matrix B */
   t0 = NFFT(clock_gettime_seconds)();
-  if(p.flags & PRE_ONE_PSI)
-      NFFT(precompute_one_psi)(&p);
+  NFFT(precompute_one_psi)(&p);
   t1 = NFFT(clock_gettime_seconds)();
   fprintf(stderr,"precompute elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
 

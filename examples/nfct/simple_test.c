@@ -38,8 +38,7 @@ static void simple_test_nfct_1d(void)
   NFFT(vrand_real)(p.x, p.M_total, NFFT_K(0.0), NFFT_K(0.5));
 
   /** precompute psi, the entries of the matrix B */
-  if( p.flags & PRE_ONE_PSI)
-    NFCT(precompute_one_psi)(&p);
+  NFCT(precompute_one_psi)(&p);
 
   /** init pseudo random Fourier coefficients and show them */
   NFFT(vrand_real)(p.f_hat, p.N_total, NFFT_K(0.0), NFFT_K(1.0));
