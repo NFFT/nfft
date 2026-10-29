@@ -260,7 +260,9 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  *  The nodes are sorted by tile of the oversampled grid and by cell within a
  *  tile (\c tile_ptr holds the node range of each tile). With OpenMP the
  *  adjoint transforms then spread whole tiles in parallel without atomic
- *  operations, and their result does not depend on the number of threads;
+ *  operations, and the spreading of the nodes (B^T) gives the same result
+ *  whatever the number of threads at the transform (the FFTW plan, made at
+ *  the initialisation, may still depend on the number of threads then);
  *  without this flag the threaded NFFT adjoint uses atomic operations and
  *  the NFCT and NFST adjoints run serially. */
 #define NFFT_SORT_NODES            (1U<<11)
