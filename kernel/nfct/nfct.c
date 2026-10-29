@@ -1032,15 +1032,17 @@ MACRO_D(T)
 }
 
 /* l[t]: index in the padded grid of B of the first point of the window of
- * node j on axis t (clamped, so that nodes outside [0, 0.5] cannot leave the
- * grid) */
+ * node j on axis t; fits: whether the windows on all axes lie in the padded
+ * grid, which holds for nodes in [0, 0.5] */
 #define MACRO_init_uo_l_lj_t \
 { \
+  fits = 1; \
   for (t2 = 0; t2 < ths->d; t2++) \
   { \
     uo(ths, xs, j, &u[t2], &o[t2], t2); \
-    l[t2] = MIN(MAX(u[t2] - OFFSET + HALO_LO(ths->m), 0), \
-        ths->n[t2] + HALO(ths->m) - (2 * ths->m + 2)); \
+    l[t2] = u[t2] - OFFSET + HALO_LO(ths->m); \
+    fits = fits && l[t2] >= 0 \
+      && l[t2] <= ths->n[t2] + HALO(ths->m) - (2 * ths->m + 2); \
     lj[t2] = 0; \
    } \
    t2 = 0; \
@@ -1070,6 +1072,39 @@ MACRO_D(T)
   } \
 }
 
+/* for a node whose window leaves the padded grid (a node outside [0, 0.5]):
+ * each index is reflected into the grid as the halo would be, with its sign */
+#define MACRO_update_phi_prod_ll_reflected(which_psi) \
+{ \
+  for (t = t2; t < ths->d; t++) \
+  { \
+    R sg; \
+    const INT s = halo_source(u[t] - OFFSET + lj[t], ths->n[t], &sg); \
+    phi_prod[t+1] = phi_prod[t] * (MACRO_ ## which_psi) * sg; \
+    ll_plain[t+1] = ll_plain[t] * (ths->n[t] + HALO(ths->m)) \
+      + HALO_LO(ths->m) + (s < 0 ? 0 : s); \
+  } \
+}
+
+/* all 2m+2 to the power d points of the window of node j */
+#define MACRO_B_taps(which_one, which_psi) \
+{ \
+  if (fits) \
+    for (l_L = 0; l_L < lprod; l_L++) \
+    { \
+      MACRO_update_phi_prod_ll_plain(which_one, which_psi); \
+      MACRO_B_compute_ ## which_one; \
+      MACRO_count_uo_l_lj_t; \
+    } \
+  else \
+    for (l_L = 0; l_L < lprod; l_L++) \
+    { \
+      MACRO_update_phi_prod_ll_reflected(which_psi); \
+      MACRO_B_compute_ ## which_one; \
+      MACRO_count_uo_l_lj_t; \
+    } \
+}
+
 #define MACRO_B(which_one) \
 static inline void B_ ## which_one (X(plan) *ths) \
 { \
@@ -1081,6 +1116,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT l_L, ix; /* index one row of B */ \
   INT l[ths->d]; /* first index of the window in the padded grid of B */ \
   INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
+  int fits; /* window of node j inside the padded grid */ \
   INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
   R *f, *g; /* local copy */ \
@@ -1129,14 +1165,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
       fj = f + j; \
       MACRO_init_uo_l_lj_t; \
  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_PRE_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } /* for(l_L) */ \
+      MACRO_B_taps(which_one, with_PRE_PSI); \
     } /* for(j) */ \
     return; \
   } /* if(PRE_PSI) */ \
@@ -1161,14 +1190,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
             ths->psi[2 * (j * ths->d + t) + 1], fg_e[t], fg_q[t]); \
       } \
  \
-      for (l_L= 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } \
+      MACRO_B_taps(which_one, with_FG_PSI); \
     } \
     return; \
   } \
@@ -1200,14 +1222,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
             fg_e[t], fg_q[t]); \
       } \
   \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } \
+      MACRO_B_taps(which_one, with_FG_PSI); \
     } \
     return; \
   } \
@@ -1234,14 +1249,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
         } \
       } \
   \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_LIN_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      }  /* for(l_L) */  \
+      MACRO_B_taps(which_one, with_LIN_PSI); \
     } /* for(j) */  \
     return; \
   } /* if(PRE_LIN_PSI) */ \
@@ -1256,14 +1264,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
     MACRO_init_uo_l_lj_t; \
     MACRO_fill_psij_const; \
  \
-    for (l_L = 0; l_L < lprod; l_L++) \
-    { \
-      MACRO_update_phi_prod_ll_plain(which_one, without_PRE_PSI); \
- \
-      MACRO_B_compute_ ## which_one; \
- \
-      MACRO_count_uo_l_lj_t; \
-    } /* for (l_L) */ \
+    MACRO_B_taps(which_one, without_PRE_PSI); \
   } /* for (j) */ \
 } /* B */
 
@@ -1455,6 +1456,7 @@ static void precompute_full_psi_sorted(X(plan) *ths)
   INT l_L; /* plain index 0 <= l_L < lprod */
   INT l[ths->d]; /* first index of the window in the padded grid of B */
   INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
+  int fits; /* window of node j inside the padded grid */
   INT ll_plain[ths->d+1]; /* postfix plain index */
   INT lprod; /* 'bandwidth' of matrix B */
   INT u[ths->d], o[ths->d]; /* depends on x_j */
@@ -1481,7 +1483,10 @@ static void precompute_full_psi_sorted(X(plan) *ths)
 
     for (l_L = 0; l_L < lprod; l_L++, ix++)
     {
-      MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI);
+      if (fits)
+        MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI)
+      else
+        MACRO_update_phi_prod_ll_reflected(without_PRE_PSI)
 
       ths->psi_index_g[ix] = ll_plain[ths->d];
       ths->psi[ix] = phi_prod[ths->d];
