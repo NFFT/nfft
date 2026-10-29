@@ -124,7 +124,8 @@ static void sort0(X(plan) *ths)
     ar_x[2 * i + 1] = i;
   }
 
-  rhigh = (INT) LRINT(CEIL(LOG2((R)(nt * tilevol)))) - 1;
+  /* the highest bit of the largest key, in integer arithmetic */
+  rhigh = Y(log2i)(nt * tilevol - 1);
 
   ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(M) * sizeof(INT));
   Y(sort_node_indices_radix_lsdf)(M, ar_x, ar_x_temp, rhigh);

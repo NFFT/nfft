@@ -532,7 +532,9 @@ static void sort0(X(plan) *ths)
     ar_x[2 * j + 1] = j;
   }
 
-  rhigh = (INT) LRINT(CEIL(LOG2((R)(nt * tilevol + 1)))) - 1;
+  /* the highest bit of the largest key, the bucket nt * tilevol, in integer
+   * arithmetic: in float, LOG2 of 2^k + 1 rounds down to k */
+  rhigh = Y(log2i)(nt * tilevol);
 
   ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(M) * sizeof(INT));
   Y(sort_node_indices_radix_lsdf)(M, ar_x, ar_x_temp, rhigh);
