@@ -78,31 +78,30 @@ INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
 void Y(tile_ptr_from_keys)(const INT M, const INT *ar_x, const INT tilevol,
     const INT nbuckets, INT *tile_ptr)
 {
-  INT k;
+  INT b;
 
-  if (M == 0)
-  {
-    for (k = 0; k <= nbuckets; k++)
-      tile_ptr[k] = 0;
-    return;
-  }
-
-  /* tile_ptr[b] is the first k whose bucket is b or later: written by the
-   * node k that starts a new bucket, for the buckets up to its own */
+  /* tile_ptr[b] is the first k with key >= b * tilevol, found by bisection
+   * of the sorted keys: far fewer steps than nodes for the usual tile
+   * counts */
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(k)
+  #pragma omp parallel for default(shared) private(b)
 #endif
-  for (k = 0; k < M; k++)
+  for (b = 0; b <= nbuckets; b++)
   {
-    const INT b = ar_x[2 * k] / tilevol;
-    INT a = k == 0 ? -1 : ar_x[2 * (k - 1)] / tilevol, i;
+    const INT key = b * tilevol;
+    INT lo = 0, hi = M;
 
-    for (i = a + 1; i <= b; i++)
-      tile_ptr[i] = k;
+    while (lo < hi)
+    {
+      const INT mid = lo + (hi - lo) / 2;
+      if (ar_x[2 * mid] < key)
+        lo = mid + 1;
+      else
+        hi = mid;
+    }
+
+    tile_ptr[b] = lo;
   }
-
-  for (k = ar_x[2 * (M - 1)] / tilevol + 1; k <= nbuckets; k++)
-    tile_ptr[k] = M;
 }
 
 /* Number i of the tiles of colour c (bit t of c: parity of the tile
