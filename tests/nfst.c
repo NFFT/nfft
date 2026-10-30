@@ -56,6 +56,8 @@ typedef struct testcase_delegate_file_s
   destroy_t destroy;
   fill_t fill;
   const char *filename;
+  /* 1 if f is the input and f_hat the reference, 0 the other way round. */
+  int adjoint;
 } testcase_delegate_file_t;
 
 static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f);
@@ -448,6 +450,26 @@ static void check_many(const size_t nf, const size_t ni, const size_t nt,
   CU_ASSERT(ok);
 }
 
+/* Read one value. The inputs (the nodes, and f_hat for a trafo or f for an
+ * adjoint case) are floats written with just enough digits to identify one, so
+ * they are read as float and widened, which gives every precision the exact
+ * value. The reference is read at full precision. */
+static R read_value(FILE *file, const int is_input)
+{
+  if (is_input)
+  {
+    float v;
+    fscanf(file, "%f", &v);
+    return (R)v;
+  }
+  else
+  {
+    R v;
+    fscanf(file, __FI__, &v);
+    return v;
+  }
+}
+
 static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN, int *M, R **x, R **f_hat, R **f)
 {
   const testcase_delegate_file_t *ego = (const testcase_delegate_file_t*)ego_;
@@ -491,25 +513,21 @@ static void setup_file(const testcase_delegate_t *ego_, int *d, int **N, int *NN
   *x = Y(malloc)((size_t)(M[0]*d[0])*sizeof(R));
   for (j = 0; j < M[0]*d[0]; j++)
   {
-    fscanf(file, __FI__, &((*x)[j]));
+    (*x)[j] = read_value(file, 1);
   }
 
   /* Fourier coefficients. */
   *f_hat = Y(malloc)((size_t)(NN[0])*sizeof(R));
   for (j = 0; j < NN[0]; j++)
   {
-    R re;
-    fscanf(file, __FI__, &re);
-    (*f_hat)[j] = re;
+    (*f_hat)[j] = read_value(file, !ego->adjoint);
   }
 
   /* Reference function values. */
   *f = Y(malloc)((size_t)(M[0]) * sizeof(R));
   for (j = 0; j < M[0]; j++)
   {
-    R re;
-    fscanf(file, __FI__, &re);
-    (*f)[j] = re;
+    (*f)[j] = read_value(file, ego->adjoint);
   }
 
   fclose(file);

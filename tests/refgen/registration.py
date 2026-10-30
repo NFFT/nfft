@@ -9,9 +9,12 @@ _MODULES = ("nfft", "nfct", "nfst")
 
 
 def _decl(module, kind, d, N, M):
+    # The trailing flag tells the C reader which coefficient section is the
+    # float input: f_hat for a trafo case (0), f for an adjoint case (1).
     base = G.basename(module, kind, d, N, M)
     return ('static const testcase_delegate_file_t %s = '
-            '{setup_file, destroy_file, fill_file, ABSPATH("data/%s.txt")};' % (base, base))
+            '{setup_file, destroy_file, fill_file, ABSPATH("data/%s.txt"), %d};'
+            % (base, base, kind == "adjoint"))
 
 
 def _array(module, kind, d):
@@ -60,5 +63,5 @@ def render_extra_dist():
             for (d, N, M) in G.GRIDS[module]:
                 files.append(G.basename(module, kind, d, N, M) + ".txt")
     files = sorted(set(files))
-    body = "  \\\n".join(files)
+    body = " \\\n".join(files)
     return "EXTRA_DIST = " + body + "\n"

@@ -27,7 +27,12 @@ uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/refgen/tests -q
 ## Options
 
 - `--module {nfft,nfct,nfst,all}`
-- `--precision N`   working/printed significant decimal digits (default 64; ≥34 for quad)
+- `--precision N`   working precision in significant decimal digits (default 64)
+- `--digits N`      significant digits written for the computed reference (default 40,
+                    at most `--precision`); inputs are floats and always written as the
+                    shortest decimal that reads back exactly. 40 digits make every value
+                    read back bit-identically to the 64-digit sum in float, double, long
+                    double and quad; see `docs/agents/test-methodology.md`
 - `--seed N`        PRNG seed (default 1)
 - `--data-dir P`    output dir for *.txt (default tests/data)
 - `--header-dir P`  output dir for generated headers (default tests/data/generated)

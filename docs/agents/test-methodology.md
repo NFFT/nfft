@@ -55,11 +55,21 @@ product with dimension 0 lowest; per-dim ranges are `[⌈-N/2⌉..⌊(N-1)/2⌋]
 
 The two **input** sections — the nodes `x` and the input coefficients (`f_hat` for a
 trafo case, `f` for an adjoint case) — are drawn as single-precision floats, so they
-are exactly representable in every build precision (float through quad) and are written
-**compactly**, with trailing zeros stripped. The remaining **output** section is the
-high-precision reference and carries ≥64 significant digits — more than long-double
-(≈19) or quad (≈34) — so the same files serve every precision; the C reader (`__FI__`)
-reads each value and rounds it to the build's type on input.
+are exactly representable in every build precision (float through quad). Each is
+written as the **shortest decimal** (at most 9 significant digits) that reads back as
+that float, and the C reader reads it with `"%f"` into a `float` and widens it to `R`,
+so every precision gets the drawn value exactly. Reading such a decimal straight into
+a double would round it to the nearest double instead; the `adjoint` flag in the
+generated `testcase_delegate_file_t` tells the reader which coefficient section is the
+input.
+
+The remaining **output** section is the reference, summed at 64 digits and written with
+**40 significant digits**; the C reader (`__FI__`) rounds each value to the build's type.
+Any 36 digits identify a quad value, but rounding the 64-digit sum to 36 digits and then
+to quad lands one ulp off for about 0.7% of the values (double rounding); 39 digits
+remove every such case in the current data, and 40 leave a margin. The parsed values are
+bit-identical to those from the full 64 digits in float, double, long double and
+`__float128`, so the same files serve every precision.
 
 ## The reference-data generator
 

@@ -1,6 +1,6 @@
 """CLI: regenerate reference data + generated C headers + the data EXTRA_DIST list.
 
-    python -m tests.refgen.generate --module all --precision 64
+    python -m tests.refgen.generate --module all --precision 64 --digits 40
 """
 import argparse
 import os
@@ -43,7 +43,7 @@ def _draw_inputs(module, kind, d, N, M, rng):
     return x, coeff
 
 
-def _gen_module(module, precision, seed, data_dir):
+def _gen_module(module, precision, digits, seed, data_dir):
     mpmath.mp.dps = precision
     is_c = _is_complex(module)
     for kind in G.KINDS:
@@ -62,9 +62,10 @@ def _gen_module(module, precision, seed, data_dir):
                 f_hat = T.adjoint(module, N, M, x, f)
             path = os.path.join(data_dir, G.basename(module, kind, d, N, M) + ".txt")
             # trafo: f_hat is the (float-drawn) input, f the computed output;
-            # adjoint: the roles swap. Inputs get trailing zeros stripped.
+            # adjoint: the roles swap. Inputs are written as the shortest decimal
+            # that reads back as the float, the output with `digits` digits.
             IO.write_testcase(path, d, N, M, x, f_hat, f,
-                              is_complex=is_c, ndig=precision,
+                              is_complex=is_c, ndig=digits,
                               input_is_f_hat=(kind == "trafo"))
             print("wrote", path)
 
@@ -73,16 +74,21 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--module", choices=("nfft", "nfct", "nfst", "all"), default="all")
     ap.add_argument("--precision", type=int, default=64,
-                    help="working/printed significant decimal digits (>=34 for quad)")
+                    help="working precision in significant decimal digits")
+    ap.add_argument("--digits", type=int, default=40,
+                    help="significant decimal digits printed for the computed reference "
+                         "(at most --precision; see tests/refgen/README.md)")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--data-dir", default=os.path.join("tests", "data"))
     ap.add_argument("--header-dir", default=os.path.join("tests", "data", "generated"))
     args = ap.parse_args(argv)
+    if args.digits > args.precision:
+        ap.error("--digits must not exceed --precision")
 
     modules = _MODULES if args.module == "all" else (args.module,)
     os.makedirs(args.header_dir, exist_ok=True)
     for m in modules:
-        _gen_module(m, args.precision, args.seed, args.data_dir)
+        _gen_module(m, args.precision, args.digits, args.seed, args.data_dir)
         hpath = os.path.join(args.header_dir, "%s_testcases.h" % m)
         with open(hpath, "w") as fp:
             fp.write(REG.render_header(m))

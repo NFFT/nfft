@@ -1,6 +1,14 @@
+import random
+import struct
+
 import mpmath
+import pytest
 
 from tests.refgen import io_format as IO
+
+
+def _f32(v):
+    return struct.unpack("f", struct.pack("f", v))[0]
 
 
 def test_format_real_has_enough_digits():
@@ -24,14 +32,14 @@ def test_format_complex_two_columns():
 def test_write_then_parse_roundtrip_real(tmp_path):
     mpmath.mp.dps = 64
     d, N, M = 1, [4], 2
-    x = [(mpmath.mpf("0.1"),), (mpmath.mpf("0.2"),)]
+    x = [(mpmath.mpf(_f32(0.1)),), (mpmath.mpf(_f32(0.2)),)]  # inputs are floats
     f_hat = [mpmath.mpf("0.3"), mpmath.mpf("0.4"), mpmath.mpf("0.5")]  # nfst N-1=3
     f = [mpmath.mpf("0.6"), mpmath.mpf("0.7")]
     p = tmp_path / "nfst_1d_4_2.txt"
     IO.write_testcase(str(p), d, N, M, x, f_hat, f, is_complex=False, ndig=50)
     rd, rN, rM, rx, rfh, rf = IO.parse_testcase(str(p), is_complex=False)
     assert (rd, rN, rM) == (d, N, M)
-    assert abs(rx[0][0] - x[0][0]) < mpmath.mpf(10) ** -40
+    assert _f32(float(rx[0][0])) == x[0][0]
     assert abs(rfh[2] - f_hat[2]) < mpmath.mpf(10) ** -40
     assert abs(rf[1] - f[1]) < mpmath.mpf(10) ** -40
 
@@ -39,7 +47,7 @@ def test_write_then_parse_roundtrip_real(tmp_path):
 def test_write_then_parse_roundtrip_complex(tmp_path):
     mpmath.mp.dps = 64
     d, N, M = 1, [1], 2
-    x = [(mpmath.mpf("-0.1"),), (mpmath.mpf("0.3"),)]
+    x = [(mpmath.mpf(_f32(-0.1)),), (mpmath.mpf(_f32(0.3)),)]
     f_hat = [mpmath.mpc("0.2", "0.1")]
     f = [mpmath.mpc("0.4", "-0.5"), mpmath.mpc("-0.6", "0.7")]
     p = tmp_path / "nfft_1d_1_2.txt"
@@ -47,6 +55,26 @@ def test_write_then_parse_roundtrip_complex(tmp_path):
     rd, rN, rM, rx, rfh, rf = IO.parse_testcase(str(p), is_complex=True)
     assert (rd, rN, rM) == (d, N, M)
     assert abs(rf[0] - f[0]) < mpmath.mpf(10) ** -40
+
+
+def test_input_is_shortest_decimal_that_reads_back_exactly():
+    mpmath.mp.dps = 64
+    assert IO._fmt_float(_f32(0.1)) == "0.1"
+    assert IO._fmt_float(_f32(-0.0395687632262706756591796875)) == "-0.039568763"
+    assert IO._fmt_float(0.0) == "0.0"
+    rng = random.Random(1)
+    for _ in range(2000):
+        v = _f32(rng.uniform(-1, 1))
+        s = IO._fmt_float(v)
+        assert _f32(float(s)) == v
+        assert len(s.lstrip("-").replace(".", "").lstrip("0")) <= 9
+        assert "e" not in s
+
+
+def test_non_float_input_is_rejected():
+    mpmath.mp.dps = 64
+    with pytest.raises(ValueError):
+        IO._fmt_float(mpmath.mpf("0.1"))
 
 
 from tests.refgen import registration as REG
@@ -59,6 +87,9 @@ def test_header_contains_decls_and_arrays():
     assert "*testcases_1d_file[]" in h
     assert "*testcases_adjoint_1d_file[]" in h
     assert "*testcases_3d_file[]" in h
+    # the flag marks which coefficient section is the float input
+    assert 'ABSPATH("data/nfft_1d_1_1.txt"), 0};' in h
+    assert 'ABSPATH("data/nfft_adjoint_1d_1_1.txt"), 1};' in h
     # header guard
     assert "#ifndef" in h and "#endif" in h
 
@@ -75,14 +106,21 @@ def test_quad_precision_digits(tmp_path):
     import mpmath
     from tests.refgen import generate as GEN
     # Generate one nfft file at quad-target precision and check digit count.
-    GEN.main(["--module", "nfft", "--precision", "40",
+    GEN.main(["--module", "nfft", "--precision", "40", "--digits", "36",
               "--data-dir", str(tmp_path), "--header-dir", str(tmp_path)])
     # Use a file whose output is a genuine multi-term sum (N=10 > 1).
     p = tmp_path / "nfft_1d_10_1.txt"
     toks = p.read_text().split()
-    # The computed *output* (last scalar of the f section) must carry >=34
-    # significant digits (quad-sufficient). Inputs (nodes/coefficients) are now
-    # drawn as floats and written compact, so the digit budget lives in the output.
+    # The computed *output* (last scalar of the f section) carries exactly --digits
+    # significant digits. Inputs (nodes/coefficients) are drawn as floats and
+    # written compact, so the digit budget lives in the output.
     out = toks[-1]
     sig = out.replace("-", "").replace(".", "").lstrip("0")
-    assert len(sig) >= 34
+    assert len(sig) == 36
+
+
+def test_digits_must_not_exceed_precision(tmp_path):
+    from tests.refgen import generate as GEN
+    with pytest.raises(SystemExit):
+        GEN.main(["--precision", "30", "--digits", "40",
+                  "--data-dir", str(tmp_path), "--header-dir", str(tmp_path)])
