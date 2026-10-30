@@ -197,12 +197,15 @@ typedef ptrdiff_t INT;
 
 /* Whether B of the NFFT, NFCT and NFST evaluates the window on the fly a
  * block of nodes at a time (the window_block of each module), for a plan of
- * dimension d with the given flags (nfft3.h): in 1D without a psi table. With
- * d >= 2 the window is a smaller part of the work per node, and forming it
- * node by node right before its taps measured as fast or faster. */
+ * dimension d with the given flags (nfft3.h): in 1D without a psi table, and
+ * only for a window with a block evaluator (WINDOW_HAS_RUN_BLOCK below); for
+ * the others PHI_RUN_BLOCK is PHI_RUN node by node and the block buffer only
+ * adds work. With d >= 2 the window is a smaller part of the work per node,
+ * and forming it node by node right before its taps measured as fast or
+ * faster. */
 #define NFFT_WINDOW_BLOCKED(d,flags) \
-  ((d) == 1 && !((flags) & (PRE_PSI | PRE_FG_PSI | FG_PSI | PRE_LIN_PSI \
-      | PRE_FULL_PSI)))
+  (WINDOW_HAS_RUN_BLOCK && (d) == 1 && !((flags) & (PRE_PSI | PRE_FG_PSI \
+      | FG_PSI | PRE_LIN_PSI | PRE_FULL_PSI)))
 
 /* macros for window functions */
 
@@ -397,6 +400,7 @@ typedef ptrdiff_t INT;
   /* dst[l] = phi(x - (u + l)/n), l = 0 .. 2m+1. */
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
+  #define WINDOW_HAS_RUN_BLOCK 1
   #define PHI_RUN_BLOCK(dst,ld,n,x,u,nb,ax) \
     Y(kb_poly_run_block)((dst), (ld), KB_POLY(ax), ths->m, KB_POLY_DEG, \
         (R)(n), (x), (u), (nb))
@@ -462,6 +466,11 @@ typedef ptrdiff_t INT;
         PHI_RUN((dst) + PHI_RUN_BLOCK_v * (ld), n, (x)[PHI_RUN_BLOCK_v], \
             (u)[PHI_RUN_BLOCK_v], ax); \
     } while (0)
+#endif
+
+/* 1 for a window that defines its own PHI_RUN_BLOCK above. */
+#ifndef WINDOW_HAS_RUN_BLOCK
+  #define WINDOW_HAS_RUN_BLOCK 0
 #endif
 
 /* Gaussian run fill for the FG_PSI paths: buf[0 .. 2m+2] holds the window at
