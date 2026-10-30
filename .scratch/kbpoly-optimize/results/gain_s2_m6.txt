@@ -1,0 +1,18 @@
+N=2048 M=40000 n=4096 sigma=2 m=6  table degree 13 (rows 15, cols 8)
+stock    random: max|f-fd|/sum|fhat| = 1.275e-14   rms est. of J_2 = 5.872e-14
+stock    single k:  k=    0: 1.179e-13  k=  256: 1.610e-13  k=  512: 2.804e-13  k= 1023: 9.614e-13
+--- coef_cheb_s2_m6_h7.txt (degree 14)
+cheb     random: max|f-fd|/sum|fhat| = 1.276e-14   rms est. of J_2 = 5.874e-14
+cheb     single k:  k=    0: 1.169e-13  k=  256: 1.617e-13  k=  512: 2.796e-13  k= 1023: 9.603e-13
+--- coef_ls_s2_m6_h7.txt (degree 14)
+ls       random: max|f-fd|/sum|fhat| = 3.539e-15   rms est. of J_2 = 5.172e-14
+ls       single k:  k=    0: 2.687e-14  k=  256: 9.067e-14  k=  512: 1.847e-13  k= 1023: 2.404e-13
+--- coef_lawson_s2_m6_h7.txt (degree 14)
+lawson   random: max|f-fd|/sum|fhat| = 9.860e-15   rms est. of J_2 = 1.156e-13
+lawson   single k:  k=    0: 1.601e-13  k=  256: 1.837e-13  k=  512: 2.368e-13  k= 1023: 3.178e-13
+--- coef_ls_s2_m6_h6.txt (degree 12)
+ls       random: max|f-fd|/sum|fhat| = 3.541e-15   rms est. of J_2 = 5.172e-14
+ls       single k:  k=    0: 2.687e-14  k=  256: 9.072e-14  k=  512: 1.848e-13  k= 1023: 2.473e-13
+--- coef_lawson_s2_m6_h6.txt (degree 12)
+lawson   random: max|f-fd|/sum|fhat| = 9.942e-15   rms est. of J_2 = 1.150e-13
+lawson   single k:  k=    0: 1.599e-13  k=  256: 1.945e-13  k=  512: 2.571e-13  k= 1023: 3.185e-13

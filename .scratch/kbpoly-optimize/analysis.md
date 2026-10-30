@@ -538,3 +538,49 @@ are Chebyshev coefficients, converted to monomials afterwards by the existing
 - S.-I. Filip, Y. Nakatsukasa, L. N. Trefethen, B. Beckermann, Rational
   minimax approximation via adaptive barycentric representations, SIAM J. Sci.
   Comput. 40 (2018) A2427-A2455.
+
+## 11. Measured in the library (develop, double)
+
+`kbopt5.py` fits the window in the layout `develop` stores (`m + 2` mirrored
+columns, polynomial in the offset from the cell centre, even degree `2h`),
+and `kbgain.c` builds a plan on `develop`, measures `nfft_trafo` against
+`nfft_trafo_direct`, then overwrites `spline_coeffs` with the fitted table
+and measures again. Random inputs give the RMS estimate of `J_2`; a single
+frequency `k` gives `max_t |E(k/n, t)|` over 40000 random nodes. Raw output in
+`results/gain_s2_m4.txt` and `results/gain_s2_m6.txt`. Injecting the
+Chebyshev fit of `kbopt5.py` reproduces the stock figures to four digits,
+and the least-squares and Lawson figures agree with the model of section 3
+to three digits, so the model is the library.
+
+`sigma = 2, m = 4, N = 2048`; develop uses degree 11, stored as 12 (`h = 6`):
+
+| table | degree | max error, k = 0 | k = N/8 | k = N/4 | k = N/2 - 1 | worst of these | RMS (random f_hat) |
+|---|---|---|---|---|---|---|---|
+| stock | 12 | 9.35e-10 | 1.10e-9 | 1.67e-9 | 4.71e-9 | 4.71e-9 | 4.91e-10 |
+| least squares | 12 | 1.29e-10 | 1.61e-10 | 2.62e-10 | 1.07e-9 | 1.07e-9 (4.4x) | 3.60e-10 (1.36x) |
+| Lawson | 12 | 1.04e-9 | 1.01e-9 | 1.01e-9 | 8.42e-10 | 1.04e-9 (4.5x) | 6.99e-10 (0.70x) |
+| least squares | 10 | 1.29e-10 | 1.61e-10 | 2.62e-10 | 1.07e-9 | 1.07e-9 (4.4x) | 3.60e-10 (1.36x) |
+| Lawson | 10 | 1.04e-9 | 1.00e-9 | 9.79e-10 | 8.42e-10 | 1.04e-9 (4.5x) | 6.91e-10 (0.71x) |
+| least squares | 8 | 1.29e-10 | 1.61e-10 | 2.63e-10 | 3.94e-9 | 3.94e-9 (1.2x) | 4.03e-10 (1.22x) |
+| Lawson | 8 | 1.39e-9 | 1.32e-9 | 1.36e-9 | 2.37e-9 | 2.37e-9 (2.0x) | 9.90e-10 (0.50x) |
+
+`sigma = 2, m = 6, N = 2048`; develop uses degree 13, stored as 14 (`h = 7`):
+
+| table | degree | k = 0 | k = N/8 | k = N/4 | k = N/2 - 1 | worst of these | RMS |
+|---|---|---|---|---|---|---|---|
+| stock | 14 | 1.18e-13 | 1.61e-13 | 2.80e-13 | 9.61e-13 | 9.61e-13 | 5.87e-14 |
+| least squares | 14 | 2.69e-14 | 9.07e-14 | 1.85e-13 | 2.40e-13 | 2.40e-13 (4.0x) | 5.17e-14 (1.14x) |
+| Lawson | 14 | 1.60e-13 | 1.84e-13 | 2.37e-13 | 3.18e-13 | 3.18e-13 (3.0x) | 1.16e-13 (0.51x) |
+| least squares | 12 | 2.69e-14 | 9.07e-14 | 1.85e-13 | 2.47e-13 | 2.47e-13 (3.9x) | 5.17e-14 (1.14x) |
+| Lawson | 12 | 1.60e-13 | 1.95e-13 | 2.57e-13 | 3.19e-13 | 3.19e-13 (3.0x) | 1.15e-13 (0.51x) |
+
+Reading: at the develop degree the worst-case error falls 4.4x (least
+squares) at `m = 4` and 4x at `m = 6`, with the RMS error 1.36x and 1.14x
+lower; Lawson's equiripple buys nothing over least squares here and costs
+RMS, because the stock error is so concentrated at the band edge that
+flattening it is what least squares already does. Two degrees fewer (one
+Horner row pair, a sixth of the window work) cost nothing at either `m`. At
+`m = 6` the RMS is within a factor of a few of double rounding, so the gain
+there is in the band-edge worst case only; this is the regime the guard of
+section 10 is about, one row of `m` higher than least squares alone would
+suggest.

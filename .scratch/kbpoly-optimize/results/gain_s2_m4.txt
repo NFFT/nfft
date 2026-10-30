@@ -1,0 +1,21 @@
+N=2048 M=40000 n=4096 sigma=2 m=4  table degree 11 (rows 13, cols 6)
+stock    random: max|f-fd|/sum|fhat| = 1.130e-10   rms est. of J_2 = 4.914e-10
+stock    single k:  k=    0: 9.352e-10  k=  256: 1.101e-09  k=  512: 1.667e-09  k= 1023: 4.710e-09
+--- coef_ls_s2_m4_h6.txt (degree 12)
+ls       random: max|f-fd|/sum|fhat| = 2.546e-11   rms est. of J_2 = 3.601e-10
+ls       single k:  k=    0: 1.285e-10  k=  256: 1.606e-10  k=  512: 2.621e-10  k= 1023: 1.068e-09
+--- coef_lawson_s2_m4_h6.txt (degree 12)
+lawson   random: max|f-fd|/sum|fhat| = 6.601e-11   rms est. of J_2 = 6.991e-10
+lawson   single k:  k=    0: 1.044e-09  k=  256: 1.007e-09  k=  512: 1.005e-09  k= 1023: 8.422e-10
+--- coef_ls_s2_m4_h5.txt (degree 10)
+ls       random: max|f-fd|/sum|fhat| = 2.546e-11   rms est. of J_2 = 3.600e-10
+ls       single k:  k=    0: 1.285e-10  k=  256: 1.606e-10  k=  512: 2.621e-10  k= 1023: 1.074e-09
+--- coef_lawson_s2_m4_h5.txt (degree 10)
+lawson   random: max|f-fd|/sum|fhat| = 6.441e-11   rms est. of J_2 = 6.908e-10
+lawson   single k:  k=    0: 1.041e-09  k=  256: 1.002e-09  k=  512: 9.789e-10  k= 1023: 8.421e-10
+--- coef_ls_s2_m4_h4.txt (degree 8)
+ls       random: max|f-fd|/sum|fhat| = 5.628e-11   rms est. of J_2 = 4.026e-10
+ls       single k:  k=    0: 1.285e-10  k=  256: 1.606e-10  k=  512: 2.627e-10  k= 1023: 3.944e-09
+--- coef_lawson_s2_m4_h4.txt (degree 8)
+lawson   random: max|f-fd|/sum|fhat| = 7.489e-11   rms est. of J_2 = 9.895e-10
+lawson   single k:  k=    0: 1.392e-09  k=  256: 1.321e-09  k=  512: 1.356e-09  k= 1023: 2.369e-09
