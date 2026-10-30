@@ -42,7 +42,11 @@ FFTW_ESTIMATE = UInt32(1)<<6
 FFTW_WISDOM_ONLY = UInt32(1)<<21
 
 # default flag values
-f1_default_1d = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE)
+# In 1D, nfft_init_1d sorts the nodes and uses the blockwise adjoint only in
+# the OpenMP library, which libnfftjulia links when configured with
+# --enable-openmp; ask the library so that the defaults match.
+f1_default_1d = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE |
+	(ccall(("nfft_has_threads_enabled", lib_path),Int64,()) != 0 ? (NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT) : UInt32(0)))
 f1_default = UInt32(PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT)
 f2_default = UInt32(FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
 
