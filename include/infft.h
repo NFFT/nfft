@@ -212,16 +212,60 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
   #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
+  /* ths->b holds 4d reals: b per axis, then exp(-1/b), exp(-2/b) and
+   * 1/sqrt(pi b), the constants of the run fill. */
+  #define GAUSS_E(ax) (ths->b[ths->d + (ax)])
+  #define GAUSS_Q(ax) (ths->b[2 * ths->d + (ax)])
+  #define GAUSS_PEAK(ax) (ths->b[3 * ths->d + (ax)])
+  /* Run by the FG_RUN recurrence. uo() puts the node in [m, m+1), so the
+   * nearest grid point is index m or m+1; both sides step m times and step
+   * m+1 fills the far end. The side is a masked index, not a select: gcc
+   * turns a select into a branch that mispredicts once per node. */
+  #define PHI_RUN(dst,n,x,u,ax) \
+    do { \
+      const INT PHI_RUN_m = ths->m; \
+      const R PHI_RUN_b = ths->b[ax]; \
+      const R PHI_RUN_t = NX_SUB(n, x, u); \
+      const R PHI_RUN_d = PHI_RUN_t - FLOOR(PHI_RUN_t + K(0.5)); \
+      const INT PHI_RUN_lo = IF(PHI_RUN_d < K(0.0), 1, 0); \
+      R *PHI_RUN_p = (dst) + PHI_RUN_m + PHI_RUN_lo; \
+      const R PHI_RUN_v0 = EXP(-PHI_RUN_d * PHI_RUN_d / PHI_RUN_b) \
+          * GAUSS_PEAK(ax); \
+      const R PHI_RUN_s = EXP(K(2.0) * PHI_RUN_d / PHI_RUN_b); \
+      const R PHI_RUN_e = GAUSS_E(ax), PHI_RUN_q = GAUSS_Q(ax); \
+      R PHI_RUN_vr = PHI_RUN_v0, PHI_RUN_rr = PHI_RUN_s * PHI_RUN_e; \
+      R PHI_RUN_vl = PHI_RUN_v0, PHI_RUN_rl = PHI_RUN_e / PHI_RUN_s; \
+      R PHI_RUN_far[2]; \
+      INT PHI_RUN_k; \
+      PHI_RUN_p[0] = PHI_RUN_v0; \
+      for (PHI_RUN_k = 1; PHI_RUN_k <= PHI_RUN_m; PHI_RUN_k++) \
+      { \
+        PHI_RUN_vr *= PHI_RUN_rr; \
+        PHI_RUN_vl *= PHI_RUN_rl; \
+        PHI_RUN_p[PHI_RUN_k] = PHI_RUN_vr; \
+        PHI_RUN_p[-PHI_RUN_k] = PHI_RUN_vl; \
+        PHI_RUN_rr *= PHI_RUN_q; \
+        PHI_RUN_rl *= PHI_RUN_q; \
+      } \
+      PHI_RUN_far[0] = PHI_RUN_vr * PHI_RUN_rr; \
+      PHI_RUN_far[1] = PHI_RUN_vl * PHI_RUN_rl; \
+      (dst)[(2 * PHI_RUN_m + 1) & (PHI_RUN_lo - 1)] = PHI_RUN_far[PHI_RUN_lo]; \
+    } while (0)
   /* b balances the two error terms (frequency and time/space) of a Gaussian
    * truncated at half-width WINDOW_STENCIL_REACH. */
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
-      ths->b = (R*) Y(malloc)(ths->d*sizeof(R)); \
+      ths->b = (R*) Y(malloc)((size_t)(4 * ths->d) * sizeof(R)); \
       for (WINDOW_idx = 0; WINDOW_idx < ths->d; WINDOW_idx++) \
+      { \
         ths->b[WINDOW_idx]=(K(2.0)*ths->sigma[WINDOW_idx]) / \
           (K(2.0)*ths->sigma[WINDOW_idx] - K(1.0)) * \
           (WINDOW_STENCIL_REACH / KPI); \
+        GAUSS_E(WINDOW_idx) = EXP(K(-1.0) / ths->b[WINDOW_idx]); \
+        GAUSS_Q(WINDOW_idx) = GAUSS_E(WINDOW_idx) * GAUSS_E(WINDOW_idx); \
+        GAUSS_PEAK(WINDOW_idx) = K(1.0) / SQRT(KPI * ths->b[WINDOW_idx]); \
+      } \
     }
   #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
   #if MANT_DIG == 113
@@ -414,6 +458,16 @@ typedef ptrdiff_t INT;
     // Assume IEEE 754 double precision, 64 bits.
     #define WINDOW_HELP_ESTIMATE_m 8
   #endif
+#endif
+
+/* Non-Gaussian windows compile out the FG_PSI blocks of nfft, nfct and nfst
+ * and clear FG_PSI and PRE_FG_PSI at init: the recurrence seeds are Gaussian. */
+#if defined(GAUSSIAN)
+  #define WINDOW_FG_PATH(flags) (!((flags) & PRE_LIN_PSI))
+  #define WINDOW_FLAGS(flags) (flags)
+#else
+  #define WINDOW_FG_PATH(flags) 0
+  #define WINDOW_FLAGS(flags) ((flags) & ~(FG_PSI | PRE_FG_PSI))
 #endif
 
 /* Generic run fill: dst[0 .. 2m+1] = phi(x - (u + l)/n). Windows that gain from
