@@ -632,6 +632,14 @@ static inline R *node_f(const X(plan) *ths)
 #define NODE_J(ths, k) (((ths)->x_sorted == NULL \
   && ((ths)->flags & NFFT_SORT_NODES)) ? (ths)->index_x[2 * (k) + 1] : (k))
 
+/** Whether B evaluates the window on the fly a block of nodes at a time
+ *  (window_block): in 1D without a psi table, as in the NFFT. */
+static inline int window_blocked(const X(plan) *ths)
+{
+  return ths->d == 1 && !(ths->flags & (PRE_PSI | PRE_FG_PSI | FG_PSI
+      | PRE_LIN_PSI | PRE_FULL_PSI));
+}
+
 /** Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
  *  fewer in the last block. */
 static inline INT block_len(const INT k0, const INT k1)
@@ -1341,6 +1349,43 @@ static void B_node_ ## which_one (const X(plan) *ths, const R *xs, R *f, \
     MACRO_B_node_reflected_ ## which_one \
 } \
 \
+/* B (B^T) for node j with the weights w[t][l], l < 2m+2, on axis t at wv: \
+ * w[t] = wv + t (2m+2) */ \
+static void B_node_weighted_ ## which_one (const X(plan) *ths, const R *xs, \
+    R *f, R *g, const INT *np, const R *wv, const INT j) \
+{ \
+  const INT d = ths->d, L = 2 * ths->m + 2; \
+  INT t, t2; \
+  INT u[d], o[d], l[d], lj[d]; /* as in B_node */ \
+  int fits; \
+  const R *w[d]; \
+\
+  MACRO_init_uo_l_lj_t; \
+  UNUSED(lj); \
+  for (t = 0; t < d; t++) \
+    w[t] = wv + t * L; \
+\
+  if (fits) \
+    MACRO_B_node_ ## which_one \
+  else \
+    MACRO_B_node_reflected_ ## which_one \
+} \
+\
+/* B (B^T) for the block of nodes from node k0 of the nodes k < k1, without a \
+ * psi table (window_block) */ \
+static void B_block_ ## which_one (const X(plan) *ths, const R *xs, R *f, \
+    R *g, const INT *np, const INT k0, const INT k1) \
+{ \
+  const INT dL = ths->d * (2 * ths->m + 2), nb = block_len(k0, k1); \
+  R wv[NFFT_NODE_BLOCK * dL]; \
+  INT v; \
+\
+  window_block(ths, xs, k0, nb, wv); \
+  for (v = 0; v < nb; v++) \
+    B_node_weighted_ ## which_one (ths, xs, f, g, np, wv + v * dL, \
+        NODE_J(ths, k0 + v)); \
+} \
+\
 static inline void B_ ## which_one (X(plan) *ths) \
 { \
   const INT d = ths->d, m = ths->m, L = 2 * m + 2; \
@@ -1378,6 +1423,14 @@ static inline void B_ ## which_one (X(plan) *ths) \
     } \
   } \
 \
+  if (window_blocked(ths)) \
+  { \
+    MACRO_B_parallel_ ## which_one \
+    for (k = 0; k < ths->M_total; k += NFFT_NODE_BLOCK) \
+      B_block_ ## which_one (ths, xs, f, g, np, k, ths->M_total); \
+    return; \
+  } \
+\
   MACRO_B_parallel_ ## which_one \
   for (k = 0; k < ths->M_total; k++) \
     B_node_ ## which_one (ths, xs, f, g, np, fg_e, fg_q, k); \
@@ -1413,6 +1466,13 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
 
     for (k = k0; k < k1; k++)
       MACRO_B_PRE_FULL_PSI_node_T;
+    return;
+  }
+
+  if (window_blocked(ths))
+  {
+    for (k = k0; k < k1; k += NFFT_NODE_BLOCK)
+      B_block_T(ths, c->xs, c->f, g, c->np, k, k1);
     return;
   }
 
