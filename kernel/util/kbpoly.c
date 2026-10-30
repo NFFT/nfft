@@ -113,10 +113,17 @@ static void eval_split(R *out, const R *coef, const INT w, const INT deg,
 INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
 {
   const R sigma = KPI / (K2PI - b);
-  INT mt = (INT)CEIL(KB_POLY_BR_OPT / b) - 1, deg, k;
+  /* Clamped to the table before the cast, which overflows for a tiny or
+   * nonpositive b (oversampling up to 1/2); the clamps below give the same. */
+  R mt_r = CEIL(KB_POLY_BR_OPT / b) - K(1.0);
+  INT mt, deg, k;
 
   A(reach == (R)m + K(1.0));
   (void)reach;
+
+  mt_r = mt_r < (R)KB_POLY_TAB_MMAX ? mt_r : (R)KB_POLY_TAB_MMAX;
+  mt_r = mt_r > K(1.0) ? mt_r : K(1.0);
+  mt = (INT)mt_r;
 
   /* Past m_opt the degree does not rise. */
   mt = IF(m < mt, m, mt);
