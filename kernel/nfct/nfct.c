@@ -793,7 +793,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
     return; \
   } \
  \
-  if (ths->flags & FG_PSI) \
+  if (WINDOW_FG_PATH(ths->flags)) \
   { \
     for (t = 0; t < ths->d; t++) \
     { \
@@ -1265,7 +1265,7 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->m = (INT)m;
 
-  ths->flags = flags;
+  ths->flags = WINDOW_FLAGS(flags);
   ths->fftw_flags = fftw_flags;
 
   init_help(ths);
