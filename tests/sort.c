@@ -68,6 +68,35 @@ static const unsigned sort_variants[] = {NFFT_SORT_NODES,
   NFFT_SORT_NODES | NFFT_OMP_BLOCKWISE_ADJOINT};
 static const char *sort_variant_names[] = {"SORT", "SORT|BLOCKWISE"};
 
+/* Runs CHECK(all_stages). The OpenMP library runs all stages on one thread
+ * and then only the first stages on the default number of threads, as the
+ * later stages run no threaded code that the first stages do not run. The
+ * plans are tiny, so threaded transforms and FFTs spend their time in the
+ * barriers of the OpenMP runtime, which takes many minutes when other
+ * processes compete for the CPUs. FFTW stays on one thread throughout: NFFT
+ * plans set the FFTW thread count themselves, but NFCT and NFST plans use the
+ * count the last NFFT plan left, which is restored at the end. */
+#ifdef _OPENMP
+#if defined(HAVE_FFTW_THREADS)
+#define SORT_FFTW_THREADS(n) FFTW(plan_with_nthreads)((int)(n))
+#else
+#define SORT_FFTW_THREADS(n)
+#endif
+#define SORT_THREADED_RUNS(CHECK) \
+{ \
+  const INT sort_nthreads = Y(get_num_threads)(); \
+  Y(set_num_threads)(1); \
+  SORT_FFTW_THREADS(1); \
+  CHECK(1); \
+  Y(set_num_threads)(sort_nthreads); \
+  if (sort_nthreads > 1) \
+    CHECK(0); \
+  SORT_FFTW_THREADS(sort_nthreads); \
+}
+#else
+#define SORT_THREADED_RUNS(CHECK) CHECK(1);
+#endif
+
 #define SORT_FLAGS (PRE_PHI_HUT | MALLOC_X | MALLOC_F_HAT | MALLOC_F \
   | FFTW_INIT | FFT_OUT_OF_PLACE)
 #define SORT_FFTW_FLAGS (FFTW_ESTIMATE | FFTW_DESTROY_INPUT)
@@ -174,7 +203,7 @@ static int MODULE(sort_compare)(MODULE(plan) *s, MODULE(plan) *u, \
 \
 static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
   const unsigned mode, const char *mode_name, const unsigned variant, \
-  const char *variant_name) \
+  const char *variant_name, const int all_stages) \
 { \
   MODULE(plan) s, u; \
   INT N_total = 1; \
@@ -206,24 +235,27 @@ static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
   MODULE(precompute_one_psi)(&u); \
   ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
     "precomputed"); \
-  /* twice, as an iterative solver does */ \
-  ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
-    "precomputed, again"); \
-  MODULE(sort_fill)(&s, x1); \
-  MODULE(sort_fill)(&u, x1); \
-  MODULE(precompute_one_psi)(&s); \
-  MODULE(precompute_one_psi)(&u); \
-  ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
-    "new nodes, precomputed"); \
-  /* the precomputation routine of the mode on its own, which sorts too */ \
-  if (mode & (PRE_PSI | PRE_FULL_PSI | PRE_FG_PSI)) \
+  if (all_stages) \
   { \
-    MODULE(sort_fill)(&s, x0); \
-    MODULE(sort_fill)(&u, x0); \
-    MODULE(sort_precompute_mode)(&s, mode); \
-    MODULE(sort_precompute_mode)(&u, mode); \
-    ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
-      mode_name, "new nodes, own routine"); \
+    /* twice, as an iterative solver does */ \
+    ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
+      "precomputed, again"); \
+    MODULE(sort_fill)(&s, x1); \
+    MODULE(sort_fill)(&u, x1); \
+    MODULE(precompute_one_psi)(&s); \
+    MODULE(precompute_one_psi)(&u); \
+    ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, mode_name, \
+      "new nodes, precomputed"); \
+    /* the precomputation routine of the mode on its own, which sorts too */ \
+    if (mode & (PRE_PSI | PRE_FULL_PSI | PRE_FG_PSI)) \
+    { \
+      MODULE(sort_fill)(&s, x0); \
+      MODULE(sort_fill)(&u, x0); \
+      MODULE(sort_precompute_mode)(&s, mode); \
+      MODULE(sort_precompute_mode)(&u, mode); \
+      ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
+        mode_name, "new nodes, own routine"); \
+    } \
   } \
   MODULE(finalize)(&s); \
 \
@@ -238,10 +270,13 @@ static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
     MODULE(sort_fill)(&u, x0); \
     ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
       mode_name, "not precomputed"); \
-    MODULE(sort_fill)(&s, x1); \
-    MODULE(sort_fill)(&u, x1); \
-    ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
-      mode_name, "not precomputed, new"); \
+    if (all_stages) \
+    { \
+      MODULE(sort_fill)(&s, x1); \
+      MODULE(sort_fill)(&u, x1); \
+      ok &= MODULE(sort_compare)(&s, &u, f_hat, f, d, variant_name, \
+        mode_name, "not precomputed, new"); \
+    } \
     MODULE(finalize)(&s); \
   } \
 \
@@ -253,15 +288,15 @@ static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
   return ok; \
 } \
 \
-void MODULE(check_sort)(void) \
+/* every d, psi mode and sorted variant; all_stages also changes the nodes \
+ * and runs the precomputation routines of the modes */ \
+static int MODULE(sort_all)(const int all_stages) \
 { \
   /* N per dimension and M, for d = 1, ..., 4; n = 2N */ \
   static const int NN[] = {64, 16, 8, 8}; \
   static const int MM[] = {300, 300, 200, 150}; \
   int d, ok = 1; \
   size_t i, v; \
-\
-  Y(srand48)(SORT_SEED); \
 \
   for (d = 1; d <= 4; d++) \
   { \
@@ -274,8 +309,19 @@ void MODULE(check_sort)(void) \
     for (i = 0; i < SORT_NMODES; i++) \
       for (v = 0; v < (size_t)(NVARIANTS); v++) \
         ok &= MODULE(sort_one)(d, N, n, MM[d - 1], sort_modes[i], \
-          sort_mode_names[i], sort_variants[v], sort_variant_names[v]); \
+          sort_mode_names[i], sort_variants[v], sort_variant_names[v], \
+          all_stages); \
   } \
+\
+  return ok; \
+} \
+\
+void MODULE(check_sort)(void) \
+{ \
+  int ok = 1; \
+\
+  Y(srand48)(SORT_SEED); \
+  SORT_THREADED_RUNS(ok &= MODULE(sort_all)) \
 \
   CU_ASSERT(ok); \
 }
