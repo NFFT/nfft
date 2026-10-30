@@ -29,10 +29,19 @@
  *   side shares the block evaluator with the reference. In 1D the plans
  *   without a psi flag are also tried with NFFT_SORT_NODES. The node counts
  *   include partial blocks and fewer nodes than one block.
+ * - For d > 1 the PRE_PSI plan, whose table is filled a block of nodes at a
+ *   time, and the plan without a psi flag, which forms the window node by
+ *   node with PHI_RUN, add the same taps in the same order; they must agree
+ *   to a few hundred ulps.
  * - *_precompute_psi on a plan without PRE_PSI only sorts the nodes.
- * The plans are compared with each other at a tolerance of a few hundred ulps,
- * as in the tests of NFFT_SORT_NODES; the PRE_FULL_PSI plans are validated
- * against the direct transforms by the other tests. */
+ * Tolerances (otf_tol): against PRE_FULL_PSI, which adds the (2m+2)^d taps
+ * of a node in another order than the tensor-product kernel, the rounding of
+ * these sums shows through their cancellation, up to about ten ulps per tap
+ * with the wide windows (Gaussian, m = 13 and 17 in long double; sinc, m = 11
+ * and 13) on the small grids here; hence 32 ulps per tap, and no less than
+ * 1000 ulps. Plans that add in the same order: 500 ulps. Each test prints its
+ * largest distance / tolerance. The PRE_FULL_PSI plans are validated against
+ * the direct transforms by the other tests. */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,16 +55,35 @@
 
 #define OTF_SEED 20261029L
 
-/* Agreement of two plans, relative l2 distance. */
-#define OTF_TOL (K(500.0) * EPSILON)
+/* Agreement of two plans of dimension d and cut-off m, relative l2 distance
+ * (otf_err_*): same_order whether they add the taps of a node in the same
+ * order. */
+static R otf_tol(const int d, const int m, const int same_order)
+{
+  if (same_order)
+    return K(500.0) * EPSILON;
+  return FMAX(K(1000.0), K(32.0) * POW((R)(2 * m + 2), (R)d)) * EPSILON;
+}
+
+/* The largest distance / tolerance of the current test, against PRE_FULL_PSI
+ * [0] and in the same order [1], printed at its end. */
+static R otf_worst[2];
 
 /* Agreement of a window run filled block-wise and node by node, relative to
  * the largest value of the run. */
 #define OTF_RUN_TOL (K(16.0) * EPSILON)
 
-static R otf_err_c(const C *a, const C *b, const INT n)
+/* l2 distance of the outputs a and b of length n of a transform of dimension
+ * d, relative to the l2 norm of b, or to that expected for the random input
+ * in of length nin when it is larger: each output adds about nin random
+ * terms, with a mean square of at least 2^-d (the cosines and sines of the
+ * NFCT and NFST), so the norm of b is about |in| sqrt(n) 2^(-d/2) or more.
+ * Without that floor one output that cancels (M = 1) would inflate the
+ * distance relative to it. */
+static R otf_err_c(const C *a, const C *b, const INT n, const C *in,
+  const INT nin, const int d)
 {
-  R num = K(0.0), den = K(0.0);
+  R num = K(0.0), den = K(0.0), inn = K(0.0);
   INT j;
 
   for (j = 0; j < n; j++)
@@ -63,13 +91,17 @@ static R otf_err_c(const C *a, const C *b, const INT n)
     num += CABS(a[j] - b[j]) * CABS(a[j] - b[j]);
     den += CABS(b[j]) * CABS(b[j]);
   }
+  for (j = 0; j < nin; j++)
+    inn += CABS(in[j]) * CABS(in[j]);
+  den = FMAX(den, inn * (R)n * POW(K(0.5), (R)d));
 
   return (den > K(0.0)) ? SQRT(num / den) : SQRT(num);
 }
 
-static R otf_err_r(const R *a, const R *b, const INT n)
+static R otf_err_r(const R *a, const R *b, const INT n, const R *in,
+  const INT nin, const int d)
 {
-  R num = K(0.0), den = K(0.0);
+  R num = K(0.0), den = K(0.0), inn = K(0.0);
   INT j;
 
   for (j = 0; j < n; j++)
@@ -77,18 +109,23 @@ static R otf_err_r(const R *a, const R *b, const INT n)
     num += (a[j] - b[j]) * (a[j] - b[j]);
     den += b[j] * b[j];
   }
+  for (j = 0; j < nin; j++)
+    inn += in[j] * in[j];
+  den = FMAX(den, inn * (R)n * POW(K(0.5), (R)d));
 
   return (den > K(0.0)) ? SQRT(num / den) : SQRT(num);
 }
 
 static int otf_report(const char *module, const int d, const int M,
-  const char *stage, const char *which, const R err)
+  const char *stage, const char *which, const R err, const R tol,
+  const int same_order)
 {
-  const int ok = (err <= OTF_TOL);
+  const int ok = (err <= tol);
 
+  otf_worst[same_order] = FMAX(otf_worst[same_order], err / tol);
   if (!ok)
-    printf("%s_otf d = %d, M = %4d, %-24s, %-7s -> FAIL %.3e > %.3e\n",
-      module, d, M, stage, which, (double)err, (double)OTF_TOL);
+    printf("%s_otf d = %d, M = %4d, %-26s, %-7s -> FAIL %.3e > %.3e\n",
+      module, d, M, stage, which, (double)err, (double)tol);
 
   return ok;
 }
@@ -187,24 +224,29 @@ static void MODULE(otf_random)(T *v, const INT n) \
     v[j] = (T)(Y(drand48)() - K(0.5)); \
 } \
 \
-/* trafo and adjoint of plans a and b, on the same input */ \
+/* trafo and adjoint of plans a and b, on the same input; same_order as for \
+ * otf_tol */ \
 static int MODULE(otf_compare)(MODULE(plan) *a, MODULE(plan) *b, \
-  const T *f_hat, const T *f, const int d, const char *stage) \
+  const T *f_hat, const T *f, const int d, const char *stage, \
+  const int same_order) \
 { \
   int ok = 1; \
   const int M = (int)a->M_total; \
+  const R tol = otf_tol(d, (int)a->m, same_order); \
   memcpy(a->f_hat, f_hat, (size_t)(a->N_total) * sizeof(T)); \
   memcpy(b->f_hat, f_hat, (size_t)(b->N_total) * sizeof(T)); \
   MODULE(trafo)(a); \
   MODULE(trafo)(b); \
   ok &= otf_report(NAME, d, M, stage, "trafo", \
-    ERR((const T*)a->f, (const T*)b->f, a->M_total)); \
+    ERR((const T*)a->f, (const T*)b->f, a->M_total, f_hat, a->N_total, d), \
+    tol, same_order); \
   memcpy(a->f, f, (size_t)(a->M_total) * sizeof(T)); \
   memcpy(b->f, f, (size_t)(b->M_total) * sizeof(T)); \
   MODULE(adjoint)(a); \
   MODULE(adjoint)(b); \
   ok &= otf_report(NAME, d, M, stage, "adjoint", \
-    ERR((const T*)a->f_hat, (const T*)b->f_hat, a->N_total)); \
+    ERR((const T*)a->f_hat, (const T*)b->f_hat, a->N_total, f, a->M_total, \
+    d), tol, same_order); \
   return ok; \
 } \
 \
@@ -265,8 +307,11 @@ static int MODULE(otf_one)(const int d, int *N, const int M, \
   MODULE(precompute_one_psi)(&a); \
   MODULE(precompute_one_psi)(&b); \
   MODULE(precompute_one_psi)(&c); \
-  ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, init); \
-  ok &= MODULE(otf_compare)(&b, &c, f_hat, f, d, "on the fly"); \
+  ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, init, 0); \
+  ok &= MODULE(otf_compare)(&b, &c, f_hat, f, d, "on the fly", 0); \
+  if (d > 1 && !extra) \
+    ok &= MODULE(otf_compare)(&a, &b, f_hat, f, d, "on the fly, same order", \
+      1); \
 \
   /* new nodes; precompute_psi fills the table of a and only sorts the \
    * nodes of b */ \
@@ -278,9 +323,12 @@ static int MODULE(otf_one)(const int d, int *N, const int M, \
   MODULE(precompute_psi)(&a); \
   MODULE(precompute_psi)(&b); \
   MODULE(precompute_full_psi)(&c); \
-  ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, "precompute_psi"); \
+  ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, "precompute_psi", 0); \
   ok &= MODULE(otf_compare)(&b, &c, f_hat, f, d, \
-    "precompute_psi, no table"); \
+    "precompute_psi, no table", 0); \
+  if (d > 1 && !extra) \
+    ok &= MODULE(otf_compare)(&a, &b, f_hat, f, d, \
+      "precompute_psi, same order", 1); \
 \
   MODULE(finalize)(&a); \
   MODULE(finalize)(&b); \
@@ -300,6 +348,7 @@ void MODULE(check_otf)(void) \
   size_t i; \
 \
   Y(srand48)(OTF_SEED); \
+  otf_worst[0] = otf_worst[1] = K(0.0); \
 \
   for (d = 1; d <= 3; d++) \
   { \
@@ -315,6 +364,8 @@ void MODULE(check_otf)(void) \
       } \
   } \
 \
+  printf("%s_otf: largest distance / tolerance %.3f, in the same order " \
+    "%.3f\n", NAME, (double)otf_worst[0], (double)otf_worst[1]); \
   CU_ASSERT(ok); \
 }
 
