@@ -6217,8 +6217,20 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 #endif
   }
   else
+  {
+    /* In 1D the unsorted OpenMP adjoint has to use atomic operations, the
+     * sorted one splits the grid among the threads. Serially, sorting costs
+     * more in the precomputation than the 1D transforms gain from it, unless
+     * the plan is used for about ten transforms or more. */
+#ifdef _OPENMP
+    ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
+                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES |
+                 NFFT_OMP_BLOCKWISE_ADJOINT;
+#else
     ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
                       FFTW_INIT | FFT_OUT_OF_PLACE;
+#endif
+  }
 
   ths->fftw_flags= FFTW_ESTIMATE| FFTW_DESTROY_INPUT;
 

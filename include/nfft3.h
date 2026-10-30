@@ -128,9 +128,12 @@ typedef struct\
              PRE_LIN_PSI. */\
 \
   unsigned flags; /**< Flags for precomputation, (de)allocation, and FFTW
-                       usage, default setting is PRE_PHI_HUT | PRE_PSI
-                       | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-                       | FFT_OUT_OF_PLACE */\
+                       usage. The default setting of nfft_init is
+                       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT
+                       | MALLOC_F | FFTW_INIT, plus FFT_OUT_OF_PLACE for
+                       d = 1 and NFFT_SORT_NODES for d > 1. The OpenMP
+                       library adds NFFT_SORT_NODES
+                       | NFFT_OMP_BLOCKWISE_ADJOINT in every dimension. */\
 \
   unsigned fftw_flags; /**< Flags for the FFTW, default is
                             FFTW_ESTIMATE | FFTW_DESTROY_INPUT */\
