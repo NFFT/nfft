@@ -635,3 +635,77 @@ Three things follow.
    precompute is 5 to 10 percent faster. The per-node window work is
    `(m + 1)(2h + 2)` flops per axis against `4 (2m + 2)^d` for the gather, so
    the window's share, and the saving, falls with the dimension.
+
+## 13. The approach in one place, and a rounding-aware objective
+
+**The object.** Per axis, the window is the `(m + 1) x (2h + 1)` numbers of
+the coefficient table and nothing else. The transform sees them in exactly
+two places: the `2m + 2` tap values at a node's offset, evaluated by Horner in
+`R`, and the deconvolution factors `C(k/n)`. Everything the transform
+computes is a function of these numbers; the Kaiser-Bessel function is only
+where today's numbers come from.
+
+**The constraints.** Evenness (the evaluator folds mirror cells), the
+stencil (`2m + 2` taps, reach `m + 1`), the degree (`h`, the cost), the
+normalization `C(0) = 1`. Within these the coefficients are free.
+
+**The error, exactly.** For frequency `xi = k/n` and node offset `t`,
+
+    computed / exact - 1  =  [D(xi, t) - C(xi)] / C(xi)             (aliasing, exact arithmetic)
+                          +  u [ sum_a |p_a(t)|  +  sum_k |c_{a,k}| |s|^k  +  kappa_fft ] / C(xi)   (rounding)
+
+with `D(xi, t) = sum_a p_a(t) e^(-2 pi i xi (a + t))`. The first term is what
+sections 3 to 12 optimize. The second is the rounding of the gather (a sum of
+`2m + 2` products), of the Horner evaluation (the monomial coefficients'
+cancellation, what the precision caps guard), and of the FFT and
+deconvolution, all divided by `C(xi)`: a window whose transform is small at
+the band edge amplifies every rounding error there. For the truncated
+Kaiser-Bessel window `1/C` at the band edge is `I0(bR)/I0(aR)`, which is the
+`u I0(bR)/I0(aR)` floor the degree generator's README derives, and the only
+handle the library has on it today is to stop raising `m` at `m_opt`.
+
+**The goals one can pitch**, all as functions of the coefficients:
+
+1. Worst case over the band and the offsets (`J_inf`): the l1-ball bound
+   the library's error estimates and tests speak about.
+2. RMS over the band and the offsets (`J_2`): random inputs.
+3. Either of these weighted by the plan's data: the empirical offsets
+   `frac(n x_j)`, a spectral prior on `f_hat`.
+4. Any of these **with the rounding term included**: minimize over the
+   coefficients the maximum over `(xi, t)` of aliasing plus `u` times the
+   amplification. This is the goal "accuracy including floating-point
+   effects". It trades spectral flatness in the band (small `1/C`, low
+   floor) against decay outside it (small aliasing), per `(sigma, m)` and
+   per precision, where Kaiser-Bessel's fixed `b` and the `m_opt` cut-off
+   are blunt instruments.
+
+**Why this is tractable.** For an even window `C(xi) = psi_hat(xi)` is real
+and *linear* in the coefficients, `D` is linear, and the rounding
+amplification is a sum of absolute values of linear forms. Goal 4 is then
+
+    minimize tau  subject to  |D(xi,t) - C(xi)| + u ( sum_a |p_a(t)| + sum_k |c_{a,k}| |s|^k + kappa ) <= tau C(xi)
+                              for all (xi, t),   C(0) = 1,
+
+a second-order cone program: convex, one global optimum, solvable exactly
+offline (Clarabel, ECOS, MOSEK) for certification and for the tables, and
+approached at plan time by the same residual least squares plus Lawson
+weights as goals 1 and 2 (the absolute-value terms become weights in the
+iteration). Goals 1 to 3 are the special case `u = 0`.
+
+**What changes with goal 4.** The deconvolution can no longer be the
+Kaiser-Bessel `I0` formula: with the window's spectrum reshaped, `C` must be
+the polynomial's own transform, which is a closed-form sum over the cells
+and rows (`sin`, `cos` and powers of `1/xi`, or a short Gauss-Legendre
+rule), evaluated per `k` at plan time or tabulated under `PRE_PHI_HUT`. The
+earlier finding that re-optimizing `C` gains nothing (section 5.4) was for
+`u = 0`; with the rounding term it is the point.
+
+**Where the gain is.** With `u = 0` the gain is the constant factor of
+sections 6 and 11 above the floor and nothing at it. Goal 4 acts exactly
+where `u = 0` gives up: float from `m = 3`, double from `m = 6` to `7` at
+`sigma = 2`, where today's error is the `I0(bR)/I0(aR)` floor times `u`. A
+window with a flatter band spectrum lowers that floor; the optimizer finds
+how much flatness the aliasing budget allows. The size of the gain is not
+measured yet; the experiment is the model of section 3 plus the rounding
+term, solved as the SOCP above, validated with `kbgain.c` in float at
+`m = 3, 4` and in double at `m = 7, 8`, where the floor is reachable.
