@@ -488,26 +488,6 @@ static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
   return nt;
 }
 
-/** Sort key of node i of ths->x: tile, then cell in the tile; nodes outside
- *  [0, 0.5] on some axis, whose window may leave the padded grid, get the key
- *  nt * tilevol of the bucket after the nt tiles. */
-static INT node_key(const X(plan) *ths, const INT i, const INT *edge,
-    const INT *ntiles, const INT overflow)
-{
-  const INT d = ths->d;
-  INT c[d], t;
-
-  for (t = 0; t < d; t++)
-  {
-    /* as uo() */
-    c[t] = (INT)FLOOR(ths->x[i * d + t] * (2 * NN(ths->n[t])));
-    if (c[t] < 0 || c[t] > NN(ths->n[t]))
-      return overflow;
-  }
-
-  return Y(tile_key)(d, c, edge, ntiles);
-}
-
 /**
  * Sorts the nodes by the tile of the grid of B and, within a tile, by the
  * cell they lie in, for better cache utilisation in the multiplication with
@@ -519,19 +499,39 @@ static INT node_key(const X(plan) *ths, const INT i, const INT *edge,
 static void sort0(X(plan) *ths)
 {
   const INT d = ths->d, M = ths->M_total;
-  INT edge[d], ntiles[d], nt, tilevol = 1, j, t, rhigh;
+  const INT *n = ths->n;
+  const R *x = ths->x;
+  INT edge[d], ntiles[d], shift[d], nt, tilevol = 1, j, t, rhigh;
   INT *ar_x = ths->index_x, *ar_x_temp;
 
   nt = tile_layout(ths, edge, ntiles);
   for (t = 0; t < d; t++)
+  {
     tilevol *= edge[t];
+    shift[t] = Y(tile_shift)(edge[t], ntiles[t]);
+  }
 
+  /* the key of node j: tile, then cell in the tile, of the cell c it lies in
+   * (as uo()); nodes outside [0, 0.5] on some axis, whose window may leave
+   * the padded grid, get the key nt * tilevol of the bucket after the nt
+   * tiles */
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j)
+  #pragma omp parallel for default(shared) private(j, t)
 #endif
   for (j = 0; j < M; j++)
   {
-    ar_x[2 * j] = node_key(ths, j, edge, ntiles, nt * tilevol);
+    INT tile = 0, local = 0;
+
+    for (t = 0; t < d; t++)
+    {
+      const INT c = (INT)FLOOR(x[j * d + t] * (R)(2 * NN(n[t])));
+
+      if (c < 0 || c > NN(n[t]))
+        break;
+      Y(tile_key_axis)(c, edge[t], ntiles[t], shift[t], &tile, &local);
+    }
+
+    ar_x[2 * j] = t < d ? nt * tilevol : tile * tilevol + local;
     ar_x[2 * j + 1] = j;
   }
 

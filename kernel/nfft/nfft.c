@@ -79,24 +79,25 @@ static inline INT uo_wrap(const R x, const INT n, const INT m)
   return wrap_index((INT)FLOOR(x * (R)(n)) - m, n);
 }
 
+/** uo_wrap without a branch on the sign of the corner, for the sort keys:
+ *  the sort sees the nodes in the caller's order, often random, in which such
+ *  a branch is mispredicted half the time. The kernels keep uo_wrap, whose
+ *  branch measured faster in the serial 3D adjoint. */
+static inline INT uo_wrap_branchfree(const R x, const INT n, const INT m)
+{
+  INT u = (INT)FLOOR(x * (R)(n)) - m;
+
+  u += n & -(INT)(u < 0);
+  u -= n & -(INT)(u >= n);
+
+  return (u >= 0 && u < n) ? u : ((u % n) + n) % n;
+}
+
 /** Tiles of the grid of B (see Y(tile_layout)): the cells are the lower
  *  window corners uo_wrap in [0, n_t) on axis t. */
 static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
 {
   return Y(tile_layout)(ths->d, 2 * ths->m + 2, ths->n, edge, ntiles);
-}
-
-/** Sort key of node i of ths->x: tile, then cell in the tile. */
-static INT node_key(const X(plan) *ths, const INT i, const INT *edge,
-    const INT *ntiles)
-{
-  const INT d = ths->d;
-  INT c[d], t;
-
-  for (t = 0; t < d; t++)
-    c[t] = uo_wrap(ths->x[d * i + t], ths->n[t], ths->m);
-
-  return Y(tile_key)(d, c, edge, ntiles);
 }
 
 /**
@@ -109,20 +110,33 @@ static INT node_key(const X(plan) *ths, const INT i, const INT *edge,
  */
 static void sort0(X(plan) *ths)
 {
-  const INT d = ths->d, M = ths->M_total;
-  INT edge[d], ntiles[d], nt, tilevol = 1, t, i, rhigh;
+  const INT d = ths->d, M = ths->M_total, m = ths->m;
+  const INT *n = ths->n;
+  const R *x = ths->x;
+  INT edge[d], ntiles[d], shift[d], nt, tilevol = 1, t, i, rhigh;
   INT *ar_x = ths->index_x, *ar_x_temp;
 
   nt = tile_layout(ths, edge, ntiles);
   for (t = 0; t < d; t++)
+  {
     tilevol *= edge[t];
+    shift[t] = Y(tile_shift)(edge[t], ntiles[t]);
+  }
 
+  /* the key of node i: tile, then cell in the tile, of the lower corner
+   * uo_wrap of its window */
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(i)
+  #pragma omp parallel for default(shared) private(i, t)
 #endif
   for (i = 0; i < M; i++)
   {
-    ar_x[2 * i] = node_key(ths, i, edge, ntiles);
+    INT tile = 0, local = 0;
+
+    for (t = 0; t < d; t++)
+      Y(tile_key_axis)(uo_wrap_branchfree(x[d * i + t], n[t], m), edge[t],
+          ntiles[t], shift[t], &tile, &local);
+
+    ar_x[2 * i] = tile * tilevol + local;
     ar_x[2 * i + 1] = i;
   }
 

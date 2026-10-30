@@ -2327,29 +2327,57 @@ static inline void Y(B_tensor_adjoint)(const INT d, const INT L,
 INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
     INT *ntiles);
 
-/** Sort key of the cell c (c[t] < ext[t]): the tile index, row-major, times
- *  the tile volume prod(edge), plus the index of the cell in the tile,
- *  row-major. Keys lie below ntiles_total * prod(edge). */
-static inline INT Y(tile_key)(const INT d, const INT *c, const INT *edge,
-    const INT *ntiles)
+/** How Y(tile_key_axis) splits a cell coordinate on an axis with edge cells
+ *  per tile and ntiles tiles: a shift by k for an edge 2^k, -1 for a single
+ *  tile (the coordinate is the cell in the tile), -2 for a division. */
+static inline INT Y(tile_shift)(const INT edge, const INT ntiles)
 {
-  INT t, tile = 0, local = 0;
+  INT k = 0;
 
-  for (t = 0; t < d; t++)
+  if (ntiles == 1)
+    return -1;
+
+  while (((INT)1 << k) < edge)
+    k++;
+
+  return ((INT)1 << k) == edge ? k : -2;
+}
+
+/** Appends the coordinate c < ext of a cell on the next axis, of edge cells
+ *  per tile, ntiles tiles and shift Y(tile_shift)(edge, ntiles), to the
+ *  row-major tile index *tile and the row-major index *local of the cell in
+ *  its tile. After all d axes, the sort key of the cell is *tile times the
+ *  tile volume prod(edge) plus *local; keys lie below ntiles_total *
+ *  prod(edge). The shift spares the divisions for the usual edges. */
+static inline void Y(tile_key_axis)(const INT c, const INT edge,
+    const INT ntiles, const INT shift, INT *tile, INT *local)
+{
+  INT q, r;
+
+  if (shift >= 0)
   {
-    tile = tile * ntiles[t] + c[t] / edge[t];
-    local = local * edge[t] + c[t] % edge[t];
+    q = c >> shift;
+    r = c & (edge - 1);
+  }
+  else if (shift == -1)
+  {
+    q = 0;
+    r = c;
+  }
+  else
+  {
+    q = c / edge;
+    r = c - q * edge;
   }
 
-  for (t = 0; t < d; t++)
-    tile *= edge[t];
-
-  return tile + local;
+  *tile = *tile * ntiles + q;
+  *local = *local * edge + r;
 }
 
 /** From the sorted (key, index) pairs ar_x of M nodes: tile_ptr[b], b <=
  *  nbuckets, the first node of bucket key / tilevol = b or later, so the nodes
- *  of bucket b are tile_ptr[b], ..., tile_ptr[b+1]-1. */
+ *  of bucket b are tile_ptr[b], ..., tile_ptr[b+1]-1. A binary search per
+ *  bucket, so it costs O(nbuckets log M), not a pass over the keys. */
 void Y(tile_ptr_from_keys)(const INT M, const INT *ar_x, const INT tilevol,
     const INT nbuckets, INT *tile_ptr);
 
