@@ -74,7 +74,9 @@ static inline INT wrap_index(INT u, const INT n)
  *  covers the points uo_wrap, ..., uo_wrap+2m+1 of the padded grid of B. */
 static inline INT uo_wrap(const R x, const INT n, const INT m)
 {
-  return wrap_index(LRINT(FLOOR(x * (R)(n))) - m, n);
+  /* a cast, not LRINT: the value is integral, and LRINT is a library call
+   * unless the compiler may ignore errno */
+  return wrap_index((INT)FLOOR(x * (R)(n)) - m, n);
 }
 
 /** Tiles of the grid of B (see Y(tile_layout)): the cells are the lower
