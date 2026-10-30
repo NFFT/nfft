@@ -16,13 +16,9 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <math.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
 
