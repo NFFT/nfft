@@ -217,17 +217,19 @@ typedef ptrdiff_t INT;
   #define GAUSS_E(ax) (ths->b[ths->d + (ax)])
   #define GAUSS_Q(ax) (ths->b[2 * ths->d + (ax)])
   #define GAUSS_PEAK(ax) (ths->b[3 * ths->d + (ax)])
-  /* Run by the FG_RUN recurrence. uo() puts the node in [m, m+1), so the
-   * nearest grid point is index m or m+1; both sides step m times and step
-   * m+1 fills the far end. The side is a masked index, not a select: gcc
-   * turns a select into a branch that mispredicts once per node. */
+  /* Run by the FG_RUN recurrence from the nearest grid point, index m or
+   * m+1: uo() puts the node in [m, m+1) only up to the rounding of x*n.
+   * Both sides step m times and step m+1 fills the far end. The side is a
+   * masked index, not a select: gcc turns a select into a branch that
+   * mispredicts once per node. */
   #define PHI_RUN(dst,n,x,u,ax) \
     do { \
       const INT PHI_RUN_m = ths->m; \
       const R PHI_RUN_b = ths->b[ax]; \
       const R PHI_RUN_t = NX_SUB(n, x, u); \
-      const R PHI_RUN_d = PHI_RUN_t - FLOOR(PHI_RUN_t + K(0.5)); \
-      const INT PHI_RUN_lo = IF(PHI_RUN_d < K(0.0), 1, 0); \
+      const R PHI_RUN_c = FLOOR(PHI_RUN_t + K(0.5)); \
+      const R PHI_RUN_d = PHI_RUN_t - PHI_RUN_c; \
+      const INT PHI_RUN_lo = (INT)PHI_RUN_c - PHI_RUN_m; \
       R *PHI_RUN_p = (dst) + PHI_RUN_m + PHI_RUN_lo; \
       const R PHI_RUN_v0 = EXP(-PHI_RUN_d * PHI_RUN_d / PHI_RUN_b) \
           * GAUSS_PEAK(ax); \

@@ -297,7 +297,8 @@ R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
   }
 
   deg = cut_degree(cheb, w, dg, thr);
-  cheb_to_monomial(coef, cheb, tp, w, deg);
+  /* An odd KB_POLY_DEG_MAX fills its last row from the next coefficient. */
+  cheb_to_monomial(coef, cheb, tp, w, KB_POLY_ROWS(deg) - 1);
 
   tab = (R*) Y(malloc)((size_t)(1 + KB_POLY_ROWS(deg) * w) * sizeof(R));
   tab[0] = (R)deg;
