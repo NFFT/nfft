@@ -778,3 +778,99 @@ works, let alone the own-deconvolution plumbing in the library. What does pay
 at the floor is the aliasing optimum with accurate deconvolution factors,
 1.4x to 1.5x at the float band edge and 1.3x to 1.7x in RMS, and above the
 floor the 4x of sections 6 and 11.
+
+## 15. What is implemented, and further directions
+
+Implemented on `feature/kbpoly-optimize` (see the commit log): the degree
+table from the error functional (`gen/kbpolygen/functional.py`, rule in the
+README), the optional plan-time least-squares correction behind the plan flag
+`OPT_WINDOW` with its guard from the table (`Y(kb_poly_correct)` in
+`kernel/util/kbpoly.c`), the local type `E` and the deconvolution factors
+evaluated in it (`Y(kb_phi_hut)`), and tests that measure the functional in
+C (`tests/kbpoly.c`).
+
+**Spending only the degrees the aliasing error leaves room for.** That was
+the intent of the original rule, and it is what the table does now, with two
+differences that are the whole gain: it measures the polynomial's share of
+the transform error through the functional instead of bounding it by the
+Chebyshev tail summed over the cells, and it sets it against the transform's
+actual error (`c / I0(aR)` at the certified `c = 1.10`) instead of against
+`pi e^(-bR)`, which is 10x to 100x below it. Both kept the polynomial at 0.05
+to 0.5 percent of the error where 5 percent was meant, at the price of one to
+two `h`. With `OPT_WINDOW` the same table still applies: the correction is
+free at the table's degree and lowers the error 4x; it does not need extra
+degrees. The remaining slack is small: the `c = 1.10` lower bound is up to
+2.5x below the actual `c` (0.3 `h`), and a table derived for the corrected
+window's own accuracy would be one `h` lower in 5 of the 30 double cells of
+section 12.
+
+Directions that could still move the worst-case or RMS error, in the order
+of expected value:
+
+1. **Cost-optimal `(sigma, m, h)` for a target accuracy.** The correction's
+   4x is less than one step of `m` (about 100x) and costs nothing, so its
+   value is in letting a plan pick the cheaper `(sigma, m, h)` for a given
+   target. A small cost model (`(2m+2)^d` gather, `(m+1)(2h+2) d` window,
+   `sigma^d N^d log` FFT) over the table would choose all three for the
+   user's accuracy instead of leaving `m` and `sigma` to the caller. That is
+   where the measured 4x turns into wall-clock time.
+2. **Lawson polish for the worst case.** A second level of `OPT_WINDOW`:
+   the same solve, reweighted 10 to 20 times on a denser grid, lowers the
+   band-edge maximum a further 2x where the error is aliasing-dominated
+   (float `m = 2`: `1.7e-5` to `7.7e-6` in the model), at a cost in RMS.
+   Worth it only if the l1-ball worst case is what users are bounded by.
+3. **Node-adaptive weights.** The plan knows its offsets; weighting the `t`
+   samples by their histogram costs nothing in the solve and is exact in the
+   degenerate case of few distinct offsets (shifted grids, polar rays), where
+   the error drops by orders of magnitude, not a factor.
+4. **Spectral weights for the RMS.** For data whose spectrum decays, an RMS
+   objective weighted by the expected `|f_hat|^2` moves the ripple to where
+   the spectrum is empty; same solve, different weights, user-supplied.
+5. **A table for the corrected window.** One `h` lower in a few cells
+   (above); cheap to generate once the generator can run the same solve,
+   which it can since the functional is already there.
+6. **Per-axis degrees.** `Y(kb_poly_init)` uses the largest degree any axis
+   needs; with unequal `sigma` per axis the other axes pay for it. A per-axis
+   degree in the table stride would be exact and cheap; the gain is the
+   fraction of window work on the cheaper axes.
+7. **Rounding, double build.** The band-edge floor in double is the `1/C`
+   amplification of the gather's rounding (section 14); a window shape
+   cannot buy it back (measured), and only an `E` gather would, which is a
+   speed trade nobody wants in the hot loop. In float the `E` evaluation of
+   `PHI_HUT` is implemented and is the available part.
+8. **The stencil itself.** The 2m+2 taps anchored below the node are fixed
+   by `uo()`; a centred odd stencil of 2m+1 taps at reach `m + 1/2` changes
+   accuracy per tap, not obviously for the better, and touches every module.
+   Not recommended without a measured case for it.
+
+### 15.1 Measured on the implementation
+
+Through the real plans on this branch (`kbgain3.c`: stock versus the same
+plan with `OPT_WINDOW`, accurate reference), `N = 2048`, 20000 nodes, band
+edge maximum / RMS on random input. Raw output in `results/gain_lib_*.txt`.
+
+| build | sigma, m | stored degree | stock edge / RMS | OPT_WINDOW edge / RMS | gain |
+|---|---|---|---|---|---|
+| double | 2, 2 | 6 | 2.71e-5 / 4.16e-6 | 1.25e-5 / 2.87e-6 | 2.2x / 1.45x |
+| double | 2, 4 | 10 | 4.71e-9 / 4.95e-10 | 1.42e-9 / 3.33e-10 | 3.3x / 1.49x |
+| double | 2, 6 | 12 | 7.73e-13 / 5.92e-14 | 2.32e-13 / 4.11e-14 | 3.3x / 1.44x |
+| double | 1.25, 6 | 10 | 3.82e-8 / 2.27e-9 | 1.55e-8 / 1.94e-9 | 2.5x / 1.17x |
+| double | 4, 3 | 8 | 1.05e-8 / 1.50e-9 | 2.85e-9 / 8.91e-10 | 3.7x / 1.68x |
+| double | 1.5, 2 | 6 | 1.80e-4 / 3.13e-5 | 1.47e-4 / 2.42e-5 | 1.2x / 1.30x |
+| float | 2, 2 | 6 | 2.71e-5 / 4.16e-6 | 1.26e-5 / 2.88e-6 | 2.2x / 1.44x |
+| float | 2, 3 | 8 | 6.95e-7 / 2.45e-7 | 5.77e-7 / 1.61e-7 | 1.2x / 1.53x |
+| float | 2, 4 | 8 | 9.02e-7 / 1.92e-7 | 6.10e-7 / 1.63e-7 | 1.5x / 1.18x |
+
+The stored degrees are the new table's: two below develop's at `(2, 2)`,
+`(2, 4)`, `(2, 6)` and `(4, 3)`, which is why the stock worst case here is
+at the Kaiser-Bessel level at a sixth to a third less window work. The
+correction's policy is least squares with the uniform-band quadrature
+weights, then up to three floored Lawson reweightings accepted only if they
+lower the maximum and raise the grid RMS by at most a tenth; it improves
+both measures in every cell measured, at 2x to 4x in the worst case and
+1.2x to 1.7x in RMS, below the max-only figures of section 11 by design.
+In the test suite (`opt` rows of `tests/kbpoly.c`) the functional's `J_inf`
+falls 2x to 4.8x in the 60 or so double cells the guard admits and the
+table is untouched in the rest. The `m_opt` guard, on `bR`, replaced an
+`aR` guard that missed the `1/C` amplification of the floor and let the
+correction fit noise at large `m` in long double.

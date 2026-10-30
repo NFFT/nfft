@@ -1,6 +1,6 @@
 # 04: The local type `E` and the regime guard table
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: PRD R3, G5, D5, D6, Q2. Depends on: issue 01 (functional) for the
 thresholds. Background: `analysis.md` section 10.

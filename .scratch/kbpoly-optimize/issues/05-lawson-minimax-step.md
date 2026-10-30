@@ -1,6 +1,6 @@
 # 05: Lawson minimax step on top of the least-squares correction
 
-Status: ready-for-agent
+Status: done in part (feature/kbpoly-optimize): three floored reweightings inside Y(kb_poly_correct), accepted only when the RMS stays within a tenth of least squares; a full minimax level remains open
 
 Part of: PRD G3, R6. Depends on: issues 03 and 04. Background: `analysis.md`
 sections 5.2, 6.2; prototypes `kbopt3.py`, `kbopt4.py`.

@@ -1,6 +1,6 @@
 # 02: Derive the degree table from the error functional
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: PRD R2, D4. Depends on: issue 01. Background: `analysis.md` sections
 6.1 and 9.

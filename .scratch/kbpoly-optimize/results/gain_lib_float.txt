@@ -1,0 +1,15 @@
+== float sigma=2 m=2
+stock    random: max|f-fd|/sum|fhat| = 7.437e-07   rms est. of J_2 = 4.162e-06
+stock    single k:  k=    0: 9.120e-06  k=   64: 9.278e-06  k=  128: 9.994e-06  k=  256: 1.094e-05  k=  512: 1.225e-05  k=  768: 1.621e-05  k= 1023: 2.712e-05
+opt      random: max|f-fd|/sum|fhat| = 2.432e-07   rms est. of J_2 = 2.881e-06
+opt      single k:  k=    0: 2.205e-06  k=   64: 2.241e-06  k=  128: 2.427e-06  k=  256: 2.780e-06  k=  512: 3.677e-06  k=  768: 2.455e-06  k= 1023: 1.258e-05
+== float sigma=2 m=3
+stock    random: max|f-fd|/sum|fhat| = 2.654e-08   rms est. of J_2 = 2.448e-07
+stock    single k:  k=    0: 3.576e-07  k=   64: 4.431e-07  k=  128: 4.126e-07  k=  256: 2.806e-07  k=  512: 2.557e-07  k=  768: 4.394e-07  k= 1023: 6.946e-07
+opt      random: max|f-fd|/sum|fhat| = 1.457e-08   rms est. of J_2 = 1.605e-07
+opt      single k:  k=    0: 2.384e-07  k=   64: 2.141e-07  k=  128: 2.250e-07  k=  256: 2.260e-07  k=  512: 2.116e-07  k=  768: 2.946e-07  k= 1023: 5.768e-07
+== float sigma=2 m=4
+stock    random: max|f-fd|/sum|fhat| = 2.053e-08   rms est. of J_2 = 1.922e-07
+stock    single k:  k=    0: 2.384e-07  k=   64: 2.877e-07  k=  128: 2.544e-07  k=  256: 2.629e-07  k=  512: 2.669e-07  k=  768: 4.335e-07  k= 1023: 9.023e-07
+opt      random: max|f-fd|/sum|fhat| = 1.529e-08   rms est. of J_2 = 1.629e-07
+opt      single k:  k=    0: 1.788e-07  k=   64: 2.212e-07  k=  128: 2.272e-07  k=  256: 2.479e-07  k=  512: 2.124e-07  k=  768: 2.528e-07  k= 1023: 6.100e-07

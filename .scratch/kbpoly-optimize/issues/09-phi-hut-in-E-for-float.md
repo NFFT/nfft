@@ -1,6 +1,6 @@
 # 09: Evaluate the deconvolution factors in `E` in the float build
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: PRD addendum. Background: `analysis.md` section 14.
 

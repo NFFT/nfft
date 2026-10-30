@@ -1,6 +1,6 @@
 # 03: Plan-time least-squares correction of the polynomial window
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: PRD G2, R4, R5, R7, P1, D1, D2, D6. Depends on: issue 04 (for `E`
 and the guard) can be developed in parallel but must land first. Background:

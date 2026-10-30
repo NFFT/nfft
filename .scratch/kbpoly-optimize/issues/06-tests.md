@@ -1,6 +1,6 @@
 # 06: Tests for the corrected window
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: PRD P2, C3. Depends on: issues 02, 03, 04 (05 for the Lawson cases).
 

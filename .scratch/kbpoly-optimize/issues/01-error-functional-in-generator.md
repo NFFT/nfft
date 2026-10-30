@@ -1,6 +1,6 @@
 # 01: Error functional of a piecewise polynomial window in the generator
 
-Status: ready-for-agent
+Status: done (feature/kbpoly-optimize)
 
 Part of: `.scratch/kbpoly-optimize/PRD.md` (R1). Background: `analysis.md`
 section 3; prototype `kbopt.py` (class `Model`).

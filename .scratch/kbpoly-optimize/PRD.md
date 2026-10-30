@@ -1,6 +1,6 @@
 # PRD: Fit the polynomial Kaiser-Bessel window to the transform error
 
-Status: draft for review. Background and measurements: `analysis.md` in this
+Status: implemented on `feature/kbpoly-optimize` (issues 01 to 04, 06 and 09 in one pass; 05 folded into 03 as the bounded reweighting; 07 and 08 open). Measurements in analysis section 15.1. Background and measurements: `analysis.md` in this
 directory (sections referenced below as A.n).
 
 ## Problem

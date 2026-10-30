@@ -26,6 +26,7 @@
 #include <complex.h>
 #endif
 #include "nfft3.h"
+#define WINDOW_FLAGS (ths->nnfft_flags)
 #include "infft.h"
 
 

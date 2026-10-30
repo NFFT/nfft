@@ -203,12 +203,13 @@ uv run --with mpmath==1.3.0 python -m gen.sincgen.generate
 ```
 
 **Polynomial Kaiser-Bessel degree** (`kernel/util/kbpoly.c`), the degree of
-the per-plan polynomial window per sigma in [1.1, 4], m and format. Table in
-`kernel/util/kbpoly_data.h`, produced by `gen/kbpolygen` from exact
-Chebyshev tails:
+the per-plan polynomial window per sigma in [1.1, 4], m and format, and the
+guard of its optional plan-time correction (`OPT_WINDOW`). Table in
+`kernel/util/kbpoly_data.h`, produced by `gen/kbpolygen` from the exact
+interpolation error measured through the transform's error functional:
 
 ```bash
-uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate
+uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate
 ```
 
 The generators' own notes are in `gen/besselgen/README.md`,
@@ -231,7 +232,7 @@ reuses the minimax fitter in `gen/besselgen/remez.py`.
 | Pre-commit checks (zizmor on workflows) | `pre-commit install` once; `pre-commit run --all-files`. Do not bypass with `--no-verify`. |
 | Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m gen.besselgen.generate` (§5) |
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m gen.sincgen.generate` (§5) |
-| Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate` (§5) |
+| Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |
 
 CI mirrors these steps in `.github/workflows/build-linux.yml`, `bench-linux.yml`,

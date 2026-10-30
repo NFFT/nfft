@@ -5,46 +5,57 @@ Produces `kernel/util/kbpoly_data.h`, the table `Y(kb_poly_degree)`
 Kaiser-Bessel window, for every floating-point format the library builds for:
 
 ```bash
-uv run --with mpmath==1.3.0 python -m gen.kbpolygen.generate
+uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate
 ```
 
 About 50 s on 10 cores. Tests:
 
 ```bash
-uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/kbpolygen/tests -q
+uv run --with mpmath==1.3.0 --with numpy --with pytest python -m pytest gen/kbpolygen/tests -q
 ```
 
 ## The rule
 
-The plan fits one polynomial per unit cell of the window. Truncating its
-Chebyshev series after degree `d` leaves an error that is smooth in the offset,
-so it adds up over the `2m + 2` taps, unlike rounding noise. The table holds
-the lowest `d` with
+The plan fits one polynomial per unit cell of |nx| and the transform sees
+it only through the 2m + 2 taps at a node's offset and the deconvolution
+`C(xi)`. The relative error the interpolation adds to the transform is
 
-    2 sum_{j>d} max_cells |c_j| <= max(0.05 pi e^(-b R), eps) * peak
+    poly_part = max_{xi, t} |D_e(xi, t)| / C(xi),
 
-`R = m + 1` the reach, `b = pi (2 - 1/sigma)`.
+`D_e` the tap sum of the interpolation error (`functional.py`). The table
+holds, per format, the lowest half degree `h` (degree `2h`, even: at even
+degree the leading interpolation error is odd in the cell and has no mean)
+with
 
-- `0.05 pi e^(-b R)` keeps the transform within 5% of its own worst-case error
-  `E = c / I0(2 pi R sqrt(1 - 1/sigma))`. Certified and sampled values put `c`
-  in [1.10, 2.81] over sigma 1.1 .. 4; the rule takes `c = 1`.
-- `eps` keeps the polynomial below the transform's rounding noise where `E` is
-  smaller still.
+    poly_part <= max(0.05 * 1.10 / I0(a R), 2 eps),   a = 2 pi sqrt(1 - 1/sigma), R = m + 1.
 
-The plan raises an odd `d` by one: at even degree the leading interpolation
-error is odd in the cell and has no mean, which would otherwise add up over
-the taps (`KB_POLY_ROWS` in `include/infft.h`).
+- `1.10 / I0(a R)` is the transform's own worst-case error `c / I0(a R)` at
+  the certified lower end `c = 1.10` of `c` over sigma 1.1 .. 4, so the
+  polynomial adds at most 5% of it.
+- `2 eps` keeps the polynomial below the transform's rounding noise where
+  the error is smaller still.
 
-The coefficients are computed in mpmath, so the table is free of the rounding
-noise a fit in working precision sees; in float that noise moved the degree by
-one at random.
+The interpolation error coefficients are exact (mpmath); the functional's
+sum, which cancels nothing, runs in double from them and is accurate for
+every format. Compared with the earlier rule, which held the Chebyshev tail
+summed over the cells to 5% of `pi e^(-bR)`, this measures the quantity the
+transform sees and uses the actual error as the reference; it is one to
+two `h` lower in most of the table.
+
+## The correction guard
+
+`KB_POLY_BR_LS_<mant>` is the `b R` up to which the optional plan-time
+correction of `Y(kb_poly_correct)` pays in a type of that mantissa width:
+the truncation error `1.10 / I0(a R)` is still 30 times the round-off floor
+`u I0(b R) / I0(a R)`, the `m_opt` rule below with a margin of 30. Past it
+the correction would fit rounding noise; `Y(kb_poly_init)` skips it there.
 
 ## Layout
 
-Per format and `m`: the degree at sigma 1.1 and the sigma thresholds, in
-units of 1e-4, from each of which the degree is one higher. The generator
-stops if the degree ever falls or jumps in sigma. Thresholds are rounded
-down, so a lookup never gives less than the exact degree.
+Per format and `m`: `h` at sigma 1.1 and the sigma thresholds, in units of
+1e-4, from each of which `h` is one higher (a step of two repeats the
+threshold). The generator stops if `h` ever falls in sigma. Thresholds are
+rounded down, so a lookup never gives less than the exact `h`.
 
 ## Rows stop at m_opt
 

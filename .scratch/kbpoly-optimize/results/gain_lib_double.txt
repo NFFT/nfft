@@ -1,0 +1,30 @@
+== sigma=2 m=2
+stock    random: max|f-fd|/sum|fhat| = 7.414e-07   rms est. of J_2 = 4.155e-06
+stock    single k:  k=    0: 9.037e-06  k=   64: 9.265e-06  k=  128: 9.824e-06  k=  256: 1.086e-05  k=  512: 1.226e-05  k=  768: 1.624e-05  k= 1023: 2.708e-05
+opt      random: max|f-fd|/sum|fhat| = 2.405e-07   rms est. of J_2 = 2.873e-06
+opt      single k:  k=    0: 2.207e-06  k=   64: 2.252e-06  k=  128: 2.338e-06  k=  256: 2.692e-06  k=  512: 3.567e-06  k=  768: 2.423e-06  k= 1023: 1.249e-05
+== sigma=2 m=4
+stock    random: max|f-fd|/sum|fhat| = 1.130e-10   rms est. of J_2 = 4.945e-10
+stock    single k:  k=    0: 9.352e-10  k=   64: 9.796e-10  k=  128: 1.068e-09  k=  256: 1.101e-09  k=  512: 1.667e-09  k=  768: 2.679e-09  k= 1023: 4.710e-09
+opt      random: max|f-fd|/sum|fhat| = 2.370e-11   rms est. of J_2 = 3.326e-10
+opt      single k:  k=    0: 1.436e-10  k=   64: 1.250e-10  k=  128: 9.989e-11  k=  256: 1.559e-10  k=  512: 2.362e-10  k=  768: 4.415e-10  k= 1023: 1.417e-09
+== sigma=2 m=6
+stock    random: max|f-fd|/sum|fhat| = 1.270e-14   rms est. of J_2 = 5.918e-14
+stock    single k:  k=    0: 1.181e-13  k=   64: 1.084e-13  k=  128: 1.030e-13  k=  256: 1.204e-13  k=  512: 1.443e-13  k=  768: 2.919e-13  k= 1023: 7.729e-13
+opt      random: max|f-fd|/sum|fhat| = 2.722e-15   rms est. of J_2 = 4.112e-14
+opt      single k:  k=    0: 3.209e-14  k=   64: 2.052e-14  k=  128: 1.421e-14  k=  256: 2.368e-14  k=  512: 2.205e-14  k=  768: 3.628e-14  k= 1023: 2.323e-13
+== sigma=1.25 m=6
+stock    random: max|f-fd|/sum|fhat| = 3.364e-10   rms est. of J_2 = 2.274e-09
+stock    single k:  k=    0: 6.636e-11  k=   64: 5.576e-11  k=  128: 6.670e-11  k=  256: 7.356e-11  k=  512: 2.260e-10  k=  768: 1.740e-09  k= 1023: 3.818e-08
+opt      random: max|f-fd|/sum|fhat| = 1.187e-10   rms est. of J_2 = 1.938e-09
+opt      single k:  k=    0: 4.972e-10  k=   64: 5.893e-10  k=  128: 6.692e-10  k=  256: 5.034e-10  k=  512: 6.229e-10  k=  768: 8.355e-10  k= 1023: 1.551e-08
+== sigma=4 m=3
+stock    random: max|f-fd|/sum|fhat| = 3.833e-10   rms est. of J_2 = 1.496e-09
+stock    single k:  k=    0: 4.875e-09  k=   64: 4.962e-09  k=  128: 5.189e-09  k=  256: 5.734e-09  k=  512: 6.004e-09  k=  768: 6.088e-09  k= 1023: 1.050e-08
+opt      random: max|f-fd|/sum|fhat| = 7.566e-11   rms est. of J_2 = 8.914e-10
+opt      single k:  k=    0: 6.230e-10  k=   64: 5.384e-10  k=  128: 7.329e-10  k=  256: 1.009e-09  k=  512: 5.756e-10  k=  768: 6.527e-10  k= 1023: 2.854e-09
+== sigma=1.5 m=2
+stock    random: max|f-fd|/sum|fhat| = 5.836e-06   rms est. of J_2 = 3.132e-05
+stock    single k:  k=    0: 3.168e-05  k=   64: 3.378e-05  k=  128: 3.850e-05  k=  256: 4.520e-05  k=  512: 5.284e-05  k=  768: 1.030e-04  k= 1023: 1.796e-04
+opt      random: max|f-fd|/sum|fhat| = 2.887e-06   rms est. of J_2 = 2.416e-05
+opt      single k:  k=    0: 3.777e-05  k=   64: 3.749e-05  k=  128: 3.671e-05  k=  256: 3.460e-05  k=  512: 4.296e-05  k=  768: 3.990e-05  k= 1023: 1.474e-04

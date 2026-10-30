@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <CUnit/CUnit.h>
 #include "nfft3.h"
 #include "infft.h"
@@ -40,15 +41,71 @@ static R kb_peak(const R b, const R lg_tail, const R peak_inv, const R mr)
 
 /* Expected fit error at the degree Y(kb_poly_degree) picks: the tolerance, or
  * 7.5 eps (rounding plateau up to 6 eps, 1 eps truncation, margin). */
+/* 5% of the transform error c / I0(a R), c = 1.10, a = 2 pi sqrt(1 - 1/sigma),
+ * or 2 eps where that is larger: the table rule of gen/kbpolygen. */
 static R pick_target(const R b, const R reach)
 {
-  const R tol = K(0.05) * KPI * EXP(-b * reach);
-  const R lowest = K(7.5) * Y(float_property)(NFFT_EPSILON);
+  const R sigma = KPI / (K2PI - b);
+  const R ar = K2PI * SQRT(K(1.0) - K(1.0) / sigma) * reach;
+  const R alias = K(1.10) * EXP(-ar) / Y(bessel_i0_exp_scaled)(ar);
+  const R tol = K(0.05) * alias;
+  const R lowest = K(2.0) * Y(float_property)(NFFT_EPSILON);
 
   return IF(tol > lowest, tol, lowest);
 }
 
-/* sigma = n / N with N = 120 and n even. */
+#define KB_FN_NXI 40
+#define KB_FN_NT 32
+
+/* The transform's error functional of a table, on a grid of frequencies xi
+ * in [0, 1/(2 sigma)] and offsets t in [0, 1): J_inf = max |D / C - 1| with D
+ * the sum of the 2m+2 taps times exp(-2 pi i xi (position)), C = PHI_HUT; and
+ * the polynomial's own part max |D_poly - D_phi| / C, D_phi the same sum of
+ * the closed-form window. Tap l of a run anchored at the grid point below the
+ * node sits at nx0 - l, nx0 = m + t. */
+static void functional(const R *coef, const INT m, const INT deg, const R b,
+    const R lt, const R pki, const R i0e_pki, R *j_inf, R *poly_part)
+{
+  const INT w = 2 * m + 2;
+  const R reach = (R)m + K(1.0), sigma = KPI / (K2PI - b);
+  R *got = (R*) Y(malloc)((size_t)(2 * w) * sizeof(R)), *ref = got + w;
+  INT i, q, l;
+
+  *j_inf = *poly_part = K(0.0);
+
+  for (i = 0; i < KB_FN_NXI; i++)
+  {
+    const R xi = (R)i / (R)(KB_FN_NXI - 1) / (K(2.0) * sigma);
+    const R C = Y(kb_phi_hut)(b, i0e_pki, reach, K(1.0), xi);
+
+    for (q = 0; q < KB_FN_NT; q++)
+    {
+      const R t = ((R)q + K(0.5)) / (R)KB_FN_NT, nx0 = (R)m + t;
+      R dre = K(0.0), dim = K(0.0), ere = K(0.0), eim = K(0.0), e;
+
+      Y(kb_poly_run)(got, coef, m, deg, nx0);
+      Y(kb_phi_run)(ref, b, lt, pki, reach, m, nx0);
+
+      for (l = 0; l < w; l++)
+      {
+        const R ph = -K2PI * xi * (nx0 - (R)l), c = COS(ph), sn = SIN(ph);
+
+        dre += got[l] * c;
+        dim += got[l] * sn;
+        ere += (got[l] - ref[l]) * c;
+        eim += (got[l] - ref[l]) * sn;
+      }
+
+      e = SQRT((dre / C - K(1.0)) * (dre / C - K(1.0)) + dim * dim / (C * C));
+      *j_inf = IF(e > *j_inf, e, *j_inf);
+      e = SQRT(ere * ere + eim * eim) / C;
+      *poly_part = IF(e > *poly_part, e, *poly_part);
+    }
+  }
+
+  Y(free)(got);
+}
+
 #define KB_N 120
 static const INT kb_n[] = {132, 150, 180, 210, 240, 300, 360, 480};
 #define KB_NSIGMA (sizeof(kb_n) / sizeof(kb_n[0]))
@@ -84,54 +141,109 @@ void X(check_kaiser_bessel_poly)(void)
       const R reach = (R)m + K(1.0);
       const R lt = Y(bessel_i0_logtail)(reach * b);
       const R pki = EXP(-reach * b - lt);
+      const R i0e_pki = K(1.0) / Y(bessel_i0_exp_scaled)(reach * b);
       const R peak = kb_peak(b, lt, pki, reach);
-      const INT deg = Y(kb_poly_degree)(b, reach, m), w = 2 * m + 2;
+      const INT deg = Y(kb_poly_degree)(b, reach, m);
       const INT cols = KB_POLY_COLS(m);
-      const R bound = K(2.0) * pick_target(b, reach);
+      const R tol = pick_target(b, reach);
+      /* The functional is formed in R from taps that each carry a few ulp,
+       * divided by C, which is smallest at the band edge. */
+      const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * sigma, K(1.0));
+      const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
+          / cmin;
+      const R bound = K(1.1) * tol + slack;
       R *coef = (R*) Y(malloc)((size_t)(KB_POLY_ROWS(deg) * cols) * sizeof(R));
-      R *got = (R*) Y(malloc)((size_t)w * sizeof(R));
-      R worst = K(0.0);
-      INT i, l;
+      R j_inf, part, worst = K(0.0);
+      INT i;
       int ok;
 
       Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
+      functional(coef, m, deg, b, lt, pki, i0e_pki, &j_inf, &part);
 
-      /* Offsets off the interpolation nodes, where the residual is zero by
-       * construction. Runs start in [m, m + 1], anchored at the grid point
-       * below the node; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
+      /* The single-point evaluator, out to |nx| = m + 2 where PRE_LIN_PSI
+       * reads it, against the closed form. Its error is the interpolation
+       * error itself, up to two orders above its share of the transform
+       * error, which cancels across the taps; PRE_LIN_PSI's own
+       * interpolation error is 1e-4 and above, so this is a sanity bound,
+       * with 1e-12 for the formats whose tolerance is below any use of a
+       * single point. */
       for (i = 0; i <= 512; i++)
       {
-        const R nx0 = (R)m + (R)i / K(512.0);
         const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
-        R err;
-
-        Y(kb_poly_run)(got, coef, m, deg, nx0);
-
-        for (l = 0; l < w; l++)
-        {
-          const R ref = Y(kb_phi)(b, lt, pki, reach, nx0 - (R)l);
-
-          err = ABS(got[l] - ref) / peak;
-
-          if (err > worst)
-            worst = err;
-        }
-
-        err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
+        const R err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
             - Y(kb_phi)(b, lt, pki, reach, nx)) / peak;
 
-        if (err > worst)
-          worst = err;
+        worst = IF(err > worst, err, worst);
       }
 
-      ok = IF(worst < bound && deg <= KB_POLY_DEG_MAX, 1, 0);
-      printf("poly[sigma=" __FE__ ", m=%2td, deg=%2td] err_peak = " __FE__
-          " %-2s " __FE__ " -> %-4s\n", sigma, (ptrdiff_t)m,
-          (ptrdiff_t)deg, worst, IF(ok == 0, ">=", "<"), bound,
-          IF(ok == 0, "FAIL", "OK"));
+      ok = IF(part < bound && worst < K(100.0) * bound + K(1E-12)
+          && deg <= KB_POLY_DEG_MAX, 1, 0);
+      printf("poly[sigma=" __FE__ ", m=%2td, deg=%2td] part = " __FE__
+          " phi = " __FE__ " %-2s " __FE__ ", J_inf = " __FE__ " -> %-4s\n",
+          sigma, (ptrdiff_t)m, (ptrdiff_t)deg, part, worst,
+          IF(ok == 0, ">=", "<"), bound, j_inf, IF(ok == 0, "FAIL", "OK"));
       CU_ASSERT(ok == 1);
 
-      Y(free)(got);
+      Y(free)(coef);
+    }
+
+  printf("\n");
+}
+
+/* The least-squares correction lowers the functional's J_inf, or leaves the
+ * table alone where its guard says the error is at the rounding floor. */
+void X(check_kaiser_bessel_poly_opt)(void)
+{
+  unsigned int s;
+  INT m;
+
+  printf("KAISER-BESSEL POLYNOMIAL OPT\n----------------------------\n");
+
+  for (s = 0; s < KB_NSIGMA; s++)
+    for (m = 2; m <= KB_M_MAX; m = kb_m_next(m))
+    {
+      const R sigma = (R)kb_n[s] / (R)KB_N;
+      const R b = KPI * (K(2.0) - K(1.0) / sigma);
+      const R reach = (R)m + K(1.0);
+      const R lt = Y(bessel_i0_logtail)(reach * b);
+      const R pki = EXP(-reach * b - lt);
+      const R i0e_pki = K(1.0) / Y(bessel_i0_exp_scaled)(reach * b);
+      const INT deg = Y(kb_poly_degree)(b, reach, m);
+      const INT n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+      const int admitted = Y(kb_poly_correct_ok)(b, m);
+      const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * sigma, K(1.0));
+      const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
+          / cmin;
+      R *coef = (R*) Y(malloc)((size_t)(2 * n) * sizeof(R)), *plain = coef + n;
+      R j0, j1, p0, p1;
+      INT i;
+      int ok;
+
+      Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
+      memcpy(plain, coef, (size_t)n * sizeof(R));
+      functional(plain, m, deg, b, lt, pki, i0e_pki, &j0, &p0);
+
+      if (admitted)
+        Y(kb_poly_correct)(coef, b, i0e_pki, m, deg);
+
+      functional(coef, m, deg, b, lt, pki, i0e_pki, &j1, &p1);
+
+      if (admitted)
+        ok = IF(j1 <= K(1.02) * j0 + slack, 1, 0);
+      else
+      {
+        ok = 1;
+
+        for (i = 0; i < n; i++)
+          ok = IF(coef[i] == plain[i], ok, 0);
+      }
+
+      printf("opt[sigma=" __FE__ ", m=%2td, deg=%2td] %s J_inf " __FE__
+          " -> " __FE__ " (%.2fx) -> %-4s\n", sigma, (ptrdiff_t)m,
+          (ptrdiff_t)deg, admitted ? "corrected" : "guarded  ", j0, j1,
+          (double)(j0 / j1), IF(ok == 0, "FAIL", "OK"));
+      CU_ASSERT(ok == 1);
+
       Y(free)(coef);
     }
 
@@ -259,17 +371,19 @@ static void MOD##_poly_trafo(void) \
       | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE; \
   unsigned int s; \
   INT m, j; \
+  int opt; \
 \
   for (s = 0; s < KB_NSIGMA; s++) \
     for (m = 2; m <= KB_M_MAX; m = kb_m_next(m)) \
+    for (opt = 0; opt < 2; opt++) \
     { \
       int N[1] = {KB_N}, n[1] = {(int)kb_n[s] + (NADJ)}; \
       MOD(plan) pp, pa; \
       R ep, ea, uk, bound; \
       int ok; \
 \
-      MOD(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags, \
-          FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
+      MOD(init_guru)(&pp, 1, N, (int)M, n, (int)m, \
+          flags | (opt ? OPT_WINDOW : 0), FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
       MOD(init_guru)(&pa, 1, N, (int)M, n, (int)m, flags, \
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
 \
@@ -287,10 +401,11 @@ static void MOD##_poly_trafo(void) \
       bound = K(1.05) * ea + K(2.0) * uk; \
       ok = IF(ep <= bound, 1, 0); \
 \
-      printf(NAME "[sigma=%5.2f, m=%2td, deg=%2td] poly %10.3e analytic " \
+      printf(NAME "[sigma=%5.2f, m=%2td, deg=%2td%s] poly %10.3e analytic " \
           "%10.3e ratio %6.3f, in u*kappa %7.2f %7.2f -> %-4s\n", \
           (double)((R)kb_n[s] / (R)KB_N), (ptrdiff_t)m, \
-          (ptrdiff_t)(INT)pp.spline_coeffs[0], (double)ep, (double)ea, \
+          (ptrdiff_t)(INT)pp.spline_coeffs[0], opt ? ", opt" : "", \
+          (double)ep, (double)ea, \
           (double)(ep / ea), (double)(ep / uk), (double)(ea / uk), \
           IF(ok == 0, "FAIL", "OK")); \
       CU_ASSERT(ok == 1); \
@@ -320,19 +435,21 @@ void X(check_kaiser_bessel_poly_trafo)(void)
       | MALLOC_F_HAT | FFTW_INIT | FFT_OUT_OF_PLACE;
   unsigned int s;
   INT m, j;
+  int opt;
 
   printf("KAISER-BESSEL POLYNOMIAL TRAFO\n------------------------------\n");
   Y(srand48)(1234567890L);
 
   for (s = 0; s < KB_NSIGMA; s++)
     for (m = 2; m <= KB_M_MAX; m = kb_m_next(m))
+    for (opt = 0; opt < 2; opt++)
     {
       int N[1] = {KB_N}, n[1] = {(int)kb_n[s]};
       NFFT(plan) pp, pa;
       R ep, ea;
 
-      NFFT(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags,
-          FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+      NFFT(init_guru)(&pp, 1, N, (int)M, n, (int)m,
+          flags | (opt ? OPT_WINDOW : 0), FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
       NFFT(init_guru)(&pa, 1, N, (int)M, n, (int)m, flags,
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
@@ -355,12 +472,12 @@ void X(check_kaiser_bessel_poly_trafo)(void)
         const R bound = K(1.05) * ea + K(2.0) * uk;
         const int ok = IF(ep <= bound, 1, 0);
 
-        printf("trafo[sigma=%5.2f, m=%2td, deg=%2td] poly %10.3e analytic "
+        printf("trafo[sigma=%5.2f, m=%2td, deg=%2td%s] poly %10.3e analytic "
             "%10.3e ratio %6.3f, in u*kappa %7.2f %7.2f -> %-4s\n",
             (double)((R)kb_n[s] / (R)KB_N), (ptrdiff_t)m,
-            (ptrdiff_t)(INT)pp.spline_coeffs[0], (double)ep, (double)ea,
-            (double)(ep / ea), (double)(ep / uk), (double)(ea / uk),
-            IF(ok == 0, "FAIL", "OK"));
+            (ptrdiff_t)(INT)pp.spline_coeffs[0], opt ? ", opt" : "",
+            (double)ep, (double)ea, (double)(ep / ea), (double)(ep / uk),
+            (double)(ea / uk), IF(ok == 0, "FAIL", "OK"));
         CU_ASSERT(ok == 1);
       }
 
@@ -391,6 +508,13 @@ void X(check_kaiser_bessel_poly_trafo)(void)
 {
   printf("KAISER-BESSEL POLYNOMIAL TRAFO\n------------------------------\n"
       "skipped: window is not Kaiser-Bessel\n\n");
+  CU_ASSERT(1);
+}
+
+void X(check_kaiser_bessel_poly_opt)(void)
+{
+  printf("KAISER-BESSEL POLYNOMIAL OPT\n----------------------------\n");
+  printf("skipped: not the Kaiser-Bessel window\n\n");
   CU_ASSERT(1);
 }
 
