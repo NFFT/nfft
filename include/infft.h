@@ -190,6 +190,20 @@ typedef ptrdiff_t INT;
  * node by node. */
 #define NFFT_NODE_BLOCK 32
 
+/* Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
+ * fewer in the last block. */
+#define NFFT_BLOCK_LEN(k0,k1) \
+  IF((k1) - (k0) < NFFT_NODE_BLOCK, (k1) - (k0), NFFT_NODE_BLOCK)
+
+/* Whether B of the NFFT, NFCT and NFST evaluates the window on the fly a
+ * block of nodes at a time (the window_block of each module), for a plan of
+ * dimension d with the given flags (nfft3.h): in 1D without a psi table. With
+ * d >= 2 the window is a smaller part of the work per node, and forming it
+ * node by node right before its taps measured as fast or faster. */
+#define NFFT_WINDOW_BLOCKED(d,flags) \
+  ((d) == 1 && !((flags) & (PRE_PSI | PRE_FG_PSI | FG_PSI | PRE_LIN_PSI \
+      | PRE_FULL_PSI)))
+
 /* macros for window functions */
 
 /* Half-width, in grid spacings, that the 2m+2 point run reaches: the distance

@@ -632,21 +632,6 @@ static inline R *node_f(const X(plan) *ths)
 #define NODE_J(ths, k) (((ths)->x_sorted == NULL \
   && ((ths)->flags & NFFT_SORT_NODES)) ? (ths)->index_x[2 * (k) + 1] : (k))
 
-/** Whether B evaluates the window on the fly a block of nodes at a time
- *  (window_block): in 1D without a psi table, as in the NFFT. */
-static inline int window_blocked(const X(plan) *ths)
-{
-  return ths->d == 1 && !(ths->flags & (PRE_PSI | PRE_FG_PSI | FG_PSI
-      | PRE_LIN_PSI | PRE_FULL_PSI));
-}
-
-/** Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
- *  fewer in the last block. */
-static inline INT block_len(const INT k0, const INT k1)
-{
-  return IF(k1 - k0 < NFFT_NODE_BLOCK, k1 - k0, NFFT_NODE_BLOCK);
-}
-
 /**
  * Window weights of the nodes k0, ..., k0+nb-1 in processing order (nb <=
  * NFFT_NODE_BLOCK), evaluated a block at a time (PHI_RUN_BLOCK), in the
@@ -1375,7 +1360,8 @@ static void B_node_weighted_ ## which_one (const X(plan) *ths, const R *xs, \
 static void B_block_ ## which_one (const X(plan) *ths, const R *xs, R *f, \
     R *g, const INT *np, const INT k0, const INT k1) \
 { \
-  const INT dL = ths->d * (2 * ths->m + 2), nb = block_len(k0, k1); \
+  const INT dL = ths->d * (2 * ths->m + 2); \
+  const INT nb = NFFT_BLOCK_LEN(k0, k1); \
   R wv[NFFT_NODE_BLOCK * dL]; \
   INT v; \
 \
@@ -1422,7 +1408,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
     } \
   } \
 \
-  if (window_blocked(ths)) \
+  if (NFFT_WINDOW_BLOCKED(ths->d, ths->flags)) \
   { \
     MACRO_B_parallel_ ## which_one \
     for (k = 0; k < ths->M_total; k += NFFT_NODE_BLOCK) \
@@ -1468,7 +1454,7 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
     return;
   }
 
-  if (window_blocked(ths))
+  if (NFFT_WINDOW_BLOCKED(ths->d, ths->flags))
   {
     for (k = k0; k < k1; k += NFFT_NODE_BLOCK)
       B_block_T(ths, c->xs, c->f, g, c->np, k, k1);
@@ -1689,7 +1675,8 @@ static void precompute_psi_sorted(X(plan) *ths)
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < ths->M_total; k += NFFT_NODE_BLOCK)
-    window_block(ths, xs, k, block_len(k, ths->M_total), ths->psi + k * dL);
+    window_block(ths, xs, k, NFFT_BLOCK_LEN(k, ths->M_total),
+        ths->psi + k * dL);
 } /* precompute_psi */
 
 void X(precompute_psi)(X(plan) *ths)

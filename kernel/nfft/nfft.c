@@ -856,23 +856,6 @@ static inline void uo2(INT *u, INT *o, const R x, const INT n, const INT m)
   *o = (c + 1 + m + n) % n;
 }
 
-/** Whether B evaluates the window on the fly a block of nodes at a time
- *  (window_block): in 1D without a psi table. With d >= 2 the window is a
- *  smaller part of the work per node, and forming it node by node right
- *  before its taps measured as fast or faster. */
-static inline int window_blocked(const X(plan) *ths)
-{
-  return ths->d == 1 && !(ths->flags & (PRE_PSI | PRE_FG_PSI | FG_PSI
-      | PRE_LIN_PSI | PRE_FULL_PSI));
-}
-
-/** Nodes in the block from node k0 of the nodes k < k1: NFFT_NODE_BLOCK, or
- *  fewer in the last block. */
-static inline INT block_len(const INT k0, const INT k1)
-{
-  return IF(k1 - k0 < NFFT_NODE_BLOCK, k1 - k0, NFFT_NODE_BLOCK);
-}
-
 /**
  * Window weights of the nodes k0, ..., k0+nb-1 in processing order (nb <=
  * NFFT_NODE_BLOCK), evaluated a block at a time (PHI_RUN_BLOCK), in the
@@ -1594,7 +1577,7 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
 
   {
     /* the window block buffer only on the block path, which is 1D */
-    const int blocked = window_blocked(ths);
+    const int blocked = NFFT_WINDOW_BLOCKED(ths->d, ths->flags);
     R wbuf[d * (L + 2)], wf[2 * L], wv[blocked ? NFFT_NODE_BLOCK * L : 1];
     const R *w[d];
     INT lo[d];
@@ -1605,7 +1588,7 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
       const INT v = (k - k0) % NFFT_NODE_BLOCK;
 
       if (blocked && v == 0)
-        window_block(ths, c->xs, k, block_len(k, k1), wv);
+        window_block(ths, c->xs, k, NFFT_BLOCK_LEN(k, k1), wv);
 
       node_window(ths, c->xs, j, c->fg_e, c->fg_q, wbuf,
           blocked ? wv + v * d * L : NULL, w, lo);
@@ -2035,7 +2018,7 @@ static void nfft_trafo_1d_block(const X(plan) *ths, const R *xs, C *fs,
     const INT k0)
 {
   const INT n = ths->n[0], m = ths->m, L = 2 * m + 2;
-  const INT nb = block_len(k0, ths->M_total);
+  const INT nb = NFFT_BLOCK_LEN(k0, ths->M_total);
   R wv[NFFT_NODE_BLOCK * L];
   INT v;
 
@@ -2052,7 +2035,7 @@ static void nfft_adjoint_1d_block(const X(plan) *ths, const R *xs,
     const C *fs, const INT k0)
 {
   const INT n = ths->n[0], m = ths->m, L = 2 * m + 2;
-  const INT nb = block_len(k0, ths->M_total);
+  const INT nb = NFFT_BLOCK_LEN(k0, ths->M_total);
   R wv[NFFT_NODE_BLOCK * L];
   INT v;
 
@@ -4175,7 +4158,8 @@ static void precompute_psi_sorted(X(plan) *ths)
   #pragma omp parallel for default(shared) private(k)
 #endif
   for (k = 0; k < ths->M_total; k += NFFT_NODE_BLOCK)
-    window_block(ths, xs, k, block_len(k, ths->M_total), ths->psi + k * dL);
+    window_block(ths, xs, k, NFFT_BLOCK_LEN(k, ths->M_total),
+        ths->psi + k * dL);
 } /* nfft_precompute_psi */
 
 void X(precompute_psi)(X(plan) *ths)
