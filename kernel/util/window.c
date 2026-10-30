@@ -206,14 +206,14 @@ void Y(window_phi_precompute)(int window, const R *poly, INT n, INT N, int m,
 
   if (poly)
   {
-    const INT deg = Y(kb_poly_degree)((INT)m);
+    const INT deg = (INT)poly[0];
 
     for (j = 0; j < num_nodes; j++)
     {
       const R xj = x[(size_t)j * (size_t)x_stride];
       const INT u = LRINT(FLOOR((R)n * xj)) - (INT)m;
 
-      Y(kb_poly_run)(out + (size_t)j * (size_t)out_stride, poly, (INT)m, deg,
+      Y(kb_poly_run)(out + (size_t)j * (size_t)out_stride, poly + 1, (INT)m, deg,
           NX_SUB(n, xj, u));
     }
 
