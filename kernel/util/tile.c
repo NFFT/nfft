@@ -75,6 +75,45 @@ INT Y(tile_layout)(const INT d, const INT L, const INT *ext, INT *edge,
   return total;
 }
 
+INT *Y(tile_key_tables)(const INT d, const INT *ext, const INT *edge,
+    const INT *ntiles, INT *off)
+{
+  INT t, len = 0, tilevol = 1, nt = 1, tstride = 1, lstride = 1, bucket;
+  INT *tab;
+
+  for (t = 0; t < d; t++)
+  {
+    off[t] = len + 1;
+    len += ext[t] + 2;
+    tilevol *= edge[t];
+    nt *= ntiles[t];
+  }
+
+  bucket = nt * tilevol;
+  tab = (INT*) Y(malloc)((size_t)(len) * sizeof(INT));
+
+  /* row-major tile index and cell in the tile: the strides grow from the
+   * last axis on */
+  for (t = d - 1; t >= 0; t--)
+  {
+    INT *a = tab + off[t], c;
+
+    a[-1] = bucket;
+    a[ext[t]] = bucket;
+
+    for (c = 0; c < ext[t]; c++)
+    {
+      const INT q = c / edge[t];
+      a[c] = q * tstride * tilevol + (c - q * edge[t]) * lstride;
+    }
+
+    tstride *= ntiles[t];
+    lstride *= edge[t];
+  }
+
+  return tab;
+}
+
 void Y(tile_ptr_from_keys)(const INT M, const INT *ar_x, const INT tilevol,
     const INT nbuckets, INT *tile_ptr)
 {

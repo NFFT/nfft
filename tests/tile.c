@@ -154,6 +154,65 @@ static int tile_ranges_ok(const INT d, const INT L, const INT *ext,
 /* The check for one module. T is the sample type (C or R), ERR its distance,
  * NVARIANTS the sorted variants (NFFT: also blockwise), OFS = n - 2N per
  * dimension, EXT(n) the cells per axis; the nodes lie in [XLO, XLO + XW). */
+/* The sort key tables of NFCT and NFST against Y(tile_key_axis), for every
+ * cell of grids with tile edges that are powers of two, that need a
+ * division, and single tiles spanning an axis. */
+static int tile_key_tables_ok(void)
+{
+  static const INT cases[][6] = { /* d, L, ext[0..3] */
+    {1, 10, 3000, 0, 0, 0}, {2, 10, 300, 300, 0, 0}, {2, 4, 37, 5, 0, 0},
+    {3, 10, 40, 40, 40, 0}, {3, 4, 21, 9, 30, 0}, {4, 6, 11, 12, 13, 14}
+  };
+  size_t i;
+
+  for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++)
+  {
+    const INT d = cases[i][0], L = cases[i][1], *ext = cases[i] + 2;
+    INT edge[4], ntiles[4], shift[4], off[4], c[4], nt, tilevol = 1, t;
+    INT *tab;
+    int ok = 1;
+
+    nt = Y(tile_layout)(d, L, ext, edge, ntiles);
+    tab = Y(tile_key_tables)(d, ext, edge, ntiles, off);
+    for (t = 0; t < d; t++)
+    {
+      tilevol *= edge[t];
+      shift[t] = Y(tile_shift)(edge[t], ntiles[t]);
+      c[t] = 0;
+    }
+    for (t = 0; t < d; t++)
+      ok &= tab[off[t] - 1] == nt * tilevol && tab[off[t] + ext[t]] == nt
+        * tilevol;
+
+    /* all cells, last axis fastest */
+    while (ok)
+    {
+      INT tile = 0, local = 0, key = 0;
+
+      for (t = 0; t < d; t++)
+      {
+        Y(tile_key_axis)(c[t], edge[t], ntiles[t], shift[t], &tile, &local);
+        key += tab[off[t] + c[t]];
+      }
+      ok &= key == tile * tilevol + local && key < nt * tilevol;
+
+      for (t = d - 1; t >= 0 && ++c[t] == ext[t]; t--)
+        c[t] = 0;
+      if (t < 0)
+        break;
+    }
+
+    Y(free)(tab);
+    if (!ok)
+    {
+      printf("tile key tables: case %d FAIL\n", (int)i);
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 #define TILE_CHECK(MODULE, NAME, T, ERR, NVARIANTS, OFS, EXT, XLO, XW) \
 static void MODULE(tile_random)(T *v, const INT n) \
 { \
@@ -288,6 +347,7 @@ void MODULE(check_tile)(void) \
   for (i = 0; i < sizeof(tile_cases) / sizeof(tile_cases[0]); i++) \
     ok &= MODULE(tile_one)(tile_cases[i]); \
 \
+  ok &= tile_key_tables_ok(); \
   CU_ASSERT(ok); \
 }
 

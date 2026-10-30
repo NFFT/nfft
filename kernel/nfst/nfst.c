@@ -473,8 +473,10 @@ static inline void uo(const X(plan) *ths, const R *xs, const INT j, INT *up,
 }
 
 /** Tiles of the grid of B (see Y(tile_layout)): the cells are the cells c in
- *  [0, NN(n_t)] of the nodes in [0, 0.5] on axis t. */
-static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
+ *  [0, NN(n_t)] of the nodes in [0, 0.5] on axis t. With keytab not NULL,
+ *  also the sort key tables of these cells (see Y(tile_key_tables)). */
+static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles,
+    INT **keytab, INT *off)
 {
   const INT d = ths->d;
   /* on the heap: GCC 13 takes a run-time sized array here for uninitialised */
@@ -484,6 +486,8 @@ static INT tile_layout(const X(plan) *ths, INT *edge, INT *ntiles)
     ext[t] = NN(ths->n[t]) + 1;
 
   nt = Y(tile_layout)(d, 2 * ths->m + 2, ext, edge, ntiles);
+  if (keytab != NULL)
+    *keytab = Y(tile_key_tables)(d, ext, edge, ntiles, off);
   Y(free)(ext);
   return nt;
 }
@@ -501,43 +505,61 @@ static void sort0(X(plan) *ths)
   const INT d = ths->d, M = ths->M_total;
   const INT *n = ths->n;
   const R *x = ths->x;
-  INT edge[d], ntiles[d], shift[d], nt, tilevol = 1, j, t, rhigh;
-  INT *ar_x = ths->index_x, *ar_x_temp;
+  INT edge[d], ntiles[d], off[d], nt, tilevol = 1, bucket, j, t, rhigh;
+  INT *ar_x = ths->index_x, *ar_x_temp, *keytab = NULL;
 
-  nt = tile_layout(ths, edge, ntiles);
+  /* 1D: the key of a cell is the cell itself, no tables needed */
+  nt = tile_layout(ths, edge, ntiles, d > 1 ? &keytab : NULL, off);
   for (t = 0; t < d; t++)
-  {
     tilevol *= edge[t];
-    shift[t] = Y(tile_shift)(edge[t], ntiles[t]);
-  }
+  bucket = nt * tilevol;
 
   /* the key of node j: tile, then cell in the tile, of the cell c it lies in
    * (as uo()); nodes outside [0, 0.5] on some axis, whose window may leave
    * the padded grid, get the key nt * tilevol of the bucket after the nt
-   * tiles */
-#ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j, t)
-#endif
-  for (j = 0; j < M; j++)
+   * tiles. For d > 1 it is the sum of one table entry per axis, without
+   * divisions or branches; the entries of the cells -1 and NN(n_t) + 1, to
+   * which those nodes are clamped, are the bucket key, so their sum is at
+   * least that. */
+  if (d == 1)
   {
-    INT tile = 0, local = 0;
-
-    for (t = 0; t < d; t++)
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(j)
+#endif
+    for (j = 0; j < M; j++)
     {
-      const INT c = (INT)FLOOR(x[j * d + t] * (R)(2 * NN(n[t])));
+      const INT c = (INT)FLOOR(x[j] * (R)(2 * NN(n[0])));
 
-      if (c < 0 || c > NN(n[t]))
-        break;
-      Y(tile_key_axis)(c, edge[t], ntiles[t], shift[t], &tile, &local);
+      ar_x[2 * j] = (c < 0 || c > NN(n[0])) ? bucket : c;
+      ar_x[2 * j + 1] = j;
+    }
+  }
+  else
+  {
+#ifdef _OPENMP
+    #pragma omp parallel for default(shared) private(j, t)
+#endif
+    for (j = 0; j < M; j++)
+    {
+      INT key = 0;
+
+      for (t = 0; t < d; t++)
+      {
+        const INT c = (INT)FLOOR(x[j * d + t] * (R)(2 * NN(n[t])));
+
+        key += keytab[off[t] + MIN(MAX(c, -1), NN(n[t]) + 1)];
+      }
+
+      ar_x[2 * j] = MIN(key, bucket);
+      ar_x[2 * j + 1] = j;
     }
 
-    ar_x[2 * j] = t < d ? nt * tilevol : tile * tilevol + local;
-    ar_x[2 * j + 1] = j;
+    Y(free)(keytab);
   }
 
   /* the highest bit of the largest key, the bucket nt * tilevol, in integer
    * arithmetic: in float, LOG2 of 2^k + 1 rounds down to k */
-  rhigh = Y(log2i)(nt * tilevol);
+  rhigh = Y(log2i)(bucket);
 
   ar_x_temp = (INT*) Y(malloc)(2 * (size_t)(M) * sizeof(INT));
   Y(sort_node_indices_radix_lsdf)(M, ar_x, ar_x_temp, rhigh);
@@ -1382,7 +1404,7 @@ static int adjoint_B_tiled(X(plan) *ths)
     return 0;
 
   sort(ths);
-  nt = tile_layout(ths, edge, ntiles);
+  nt = tile_layout(ths, edge, ntiles, NULL, NULL);
 
   for (t = 0; t < d; t++)
   {

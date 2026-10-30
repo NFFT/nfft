@@ -2374,6 +2374,17 @@ static inline void Y(tile_key_axis)(const INT c, const INT edge,
   *local = *local * edge + r;
 }
 
+/** Sort key tables of the cells of Y(tile_layout)(d, L, ext, edge, ntiles):
+ *  with off[t] set by the call, tab[off[t] + c] for c = 0, ..., ext[t]-1 is
+ *  what the coordinate c on axis t adds to the key of a cell (as
+ *  Y(tile_key_axis) gives it), so that the key is the sum over the axes;
+ *  tab[off[t] - 1] and tab[off[t] + ext[t]], for coordinates clamped from
+ *  outside, are the key of the bucket after the tiles, ntiles_total *
+ *  prod(edge). Returns tab, sum(ext[t] + 2) entries, to be freed with
+ *  Y(free). */
+INT *Y(tile_key_tables)(const INT d, const INT *ext, const INT *edge,
+    const INT *ntiles, INT *off);
+
 /** From the sorted (key, index) pairs ar_x of M nodes: tile_ptr[b], b <=
  *  nbuckets, the first node of bucket key / tilevol = b or later, so the nodes
  *  of bucket b are tile_ptr[b], ..., tile_ptr[b+1]-1. A binary search per
