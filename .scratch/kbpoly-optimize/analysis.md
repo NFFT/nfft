@@ -584,3 +584,54 @@ Horner row pair, a sixth of the window work) cost nothing at either `m`. At
 there is in the band-edge worst case only; this is the regime the guard of
 section 10 is about, one row of `m` higher than least squares alone would
 suggest.
+
+## 12. Degree reduction at equal accuracy, and what it buys in time
+
+`kbopt6.py` sweeps `(sigma, m)` in develop's layout: `h_dev` is half the
+degree develop stores (its table degree, odd raised to even), the reference
+accuracy is the plain window's `J_inf` and `J_2` at `h_dev`, and the columns
+give the smallest `h` at which the plain window itself is within 5 percent of
+that (lever 1), the least-squares window is at least as accurate in both
+measures, and the Lawson window in the worst case. Work per tap in the
+evaluator is proportional to `h`. Raw output in `results/sweep_*.txt`.
+
+Double (`h_dev -> plain / LS / Lawson`; "floor" marks `J_inf` under 50 eps,
+where the model's exact arithmetic no longer describes the library):
+
+| m | sigma 1.25 | 1.5 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| 2 | 3 -> 3/3/2 | 4 -> 3/3/3 | 4 -> 3/3/3 | 5 -> 3/3/3 | 5 -> 3/3/3 |
+| 3 | 4 -> 3/3/3 | 4 -> 4/4/3 | 5 -> 4/4/4 | 5 -> 4/4/4 | 6 -> 4/4/3 |
+| 4 | 5 -> 4/4/4 | 5 -> 4/4/4 | 6 -> 4/4/4 | 6 -> 5/4/4 | 7 -> 4/4/4 |
+| 5 | 5 -> 4/4/4 | 6 -> 5/5/5 | 6 -> 5/5/5 | 7 -> 5/5/5 | 7 -> 5/5/5 |
+| 6 | 6 -> 5/5/5 | 6 -> 6/5/5 | 7 -> 6/6/6 | 7 -> 6/6/6 (floor) | floor |
+| 7 | 6 -> 6/5/5 | 7 -> 6/6/6 | floor | floor | floor |
+| 8 | 7 -> 6/6/6 | 7 -> 7/-/6 (floor) | floor | floor | floor |
+
+Float: `sigma = 2`: `m = 1`: 4 -> 2/2/2, `m = 2`: 4 -> 3/3/3, `m >= 3`
+floor; `sigma = 1.25`: `m = 1`: 3 -> 2, `m = 2`: 3 -> 3/3/2, `m = 3`: 4 -> 3,
+`m = 4`: no change; `sigma = 4`: `m = 1`: 4 -> 2, `m = 2`: 4 -> 3, `m = 3`:
+4 -> 4/4/3, `m = 4`: no change.
+
+Three things follow.
+
+1. **One step of `h` almost everywhere, two at `m <= 4` and `sigma >= 2`.**
+   That is 14 to 25 percent of the Horner work in the common cells, 33 to 43
+   percent at `(2, 4)`, `(3, 2)`, `(4, 2)`, `(4, 3)`, `(4, 4)`; nothing near
+   the rounding floor.
+2. **Most of it is lever 1.** The plain window, measured against the error
+   functional instead of the Chebyshev-tail bound, already drops to the same
+   `h` as the optimized windows in 25 of the 30 double cells above the floor.
+   The optimization buys one further step in `(1.25, 7)`, `(1.5, 6)`,
+   `(3, 4)`, and with Lawson in `(1.25, 2)`, `(1.5, 3)`, `(4, 3)`. Its main
+   value is the 4x lower worst-case error at equal degree (section 11), not
+   fewer operations.
+3. **Wall-clock gains are smaller than the Horner count.** On develop
+   (`kbtime.c`, `results/timing_s2_m4.txt`), with the window evaluated on the
+   fly, two steps of `h` at `sigma = 2, m = 4` make the 1-D transform 10
+   percent faster and the 2-D transform 4 to 7 percent, one step 3 to 5
+   percent; in 3-D the window is a few percent of the per-node work and the
+   change is within noise. With `PRE_PSI` the transform is unchanged and
+   precompute is 5 to 10 percent faster. The per-node window work is
+   `(m + 1)(2h + 2)` flops per axis against `4 (2m + 2)^d` for the gather, so
+   the window's share, and the saving, falls with the dimension.

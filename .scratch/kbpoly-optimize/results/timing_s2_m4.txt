@@ -1,0 +1,12 @@
+kbtime on develop, double, best of 20 (1-D) / 15 (2-D) repetitions, three runs; ms.
+Window on the fly (no PRE_PSI):
+d=1 N=4096 M=200000 m=4: stock deg 12 trafo 4.27-4.43, adjoint 4.70-4.77
+                          LS deg 10   trafo 4.12-4.34, adjoint 4.44-4.62
+                          LS deg 8    trafo 3.88-3.92, adjoint 4.23-5.17
+d=2 N=128  M=200000 m=4: stock deg 12 trafo 26.2-28.0, adjoint 19.9-20.3
+                          LS deg 10   trafo 26.0,      adjoint 20.2
+                          LS deg 8    trafo 25.1,      adjoint 20.2
+d=3 N=32   M=200000 m=4: stock deg 12 trafo 291, LS deg 8 trafo 278 (one run)
+With PRE_PSI (window only in precompute_one_psi):
+d=2 N=128  M=200000 m=4: precompute stock 4.82-4.94, deg 10 4.86, deg 8 4.41; trafo 19.7-20.4 for all
+Outliers of +50% appeared at random in single runs (shared machine); the ranges above exclude them.

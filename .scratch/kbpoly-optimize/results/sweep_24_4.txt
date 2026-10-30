@@ -1,0 +1,19 @@
+MANT_DIG=24 sigma=4   (h = half the stored degree; work per tap ~ h)
+  m h_dev     J_inf J_inf/eps |  plain     LS LS-inf Lawson | saving LS / Lawson
+  1     4  2.97e-04     2492 |      2      2      2      2 |  50%  50%
+      h= 1  plain 2.48e-03/6.75e-04   LS 3.94e-03/5.81e-04   Lawson 2.56e-03/6.60e-04
+      h= 2  plain 2.61e-04/7.88e-05   LS 1.09e-04/2.56e-05   Lawson 6.27e-05/3.08e-05
+  2     4  2.21e-06       19 |      3      3      3      3 |  25%  25%
+      h= 1  plain 2.51e-03/6.69e-04   LS 3.91e-03/5.81e-04   Lawson 2.56e-03/6.53e-04
+      h= 2  plain 5.41e-06/1.08e-06   LS 9.46e-06/9.20e-07   Lawson 5.24e-06/1.83e-06
+      h= 3  plain 2.19e-06/3.72e-07   LS 5.07e-07/1.15e-07   Lawson 2.67e-07/1.46e-07
+  3     4  1.01e-08        0 |      4      4      4      3 |   0%  25%
+      h= 1  plain 2.51e-03/6.69e-04   LS 3.91e-03/5.81e-04   Lawson 2.56e-03/6.53e-04
+      h= 2  plain 4.84e-06/1.05e-06   LS 9.52e-06/9.13e-07   Lawson 5.24e-06/1.01e-06
+      h= 3  plain 1.10e-08/1.72e-09   LS 1.13e-08/8.94e-10   Lawson 5.38e-09/2.38e-09
+      h= 4  plain 1.01e-08/1.52e-09   LS 2.14e-09/5.14e-10   Lawson 1.16e-09/6.61e-10
+  4     4  4.28e-11        0 |      4      4      4      4 |   0%   0%
+      h= 1  plain 2.51e-03/6.69e-04   LS 3.91e-03/5.81e-04   Lawson 2.56e-03/6.53e-04
+      h= 2  plain 4.84e-06/1.05e-06   LS 9.52e-06/9.13e-07   Lawson 5.24e-06/1.01e-06
+      h= 3  plain 4.46e-09/8.33e-10   LS 1.07e-08/7.32e-10   Lawson 5.39e-09/1.31e-09
+      h= 4  plain 4.28e-11/6.72e-12   LS 9.85e-12/2.32e-12   Lawson 5.04e-12/3.24e-12
