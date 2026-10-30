@@ -1296,11 +1296,10 @@ INT l_all[ths->d*(2*ths->m+2)]; \
  * Window of node j for the psi mode of the plan, any d: the weights w[t][l],
  * l < 2m+2, on axis t, and the first window index lo[t] of axis t in the
  * padded grid of B. wbuf holds d rows of 2m+4 reals for the modes that form
- * the weights on the fly. wv holds the weights of node j from window_block,
- * or is NULL.
+ * the weights on the fly.
  */
 static void node_window(const X(plan) *ths, const R *xs, const INT j,
-    const R *fg_e, const R *fg_q, R *wbuf, const R *wv, const R **w, INT *lo)
+    const R *fg_e, const R *fg_q, R *wbuf, const R **w, INT *lo)
 {
   const INT d = ths->d, m = ths->m, L = 2 * m + 2;
   INT t;
@@ -1345,8 +1344,6 @@ static void node_window(const X(plan) *ths, const R *xs, const INT j,
             + ths->psi[(ths->K + 1) * t + ABS(ip_u - l * ip_s + 1)] * (ip_w);
       w[t] = b;
     }
-    else if (wv != NULL)
-      w[t] = wv + t * L;
     else
     {
       PHI_RUN(b, ths->n[t], xs[j * d + t], u, t);
@@ -1367,7 +1364,7 @@ static void B_node_A(const X(plan) *ths, const R *xs, C *fs, const INT *np,
   const R *w[d];
   INT lo[d];
 
-  node_window(ths, xs, j, fg_e, fg_q, wbuf, NULL, w, lo);
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
   dup_weights(wl, w[d - 1], L);
   zero_reals(acc, 2 * L);
   Y(B_tensor_trafo)(d, L, 2, np, lo, w, wl, (const R*)ths->g, acc);
@@ -1384,7 +1381,7 @@ static void B_node_T(const X(plan) *ths, const R *xs, const C *fs,
   const R *w[d];
   INT lo[d];
 
-  node_window(ths, xs, j, fg_e, fg_q, wbuf, NULL, w, lo);
+  node_window(ths, xs, j, fg_e, fg_q, wbuf, w, lo);
   scale_weights(wf, w[d - 1], fs[j], L);
   Y(B_tensor_adjoint)(d, L, 2, np, lo, w, wf, (R*)ths->g);
 }
@@ -1548,6 +1545,40 @@ typedef struct
   INT lprod; /* (2m+2)^d, the PRE_FULL_PSI entries per node */
 } adjoint_tile_ctx;
 
+/** adjoint_B_tile on the window block path (NFFT_WINDOW_BLOCKED, so d = 1
+ *  without a psi table): the window a block of nodes at a time. A function of
+ *  its own, so that the per-node loop of the other paths, the one of every
+ *  d >= 2, stays as lean as before; with the block buffer and its branch in
+ *  that loop the threaded 3D adjoint measured up to 20% slower. */
+static void adjoint_B_tile_block(const adjoint_tile_ctx *c, const INT k0,
+    const INT k1)
+{
+  const X(plan) *ths = c->ths;
+  const INT L = 2 * ths->m + 2;
+  R wv[NFFT_NODE_BLOCK * L], wf[2 * L];
+  INT k;
+
+  for (k = k0; k < k1; k += NFFT_NODE_BLOCK)
+  {
+    const INT nb = NFFT_BLOCK_LEN(k, k1);
+    INT v;
+
+    window_block(ths, c->xs, k, nb, wv);
+    for (v = 0; v < nb; v++)
+    {
+      const INT j = NODE_J(ths, k + v);
+      const R *w[1];
+      INT lo[1], u, o;
+
+      uo(ths, c->xs, j, &u, &o, 0);
+      lo[0] = wrap_index(u, ths->n[0]);
+      w[0] = wv + v * L;
+      scale_weights(wf, w[0], c->fs[j], L);
+      Y(B_tensor_adjoint)(1, L, 2, c->np, lo, w, wf, (R*)ths->g);
+    }
+  }
+}
+
 /** B^T for the sorted nodes k0, ..., k1-1 of one tile, straight into the
  *  padded grid of B: no other thread writes to their windows meanwhile (see
  *  Y(tiles_by_colour)). */
@@ -1575,23 +1606,22 @@ static void adjoint_B_tile(void *p, const INT k0, const INT k1)
     return;
   }
 
+  if (NFFT_WINDOW_BLOCKED(d, ths->flags))
   {
-    /* the window block buffer only on the block path, which is 1D */
-    const int blocked = NFFT_WINDOW_BLOCKED(ths->d, ths->flags);
-    R wbuf[d * (L + 2)], wf[2 * L], wv[blocked ? NFFT_NODE_BLOCK * L : 1];
+    adjoint_B_tile_block(c, k0, k1);
+    return;
+  }
+
+  {
+    R wbuf[d * (L + 2)], wf[2 * L];
     const R *w[d];
     INT lo[d];
 
     for (k = k0; k < k1; k++)
     {
       const INT j = NODE_J(ths, k);
-      const INT v = (k - k0) % NFFT_NODE_BLOCK;
 
-      if (blocked && v == 0)
-        window_block(ths, c->xs, k, NFFT_BLOCK_LEN(k, k1), wv);
-
-      node_window(ths, c->xs, j, c->fg_e, c->fg_q, wbuf,
-          blocked ? wv + v * d * L : NULL, w, lo);
+      node_window(ths, c->xs, j, c->fg_e, c->fg_q, wbuf, w, lo);
       scale_weights(wf, w[d - 1], c->fs[j], L);
       Y(B_tensor_adjoint)(d, L, 2, c->np, lo, w, wf, (R*)g);
     }
