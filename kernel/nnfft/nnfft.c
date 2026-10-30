@@ -362,7 +362,9 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
   int t;                                /**< index over all dimensions        */
   double tmp;
 
-  ths->c_phi_inv= (double*)nfft_malloc(ths->M_total*sizeof(double));
+  /* allocated by the first call only, later calls overwrite the table */
+  if (ths->c_phi_inv == NULL)
+    ths->c_phi_inv= (double*)nfft_malloc(ths->M_total*sizeof(double));
 
   for(j=0; j<ths->M_total; j++)
     {
@@ -552,6 +554,9 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
   if(ths->nnfft_flags & MALLOC_F_HAT)
     ths->f_hat = (double _Complex*)nfft_malloc(ths->N_total*sizeof(double _Complex));
 
+  /* allocated by nnfft_precompute_phi_hut */
+  ths->c_phi_inv = NULL;
+
   //BUGFIX SUSE 2
   /** precompute phi_hut, the entries of the matrix D */
 //  if(ths->nnfft_flags & PRE_PHI_HUT)
@@ -693,7 +698,8 @@ void nnfft_finalize(nnfft_plan *ths)
   if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_free(ths->psi);
 
-  if(ths->nnfft_flags & PRE_PHI_HUT)
+  /* also allocated when nnfft_precompute_phi_hut ran without PRE_PHI_HUT */
+  if(ths->c_phi_inv != NULL)
     nfft_free(ths->c_phi_inv);
 
   if(ths->nnfft_flags & MALLOC_F)
