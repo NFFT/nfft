@@ -23,12 +23,13 @@
  *   PHI_RUN node by node, for every block length and for cut-off parameters on
  *   both sides of the limit of the Kaiser-Bessel block evaluator.
  * - The plans of *_init, *_init_1d, *_init_2d and *_init_3d hold a PRE_PSI
- *   table, and sort the nodes for d > 1. They and the same plans without a
- *   psi flag give the same trafo and adjoint as the same plans with
- *   PRE_FULL_PSI, whose table is filled node by node with PHI_RUN, so neither
- *   side shares the block evaluator with the reference. In 1D the plans
- *   without a psi flag are also tried with NFFT_SORT_NODES. The node counts
- *   include partial blocks and fewer nodes than one block.
+ *   table and sort the nodes, except for the 1D NFFT of the serial library.
+ *   They and the same plans without a psi flag give the same trafo and
+ *   adjoint as the same plans with PRE_FULL_PSI, whose table is filled node
+ *   by node with PHI_RUN, so neither side shares the block evaluator with the
+ *   reference. In 1D the plans without a psi flag are also tried with the
+ *   nodes sorted the other way round (unsorted where the default sorts). The
+ *   node counts include partial blocks and fewer nodes than one block.
  * - For d > 1 the PRE_PSI plan, whose table is filled a block of nodes at a
  *   time, and the plan without a psi flag, which forms the window node by
  *   node with PHI_RUN, add the same taps in the same order; they must agree
@@ -216,7 +217,7 @@ void Y(check_window_run_block)(void)
 
 /* The check for one module. T is the sample type (C or R), ERR its distance,
  * XLO and XLEN the node interval [XLO, XLO + XLEN). */
-#define OTF_CHECK(MODULE, NAME, T, ERR, XLO, XLEN) \
+#define OTF_CHECK(MODULE, NAME, T, ERR, XLO, XLEN, SORT1D) \
 static void MODULE(otf_random)(T *v, const INT n) \
 { \
   INT j; \
@@ -265,7 +266,7 @@ static void MODULE(otf_init_default)(MODULE(plan) *p, const int d, int *N, \
 } \
 \
 static int MODULE(otf_one)(const int d, int *N, const int M, \
-  const int which, const unsigned extra) \
+  const int which, const int toggle_sort) \
 { \
   MODULE(plan) a, b, c; \
   int n[3], t, ok = 1; \
@@ -276,17 +277,23 @@ static int MODULE(otf_one)(const int d, int *N, const int M, \
 \
   MODULE(otf_init_default)(&a, d, N, M, which); \
 \
-  /* the default: a PRE_PSI table, the nodes sorted for d > 1 */ \
-  if (!(a.flags & PRE_PSI) || !(a.flags & NFFT_SORT_NODES) != (d == 1)) \
+  /* the default: a PRE_PSI table, the nodes sorted for d > 1, and in 1D if \
+   * SORT1D */ \
+  if (!(a.flags & PRE_PSI) || !(a.flags & NFFT_SORT_NODES) != (d == 1 \
+    && !(SORT1D))) \
   { \
     printf("%s_otf d = %d, %s: default flags %#x -> FAIL\n", NAME, d, \
       init, a.flags); \
     ok = 0; \
   } \
 \
-  /* the same plan, plus the flags extra, without a psi table, and with \
-   * PRE_FULL_PSI */ \
-  flags0 = (a.flags & ~(unsigned)PRE_ONE_PSI) | extra; \
+  /* the same plan, with the nodes sorted the other way round if \
+   * toggle_sort, without a psi table, and with PRE_FULL_PSI \
+   * (NFFT_OMP_BLOCKWISE_ADJOINT implies NFFT_SORT_NODES) */ \
+  flags0 = a.flags & ~(unsigned)PRE_ONE_PSI; \
+  if (toggle_sort) \
+    flags0 = (flags0 & NFFT_SORT_NODES) ? flags0 & ~(unsigned)(NFFT_SORT_NODES \
+      | NFFT_OMP_BLOCKWISE_ADJOINT) : flags0 | NFFT_SORT_NODES; \
   for (t = 0; t < d; t++) \
     n[t] = (int)a.n[t]; \
   MODULE(init_guru)(&b, d, N, M, n, (int)a.m, flags0, a.fftw_flags); \
@@ -309,7 +316,7 @@ static int MODULE(otf_one)(const int d, int *N, const int M, \
   MODULE(precompute_one_psi)(&c); \
   ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, init, 0); \
   ok &= MODULE(otf_compare)(&b, &c, f_hat, f, d, "on the fly", 0); \
-  if (d > 1 && !extra) \
+  if (d > 1 && !toggle_sort) \
     ok &= MODULE(otf_compare)(&a, &b, f_hat, f, d, "on the fly, same order", \
       1); \
 \
@@ -326,7 +333,7 @@ static int MODULE(otf_one)(const int d, int *N, const int M, \
   ok &= MODULE(otf_compare)(&a, &c, f_hat, f, d, "precompute_psi", 0); \
   ok &= MODULE(otf_compare)(&b, &c, f_hat, f, d, \
     "precompute_psi, no table", 0); \
-  if (d > 1 && !extra) \
+  if (d > 1 && !toggle_sort) \
     ok &= MODULE(otf_compare)(&a, &b, f_hat, f, d, \
       "precompute_psi, same order", 1); \
 \
@@ -358,9 +365,9 @@ void MODULE(check_otf)(void) \
     for (i = 0; i < sizeof(MM) / sizeof(MM[0]); i++) \
       for (which = 0; which <= 1; which++) \
       { \
-        ok &= MODULE(otf_one)(d, N, MM[i], which, 0U); \
+        ok &= MODULE(otf_one)(d, N, MM[i], which, 0); \
         if (d == 1) \
-          ok &= MODULE(otf_one)(d, N, MM[i], which, NFFT_SORT_NODES); \
+          ok &= MODULE(otf_one)(d, N, MM[i], which, 1); \
       } \
   } \
 \
@@ -371,16 +378,22 @@ void MODULE(check_otf)(void) \
 
 #undef X
 #define X(name) NFFT(name)
-OTF_CHECK(X, "nfft", C, otf_err_c, K(-0.5), K(1.0))
+/* the 1D NFFT sorts by default only in the OpenMP library */
+#ifdef _OPENMP
+#define OTF_NFFT_SORT1D 1
+#else
+#define OTF_NFFT_SORT1D 0
+#endif
+OTF_CHECK(X, "nfft", C, otf_err_c, K(-0.5), K(1.0), OTF_NFFT_SORT1D)
 
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
-OTF_CHECK(X, "nfct", R, otf_err_r, K(0.0), K(0.5))
+OTF_CHECK(X, "nfct", R, otf_err_r, K(0.0), K(0.5), 1)
 #endif
 
 #ifdef HAVE_NFST
 #undef X
 #define X(name) NFST(name)
-OTF_CHECK(X, "nfst", R, otf_err_r, K(0.0), K(0.5))
+OTF_CHECK(X, "nfst", R, otf_err_r, K(0.0), K(0.5), 1)
 #endif
