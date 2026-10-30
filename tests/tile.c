@@ -151,9 +151,6 @@ static int tile_ranges_ok(const INT d, const INT L, const INT *ext,
   return 1;
 }
 
-/* The check for one module. T is the sample type (C or R), ERR its distance,
- * NVARIANTS the sorted variants (NFFT: also blockwise), OFS = n - 2N per
- * dimension, EXT(n) the cells per axis; the nodes lie in [XLO, XLO + XW). */
 /* The sort key tables of NFCT and NFST against Y(tile_key_axis), for every
  * cell of grids with tile edges that are powers of two, that need a
  * division, and single tiles spanning an axis. */
@@ -213,6 +210,9 @@ static int tile_key_tables_ok(void)
   return 1;
 }
 
+/* The check for one module. T is the sample type (C or R), ERR its distance,
+ * NVARIANTS the sorted variants (NFFT: also blockwise), OFS = n - 2N per
+ * dimension, EXT(n) the cells per axis; the nodes lie in [XLO, XLO + XW). */
 #define TILE_CHECK(MODULE, NAME, T, ERR, NVARIANTS, OFS, EXT, XLO, XW) \
 static void MODULE(tile_random)(T *v, const INT n) \
 { \
