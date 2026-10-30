@@ -128,12 +128,13 @@ typedef struct\
              PRE_LIN_PSI. */\
 \
   unsigned flags; /**< Flags for precomputation, (de)allocation, and FFTW
-                       usage. The default setting of nfft_init is
-                       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT
-                       | MALLOC_F | FFTW_INIT, plus FFT_OUT_OF_PLACE for
-                       d = 1 and NFFT_SORT_NODES for d > 1. The OpenMP
-                       library adds NFFT_SORT_NODES
-                       | NFFT_OMP_BLOCKWISE_ADJOINT in every dimension. */\
+                       usage. nfft_init sets PRE_PHI_HUT | PRE_PSI
+                       | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT,
+                       plus FFT_OUT_OF_PLACE for d = 1 and NFFT_SORT_NODES
+                       for d > 1; the OpenMP library adds NFFT_SORT_NODES
+                       | NFFT_OMP_BLOCKWISE_ADJOINT in every dimension.
+                       Without PRE_PSI the window is evaluated on the fly
+                       (see \ref PRE_PSI). */\
 \
   unsigned fftw_flags; /**< Flags for the FFTW, default is
                             FFTW_ESTIMATE | FFTW_DESTROY_INPUT */\
@@ -236,6 +237,18 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FG_PSI                     (1U<<1)
 #define PRE_LIN_PSI                (1U<<2)
 #define PRE_FG_PSI                 (1U<<3)
+/** Flag PRE_PSI (NFFT, NFCT, NFST): the precomputation stores the 2m+2
+ *  window values per axis of every node, d M (2m+2) reals. It is set by the
+ *  init routines other than init_guru. Without a psi flag the transforms
+ *  evaluate the window on the fly. Measured with the Kaiser-Bessel window,
+ *  m = 4..6 and 2^18..2^20 nodes, both plans with NFFT_SORT_NODES, PRE_PSI
+ *  makes each transform 5-26% faster serially (up to 19% with 4 threads,
+ *  one 3D case 2% slower), while the precomputation takes 1.4-2x as long in
+ *  1D and 2.4-3.6x as long for d = 2, 3, and the plan 1.5-2.3x the memory.
+ *  Serially it pays off after 1.5-4.5 pairs of trafo and adjoint with the
+ *  same nodes (1-6.5 with 4 threads), e.g. in iterative solvers. Plans used
+ *  for fewer transforms, or short of memory, are better off without a psi
+ *  flag. */
 #define PRE_PSI                    (1U<<4)
 #define PRE_FULL_PSI               (1U<<5)
 #define MALLOC_X                   (1U<<6)
@@ -304,11 +317,11 @@ typedef struct\
   NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
-  unsigned flags; /**< flags for precomputation, malloc; the default of the
-                       init routines is PRE_PHI_HUT | PRE_PSI | MALLOC_X
-                       | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for
-                       d = 1 */\
+  unsigned flags; /**< flags for precomputation, malloc. The init routines
+                       other than init_guru set PRE_PHI_HUT | PRE_PSI
+                       | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for d = 1
+                       (see \ref PRE_PSI). */\
   unsigned fftw_flags; /**< flags for the fftw */\
 \
   R *x; /**< nodes (in time/spatial domain)   */\
@@ -430,11 +443,11 @@ typedef struct\
   NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
-  unsigned flags; /**< flags for precomputation, malloc; the default of the
-                       init routines is PRE_PHI_HUT | PRE_PSI | MALLOC_X
-                       | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
-                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for
-                       d = 1 */\
+  unsigned flags; /**< flags for precomputation, malloc. The init routines
+                       other than init_guru set PRE_PHI_HUT | PRE_PSI
+                       | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for d = 1
+                       (see \ref PRE_PSI). */\
   unsigned fftw_flags; /**< flags for the fftw */\
 \
   R *x; /**< nodes (in time/spatial domain) */\
