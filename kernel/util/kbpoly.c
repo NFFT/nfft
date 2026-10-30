@@ -23,7 +23,8 @@
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
- * m + 1 mirrored columns. */
+ * m + 1 mirrored columns. Y(bspline_poly_init) builds the B-spline window's
+ * table the same way; its cells are polynomials, so the fit is exact. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -197,6 +198,74 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
       memcpy(tab + 1 + t * stride, tab + 1 + s * stride,
           (size_t)stride * sizeof(R));
   }
+
+  return tab;
+}
+
+/* The pieces have degree k-1, so k Chebyshev nodes fit them exactly. The
+ * series is cut by the gen/kbpolygen rule against E = 4 (2 sigma - 1)^-k, the
+ * window's own transform error at the tightest axis. */
+R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
+{
+  const INT k = 2 * m + 2, w = KB_POLY_COLS(m), n = k, dg = k - 1;
+  /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
+      + (n + 1) * (n + 1) + 2 * n + 1) * sizeof(R));
+  R *val = mem, *cheb = val + n * w, *coef = cheb + (n + 1) * w;
+  R *cm = coef + (n + 1) * w, *tp = cm + n * n, *node = tp + (n + 1) * (n + 1);
+  R *tail = node + n;
+  const R peak = Y(bsplines)(k, (R)k / K(2.0));
+  R thr = K(0.0), sum = K(0.0), *tab;
+  INT i, j, l, t, deg;
+
+  for (i = 0; i < n; i++)
+    node[i] = COS(KPI * ((R)i + K(0.5)) / (R)n) / K(2.0);
+
+  for (j = 0; j < n; j++)
+    for (i = 0; i < n; i++)
+      cm[j * n + i] = COS(KPI * (R)j * ((R)i + K(0.5)) / (R)n);
+
+  for (i = 0; i < n; i++)
+    for (l = 0; l < w; l++)
+      val[i * w + l] = Y(bsplines)(k,
+          ((R)(m + 1 - l) + K(0.5)) + node[i] + (R)k / K(2.0));
+
+  cheb_of(cheb, val, cm, w, dg);
+
+  for (l = 0; l < w; l++)
+    cheb[n * w + l] = K(0.0);
+
+  for (j = 0; j <= dg; j++)
+  {
+    tail[j] = K(0.0);
+
+    for (l = 0; l < w; l++)
+      tail[j] = MAX(tail[j], FABS(cheb[j * w + l]));
+  }
+
+  for (t = 0; t < d; t++)
+  {
+    const R e = K(4.0) * POW(K(2.0) * sigma[t] - K(1.0), -(R)k);
+    const R th = MAX(e / K(40.0), EPSILON / K(2.0)) * peak;
+
+    thr = IF(t == 0 || th < thr, th, thr);
+  }
+
+  for (deg = dg; deg >= 0 && K(2.0) * (sum + tail[deg]) <= thr; deg--)
+    sum += tail[deg];
+
+  /* Even degree: the leading error is then odd in the cell and has no mean. */
+  deg = IF(deg < 0, 0, deg);
+  deg += deg & 1;
+  deg = IF(deg > KB_POLY_DEG_MAX, KB_POLY_DEG_MAX, deg);
+
+  cheb_to_monomial(coef, cheb, tp, w, deg);
+
+  tab = (R*) Y(malloc)((size_t)(1 + KB_POLY_ROWS(deg) * w) * sizeof(R));
+  tab[0] = (R)deg;
+  memcpy(tab + 1, coef, (size_t)(KB_POLY_ROWS(deg) * w) * sizeof(R));
+
+  Y(free)(mem);
 
   return tab;
 }

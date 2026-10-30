@@ -287,38 +287,30 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
-  /* The window is the centred B-spline of order BS_ORDER: half-width
-   * BS_ORDER/2 = WINDOW_STENCIL_REACH, so it reaches every point of the run.
+  /* The window is the centred B-spline of order BS_ORDER, half-width
+   * WINDOW_STENCIL_REACH, so it reaches every point of the run. No factor
+   * 1/n: NFCT and NFST pass a doubled n, and a constant common to PHI and
+   * PHI_HUT cancels in the transform.
    *
-   * ths->b holds BS_ORDER reals of 1/(j+1) (PHI_RUN's de Boor triangular
-   * sweep), then the BS_ORDER x BS_ORDER Chebyshev table Y(bspline_cheb_init)
-   * builds (PHI's single-point evaluator) -- the same table-building function
-   * the sinc-power window's phi_hut uses. PHI is a rarer single-point call
-   * (fg_psi table builds, precompute_lin_psi) where the O(m) Chebyshev
-   * evaluator beats de Boor's O(m^2) outright. PHI_RUN already amortizes to
-   * O(m) per point via one shared triangular sweep over the whole run -- an
-   * independent per-point Chebyshev evaluation was measured slower there, so
-   * it keeps de Boor. */
+   * spline_coeffs[0] is the degree, then one KB_POLY_ROWS x KB_POLY_COLS
+   * table shared by all axes. */
   #define BS_ORDER ((INT)(K(2.0) * WINDOW_STENCIL_REACH))
-  #define BS_CHEB (ths->b + BS_ORDER)
-  #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)(WINDOW_STENCIL_REACH, (R)(n), \
-                              (R)(k)))
-  #define PHI(n,x,ax) (Y(bspline_cheb)(BS_CHEB, BS_ORDER, \
-                          (x) * (R)(n) + WINDOW_STENCIL_REACH) / (R)(n))
+  #define BS_POLY_DEG ((INT)ths->spline_coeffs[0])
+  #define PHI_HUT(n,k,ax) EXP(K(2.0) * WINDOW_STENCIL_REACH \
+                             * Y(log_sinc)((R)(k) * KPI / (R)(n)))
+  #define PHI(n,x,ax) (Y(bspline_cheb)(ths->b, BS_ORDER, \
+                          (x) * (R)(n) + WINDOW_STENCIL_REACH))
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(bspline_phi_run)((dst), ths->b, BS_ORDER, 2 * (ths->m) + 1, \
-        NX_SUB(n, x, u) + WINDOW_STENCIL_REACH, K(1.0) / (R)(n))
+    Y(kb_poly_run)((dst), ths->spline_coeffs + 1, ths->m, BS_POLY_DEG, \
+        NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
-      int WINDOW_idx; \
       const INT WINDOW_k = BS_ORDER; \
-      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k + WINDOW_k * WINDOW_k) \
-          * sizeof(R)); \
-      for (WINDOW_idx = 0; WINDOW_idx < WINDOW_k; WINDOW_idx++) \
-        ths->b[WINDOW_idx] = K(1.0) / (R)(WINDOW_idx + 1); \
-      Y(bspline_cheb_init)(BS_CHEB, WINDOW_k); \
+      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k * WINDOW_k) * sizeof(R)); \
+      Y(bspline_cheb_init)(ths->b, WINDOW_k); \
+      ths->spline_coeffs = Y(bspline_poly_init)(ths->sigma, ths->d, ths->m); \
     }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b); Y(free)(ths->spline_coeffs);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -1974,6 +1966,10 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
 /* All axes' tables from b as WINDOW_HELP_INIT fills it, in the spline_coeffs
  * layout. The caller frees the result. */
 R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach);
+
+/* The B-spline window of order 2m+2 in the same layout, one table for all
+ * axes; the tightest sigma sets the degree. The caller frees the result. */
+R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m);
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed

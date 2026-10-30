@@ -557,6 +557,49 @@ void X(check_log_sinc_exp)(void)
 
 #define BSPLINE_RUN_MAX_M 16
 
+/* The per-cell polynomial run against de Boor, within the degree rule's
+ * truncation plus rounding. */
+void X(check_bspline_poly_run)(void)
+{
+#if defined(B_SPLINE)
+  static const int ms[] = {1, 2, 4, 8, 11};
+  static const R sigmas[] = {K(1.25), K(2.0)};
+  static const R fracs[] = {K(0.0), K(0.25), K(0.5), K(0.999)};
+  unsigned int i, si, f;
+
+  printf("B-SPLINE POLY RUN\n-----------------\n");
+
+  for (i = 0; i < SIZE(ms); i++)
+    for (si = 0; si < SIZE(sigmas); si++)
+    {
+      const INT m = (INT)ms[i], k = 2 * m + 2;
+      R *tab = Y(bspline_poly_init)(&sigmas[si], 1, m);
+      const INT deg = (INT)tab[0];
+      const R peak = Y(bsplines)(k, (R)k / K(2.0));
+      const R e = K(4.0) * POW(K(2.0) * sigmas[si] - K(1.0), -(R)k);
+      const R bound = (MAX(e / K(40.0), EPSILON / K(2.0)) / K(2.0)
+          + K(16.0) * EPSILON) * peak;
+      R run[2 * 11 + 2], err = K(0.0);
+      INT l;
+
+      for (f = 0; f < SIZE(fracs); f++)
+      {
+        Y(kb_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
+
+        for (l = 0; l < 2 * m + 2; l++)
+          err = FMAX(err, FABS(run[l]
+              - Y(bsplines)(k, (R)m + fracs[f] - (R)l + (R)k / K(2.0))));
+      }
+
+      printf("bspline_poly[m=" __D__ ", sigma=" __FE__ "] deg=" __D__
+          " err/peak=" __FE__ " bound=" __FE__ " %s\n", m, sigmas[si], deg,
+          err / peak, bound / peak, err <= bound ? "ok" : "FAIL");
+      CU_ASSERT(err <= bound);
+      Y(free)(tab);
+    }
+#endif
+}
+
 /* Every independent Clenshaw evaluation in the run must reproduce what one
  * evaluation per point gives, at every offset of the run against the support
  * and at every cutoff, and the run must sum to one, because the cardinal
