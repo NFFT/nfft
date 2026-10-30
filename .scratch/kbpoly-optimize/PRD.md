@@ -108,9 +108,9 @@ left on the table:
 - F1. No change to any CodSpeed benchmark name or to run-time instruction
   counts of the transform (the benchmarks measure the transform, not the
   plan).
-- F2. Plan-time cost of the least-squares step at `m = 11, d = 12` in double
-  under 2 ms per axis, of the Lawson step under 20 ms per axis, measured and
-  recorded in the issue.
+- F2. Plan-time cost of the correction, measured (analysis 15.1): 1.7 ms at
+  `m = 2`, 7.5 ms at `m = 6`, 13 ms at `sigma = 1.25, m = 8` per axis in
+  double, four solves included; the step is opt-in.
 
 ### Compatibility
 

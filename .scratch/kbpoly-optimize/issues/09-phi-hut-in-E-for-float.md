@@ -1,6 +1,6 @@
 # 09: Evaluate the deconvolution factors in `E` in the float build
 
-Status: done (feature/kbpoly-optimize)
+Status: done in part (feature/kbpoly-optimize): the exponential's argument and value are formed in E; the scaled Bessel factor is still evaluated in R
 
 Part of: PRD addendum. Background: `analysis.md` section 14.
 
@@ -31,3 +31,17 @@ the `PRE_PHI_HUT` table path (`precompute_phi_hut`) and the per-call path.
 - No change to CodSpeed benchmark names; the transform's instruction count is
   unchanged (the change is in precompute or in the per-`k` factor evaluation,
   which is `O(N)`).
+
+
+## Comments
+
+Measured after the change (float build, `kbgain2.c` with exact factors
+injected, `results/gain_lib_float.txt` for the stock rows): at `sigma = 2,
+m = 4` the stock band edge is `9.0e-7` and exact factors still give
+`6.9e-7`, RMS `1.9e-7` to `1.5e-7`; at `m = 3` RMS `2.4e-7` to `1.6e-7`.
+So the exponential's argument was not the dominant float error; what
+remains is the float evaluation of `bessel_i0_exp_scaled`, a few ulp at
+arguments near `R b`. Finishing this issue means evaluating that factor in
+`E` too: the float build would need the double-precision coefficient table
+of `kernel/util/bessel_i0_data.h` compiled alongside its own, under a
+distinct name, which is a change to `gen/besselgen` and `bessel_i0.c`.

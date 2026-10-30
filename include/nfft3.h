@@ -208,9 +208,10 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 /** Kaiser-Bessel window only: after fitting the polynomial window, correct
  *  its coefficients by least squares against the transform's own error
- *  functional, which lowers the aliasing error at the same degree (see
- *  kernel/util/kbpoly.c). Ignored by the other windows and where the error is
- *  already at the rounding floor. */
+ *  functional, which lowers the worst-case error 2 to 4 times and the RMS
+ *  error 1.2 to 1.7 times at the same degree (see kernel/util/kbpoly.c).
+ *  Costs a few to about ten milliseconds per axis at plan time. Ignored by
+ *  the other windows and where the error is already at the rounding floor. */
 #define OPT_WINDOW                 (1U<<13)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 

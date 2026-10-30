@@ -874,3 +874,9 @@ falls 2x to 4.8x in the 60 or so double cells the guard admits and the
 table is untouched in the rest. The `m_opt` guard, on `bR`, replaced an
 `aR` guard that missed the `1/C` amplification of the floor and let the
 correction fit noise at large `m` in long double.
+
+Plan-time cost of `OPT_WINDOW` (`kbinit.c`, double, best of five, 1-D): 1.7 ms
+at `m = 2`, 3.3 ms at `m = 4`, 7.5 ms at `m = 6`, 13 ms at `sigma = 1.25,
+m = 8`; the plain fit is 0.14 ms. The solve is the scaled normal equations
+by Cholesky, four passes (least squares and three reweightings), each
+`2 x 40 x 32` rows by `(m + 1)(2h + 1)` unknowns.

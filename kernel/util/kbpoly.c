@@ -187,70 +187,58 @@ static INT first_alike(const R *b, const INT t)
   return s;
 }
 
-/* Least-squares solution of the overdetermined system A x = y, A rows by
- * cols, row-major, by Householder QR in place; y is overwritten and x is
- * returned in its first cols entries. */
-static void lstsq(E *A, E *y, const INT rows, const INT cols)
+/* Solves the symmetric positive definite system G x = g, order n, by
+ * Cholesky in place; g is overwritten by x. Returns 0 if G is not positive
+ * definite. */
+static int cholesky_solve(E *G, E *g, const INT n)
 {
   INT i, j, k;
 
-  for (k = 0; k < cols; k++)
+  for (j = 0; j < n; j++)
   {
-    E norm = EK(0.0), alpha, beta, s;
+    E d = G[j * n + j];
 
-    for (i = k; i < rows; i++)
-      norm += A[i * cols + k] * A[i * cols + k];
+    for (k = 0; k < j; k++)
+      d -= G[j * n + k] * G[j * n + k];
 
-    norm = E_SQRT(norm);
+    if (!(d > EK(0.0)))
+      return 0;
 
-    if (norm == EK(0.0))
-      continue;
+    d = E_SQRT(d);
+    G[j * n + j] = d;
 
-    alpha = IF(A[k * cols + k] > EK(0.0), -norm, norm);
-    /* v = a_k - alpha e_k, stored in column k; beta = 1 / (v . v / 2). */
-    A[k * cols + k] -= alpha;
-    beta = EK(0.0);
-
-    for (i = k; i < rows; i++)
-      beta += A[i * cols + k] * A[i * cols + k];
-
-    beta = EK(2.0) / beta;
-
-    for (j = k + 1; j < cols; j++)
+    for (i = j + 1; i < n; i++)
     {
-      s = EK(0.0);
+      E s = G[i * n + j];
 
-      for (i = k; i < rows; i++)
-        s += A[i * cols + k] * A[i * cols + j];
+      for (k = 0; k < j; k++)
+        s -= G[i * n + k] * G[j * n + k];
 
-      s *= beta;
-
-      for (i = k; i < rows; i++)
-        A[i * cols + j] -= s * A[i * cols + k];
+      G[i * n + j] = s / d;
     }
-
-    s = EK(0.0);
-
-    for (i = k; i < rows; i++)
-      s += A[i * cols + k] * y[i];
-
-    s *= beta;
-
-    for (i = k; i < rows; i++)
-      y[i] -= s * A[i * cols + k];
-
-    A[k * cols + k] = alpha;
   }
 
-  for (k = cols - 1; k >= 0; k--)
+  for (i = 0; i < n; i++)
   {
-    E s = y[k];
+    E s = g[i];
 
-    for (j = k + 1; j < cols; j++)
-      s -= A[k * cols + j] * y[j];
+    for (k = 0; k < i; k++)
+      s -= G[i * n + k] * g[k];
 
-    y[k] = IF(A[k * cols + k] != EK(0.0), s / A[k * cols + k], EK(0.0));
+    g[i] = s / G[i * n + i];
   }
+
+  for (i = n - 1; i >= 0; i--)
+  {
+    E s = g[i];
+
+    for (k = i + 1; k < n; k++)
+      s -= G[k * n + i] * g[k];
+
+    g[i] = s / G[i * n + i];
+  }
+
+  return 1;
 }
 
 /* The transform sees the table only through the 2m + 2 taps at a node's
@@ -274,13 +262,13 @@ void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
   const INT w = KB_POLY_COLS(m), h = KB_POLY_HALF(deg), nk = 2 * h + 1;
   const INT nc = m + 1, nu = nc * nk;
   const INT nxi = KB_POLY_CORR_NXI, nt = KB_POLY_CORR_NT;
-  const INT rows = 2 * nxi * nt + nu, npt = nxi * nt;
+  const INT rows = 2 * nxi * nt, npt = nxi * nt;
   const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
-  E *A = (E*) Y(malloc)((size_t)(2 * rows * nu + 3 * rows + nt * nk + 2 * nc
-      + npt + nu) * sizeof(E));
-  E *As = A + rows * nu, *y = As + rows * nu, *ys = y + rows, *r = ys + rows;
-  E *T = r + rows, *lo = T + nt * nk, *hi = lo + nc, *wt = hi + nc;
-  E *best = wt + npt;
+  E *A = (E*) Y(malloc)((size_t)(rows * nu + rows + nu * nu + 4 * nu + 2 * npt
+      + nt * nk + 2 * nc) * sizeof(E));
+  E *y = A + rows * nu, *G = y + rows, *g = G + nu * nu, *best = g + nu;
+  E *scale = best + nu, *wt = scale + nu, *r = wt + npt, *T = r + npt;
+  E *lo = T + nt * nk, *hi = lo + nc;
   R *mem = (R*) Y(malloc)((size_t)(2 * nk * w + nk * nk) * sizeof(R));
   R *cheb = mem, *res = cheb + nk * w, *tp = res + nk * w;
   E lambda = EK(0.0), best_max = EK(0.0), rms_ls = EK(0.0);
@@ -344,27 +332,25 @@ void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
     }
   }
 
-  /* A small ridge, so that an over-provisioned degree cannot turn the
-   * unconstrained directions into large coefficients. */
-  for (i = 0; i < row * nu; i++)
-    lambda += A[i] * A[i];
-
-  lambda = E_SQRT(EK(1E-8) * lambda / (E)nu);
-
-  for (j = 0; j < nu; j++)
+  /* Columns scaled to unit norm, which keeps the normal equations as well
+   * conditioned as the design allows; a small ridge on top, so that an
+   * over-provisioned degree cannot turn its free directions into large
+   * coefficients. */
+  for (k = 0; k < nu; k++)
   {
-    for (k = 0; k < nu; k++)
-      A[(row + j) * nu + k] = IF(j == k, lambda, EK(0.0));
+    E ss = EK(0.0);
 
-    y[row + j] = EK(0.0);
+    for (i = 0; i < rows; i++)
+      ss += A[i * nu + k] * A[i * nu + k];
+
+    scale[k] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
+
+    for (i = 0; i < rows; i++)
+      A[i * nu + k] *= scale[k];
   }
 
-  /* Plain least squares first, the RMS optimum, then a few floored Lawson
-   * reweightings towards the worst case: the residual of an iterate is
-   * linear in the correction, r + A x, so no re-evaluation is needed. A
-   * reweighted iterate replaces the best one only if it lowers the maximum
-   * and raises the RMS by at most a tenth, so both measures end up at or
-   * below the least-squares ones in the worst case and the RMS. */
+  lambda = EK(1E-8);
+
   /* Row weights: the clustered frequency samples carry their quadrature
    * weight, so the least-squares iterate is the RMS optimum of the uniform
    * band, the measure random data see, while the samples still sit densely
@@ -378,31 +364,43 @@ void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
       wt[i * nt + q] = wq;
   }
 
+  /* Plain least squares first, the RMS optimum, then a few floored Lawson
+   * reweightings towards the worst case: the residual of an iterate is
+   * linear in the correction, r + A x, so no re-evaluation is needed. A
+   * reweighted iterate replaces the best one only if it lowers the maximum
+   * and raises the RMS by at most a tenth, so both measures end up at or
+   * below the least-squares ones in the worst case and the RMS. */
   for (it = 0; it < 4; it++)
   {
     E mx = EK(0.0), ss = EK(0.0);
 
-    for (i = 0; i < rows * nu; i++)
-      As[i] = A[i];
+    for (i = 0; i < nu * nu; i++)
+      G[i] = EK(0.0);
 
-    for (i = 0; i < rows; i++)
-      ys[i] = y[i];
+    for (k = 0; k < nu; k++)
+    {
+      G[k * nu + k] = lambda;
+      g[k] = EK(0.0);
+    }
 
     for (i = 0; i < npt; i++)
     {
-      const E sw = E_SQRT(wt[i]);
+      const E *a1 = A + (2 * i) * nu, *a2 = a1 + nu;
+      const E wi = wt[i];
 
-      for (k = 0; k < nu; k++)
+      for (j = 0; j < nu; j++)
       {
-        As[(2 * i) * nu + k] *= sw;
-        As[(2 * i + 1) * nu + k] *= sw;
-      }
+        const E u1 = wi * a1[j], u2 = wi * a2[j];
 
-      ys[2 * i] *= sw;
-      ys[2 * i + 1] *= sw;
+        for (k = 0; k <= j; k++)
+          G[j * nu + k] += u1 * a1[k] + u2 * a2[k];
+
+        g[j] += u1 * y[2 * i] + u2 * y[2 * i + 1];
+      }
     }
 
-    lstsq(As, ys, rows, nu);
+    if (!cholesky_solve(G, g, nu))
+      break;
 
     for (i = 0; i < npt; i++)
     {
@@ -410,8 +408,8 @@ void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
 
       for (k = 0; k < nu; k++)
       {
-        re += A[(2 * i) * nu + k] * ys[k];
-        im += A[(2 * i + 1) * nu + k] * ys[k];
+        re += A[(2 * i) * nu + k] * g[k];
+        im += A[(2 * i + 1) * nu + k] * g[k];
       }
 
       r[i] = E_SQRT(re * re + im * im);
@@ -427,9 +425,10 @@ void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
       best_max = mx;
 
       for (k = 0; k < nu; k++)
-        best[k] = ys[k];
+        best[k] = g[k] * scale[k];
     }
 
+    /* The next weights: Lawson, floored at half the maximum. */
     for (i = 0; i < npt; i++)
       wt[i] *= IF(r[i] > EK(0.5) * mx, r[i], EK(0.5) * mx) / mx;
   }
