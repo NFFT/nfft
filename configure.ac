@@ -441,6 +441,15 @@ if test "x$enable_threads" = "xyes"; then
     AC_MSG_WARN([Only single-threaded FFTW3 library found. Multi-threading will only be used in NFFT code, not in FFTW3 computations.])
     fftw3_LIBS_omp=""
   fi
+  if test "x$fftw3_LIBS_omp" != "x"; then
+    # FFTW 3.3.10 and later report the thread count of the planner.
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $nfft_fftw3_CPPFLAGS"
+    AC_CHECK_DECL([fftw_planner_nthreads],
+      [AC_DEFINE([HAVE_FFTW_PLANNER_NTHREADS],[1],[Define to 1 if multi-threaded FFTW provides fftw_planner_nthreads.])],
+      [],[[#include <fftw3.h>]])
+    CPPFLAGS="$saved_CPPFLAGS"
+  fi
 fi
 
 AC_SUBST(fftw3_CPPFLAGS)

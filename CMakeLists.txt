@@ -138,6 +138,14 @@ find_package(FFTW3 REQUIRED)
 # Define HAVE_FFTW_THREADS to true if an _omp (or _threads) FFTW3 lib exists.
 if(NFFT_ENABLE_OPENMP AND (FFTW3_OMP_FOUND OR FFTW3_THREADS_FOUND))
   set(HAVE_FFTW_THREADS ON)
+  # FFTW 3.3.10 and later report the thread count of the planner.
+  include(CheckCSourceCompiles)
+  set(_nfft_saved_required_includes "${CMAKE_REQUIRED_INCLUDES}")
+  list(APPEND CMAKE_REQUIRED_INCLUDES "${FFTW3_INCLUDE_DIR}")
+  check_c_source_compiles(
+    "#include <fftw3.h>\nint main(void) { return (int)sizeof(&fftw_planner_nthreads); }"
+    HAVE_FFTW_PLANNER_NTHREADS)
+  set(CMAKE_REQUIRED_INCLUDES "${_nfft_saved_required_includes}")
   # Regenerate config.h now that HAVE_FFTW_THREADS is known.
   configure_file(${PROJECT_SOURCE_DIR}/cmake.config.h.in
                  ${PROJECT_BINARY_DIR}/config.h @ONLY)

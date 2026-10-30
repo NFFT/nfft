@@ -69,29 +69,40 @@ static const unsigned sort_variants[] = {NFFT_SORT_NODES,
 static const char *sort_variant_names[] = {"SORT", "SORT|BLOCKWISE"};
 
 /* Runs CHECK(all_stages). The OpenMP library runs all stages on one thread
- * and then only the first stages on the default number of threads, as the
- * later stages run no threaded code that the first stages do not run. The
- * plans are tiny, so threaded transforms and FFTs spend their time in the
- * barriers of the OpenMP runtime, which takes many minutes when other
- * processes compete for the CPUs. FFTW stays on one thread throughout: NFFT
- * plans set the FFTW thread count themselves, but NFCT and NFST plans use the
- * count the last NFFT plan left, which is restored at the end. */
+ * and then, on the default number of threads, all stages in 1D, which covers
+ * sorting new nodes again on several threads, but only the first stages for
+ * d > 1. The plans are tiny, so threaded
+ * transforms and FFTs spend their time in the barriers of the OpenMP runtime,
+ * which takes many minutes when other processes compete for the CPUs. FFTW
+ * stays on one thread throughout: NFFT plans set the FFTW thread count
+ * themselves, but NFCT and NFST plans use the count the last NFFT plan left,
+ * which is restored at the end. FFTW 3.3.10 and later report that count;
+ * older versions do not, and the count every NFFT, NFSFT and FPT plan sets,
+ * the number of threads of the library, is restored instead. */
 #ifdef _OPENMP
 #if defined(HAVE_FFTW_THREADS)
 #define SORT_FFTW_THREADS(n) FFTW(plan_with_nthreads)((int)(n))
+#if defined(HAVE_FFTW_PLANNER_NTHREADS)
+#define SORT_FFTW_NTHREADS() FFTW(planner_nthreads)()
+#else
+#define SORT_FFTW_NTHREADS() ((int)Y(get_num_threads)())
+#endif
 #else
 #define SORT_FFTW_THREADS(n)
+#define SORT_FFTW_NTHREADS() 1
 #endif
 #define SORT_THREADED_RUNS(CHECK) \
 { \
   const INT sort_nthreads = Y(get_num_threads)(); \
+  const int sort_fftw_nthreads = SORT_FFTW_NTHREADS(); \
   Y(set_num_threads)(1); \
   SORT_FFTW_THREADS(1); \
   CHECK(1); \
   Y(set_num_threads)(sort_nthreads); \
   if (sort_nthreads > 1) \
     CHECK(0); \
-  SORT_FFTW_THREADS(sort_nthreads); \
+  SORT_FFTW_THREADS(sort_fftw_nthreads); \
+  (void)sort_fftw_nthreads; \
 }
 #else
 #define SORT_THREADED_RUNS(CHECK) CHECK(1);
@@ -289,7 +300,8 @@ static int MODULE(sort_one)(const int d, int *N, int *n, const int M, \
 } \
 \
 /* every d, psi mode and sorted variant; all_stages also changes the nodes \
- * and runs the precomputation routines of the modes */ \
+ * and runs the precomputation routines of the modes for d > 1, which 1D \
+ * always does */ \
 static int MODULE(sort_all)(const int all_stages) \
 { \
   /* N per dimension and M, for d = 1, ..., 4; n = 2N */ \
@@ -310,7 +322,7 @@ static int MODULE(sort_all)(const int all_stages) \
       for (v = 0; v < (size_t)(NVARIANTS); v++) \
         ok &= MODULE(sort_one)(d, N, n, MM[d - 1], sort_modes[i], \
           sort_mode_names[i], sort_variants[v], sort_variant_names[v], \
-          all_stages); \
+          all_stages || d == 1); \
   } \
 \
   return ok; \

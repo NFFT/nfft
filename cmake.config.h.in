@@ -23,6 +23,7 @@
 
 /* Threads */
 #cmakedefine HAVE_FFTW_THREADS 1
+#cmakedefine HAVE_FFTW_PLANNER_NTHREADS 1
 
 /* Benchmarks */
 #define BENCHMARKS_PREFIX "@BENCHMARKS_PREFIX@"
