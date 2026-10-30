@@ -1,0 +1,18 @@
+N=2048 M=20000 n=4096 sigma=2 m=6  table degree 13 (rows 15, cols 8)  double
+stock    random: max|f-fd|/sum|fhat| = 1.272e-14   rms est. of J_2 = 5.920e-14
+stock    single k:  k=    0: 1.179e-13  k=   64: 1.082e-13  k=  128: 1.030e-13  k=  256: 1.207e-13  k=  512: 1.441e-13  k=  768: 2.922e-13  k= 1023: 7.751e-13
+--- coef_ownc_s2_m6_h7.txt (degree 14, own deconvolution)
+ownc     random: max|f-fd|/sum|fhat| = 1.266e-14   rms est. of J_2 = 5.918e-14
+ownc     single k:  k=    0: 1.162e-13  k=   64: 1.073e-13  k=  128: 1.032e-13  k=  256: 1.193e-13  k=  512: 1.427e-13  k=  768: 2.919e-13  k= 1023: 7.734e-13
+N=2048 M=20000 n=4096 sigma=2 m=7  table degree 13 (rows 15, cols 9)  double
+stock    random: max|f-fd|/sum|fhat| = 1.648e-16   rms est. of J_2 = 8.336e-16
+stock    single k:  k=    0: 9.992e-16  k=   64: 1.115e-15  k=  128: 1.085e-15  k=  256: 1.438e-15  k=  512: 2.363e-15  k=  768: 3.346e-15  k= 1023: 7.406e-15
+--- coef_ownc_s2_m7_h7.txt (degree 14, own deconvolution)
+ownc     random: max|f-fd|/sum|fhat| = 1.574e-16   rms est. of J_2 = 9.174e-16
+ownc     single k:  k=    0: 8.882e-16  k=   64: 1.089e-15  k=  128: 1.457e-15  k=  256: 1.597e-15  k=  512: 2.168e-15  k=  768: 3.108e-15  k= 1023: 7.306e-15
+N=2048 M=20000 n=4096 sigma=2 m=8  table degree 13 (rows 15, cols 10)  double
+stock    random: max|f-fd|/sum|fhat| = 5.594e-17   rms est. of J_2 = 5.696e-16
+stock    single k:  k=    0: 8.882e-16  k=   64: 5.761e-16  k=  128: 5.881e-16  k=  256: 8.446e-16  k=  512: 9.418e-16  k=  768: 1.221e-15  k= 1023: 3.350e-15
+--- coef_ownc_s2_m8_h7.txt (degree 14, own deconvolution)
+ownc     random: max|f-fd|/sum|fhat| = 7.167e-17   rms est. of J_2 = 6.694e-16
+ownc     single k:  k=    0: 7.772e-16  k=   64: 6.117e-16  k=  128: 6.398e-16  k=  256: 6.877e-16  k=  512: 1.050e-15  k=  768: 1.827e-15  k= 1023: 6.226e-15

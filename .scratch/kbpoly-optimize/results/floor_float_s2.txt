@@ -1,0 +1,27 @@
+N=2048 M=20000 n=4096 sigma=2 m=2  table degree 7 (rows 9, cols 4)  float
+stock    random: max|f-fd|/sum|fhat| = 7.475e-07   rms est. of J_2 = 4.155e-06
+stock    single k:  k=    0: 9.000e-06  k=   64: 9.281e-06  k=  128: 9.881e-06  k=  256: 1.097e-05  k=  512: 1.240e-05  k=  768: 1.646e-05  k= 1023: 2.686e-05
+N=2048 M=20000 n=4096 sigma=2 m=3  table degree 7 (rows 9, cols 5)  float
+stock    random: max|f-fd|/sum|fhat| = 2.238e-08   rms est. of J_2 = 2.419e-07
+stock    single k:  k=    0: 3.576e-07  k=   64: 4.431e-07  k=  128: 5.253e-07  k=  256: 4.046e-07  k=  512: 2.557e-07  k=  768: 5.410e-07  k= 1023: 8.083e-07
+--- coef_ownc_s2_m3_h4.txt (degree 8, own deconvolution)
+ownc     random: max|f-fd|/sum|fhat| = 1.697e-08   rms est. of J_2 = 1.576e-07
+ownc     single k:  k=    0: 2.980e-07  k=   64: 2.531e-07  k=  128: 2.485e-07  k=  256: 1.919e-07  k=  512: 2.493e-07  k=  768: 3.346e-07  k= 1023: 6.919e-07
+--- coef_alias_s2_m3_h4.txt (degree 8, own deconvolution)
+alias    random: max|f-fd|/sum|fhat| = 1.418e-08   rms est. of J_2 = 1.436e-07
+alias    single k:  k=    0: 1.788e-07  k=   64: 1.938e-07  k=  128: 2.189e-07  k=  256: 2.095e-07  k=  512: 2.071e-07  k=  768: 2.294e-07  k= 1023: 5.775e-07
+--- coef_shape_s2_m3_h4.txt (degree 8, own deconvolution)
+shape    random: max|f-fd|/sum|fhat| = 1.301e-08   rms est. of J_2 = 1.434e-07
+shape    single k:  k=    0: 1.788e-07  k=   64: 2.505e-07  k=  128: 2.281e-07  k=  256: 2.163e-07  k=  512: 2.155e-07  k=  768: 2.764e-07  k= 1023: 5.306e-07
+N=2048 M=20000 n=4096 sigma=2 m=4  table degree 7 (rows 9, cols 6)  float
+stock    random: max|f-fd|/sum|fhat| = 2.039e-08   rms est. of J_2 = 1.941e-07
+stock    single k:  k=    0: 2.384e-07  k=   64: 2.877e-07  k=  128: 3.110e-07  k=  256: 2.956e-07  k=  512: 3.633e-07  k=  768: 4.335e-07  k= 1023: 8.234e-07
+--- coef_ownc_s2_m4_h4.txt (degree 8, own deconvolution)
+ownc     random: max|f-fd|/sum|fhat| = 1.481e-08   rms est. of J_2 = 1.466e-07
+ownc     single k:  k=    0: 2.384e-07  k=   64: 2.893e-07  k=  128: 2.490e-07  k=  256: 1.723e-07  k=  512: 2.286e-07  k=  768: 2.612e-07  k= 1023: 6.942e-07
+--- coef_alias_s2_m4_h4.txt (degree 8, own deconvolution)
+alias    random: max|f-fd|/sum|fhat| = 1.492e-08   rms est. of J_2 = 1.474e-07
+alias    single k:  k=    0: 2.384e-07  k=   64: 1.961e-07  k=  128: 2.659e-07  k=  256: 2.235e-07  k=  512: 2.025e-07  k=  768: 2.848e-07  k= 1023: 5.662e-07
+--- coef_shape_s2_m4_h4.txt (degree 8, own deconvolution)
+shape    random: max|f-fd|/sum|fhat| = 1.587e-08   rms est. of J_2 = 1.615e-07
+shape    single k:  k=    0: 1.788e-07  k=   64: 2.507e-07  k=  128: 2.122e-07  k=  256: 1.913e-07  k=  512: 2.137e-07  k=  768: 3.452e-07  k= 1023: 6.592e-07

@@ -709,3 +709,72 @@ how much flatness the aliasing budget allows. The size of the gain is not
 measured yet; the experiment is the model of section 3 plus the rounding
 term, solved as the SOCP above, validated with `kbgain.c` in float at
 `m = 3, 4` and in double at `m = 7, 8`, where the floor is reachable.
+
+## 14. The rounding-aware objective, tried
+
+Measured on develop with an accurate reference (`kbgain2.c`: long double
+direct sum with exact argument reduction; the earlier driver's `cexp` of a
+large argument was itself the floor it reported). Raw output in
+`results/floor_float_s2.txt` and `results/floor_double_s2.txt`.
+
+**The floors.** Band-edge maximum error for a single frequency, `sigma = 2`,
+`N = 2048`, 20000 nodes; `k = 0` is the window-independent baseline (there
+`C = 1`), set by the FFT and the gather:
+
+| build | m | k = 0 | band edge | aliasing model at the edge |
+|---|---|---|---|---|
+| double | 6 | 1.2e-13 | 7.8e-13 | 7.2e-13 |
+| double | 7 | 1.0e-15 | 7.4e-15 | 9.5e-15 |
+| double | 8 | 8.9e-16 | 3.4e-15 | 4.4e-15 |
+| float | 2 | 9.0e-6 | 2.7e-5 | 2.6e-5 |
+| float | 3 | 3.6e-7 | 8.1e-7 | 3.2e-7 |
+| float | 4 | 2.4e-7 | 8.2e-7 | 4.8e-9 |
+
+So the baseline is 4 to 8 eps, the band edge 14 to 30 eps, and the gap
+between them is the `1/C` amplification (3 to 11 at these `m`) acting on a
+part of the rounding, not on all of it.
+
+**Three variants, float build** (`h = 4`, the develop degree), band edge /
+`k = 0` / RMS on random input:
+
+| m | stock | own deconvolution factors only | aliasing optimum with own factors | shaped in the soft directions |
+|---|---|---|---|---|
+| 2 | 2.69e-5 / 9.0e-6 / 4.2e-6 | | 6.0e-6 / 4.1e-6 / 2.6e-6 (4.5x / 2.2x / 1.6x) | same |
+| 3 | 8.08e-7 / 3.58e-7 / 2.42e-7 | 6.92e-7 / 2.98e-7 / 1.58e-7 | 5.78e-7 / 1.79e-7 / 1.44e-7 (1.4x / 2.0x / 1.7x) | 5.31e-7 / 1.79e-7 / 1.43e-7 |
+| 4 | 8.23e-7 / 2.38e-7 / 1.94e-7 | 6.94e-7 / 2.38e-7 / 1.47e-7 | 5.66e-7 / 2.38e-7 / 1.47e-7 (1.45x / 1x / 1.3x) | 6.59e-7 / 1.79e-7 / 1.62e-7 |
+
+"Own deconvolution factors" injects the polynomial's exact `psi_hat(k/n)`,
+computed in double, in place of the float evaluation of `kb_phi_hut`; the
+coefficients are the stock ones. That alone is 1.17x at the band edge and
+1.3x to 1.5x in RMS in float, because the float `exp` and Bessel evaluation
+of `PHI_HUT` is off by a few eps and that error lands directly on the result.
+In double the same injection changes nothing (`results/floor_double_s2.txt`),
+so `PHI_HUT` in double is accurate; the fix is to evaluate it in `E` in the
+float build (issue 09).
+
+**The rounding-aware design itself** (goal 4 of section 13) was tried three
+ways: the cone program with bisection on the error level, the cone program
+minimizing the level with the deconvolution frozen per outer iteration
+(`kbopt7.py`), and a smooth epigraph NLP (`kbopt8.py`). All three fail
+numerically: the constraints must resolve a difference of order-one
+quantities to 1e-7 (float) or 1e-14 (double) while the rounding term is
+weighted by `u` over the same quantities, and neither interior-point solver
+nor SLSQP survives that scaling. The well-conditioned substitute
+(`kbopt9.py`) restricts the shape change to the eight softest right singular
+directions of the aliasing operator, searches them derivative-free on the
+plainly evaluated objective, and polishes the aliasing by least squares.
+Its result is the last column above: 1.09x at the band edge at `m = 3`,
+nothing in RMS, worse at `m = 4`; in double at `m = 8` the polish is below
+its own rounding noise and the result is worse than stock.
+
+**Conclusion.** The rounding term is dominated by its window-independent
+part. What the window can still shape, the `1/C` amplification at the band
+edge, is bounded by the measured gap between the edge and the `k = 0`
+baseline, 2.4x in float at `m = 4` and 3.7x in double at `m = 8`, and
+flattening the spectrum to collect it costs aliasing faster than it buys
+rounding at these `(sigma, m)`. The measured net is about 1.1x where it could
+be tested. Goal 4 is therefore closed by measurement: not worth a solver that
+works, let alone the own-deconvolution plumbing in the library. What does pay
+at the floor is the aliasing optimum with accurate deconvolution factors,
+1.4x to 1.5x at the float band edge and 1.3x to 1.7x in RMS, and above the
+floor the 4x of sections 6 and 11.

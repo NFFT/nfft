@@ -167,3 +167,14 @@ left on the table:
   double, and no cell regresses by more than 5 percent.
 - With `E == R` (float build) the same holds for the cases the guard admits,
   and the cases it rejects are unchanged.
+
+## Addendum (2026-10-30): the rounding-aware objective
+
+Analysis section 14 tried goal 4 (aliasing plus rounding amplification in one
+objective). It is numerically out of reach for double-precision solvers and,
+where a well-conditioned substitute could be measured, buys about 1.1x at the
+band edge at the float floor. It is dropped from the goals. Two things from
+that work stay in scope: evaluating `PHI_HUT` in `E` in the float build
+(issue 09, measured 1.17x band edge and 1.3x to 1.5x RMS at the float floor),
+and the note that `kbgain2.c` is the harness to use for floor measurements,
+since a `cexp` of a large argument in the reference is itself a floor.
