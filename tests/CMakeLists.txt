@@ -15,6 +15,7 @@ set(NFFT_TEST_SOURCES
   halo.c    halo.h
   kernel.c  kernel.h
   tile.c    tile.h
+  otf.c     otf.h
   nsfft.c   nsfft.h
   nfct.c    nfct.h
   nfst.c    nfst.h)

@@ -35,6 +35,7 @@
 #include "halo.h"
 #include "kernel.h"
 #include "tile.h"
+#include "otf.h"
 #include "nsfft.h"
 
 int main(void)
@@ -65,6 +66,7 @@ int main(void)
   CU_add_test(util, "log_sinc", X(check_log_sinc));
   CU_add_test(util, "log_sinc_exp", X(check_log_sinc_exp));
   CU_add_test(util, "bspline_run", X(check_bspline_run));
+  CU_add_test(util, "window_run_block", X(check_window_run_block));
   CU_add_test(util, "bspline_phi_hut_reference", X(check_bspline_phi_hut_reference));
   CU_add_test(util, "bspline_phi_reference", X(check_bspline_phi_reference));
   CU_add_test(util, "sincpow_phi_reference", X(check_sincpow_phi_reference));
@@ -82,6 +84,7 @@ int main(void)
   CU_add_test(nfft, "nfft_halo", X(check_halo));
   CU_add_test(nfft, "nfft_kernel", X(check_kernel));
   CU_add_test(nfft, "nfft_tile", X(check_tile));
+  CU_add_test(nfft, "nfft_otf", X(check_otf));
   CU_add_test(nfft, "nfft_1d_direct_file", X(check_1d_direct_file));
 #ifdef CHECK_NSFFT
   CU_add_test(nfft, "nsfft", NFFT(check_nsfft));
@@ -148,6 +151,7 @@ int main(void)
   CU_add_test(nfct, "nfct_halo", X(check_halo));
   CU_add_test(nfct, "nfct_kernel", X(check_kernel));
   CU_add_test(nfct, "nfct_tile", X(check_tile));
+  CU_add_test(nfct, "nfct_otf", X(check_otf));
   CU_add_test(nfct, "nfct_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfct, "nfct_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfct, "nfct_1d_online", X(check_1d_online));
@@ -205,6 +209,7 @@ int main(void)
   CU_add_test(nfst, "nfst_halo", X(check_halo));
   CU_add_test(nfst, "nfst_kernel", X(check_kernel));
   CU_add_test(nfst, "nfst_tile", X(check_tile));
+  CU_add_test(nfst, "nfst_otf", X(check_otf));
   CU_add_test(nfst, "nfst_1d_fast_file", X(check_1d_fast_file));
   CU_add_test(nfst, "nfst_adjoint_1d_fast_file", X(check_adjoint_1d_fast_file));
   CU_add_test(nfst, "nfst_1d_online", X(check_1d_online));
