@@ -262,7 +262,11 @@ typedef struct\
   NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
-  unsigned flags; /**< flags for precomputation, malloc */\
+  unsigned flags; /**< flags for precomputation, malloc; the default of the
+                       init routines is PRE_PHI_HUT | PRE_PSI | MALLOC_X
+                       | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for
+                       d = 1 */\
   unsigned fftw_flags; /**< flags for the fftw */\
 \
   R *x; /**< nodes (in time/spatial domain)   */\
@@ -349,7 +353,11 @@ typedef struct\
   NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
                PRE_LIN_PSI. */\
 \
-  unsigned flags; /**< flags for precomputation, malloc */\
+  unsigned flags; /**< flags for precomputation, malloc; the default of the
+                       init routines is PRE_PHI_HUT | PRE_PSI | MALLOC_X
+                       | MALLOC_F_HAT | MALLOC_F | FFTW_INIT
+                       | NFFT_SORT_NODES, plus FFT_OUT_OF_PLACE for
+                       d = 1 */\
   unsigned fftw_flags; /**< flags for the fftw */\
 \
   R *x; /**< nodes (in time/spatial domain) */\

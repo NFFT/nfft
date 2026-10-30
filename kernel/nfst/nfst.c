@@ -1403,8 +1403,9 @@ void X(init)(X(plan) *ths, int d, int *N, int M_total)
 //#endif
   }
   else
+    /* sorted, as for d > 1: the transforms gain more than the sort costs */
     ths->flags = PRE_PHI_HUT | PRE_PSI | MALLOC_X| MALLOC_F_HAT | MALLOC_F |
-                      FFTW_INIT | FFT_OUT_OF_PLACE;
+                      FFTW_INIT | FFT_OUT_OF_PLACE | NFFT_SORT_NODES;
 
   ths->fftw_flags = FFTW_ESTIMATE | FFTW_DESTROY_INPUT;
 
