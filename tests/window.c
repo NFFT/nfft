@@ -557,6 +557,47 @@ void X(check_log_sinc_exp)(void)
 
 #define BSPLINE_RUN_MAX_M 16
 
+/* The per-cell polynomial run against the direct evaluation, within the
+ * rounding floor the degree is cut at. */
+void X(check_sincpow_poly_run)(void)
+{
+#if defined(SINC_POWER)
+  static const int ms[] = {1, 2, 4, 8, 11};
+  static const R sigmas[] = {K(1.5), K(2.0), K(4.0)};
+  static const R fracs[] = {K(0.0), K(0.25), K(0.5), K(0.999)};
+  unsigned int i, si, f;
+
+  printf("SINC-POWER POLY RUN\n-------------------\n");
+
+  for (i = 0; i < SIZE(ms); i++)
+    for (si = 0; si < SIZE(sigmas); si++)
+    {
+      const INT m = (INT)ms[i];
+      const R w = (K(2.0) * sigmas[si] - K(1.0)) / (K(2.0) * (R)m * sigmas[si]);
+      R *tab = Y(sincpow_poly_init)(&w, 1, m);
+      const INT deg = (INT)tab[0];
+      const R bound = K(32.0) * EPSILON * w;
+      R run[2 * 11 + 2], err = K(0.0);
+      INT l;
+
+      for (f = 0; f < SIZE(fracs); f++)
+      {
+        Y(kb_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
+
+        for (l = 0; l < 2 * m + 2; l++)
+          err = FMAX(err, FABS(run[l] - Y(sincpow_phi)(w, (R)m,
+              KPI * w * ((R)m + fracs[f] - (R)l))));
+      }
+
+      printf("sincpow_poly[m=" __D__ ", sigma=" __FE__ "] deg=" __D__
+          " err/peak=" __FE__ " bound=" __FE__ " %s\n", m, sigmas[si], deg,
+          err / w, bound / w, err <= bound ? "ok" : "FAIL");
+      CU_ASSERT(err <= bound);
+      Y(free)(tab);
+    }
+#endif
+}
+
 /* The per-cell polynomial run against de Boor, within the degree rule's
  * truncation plus rounding. */
 void X(check_bspline_poly_run)(void)

@@ -345,10 +345,13 @@ typedef ptrdiff_t INT;
                               (R)(k) * SP_W_INV(ax) / (R)(n) + (R)ths->m))
   #define PHI(n,x,ax) (Y(sincpow_phi)(SP_W(ax), (R)ths->m, \
                            KPI * (R)(n) * SP_W(ax) * (x)))
-  /* The sinc arguments across a run are one step of KPI * w apart. */
+  /* Polynomial window from Y(sincpow_poly_init) (kbpoly.c): spline_coeffs[0]
+   * is the degree, then one KB_POLY_ROWS x KB_POLY_COLS table per axis. */
+  #define SP_POLY_DEG ((INT)ths->spline_coeffs[0])
+  #define SP_POLY(ax) (ths->spline_coeffs + 1 \
+      + (ax) * KB_POLY_ROWS(SP_POLY_DEG) * KB_POLY_COLS(ths->m))
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(sincpow_phi_run)((dst), SP_W(ax), (R)ths->m, (ths->m), \
-        KPI * SP_W(ax), NX_SUB(n, x, u))
+    Y(kb_poly_run)((dst), SP_POLY(ax), ths->m, SP_POLY_DEG, NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -367,8 +370,9 @@ typedef ptrdiff_t INT;
       ths->b[2 * ths->d + WINDOW_k * WINDOW_k] = \
           (R)Y(bspline_cheb_guard)(ths->b + 2 * ths->d, WINDOW_k, \
               NFFT_CHEB_GUARD); \
+      ths->spline_coeffs = Y(sincpow_poly_init)(ths->b, ths->d, ths->m); \
     }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b);}
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b); Y(free)(ths->spline_coeffs);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -1970,6 +1974,10 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach);
 /* The B-spline window of order 2m+2 in the same layout, one table for all
  * axes; the tightest sigma sets the degree. The caller frees the result. */
 R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m);
+
+/* The sinc-power window in the same layout, one table per axis from w, at
+ * degree KB_POLY_DEG_MAX. The caller frees the result. */
+R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m);
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed
