@@ -1365,13 +1365,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 18.417834362480683
+      "value": 18.41640414621273
     },
     "bound-digits": {
       "value": 17.631421889568422
     },
     "max-error": {
-      "value": 3.820899700603632e-19
+      "value": 3.8335034089294676e-19
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
@@ -1398,13 +1398,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 18.445339931987153
+      "value": 18.43517077558036
     },
     "bound-digits": {
       "value": 17.631421889568422
     },
     "max-error": {
-      "value": 3.5864110835221983e-19
+      "value": 3.671379041952375e-19
     }
   },
   "nfft/omp/file/fast/adjoint/3d/init": {
@@ -1882,24 +1882,24 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 17.8641829404687
+      "value": 17.853853763458087
     },
     "bound-digits": {
       "value": 15.042214432707611
     },
     "max-error": {
-      "value": 1.3671528103092568e-18
+      "value": 1.400058673881798e-18
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.8641829404687
+      "value": 17.85330032503143
     },
     "bound-digits": {
       "value": 15.042214432707611
     },
     "max-error": {
-      "value": 1.3671528103092568e-18
+      "value": 1.4018439606405072e-18
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI_m_half": {
@@ -1915,13 +1915,13 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 17.865786987039044
+      "value": 17.855961329873995
     },
     "bound-digits": {
       "value": 15.042214432707611
     },
     "max-error": {
-      "value": 1.3621126082805465e-18
+      "value": 1.3932808568992728e-18
     }
   },
   "nfft/omp/online/fast/forward/1d/init": {
