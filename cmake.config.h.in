@@ -18,7 +18,7 @@
 #cmakedefine GAUSSIAN 1
 #cmakedefine B_SPLINE 1
 #cmakedefine SINC_POWER 1
-#define WINDOW_NAME "@WINDOW_NAME@"
+#define WINDOW_NAME @NFFT_WINDOW@
 
 /* Threads */
 #cmakedefine HAVE_FFTW_THREADS 1
