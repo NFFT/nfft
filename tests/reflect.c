@@ -41,9 +41,16 @@ void X(check_get_version)(void)
 
 void X(check_get_window_name)(void)
 {
-    const char *window_name1 = STRINGIZE(WINDOW_NAME);
-    const char *window_name2 = Y(get_window_name)();
+  /* The names --with-window accepts, which both builds must report. */
+#if defined(GAUSSIAN)
+  const char *expected = "gaussian";
+#elif defined(B_SPLINE)
+  const char *expected = "bspline";
+#elif defined(SINC_POWER)
+  const char *expected = "sinc";
+#else
+  const char *expected = "kaiserbessel";
+#endif
 
-    /* Just compare what's returned by the method against the literal from config.h. */
-    CU_ASSERT(strncmp(window_name1, window_name2, sizeof(window_name1)) == 0);
+  CU_ASSERT_STRING_EQUAL(Y(get_window_name)(), expected);
 }
