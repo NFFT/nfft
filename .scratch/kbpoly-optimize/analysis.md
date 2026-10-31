@@ -785,9 +785,12 @@ Implemented on `feature/kbpoly-optimize` (see the commit log): the degree
 table from the error functional (`gen/kbpolygen/functional.py`, rule in the
 README), the optional plan-time least-squares correction behind the plan flag
 `OPT_WINDOW` with its guard from the table (`Y(kb_poly_correct)` in
-`kernel/util/kbpoly.c`), the local type `E` and the deconvolution factors
-evaluated in it (`Y(kb_phi_hut)`), and tests that measure the functional in
-C (`tests/kbpoly.c`).
+`kernel/util/kbpoly.c`), the local type `E` for that solve, and tests that
+measure the functional in C (`tests/kbpoly.c`). Evaluating the deconvolution
+factors in `E` was tried and reverted: it recovered almost nothing (the float
+error sits in the Bessel factor), and a wider type is a special case only the
+float build can have; the precision-agnostic form of that goal is issue 09,
+one ulp in `R` for every format.
 
 **Spending only the degrees the aliasing error leaves room for.** That was
 the intent of the original rule, and it is what the table does now, with two

@@ -1,47 +1,41 @@
-# 09: Evaluate the deconvolution factors in `E` in the float build
+# 09: Evaluate the deconvolution factors to one ulp in `R`
 
-Status: done in part (feature/kbpoly-optimize): the exponential's argument and value are formed in E; the scaled Bessel factor is still evaluated in R
+Status: ready-for-agent
 
-Part of: PRD addendum. Background: `analysis.md` section 14.
+Part of: PRD addendum. Background: `analysis.md` sections 14 and 15.1.
 
 ## Task
 
-In the float build the deconvolution factors `PHI_HUT` (`Y(kb_phi_hut)`:
-`exp`, `bessel_i0_exp_scaled`, a reciprocal) are evaluated in float and are off
-by a few eps, and that error lands on the result unattenuated. Measured on
-develop at `sigma = 2, N = 2048`: replacing them by accurate values lowers the
-band-edge error 1.17x at `m = 3` and `4` and the RMS error 1.3x to 1.5x
-(`results/floor_float_s2.txt`, rows "ownc" against "stock"). In double the
-same replacement changes nothing.
+The deconvolution factors `PHI_HUT` (`Y(kb_phi_hut)`: an exponential, the
+scaled Bessel function `Y(bessel_i0_exp_scaled)`, a reciprocal) carry an
+error of a few ulp that lands on the result unattenuated. Whether that shows
+depends on the format's rounding floor, not on the format: in double and
+long double the floor is 8 to 30 ulp from the FFT and the gather and the
+factors do not register; in float the floor is about 14 ulp at the band
+edge and exact factors lower the error 1.17x there and 1.3x to 1.5x in RMS
+at `sigma = 2, m = 3, 4` (`results/floor_float_s2.txt`, "ownc" rows).
 
-Evaluate `Y(kb_phi_hut)` in `E` (issue 04 defines it; `double` in the float
-build on every platform the library supports) and round once to `R`, both on
-the `PRE_PHI_HUT` table path (`precompute_phi_hut`) and the per-call path.
-`bessel_i0_exp_scaled` then needs an `E` entry point, or the table of
-`kernel/util/bessel_i0_data.h` evaluated in `E`; check which the generator in
-`gen/besselgen` already provides for the double build and reuse it.
+Forming the exponential in a wider type was tried on this branch and
+reverted: it recovered almost nothing, the remaining error is in the float
+Bessel evaluation, and a wider type is a special case that only the float
+build can have. The precision-agnostic statement of the goal is an accuracy
+target per format: evaluate `PHI_HUT` to about one ulp in `R`.
+
+- Measure the ulp error of `Y(bessel_i0_exp_scaled)` and of `Y(kb_phi_hut)`
+  per format against mpmath over the arguments the band uses (`m ra` from
+  `m sqrt(b^2 - pi^2/sigma^2)` to `m b`); `tests/bessel.c` has the harness.
+- Tighten the float fit in `gen/besselgen` (more terms, or a split that
+  keeps the argument reduction exact) until `kb_phi_hut` is within one ulp
+  in float; check that double and long double already are, and tighten them
+  if not.
+- Keep the evaluation in `R` and the code the same in every format.
 
 ## Acceptance
 
-- Float build, `tests/kbgain2.c`-style measurement (port the driver's
-  single-frequency check into `tests/kbpoly.c` or a new test): band-edge
-  error at `sigma = 2, m = 3, 4` within 5 percent of the "ownc" rows of
+- Float build, `kbgain2.c`-style measurement at `sigma = 2, m = 3, 4`: the
+  band-edge error and RMS within 5 percent of the "ownc" rows of
   `results/floor_float_s2.txt`.
-- Double and long double builds bit-identical in `make check` output.
-- No change to CodSpeed benchmark names; the transform's instruction count is
-  unchanged (the change is in precompute or in the per-`k` factor evaluation,
-  which is `O(N)`).
-
-
-## Comments
-
-Measured after the change (float build, `kbgain2.c` with exact factors
-injected, `results/gain_lib_float.txt` for the stock rows): at `sigma = 2,
-m = 4` the stock band edge is `9.0e-7` and exact factors still give
-`6.9e-7`, RMS `1.9e-7` to `1.5e-7`; at `m = 3` RMS `2.4e-7` to `1.6e-7`.
-So the exponential's argument was not the dominant float error; what
-remains is the float evaluation of `bessel_i0_exp_scaled`, a few ulp at
-arguments near `R b`. Finishing this issue means evaluating that factor in
-`E` too: the float build would need the double-precision coefficient table
-of `kernel/util/bessel_i0_data.h` compiled alongside its own, under a
-distinct name, which is a change to `gen/besselgen` and `bessel_i0.c`.
+- Double and long double: `make check` output unchanged in the digits the
+  tests print.
+- No change to the run-time instruction count of the transform; the factors
+  are `O(N)` per plan or per call.

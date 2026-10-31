@@ -139,15 +139,16 @@ typedef ptrdiff_t INT;
   #define EPSILON DBL_EPSILON
 #endif
 
-/* E is the type of a local computation that may use more precision than R
- * where that is cheap: double in the float build, R otherwise. Code that uses
- * it must also be correct with E == R. E_MANT_DIG is its mantissa width. */
+/* E is the type of a plan-time computation that may use more precision than
+ * R where a wider type is free: double in the float build, R otherwise. Code
+ * that uses it must also be correct with E == R; the only user is the
+ * least-squares correction of the polynomial window, whose reach is set by
+ * the eps of the type it runs in. E_MANT_DIG is its mantissa width. */
 #if defined(NFFT_SINGLE)
   typedef double E;
   #define E_MANT_DIG DBL_MANT_DIG
   #define EK(x) ((E) x)
   #define E_PI EK(3.1415926535897932384626433832795028841971693993751)
-  #define E_EXP(x) exp(x)
   #define E_SQRT(x) sqrt(x)
   #define E_COS(x) cos(x)
   #define E_SIN(x) sin(x)
@@ -156,7 +157,6 @@ typedef ptrdiff_t INT;
   #define E_MANT_DIG MANT_DIG
   #define EK(x) K(x)
   #define E_PI KPI
-  #define E_EXP(x) EXP(x)
   #define E_SQRT(x) SQRT(x)
   #define E_COS(x) COS(x)
   #define E_SIN(x) SIN(x)
@@ -1967,15 +1967,12 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,
  * i0e_peak_inv = 1/(exp(-m b) I0(m b)) is constant per axis. */
 static inline R Y(kb_phi_hut)(R b, R i0e_peak_inv, R m, R n, R k)
 {
-  /* The argument of the exponential reaches m b, so its rounding alone would
-   * cost m b ulp; in E (double in the float build) it costs nothing. The
-   * scaled Bessel function varies slowly, so R serves it. */
-  const E t = EK(2.0) * E_PI * (E)k / (E)n;
-  const E s = ((E)b - t) * ((E)b + t); /* not b*b - t*t; >= 0 in band */
-  const E ra = E_SQRT(s);
+  const R t = K(2.0) * KPI * k / n;
+  const R s = (b - t) * (b + t); /* not b*b - t*t; >= 0 in band, so SQRT is safe */
+  const R ra = SQRT(s);
 
-  return (R)(E_EXP(-(E)m * t * t / (ra + (E)b))
-      * (E)Y(bessel_i0_exp_scaled)((R)((E)m * ra)) * (E)i0e_peak_inv);
+  return EXP(-m * t * t / (ra + b)) * Y(bessel_i0_exp_scaled)(m * ra)
+    * i0e_peak_inv;
 }
 
 /* bspline.c: */
