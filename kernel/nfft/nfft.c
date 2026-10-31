@@ -1051,7 +1051,7 @@ static inline void B_serial_ ## which_one (X(plan) *ths) \
     return; \
   } /* if(PRE_FG_PSI) */ \
  \
-  if (ths->flags & FG_PSI) \
+  if (WINDOW_FG_PATH(ths->flags)) \
   { \
     sort(ths); \
  \
@@ -1355,7 +1355,7 @@ static inline void B_openmp_A (X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if (ths->flags & FG_PSI)
+  if (WINDOW_FG_PATH(ths->flags))
   {
     INT t, t2; /* index dimensions */
     R fg_e[ths->d], fg_q[ths->d];
@@ -2143,7 +2143,7 @@ static inline void B_openmp_T(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if (ths->flags & FG_PSI)
+  if (WINDOW_FG_PATH(ths->flags))
   {
     INT t, t2; /* index dimensions */
     R fg_e[ths->d], fg_q[ths->d];
@@ -2445,7 +2445,7 @@ static void nfft_trafo_1d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if (ths->flags & FG_PSI)
+  if (WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[1], fg_q[1];
 
@@ -2759,7 +2759,7 @@ static void nfft_adjoint_1d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if (ths->flags & FG_PSI)
+  if (WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[1], fg_q[1];
 
@@ -3376,7 +3376,7 @@ static void nfft_trafo_2d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if(ths->flags & FG_PSI)
+  if(WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[2], fg_q[2];
 
@@ -3723,7 +3723,7 @@ static void nfft_adjoint_2d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if(ths->flags & FG_PSI)
+  if(WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[2], fg_q[2];
 
@@ -4802,7 +4802,7 @@ static void nfft_trafo_3d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if(ths->flags & FG_PSI)
+  if(WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[3], fg_q[3];
 
@@ -5216,7 +5216,7 @@ static void nfft_adjoint_3d_B(X(plan) *ths)
     return;
   } /* if(PRE_FG_PSI) */
 
-  if(ths->flags & FG_PSI)
+  if(WINDOW_FG_PATH(ths->flags))
   {
     R fg_e[3], fg_q[3];
 
@@ -6103,7 +6103,7 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->m = (INT)m;
 
-  ths->flags = flags;
+  ths->flags = WINDOW_FLAGS(flags);
   ths->fftw_flags = fftw_flags;
 
   ths->K = 0;
@@ -6129,7 +6129,7 @@ void X(init_lin)(X(plan) *ths, int d, int *N, int M_total, int *n, int m, int K,
 
   ths->m = (INT)m;
 
-  ths->flags = flags;
+  ths->flags = WINDOW_FLAGS(flags);
   ths->fftw_flags = fftw_flags;
 
   ths->K = K;

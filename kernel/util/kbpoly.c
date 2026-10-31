@@ -23,7 +23,8 @@
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
- * m + 1 mirrored columns. */
+ * m + 1 mirrored columns. Y(bspline_poly_init) and Y(sincpow_poly_init)
+ * build the B-spline and sinc-power tables the same way. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -109,14 +110,14 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   return IF(deg > KB_POLY_DEG_MAX, KB_POLY_DEG_MAX, deg);
 }
 
-void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
-    const R reach, const INT m, const INT deg)
+typedef R (*sampler)(const void *ctx, R x);
+
+/* Samples phi at deg + 1 Chebyshev nodes per cell into val and fits cheb,
+ * both n by w; fit reuses val, node and cm for its refinement step. */
+static void cheb_fit(R *cheb, R *node, R *cm, R *val, const INT m,
+    const INT deg, sampler phi, const void *ctx)
 {
-  const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
-  /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
-  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
-  R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
-  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n;
+  const INT w = KB_POLY_COLS(m), n = deg + 1;
   INT j, k, l;
 
   for (k = 0; k < n; k++)
@@ -128,10 +129,49 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
 
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
-      val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, reach,
-          ((R)(m + 1 - l) + K(0.5)) + node[k]);
+      val[k * w + l] = phi(ctx, ((R)(m + 1 - l) + K(0.5)) + node[k]);
 
-  cheb_of(cheb, val, cm, w, dg);
+  cheb_of(cheb, val, cm, w, deg);
+}
+
+/* The lowest even degree d with 2 sum_{j>d} max_cells |cheb_j| <= thr, at
+ * most KB_POLY_DEG_MAX. Even, because the leading error is then odd in the
+ * cell and has no mean. */
+static INT cut_degree(const R *cheb, const INT w, const INT dg, const R thr)
+{
+  R sum = K(0.0);
+  INT deg, l;
+
+  for (deg = dg; deg >= 0; deg--)
+  {
+    R tail = K(0.0);
+
+    for (l = 0; l < w; l++)
+      tail = MAX(tail, FABS(cheb[deg * w + l]));
+
+    if (K(2.0) * (sum + tail) > thr)
+      break;
+
+    sum += tail;
+  }
+
+  deg = IF(deg < 0, 0, deg);
+  deg += deg & 1;
+
+  return IF(deg > KB_POLY_DEG_MAX, KB_POLY_DEG_MAX, deg);
+}
+
+static void fit(R *coef, const INT m, const INT deg, sampler phi,
+    const void *ctx)
+{
+  const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
+  /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
+  R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
+  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n;
+  INT j, k, l;
+
+  cheb_fit(cheb, node, cm, val, m, dg, phi, ctx);
   cheb_to_monomial(coef, cheb, tp, w, dg);
 
   /* One refinement step absorbs the rounding of the fit and of the monomial
@@ -154,6 +194,23 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
       coef[j * w + l] += res[j * w + l];
 
   Y(free)(mem);
+}
+
+struct kb_ctx { R b, lg_tail, peak_inv, reach; };
+
+static R kb_sample(const void *ctx, const R x)
+{
+  const struct kb_ctx *c = (const struct kb_ctx*) ctx;
+
+  return Y(kb_phi)(c->b, c->lg_tail, c->peak_inv, c->reach, x);
+}
+
+void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
+    const R reach, const INT m, const INT deg)
+{
+  const struct kb_ctx c = {b, lg_tail, peak_inv, reach};
+
+  fit(coef, m, deg, kb_sample, &c);
 }
 
 /* The first axis with the same b as axis t, t itself if none. The other
@@ -193,6 +250,94 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
     if (s == t)
       Y(kb_poly_fit)(tab + 1 + t * stride, b[t], b[d + t], b[3 * d + t],
           reach, m, deg);
+    else
+      memcpy(tab + 1 + t * stride, tab + 1 + s * stride,
+          (size_t)stride * sizeof(R));
+  }
+
+  return tab;
+}
+
+struct bs_ctx { INT k; };
+
+static R bs_sample(const void *ctx, const R x)
+{
+  const INT k = ((const struct bs_ctx*) ctx)->k;
+
+  return Y(bsplines)(k, x + (R)k / K(2.0));
+}
+
+/* The pieces have degree k-1, so k Chebyshev nodes fit them exactly. The
+ * series is cut by the gen/kbpolygen rule against E = 4 (2 sigma - 1)^-k, the
+ * window's own transform error at the tightest axis. */
+R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
+{
+  const INT k = 2 * m + 2, w = KB_POLY_COLS(m), n = k, dg = k - 1;
+  const struct bs_ctx c = {k};
+  /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
+      + (n + 1) * (n + 1) + n) * sizeof(R));
+  R *val = mem, *cheb = val + n * w, *coef = cheb + (n + 1) * w;
+  R *cm = coef + (n + 1) * w, *tp = cm + n * n, *node = tp + (n + 1) * (n + 1);
+  const R peak = Y(bsplines)(k, (R)k / K(2.0));
+  R thr = K(0.0), *tab;
+  INT l, t, deg;
+
+  cheb_fit(cheb, node, cm, val, m, dg, bs_sample, &c);
+
+  for (l = 0; l < w; l++)
+    cheb[n * w + l] = K(0.0);
+
+  for (t = 0; t < d; t++)
+  {
+    const R e = K(4.0) * POW(K(2.0) * sigma[t] - K(1.0), -(R)k);
+    const R th = MAX(e / K(40.0), EPSILON / K(2.0)) * peak;
+
+    thr = IF(t == 0 || th < thr, th, thr);
+  }
+
+  deg = cut_degree(cheb, w, dg, thr);
+  /* An odd KB_POLY_DEG_MAX fills its last row from the next coefficient. */
+  cheb_to_monomial(coef, cheb, tp, w, KB_POLY_ROWS(deg) - 1);
+
+  tab = (R*) Y(malloc)((size_t)(1 + KB_POLY_ROWS(deg) * w) * sizeof(R));
+  tab[0] = (R)deg;
+  memcpy(tab + 1, coef, (size_t)(KB_POLY_ROWS(deg) * w) * sizeof(R));
+
+  Y(free)(mem);
+
+  return tab;
+}
+
+struct sp_ctx { R w, m; };
+
+static R sp_sample(const void *ctx, const R x)
+{
+  const struct sp_ctx *c = (const struct sp_ctx*) ctx;
+
+  return Y(sincpow_phi)(c->w, c->m, KPI * c->w * x);
+}
+
+/* The window is entire, so the fit converges geometrically, but a fit in
+ * working precision cannot certify a cut: its coefficients carry 2 to 4 eps
+ * of sampling noise where the true series reaches eps at about 14 of
+ * KB_POLY_DEG_MAX 16 in double, and alike in every format. So the degree is
+ * KB_POLY_DEG_MAX; no usable transform-error bound exists to cut lower. */
+R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m)
+{
+  const INT deg = KB_POLY_DEG_MAX, stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  R *tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
+  INT t;
+
+  tab[0] = (R)deg;
+
+  for (t = 0; t < d; t++)
+  {
+    const INT s = first_alike(w, t);
+    const struct sp_ctx c = {w[t], (R)m};
+
+    if (s == t)
+      fit(tab + 1 + t * stride, m, deg, sp_sample, &c);
     else
       memcpy(tab + 1 + t * stride, tab + 1 + s * stride,
           (size_t)stride * sizeof(R));
