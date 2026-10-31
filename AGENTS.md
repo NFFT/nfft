@@ -77,7 +77,7 @@ Useful `./configure` flags:
   double). These are mutually exclusive. Build each precision in a *separate*
   configured tree.
 - `--with-window=ARG` — window function: `kaiserbessel` (default), `gaussian`,
-  `bspline`, `sinc`, `dirac`.
+  `bspline`, `sinc`.
 - `--enable-exhaustive-unit-tests` — larger, slower test cases (CI uses this).
 - `--enable-julia` — build the Julia interface (double precision + shared libs only).
 - `--with-matlab=/path` / `--with-octave=/path` — build the MATLAB/Octave interface.

@@ -18,9 +18,7 @@
 
 #include "api.h"
 
-#if defined(DIRAC_DELTA)
-  static const INT m2K_[] = {0};
-#elif defined(GAUSSIAN)
+#if defined(GAUSSIAN)
   static const INT m2K_[] = {0, 1, 3, 6, 7, 9, 11, 13, 15, 17, 19, 21, 22, 23, 24};
 #elif defined(B_SPLINE)
   static const INT m2K_[] = {0, 0, 4, 7, 10, 13, 15, 17, 19, 22, 24};

@@ -23,8 +23,7 @@
 #include "kbpoly.h"
 
 /* The window macros in infft.h fall through to Kaiser-Bessel. */
-#if !defined(DIRAC_DELTA) && !defined(GAUSSIAN) && !defined(B_SPLINE) \
-    && !defined(SINC_POWER)
+#if !defined(GAUSSIAN) && !defined(B_SPLINE) && !defined(SINC_POWER)
 #define WINDOW_IS_KAISER_BESSEL 1
 #endif
 
