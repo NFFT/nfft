@@ -235,8 +235,7 @@ fi
 
 # select window function
 AC_ARG_WITH(window, [AS_HELP_STRING([--with-window=ARG],[choose window function
-  (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc,
-  dirac)])],
+  (ARG can be one of: kaiserbessel (default), gaussian, bspline, sinc)])],
   window=$withval, window="kaiserbessel")
 
 AC_MSG_CHECKING([window function])
@@ -249,8 +248,6 @@ case "$window" in
     AC_DEFINE(B_SPLINE,1,[Define to enable B-spline window function.]);;
   sinc)
     AC_DEFINE(SINC_POWER,1,[Define to enable sinc power window function.]);;
-  delta)
-    AC_DEFINE(DIRAC_DELTA,1,[Define to enable Dirac delta window function.]);;
   *)
     AC_MSG_ERROR([Unknown window function "$window".]);;
 esac

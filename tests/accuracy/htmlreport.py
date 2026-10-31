@@ -11,7 +11,7 @@ import html
 
 # Window functions whose token may appear in a testbed name
 # (`<os>_<compiler>_<window>_<precision>`). Used to split the window axis out.
-KNOWN_WINDOWS = ("kaiserbessel", "gaussian", "bspline", "sinc", "dirac")
+KNOWN_WINDOWS = ("kaiserbessel", "gaussian", "bspline", "sinc")
 # Precision tokens of a testbed name, in mantissa order; columns sort by it.
 PRECISIONS = ("float", "double", "long-double")
 

@@ -18,7 +18,6 @@
 #cmakedefine GAUSSIAN 1
 #cmakedefine B_SPLINE 1
 #cmakedefine SINC_POWER 1
-#cmakedefine DIRAC_DELTA 1
 #define WINDOW_NAME "@WINDOW_NAME@"
 
 /* Threads */

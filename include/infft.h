@@ -202,13 +202,7 @@ typedef ptrdiff_t INT;
  * that displaces the node by up to |x| eps -- an error growing with N. */
 #define NX_SUB(n,x,c) FFMA((R)(n), (R)(x), -(R)(c))
 
-#if defined(DIRAC_DELTA)
-  #define PHI_HUT(n,k,d) K(1.0)
-  #define PHI(n,x,d) IF(FABS((x)) < K(10E-8),K(1.0),K(0.0))
-  #define WINDOW_HELP_INIT(d)
-  #define WINDOW_HELP_FINALIZE
-  #define WINDOW_HELP_ESTIMATE_m 0
-#elif defined(GAUSSIAN)
+#if defined(GAUSSIAN)
   #define PHI_HUT(n,k,d) ((R)EXP(-(POW(KPI*(k)/n,K(2.0))*ths->b[d])))
   #define PHI(n,x,d) ((R)EXP(-POW((x)*((R)n),K(2.0)) / \
     ths->b[d])/SQRT(KPI*ths->b[d]))
