@@ -195,7 +195,7 @@ jobs:
 
     - name: Autotools - Upload test failure logs
       if: failure() && steps.test.conclusion == 'failure'
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: test-failure-logs-${{ env.BUILD_CONFIG }}
         path: |
@@ -264,7 +264,7 @@ jobs:
 
     - name: Accuracy - upload BMF artifact
       if: always() && matrix.compiler == 'gcc'
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: accuracy-bmf-${{ env.BUILD_CONFIG }}
         path: tests/accuracy.bmf.json
