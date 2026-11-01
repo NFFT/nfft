@@ -95,7 +95,7 @@ jobs:
 
     - name: Set up Julia
       if: matrix.build_julia == '1' && matrix.precision_opt == ''
-      uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v2
+      uses: julia-actions/setup-julia@da908477b5db94c10ffce8cfea9f2b3b9d5db687 # v2
       with:
         version: '1'
         show-versioninfo: false
