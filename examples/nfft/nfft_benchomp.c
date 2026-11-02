@@ -206,7 +206,7 @@ const char *get_sort_string(int flags)
   if (flags & NFFT_SORT_NODES)
     return "sorted";
 
-    return "unsorted";
+  return "unsorted";
 }
 
 const char *get_adjoint_omp_string(int flags)
@@ -214,7 +214,7 @@ const char *get_adjoint_omp_string(int flags)
   if (flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     return "blockwise";
 
-    return "";
+  return "";
 }
 
 #define MASK_D (1U<<0)
