@@ -6,10 +6,11 @@ Header            | Installed | Contents                                     | W
 :-----------------|:----------|:---------------------------------------------|:---------------
 `nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`, thread count, version, window name, helpers (random data, printing, timing, error norms) | anyone
 `nfft3mp.h`       | yes       | precision-agnostic aliases: `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`, `FFTW(...)`, format strings | anyone writing precision-agnostic code
-`infft.h`         | no        | the internal names below (`R`, `C`, `Y`, `X`, `A`, `CK`, `DM`, window macros, `ticks`) | `kernel/` and `tests/` only
+`infft.h`         | no        | the internal names below (`R`, `C`, `Y`, `X`, `A`, `CK`, `DM`, window macros, `ticks`) | `kernel/`, `tests/`, and for now the Julia and Matlab bindings
 
-Examples, applications and the Julia and Matlab bindings use the installed
-headers `nfft3.h` and `nfft3mp.h`. They must not include `infft.h`.
+Examples and applications use only the installed headers `nfft3.h` and
+`nfft3mp.h`. They must not include `infft.h`. The Julia and Matlab bindings
+still include `infft.h`.
 
 The rest of this document describes `infft.h`'s names.
 

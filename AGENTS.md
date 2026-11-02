@@ -51,9 +51,9 @@ Key rules:
   Never hard-code a `nfft_`/`nfftf_`/`nfftl_` prefix.
 - Use the type aliases `R` (real), `E` (real, possibly extended precision),
   `C` (complex); `A(...)` for assert, `CK(...)` for check. These live in
-  `include/infft.h` and are for `kernel/` and `tests/` only. Examples,
-  applications and the Julia/Matlab bindings use the installed headers
-  `nfft3.h` and `nfft3mp.h`, and the `NFFT_`-prefixed spellings
+  `include/infft.h` and are for `kernel/` and `tests/`; the Julia/Matlab
+  bindings still include it. Examples and applications use only the installed
+  headers `nfft3.h` and `nfft3mp.h`, and the `NFFT_`-prefixed spellings
   `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`.
 - Include order matters. `<complex.h>` must precede anything that pulls in
   `<fftw3.h>`, or `fftw_complex` and `NFFT_C` become a two-element array. The
