@@ -22,7 +22,7 @@ arithmetic works on. This is FFTW's contract, not ours. Canonical order:
 ```c
 #include <complex.h>
 #include <nfft3.h>
-#define NFFT_PRECISION_SINGLE   /* or -DNFFT_PRECISION_* on the command line */
+#define NFFT_PRECISION_DOUBLE   /* or -DNFFT_PRECISION_* on the command line */
 #include <nfft3mp.h>
 ```
 

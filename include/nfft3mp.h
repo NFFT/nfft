@@ -23,7 +23,7 @@
  *
  *   #include <complex.h>
  *   #include <nfft3.h>
- *   #define NFFT_PRECISION_SINGLE  // or NFFT_PRECISION_DOUBLE, NFFT_PRECISION_LONG_DOUBLE
+ *   #define NFFT_PRECISION_DOUBLE  // or NFFT_PRECISION_SINGLE, NFFT_PRECISION_LONG_DOUBLE
  *   #include <nfft3mp.h>
  *
  * Without <complex.h> first, fftw_complex and NFFT_C are 2-element real arrays.
@@ -51,7 +51,7 @@ extern "C"
 
 #if defined(NFFT_PRECISION_SINGLE)
 typedef float NFFT_R;
-#define NFFT_C fftwf_complex
+typedef fftwf_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_R_MANT_DIG FLT_MANT_DIG
 #define NFFT_R_EPSILON FLT_EPSILON
@@ -64,7 +64,7 @@ typedef float NFFT_R;
 #define SOLVER(name) NFFT_MP_CONCAT(solverf_,name)
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 typedef long double NFFT_R;
-#define NFFT_C fftwl_complex
+typedef fftwl_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x##L)
 #define NFFT_R_MANT_DIG LDBL_MANT_DIG
 #define NFFT_R_EPSILON LDBL_EPSILON
@@ -77,7 +77,7 @@ typedef long double NFFT_R;
 #define SOLVER(name) NFFT_MP_CONCAT(solverl_,name)
 #elif defined(NFFT_PRECISION_DOUBLE)
 typedef double NFFT_R;
-#define NFFT_C fftw_complex
+typedef fftw_complex NFFT_C;
 #define NFFT_K(x) ((NFFT_R) x)
 #define NFFT_R_MANT_DIG DBL_MANT_DIG
 #define NFFT_R_EPSILON DBL_EPSILON
