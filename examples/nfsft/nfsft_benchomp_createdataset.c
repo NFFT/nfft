@@ -26,21 +26,27 @@
 /* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
+/* Significant decimal digits that round-trip an NFFT_R through text:
+ * floor(MANT_DIG * log10(2)) + 2, i.e. 9 (float), 17 (double), 21 (x87 long
+ * double), 36 (binary128 long double). nfsft_benchomp_detail reads the data
+ * back in the same precision. */
+#define DATA_DIGITS (2 + (NFFT_R_MANT_DIG * 30103) / 100000)
+
 void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
 {
   int t, j, k, n;
   NFFT_R *x;
   NFFT_C *f, *f_hat;
   int N_total = (2*N+2) * (2*N+2);
-  nfsft_plan ptemp;
+  NFSFT(plan) ptemp;
 
-  nfsft_init_guru(&ptemp, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
+  NFSFT(init_guru)(&ptemp, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
     NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
     PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, 6);
 
-  x = (NFFT_R*) nfft_malloc(2*M*sizeof(NFFT_R));
-  f = (NFFT_C*) nfft_malloc(M*sizeof(NFFT_C));
-  f_hat = (NFFT_C*) nfft_malloc(N_total*sizeof(NFFT_C));
+  x = (NFFT_R*) NFFT(malloc)(2*M*sizeof(NFFT_R));
+  f = (NFFT_C*) NFFT(malloc)(M*sizeof(NFFT_C));
+  f_hat = (NFFT_C*) NFFT(malloc)(N_total*sizeof(NFFT_C));
 
   /* init pseudo-random nodes */
   for (j = 0; j < M; j++)
@@ -53,11 +59,11 @@ void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
   {
     for (k = 0; k <= N; k++)
       for (n = -k; n <= k; n++)
-        nfft_vrand_unit_complex(f_hat+NFSFT_INDEX(k,n,&ptemp),1);
+        NFFT(vrand_unit_complex)(f_hat+NFSFT_INDEX(k,n,&ptemp),1);
   }
   else
   {
-    nfft_vrand_unit_complex(f,M);
+    NFFT(vrand_unit_complex)(f,M);
   }
 
   printf("%d %d %d\n", trafo_adjoint, N, M);
@@ -65,7 +71,7 @@ void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
   for (j=0; j < M; j++)
   {
     for (t=0; t < 2; t++)
-      printf("%.16e ", x[2*j+t]);
+      printf("%.*" NFFT__FES__ " ", DATA_DIGITS - 1, x[2*j+t]);
     printf("\n");
   }
 
@@ -73,17 +79,20 @@ void nfsft_benchomp_createdataset(unsigned int trafo_adjoint, int N, int M)
   {
     for (k = 0; k <= N; k++)
       for (n = -k; n <= k; n++)
-        printf("%.16e %.16e\n", creal(f_hat[NFSFT_INDEX(k,n,&ptemp)]), cimag(f_hat[NFSFT_INDEX(k,n,&ptemp)]));
+        printf("%.*" NFFT__FES__ " %.*" NFFT__FES__ "\n",
+          DATA_DIGITS - 1, NFFT_CREAL(f_hat[NFSFT_INDEX(k,n,&ptemp)]),
+          DATA_DIGITS - 1, NFFT_CIMAG(f_hat[NFSFT_INDEX(k,n,&ptemp)]));
   }
   else
   {
     for (j=0; j < M; j++)
-      printf("%.16e %.16e\n", creal(f[j]), cimag(f[j]));
+      printf("%.*" NFFT__FES__ " %.*" NFFT__FES__ "\n", DATA_DIGITS - 1,
+             NFFT_CREAL(f[j]), DATA_DIGITS - 1, NFFT_CIMAG(f[j]));
   }
 
-  nfft_free(x);
-  nfft_free(f);
-  nfft_free(f_hat);
+  NFFT(free)(x);
+  NFFT(free)(f);
+  NFFT(free)(f_hat);
 }
 
 int main(int argc, char **argv)
