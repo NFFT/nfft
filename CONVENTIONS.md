@@ -34,9 +34,11 @@ skip the `#define` step.
 includes it and emits a deprecation warning. This automatic inclusion will be
 removed in the next release.
 
-A file that uses a `config.h` macro (`HAVE_FFTW_THREADS`, `MEASURE_TIME`,
-`GAUSSIAN`, ...) must `#include "config.h"` itself. The public headers do not
-pull it in; only `infft.h` does.
+Examples and applications are user code and must not include `config.h`. The
+build passes the `config.h` macros they need (`HAVE_FFTW_THREADS`,
+`MEASURE_TIME`, `MEASURE_TIME_FFTW`) as `-D`: `NFFT_PROGRAM_CPPFLAGS` in
+`configure.ac`, `NFFT_PROGRAM_DEFS` in `CMakeLists.txt`. The public headers do
+not include `config.h`; only `infft.h` does.
 
 
 
