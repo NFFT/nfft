@@ -38,19 +38,22 @@
 #if defined(NFFT_PRECISION_SINGLE)
 #define R_TINY FLT_MIN
 #define R_HUGE FLT_MAX
+#define R_MAX_EXP FLT_MAX_EXP
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 #define R_TINY LDBL_MIN
 #define R_HUGE LDBL_MAX
+#define R_MAX_EXP LDBL_MAX_EXP
 #else
 #define R_TINY DBL_MIN
 #define R_HUGE DBL_MAX
+#define R_MAX_EXP DBL_MAX_EXP
 #endif
 
 /* Fourier-Legendre coefficients for Abel-Poisson kernel */
-#define SYMBOL_ABEL_POISSON(k,h) (pow(h,k))
+#define SYMBOL_ABEL_POISSON(k,h) (NFFT_POW(h,k))
 
 /* Fourier-Legendre coefficients for singularity kernel */
-#define SYMBOL_SINGULARITY(k,h) ((2.0/(2*k+1))*pow(h,k))
+#define SYMBOL_SINGULARITY(k,h) ((NFFT_K(2.0)/(2*k+1))*NFFT_POW(h,k))
 
 /* Flags for the different kernel functions */
 
@@ -224,7 +227,7 @@ static int smbi(const NFFT_R x, const NFFT_R alpha, const int nb, const int ize,
   const NFFT_R ensig = NFFT_POW(NFFT_K(10.0),(NFFT_R)nsig);
   const NFFT_R rtnsig = NFFT_POW(NFFT_K(10.0),-NFFT_CEIL((NFFT_R)nsig/NFFT_K(4.0)));
   const NFFT_R xlarge = NFFT_K(1E4);
-  const NFFT_R exparg = NFFT_FLOOR(NFFT_LOG(NFFT_POW(NFFT_K(NFFT_R_RADIX),NFFT_K(DBL_MAX_EXP-1))));
+  const NFFT_R exparg = NFFT_FLOOR(NFFT_LOG(NFFT_POW((NFFT_R)NFFT_R_RADIX,(NFFT_R)(R_MAX_EXP-1))));
 
   /* System generated locals */
   int l, n, nend, magx, nbmx, ncalc, nstart;
@@ -391,7 +394,7 @@ L80:
 
     /* calculate and store b[nb-1] */
     n--;
-    en -= 2.0;
+    en -= NFFT_K(2.0);
     b[n-1] = en*tempa/x + tempb;
 
     if (n == 1)
@@ -454,12 +457,12 @@ L80:
  *
  * \author Jens Keiner
  */
-static inline double innerProduct(const double phi1, const double theta1,
-  const double phi2, const double theta2)
+static inline NFFT_R innerProduct(const NFFT_R phi1, const NFFT_R theta1,
+  const NFFT_R phi2, const NFFT_R theta2)
 {
-  double pi2theta1 = NFFT_K2PI*theta1, pi2theta2 = NFFT_K2PI*theta2;
-  return (cos(pi2theta1)*cos(pi2theta2)
-    + sin(pi2theta1)*sin(pi2theta2)*cos(NFFT_K2PI*(phi1-phi2)));
+  NFFT_R pi2theta1 = NFFT_K2PI*theta1, pi2theta2 = NFFT_K2PI*theta2;
+  return (NFFT_COS(pi2theta1)*NFFT_COS(pi2theta2)
+    + NFFT_SIN(pi2theta1)*NFFT_SIN(pi2theta2)*NFFT_COS(NFFT_K2PI*(phi1-phi2)));
 }
 
 /**
@@ -473,9 +476,9 @@ static inline double innerProduct(const double phi1, const double theta1,
  *
  * \author Jens Keiner
  */
-static inline double poissonKernel(const double x, const double h)
+static inline NFFT_R poissonKernel(const NFFT_R x, const NFFT_R h)
 {
-  return (1.0/(K4PI))*((1.0-h)*(1.0+h))/pow(sqrt(1.0-2.0*h*x+h*h),3.0);
+  return (NFFT_K(1.0)/(K4PI))*((NFFT_K(1.0)-h)*(NFFT_K(1.0)+h))/NFFT_POW(NFFT_SQRT(NFFT_K(1.0)-NFFT_K(2.0)*h*x+h*h),NFFT_K(3.0));
 }
 
 /**
@@ -489,9 +492,9 @@ static inline double poissonKernel(const double x, const double h)
  *
  * \author Jens Keiner
  */
-static inline double singularityKernel(const double x, const double h)
+static inline NFFT_R singularityKernel(const NFFT_R x, const NFFT_R h)
 {
-  return (1.0/(NFFT_K2PI))/sqrt(1.0-2.0*h*x+h*h);
+  return (NFFT_K(1.0)/(NFFT_K2PI))/NFFT_SQRT(NFFT_K(1.0)-NFFT_K(2.0)*h*x+h*h);
 }
 
 /**
@@ -507,10 +510,10 @@ static inline double singularityKernel(const double x, const double h)
  *
  * \author Jens Keiner
  */
-static inline double locallySupportedKernel(const double x, const double h,
-  const double lambda)
+static inline NFFT_R locallySupportedKernel(const NFFT_R x, const NFFT_R h,
+  const NFFT_R lambda)
 {
-  return (x<=h)?(0.0):(pow((x-h),lambda));
+  return (x<=h)?(NFFT_K(0.0)):(NFFT_POW((x-h),lambda));
 }
 
 /**
@@ -525,9 +528,9 @@ static inline double locallySupportedKernel(const double x, const double h,
  *
  * \author Jens Keiner
  */
-static inline double gaussianKernel(const double x, const double sigma)
+static inline NFFT_R gaussianKernel(const NFFT_R x, const NFFT_R sigma)
 {
-   return exp(2.0*sigma*(x-1.0));
+   return NFFT_EXP(NFFT_K(2.0)*sigma*(x-NFFT_K(1.0)));
 }
 
 /**
@@ -542,7 +545,7 @@ static inline double gaussianKernel(const double x, const double sigma)
  */
 int main (int argc, char **argv)
 {
-  double **p;                  /* The array containing the parameter sets     *
+  NFFT_R **p;                  /* The array containing the parameter sets     *
                                 * for the kernel functions                    */
   int *m;                      /* The array containing the cut-off degrees M  */
   int **ld;                    /* The array containing the numbers of source  *
@@ -569,29 +572,29 @@ int main (int argc, char **argv)
   int tc;                      /* Index variable for testcases                */
   int kt;                      /* The kernel function                         */
   int cutoff;                  /* The current NFFT cut-off parameter          */
-  double threshold;            /* The current NFSFT threshold parameter       */
-  double t_d;                  /* Time for direct algorithm in seconds        */
-  double t_dp;                 /* Time for direct algorithm with              *
+  NFFT_R threshold;            /* The current NFSFT threshold parameter       */
+  NFFT_R t_d;                  /* Time for direct algorithm in seconds        */
+  NFFT_R t_dp;                 /* Time for direct algorithm with              *
                                   precomputation in seconds                   */
-  double t_fd;                 /* Time for fast direct algorithm in seconds   */
-  double t_f;                  /* Time for fast algorithm in seconds          */
-  double temp;                 /*                                             */
-  double err_f;                /* Error E_infty for fast algorithm            */
-  double err_fd;               /* Error E_\infty for fast direct algorithm    */
+  NFFT_R t_fd;                 /* Time for fast direct algorithm in seconds   */
+  NFFT_R t_f;                  /* Time for fast algorithm in seconds          */
+  NFFT_R temp;                 /*                                             */
+  NFFT_R err_f;                /* Error E_infty for fast algorithm            */
+  NFFT_R err_fd;               /* Error E_\infty for fast direct algorithm    */
   NFFT_R t0, t1;                /*                                             */
   int precompute = NO;         /*                                             */
-  fftw_complex *ptr;         /*                                             */
-  double* steed;               /*                                             */
-  fftw_complex *b;           /* The weights (b_l)_{l=0}^{L-1}               */
-  fftw_complex *f_hat;       /* The spherical Fourier coefficients          */
-  fftw_complex *a;           /* The Fourier-Legendre coefficients           */
-  double *xi;                  /* Target nodes                                */
-  double *eta;                 /* Source nodes                                */
-  fftw_complex *f_m;         /* Approximate function values                 */
-  fftw_complex *f;           /* Exact function values                       */
-  fftw_complex *prec = NULL; /*                                             */
-  nfsft_plan plan;             /* NFSFT plan                                  */
-  nfsft_plan plan_adjoint;     /* adjoint NFSFT plan                          */
+  NFFT_C *ptr;         /*                                             */
+  NFFT_R* steed;               /*                                             */
+  NFFT_C *b;           /* The weights (b_l)_{l=0}^{L-1}               */
+  NFFT_C *f_hat;       /* The spherical Fourier coefficients          */
+  NFFT_C *a;           /* The Fourier-Legendre coefficients           */
+  NFFT_R *xi;                  /* Target nodes                                */
+  NFFT_R *eta;                 /* Source nodes                                */
+  NFFT_C *f_m;         /* Approximate function values                 */
+  NFFT_C *f;           /* Exact function values                       */
+  NFFT_C *prec = NULL; /*                                             */
+  NFSFT(plan) plan;             /* NFSFT plan                                  */
+  NFSFT(plan) plan_adjoint;     /* adjoint NFSFT plan                          */
   int i;                       /*                                             */
   int k;                       /*                                             */
   int n;                       /*                                             */
@@ -601,7 +604,7 @@ int main (int argc, char **argv)
   int use_nfft;                /*                                             */
   int use_fpt;                 /*                                             */
   int rinc;                    /*                                             */
-  double constant;             /*                                             */
+  NFFT_R constant;             /*                                             */
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -634,15 +637,15 @@ int main (int argc, char **argv)
       fscanf(stdin,"fpt=%d\n",&use_fpt);
       fprintf(stdout,"%d\n",use_fpt);
       /* Read the NFSFT threshold parameter. */
-      fscanf(stdin,"threshold=%lf\n",&threshold);
-      fprintf(stdout,"%lf\n",threshold);
+      fscanf(stdin,"threshold=%" NFFT__FIS__ "\n",&threshold);
+      fprintf(stdout,"%" NFFT__FIS__ "\n",threshold);
     }
     else
     {
       /* TODO remove this */
       /* Set dummy values. */
       cutoff = 3;
-      threshold = 1000000000000.0;
+      threshold = NFFT_K(1000000000000.0);
     }
 
     /* Initialize bandwidth bound. */
@@ -666,7 +669,7 @@ int main (int argc, char **argv)
     fprintf(stdout,"%d\n",ip_max);
 
     /* Allocate memory for pointers to parameter sets. */
-    p = (double**) nfft_malloc(ip_max*sizeof(double*));
+    p = (NFFT_R**) NFFT(malloc)(ip_max*sizeof(NFFT_R*));
 
     /* We now read in the parameter sets. */
 
@@ -677,21 +680,21 @@ int main (int argc, char **argv)
     for (ip = 0; ip < ip_max; ip++)
     {
       /* Allocate memory for the parameters. */
-      p[ip] = (double*) nfft_malloc(ipp_max*sizeof(double));
+      p[ip] = (NFFT_R*) NFFT(malloc)(ipp_max*sizeof(NFFT_R));
 
       /* Read the parameters. */
       for (ipp = 0; ipp < ipp_max; ipp++)
       {
         /* Read the next parameter. */
-        fscanf(stdin,"%lf\n",&p[ip][ipp]);
-        fprintf(stdout,"%lf\n",p[ip][ipp]);
+        fscanf(stdin,"%" NFFT__FIS__ "\n",&p[ip][ipp]);
+        fprintf(stdout,"%" NFFT__FIS__ "\n",p[ip][ipp]);
       }
     }
 
     /* Read the number of cut-off degrees. */
     fscanf(stdin,"bandwidths=%d\n",&im_max);
     fprintf(stdout,"%d\n",im_max);
-    m = (int*) nfft_malloc(im_max*sizeof(int));
+    m = (int*) NFFT(malloc)(im_max*sizeof(int));
 
     /* Read the cut-off degrees. */
     for (im = 0; im < im_max; im++)
@@ -705,13 +708,13 @@ int main (int argc, char **argv)
     /* Read number of node specifications. */
     fscanf(stdin,"node_sets=%d\n",&ild_max);
     fprintf(stdout,"%d\n",ild_max);
-    ld = (int**) nfft_malloc(ild_max*sizeof(int*));
+    ld = (int**) NFFT(malloc)(ild_max*sizeof(int*));
 
     /* Read the run specification. */
     for (ild = 0; ild < ild_max; ild++)
     {
       /* Allocate memory for the run parameters. */
-      ld[ild] = (int*) nfft_malloc(5*sizeof(int));
+      ld[ild] = (int*) NFFT(malloc)(5*sizeof(int));
 
       /* Read number of source nodes. */
       fscanf(stdin,"L=%d ",&ld[ild][0]);
@@ -758,37 +761,37 @@ int main (int argc, char **argv)
     }
 
     /* Allocate memory for data structures. */
-    b = (fftw_complex*) nfft_malloc(l_max*sizeof(fftw_complex));
-    eta = (double*) nfft_malloc(2*l_max*sizeof(double));
-    f_hat = (fftw_complex*) nfft_malloc(NFSFT_F_HAT_SIZE(m_max)*sizeof(fftw_complex));
-    a = (fftw_complex*) nfft_malloc((m_max+1)*sizeof(fftw_complex));
-    xi = (double*) nfft_malloc(2*d_max*sizeof(double));
-    f_m = (fftw_complex*) nfft_malloc(d_max*sizeof(fftw_complex));
-    f = (fftw_complex*) nfft_malloc(d_max*sizeof(fftw_complex));
+    b = (NFFT_C*) NFFT(malloc)(l_max*sizeof(NFFT_C));
+    eta = (NFFT_R*) NFFT(malloc)(2*l_max*sizeof(NFFT_R));
+    f_hat = (NFFT_C*) NFFT(malloc)(NFSFT_F_HAT_SIZE(m_max)*sizeof(NFFT_C));
+    a = (NFFT_C*) NFFT(malloc)((m_max+1)*sizeof(NFFT_C));
+    xi = (NFFT_R*) NFFT(malloc)(2*d_max*sizeof(NFFT_R));
+    f_m = (NFFT_C*) NFFT(malloc)(d_max*sizeof(NFFT_C));
+    f = (NFFT_C*) NFFT(malloc)(d_max*sizeof(NFFT_C));
 
     /* Allocate memory for precomputed data. */
     if (precompute == YES)
     {
-      prec = (fftw_complex*) nfft_malloc(ld_max_prec*sizeof(fftw_complex));
+      prec = (NFFT_C*) NFFT(malloc)(ld_max_prec*sizeof(NFFT_C));
     }
 
     /* Generate random source nodes and weights. */
     for (l = 0; l < l_max; l++)
     {
-      b[l] = (((double)rand())/RAND_MAX) - 0.5;
-      eta[2*l] = (((double)rand())/RAND_MAX) - 0.5;
-      eta[2*l+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(NFFT_K2PI);
+      b[l] = (((NFFT_R)rand())/RAND_MAX) - NFFT_K(0.5);
+      eta[2*l] = (((NFFT_R)rand())/RAND_MAX) - NFFT_K(0.5);
+      eta[2*l+1] = NFFT_M(acos)(NFFT_K(2.0)*(((NFFT_R)rand())/RAND_MAX) - NFFT_K(1.0))/(NFFT_K2PI);
     }
 
     /* Generate random target nodes. */
     for (d = 0; d < d_max; d++)
     {
-      xi[2*d] = (((double)rand())/RAND_MAX) - 0.5;
-      xi[2*d+1] = acos(2.0*(((double)rand())/RAND_MAX) - 1.0)/(NFFT_K2PI);
+      xi[2*d] = (((NFFT_R)rand())/RAND_MAX) - NFFT_K(0.5);
+      xi[2*d+1] = NFFT_M(acos)(NFFT_K(2.0)*(((NFFT_R)rand())/RAND_MAX) - NFFT_K(1.0))/(NFFT_K2PI);
     }
 
     /* Do precomputation. */
-    nfsft_precompute(m_max,threshold,
+    NFSFT(precompute)(m_max,threshold,
       ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U/*NFSFT_NO_DIRECT_ALGORITHM*/)), 0U);
 
     /* Process all parameter sets. */
@@ -813,22 +816,22 @@ int main (int argc, char **argv)
         case KT_LOC_SUPP:
           /* Compute Fourier-Legendre coefficients for the locally supported
            * kernel. */
-          a[0] = 1.0;
+          a[0] = NFFT_K(1.0);
           if (1 <= m_max)
-            a[1] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+2.0))*a[0];
+            a[1] = ((p[ip][1]+1+p[ip][0])/(p[ip][1]+NFFT_K(2.0)))*a[0];
           for (k = 2; k <= m_max; k++)
-            a[k] = (1.0/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] -
+            a[k] = (NFFT_K(1.0)/(k+p[ip][1]+1))*((2*k-1)*p[ip][0]*a[k-1] -
               (k-p[ip][1]-2)*a[k-2]);
           break;
 
         case KT_GAUSSIAN:
           /* Fourier-Legendre coefficients */
-          steed = (double*) nfft_malloc((m_max+1)*sizeof(double));
-          smbi(2.0*p[ip][0],0.5,m_max+1,2,steed);
+          steed = (NFFT_R*) NFFT(malloc)((m_max+1)*sizeof(NFFT_R));
+          smbi(NFFT_K(2.0)*p[ip][0],NFFT_K(0.5),m_max+1,2,steed);
           for (k = 0; k <= m_max; k++)
-            a[k] = NFFT_K2PI*(sqrt(NFFT_KPI/p[ip][0]))*steed[k];
+            a[k] = NFFT_K2PI*(NFFT_SQRT(NFFT_KPI/p[ip][0]))*steed[k];
 
-          nfft_free(steed);
+          NFFT(free)(steed);
           break;
       }
 
@@ -893,7 +896,7 @@ int main (int argc, char **argv)
             }
 
             /* Initialize cumulative time variable. */
-            t_dp = 0.0;
+            t_dp = NFFT_K(0.0);
 
             /* Initialize time measurement. */
             t0 = NFFT(clock_gettime_seconds)();
@@ -913,13 +916,13 @@ int main (int argc, char **argv)
                 /* Perform final summation */
 
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(NFFT_K2PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(NFFT_K2PI*NFFT_POW(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
                 {
                   /* Initialize function value. */
-                  f[d] = 0.0;
+                  f[d] = NFFT_K(0.0);
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
@@ -938,7 +941,7 @@ int main (int argc, char **argv)
                 for (d = 0; d < ld[ild][1]; d++)
                 {
                   /* Initialize function value. */
-                  f[d] = 0.0;
+                  f[d] = NFFT_K(0.0);
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
@@ -955,16 +958,16 @@ int main (int argc, char **argv)
             t_dp = t1 - t0;
 
             /* Calculate average time needed. */
-            t_dp = t_dp/((double)ld[ild][4]);
+            t_dp = t_dp/((NFFT_R)ld[ild][4]);
           }
           else
           {
             /* Initialize cumulative time variable with dummy value. */
-            t_dp = -1.0;
+            t_dp = -NFFT_K(1.0);
           }
 
           /* Initialize cumulative time variable. */
-          t_d = 0.0;
+          t_d = NFFT_K(0.0);
 
           /* Initialize time measurement. */
           t0 = NFFT(clock_gettime_seconds)();
@@ -981,7 +984,7 @@ int main (int argc, char **argv)
                 for (d = 0; d < ld[ild][1]; d++)
                 {
                   /* Initialize function value. */
-                  f[d] = 0.0;
+                  f[d] = NFFT_K(0.0);
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
@@ -1002,7 +1005,7 @@ int main (int argc, char **argv)
                 for (d = 0; d < ld[ild][1]; d++)
                 {
                   /* Initialize function value. */
-                  f[d] = 0.0;
+                  f[d] = NFFT_K(0.0);
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
@@ -1020,13 +1023,13 @@ int main (int argc, char **argv)
 
               case KT_LOC_SUPP:
                 /* Calculate the multiplicative constant. */
-                constant = ((p[ip][1]+1)/(NFFT_K2PI*pow(1-p[ip][0],p[ip][1]+1)));
+                constant = ((p[ip][1]+1)/(NFFT_K2PI*NFFT_POW(1-p[ip][0],p[ip][1]+1)));
 
                 /* Process all target nodes. */
                 for (d = 0; d < ld[ild][1]; d++)
                 {
                   /* Initialize function value. */
-                  f[d] = 0.0;
+                  f[d] = NFFT_K(0.0);
 
                   /* Process all source nodes. */
                   for (l = 0; l < ld[ild][0]; l++)
@@ -1050,7 +1053,7 @@ int main (int argc, char **argv)
                   for (d = 0; d < ld[ild][1]; d++)
                   {
                     /* Initialize function value. */
-                    f[d] = 0.0;
+                    f[d] = NFFT_K(0.0);
 
                     /* Process all source nodes. */
                     for (l = 0; l < ld[ild][0]; l++)
@@ -1071,32 +1074,32 @@ int main (int argc, char **argv)
           t1 = NFFT(clock_gettime_seconds)();
           t_d = t1 - t0;
           /* Calculate average time needed. */
-          t_d = t_d/((double)ld[ild][4]);
+          t_d = t_d/((NFFT_R)ld[ild][4]);
         }
         else
         {
           /* Initialize cumulative time variable with dummy value. */
-          t_d = -1.0;
-          t_dp = -1.0;
+          t_d = -NFFT_K(1.0);
+          t_dp = -NFFT_K(1.0);
         }
 
         /* Initialize error and cumulative time variables for the fast
          * algorithm. */
-        err_fd = -1.0;
-        err_f = -1.0;
-        t_fd = -1.0;
-        t_f = -1.0;
+        err_fd = -NFFT_K(1.0);
+        err_f = -NFFT_K(1.0);
+        t_fd = -NFFT_K(1.0);
+        t_f = -NFFT_K(1.0);
 
         /* Process all cut-off bandwidths. */
         for (im = 0; im < im_max; im++)
         {
           /* Init transform plans. */
-          nfsft_init_guru(&plan_adjoint, m[im],ld[ild][0],
+          NFSFT(init_guru)(&plan_adjoint, m[im],ld[ild][0],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
             PRE_PHI_HUT | PRE_PSI | FFTW_INIT,
             cutoff);
-          nfsft_init_guru(&plan,m[im],ld[ild][1],
+          NFSFT(init_guru)(&plan,m[im],ld[ild][1],
             ((use_nfft!=0)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=0)?(0U):(NFSFT_USE_DPT)),
             PRE_PHI_HUT | PRE_PSI | FFTW_INIT,
@@ -1107,14 +1110,14 @@ int main (int argc, char **argv)
           plan.f_hat = f_hat;
           plan.x = xi;
           plan.f = f_m;
-          nfsft_precompute_x(&plan_adjoint);
-          nfsft_precompute_x(&plan);
+          NFSFT(precompute_x)(&plan_adjoint);
+          NFSFT(precompute_x)(&plan);
 
           /* Check if direct algorithm shall also be tested. */
           if (use_nfsft == BOTH)
           {
             /* Initialize cumulative time variable. */
-            t_fd = 0.0;
+            t_fd = NFFT_K(0.0);
 
             /* Initialize time measurement. */
             t0 = NFFT(clock_gettime_seconds)();
@@ -1124,7 +1127,7 @@ int main (int argc, char **argv)
             {
 
               /* Execute adjoint direct NDSFT transformation. */
-              nfsft_adjoint_direct(&plan_adjoint);
+              NFSFT(adjoint_direct)(&plan_adjoint);
 
               /* Multiplication with the Fourier-Legendre coefficients. */
               for (k = 0; k <= m[im]; k++)
@@ -1132,7 +1135,7 @@ int main (int argc, char **argv)
                   f_hat[NFSFT_INDEX(k,n,&plan_adjoint)] *= a[k];
 
               /* Execute direct NDSFT transformation. */
-              nfsft_trafo_direct(&plan);
+              NFSFT(trafo_direct)(&plan);
 
             }
 
@@ -1141,7 +1144,7 @@ int main (int argc, char **argv)
             t_fd = t1 - t0;
 
             /* Calculate average time needed. */
-            t_fd = t_fd/((double)ld[ild][4]);
+            t_fd = t_fd/((NFFT_R)ld[ild][4]);
 
             /* Check if error E_infty should be computed. */
             if (ld[ild][2] != NO)
@@ -1156,13 +1159,13 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Initialize cumulative time variable for the NFSFT algorithm. */
-            t_f = 0.0;
+            t_f = NFFT_K(0.0);
           }
           else
           {
             /* Initialize cumulative time variable for the direct NDSFT
              * algorithm. */
-            t_fd = 0.0;
+            t_fd = NFFT_K(0.0);
           }
 
           /* Initialize time measurement. */
@@ -1175,12 +1178,12 @@ int main (int argc, char **argv)
             if (use_nfsft != NO)
             {
               /* Execute the adjoint NFSFT transformation. */
-              nfsft_adjoint(&plan_adjoint);
+              NFSFT(adjoint)(&plan_adjoint);
             }
             else
             {
               /* Execute the adjoint direct NDSFT transformation. */
-              nfsft_adjoint_direct(&plan_adjoint);
+              NFSFT(adjoint_direct)(&plan_adjoint);
             }
 
             /* Multiplication with the Fourier-Legendre coefficients. */
@@ -1192,12 +1195,12 @@ int main (int argc, char **argv)
             if (use_nfsft != NO)
             {
               /* Execute the NFSFT transformation. */
-              nfsft_trafo(&plan);
+              NFSFT(trafo)(&plan);
             }
             else
             {
               /* Execute the NDSFT transformation. */
-              nfsft_trafo_direct(&plan);
+              NFSFT(trafo_direct)(&plan);
             }
           }
 
@@ -1213,12 +1216,12 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Calculate average time needed. */
-            t_f = t_f/((double)ld[ild][4]);
+            t_f = t_f/((NFFT_R)ld[ild][4]);
           }
           else
           {
             /* Calculate average time needed. */
-            t_fd = t_fd/((double)ld[ild][4]);
+            t_fd = t_fd/((NFFT_R)ld[ild][4]);
           }
 
           /* Check if error E_infty should be computed. */
@@ -1240,48 +1243,49 @@ int main (int argc, char **argv)
           }
 
           /* Print out the error measurements. */
-          fprintf(stdout,"%e\n%e\n%e\n%e\n%e\n%e\n\n",t_d,t_dp,t_fd,t_f,err_fd,
+          fprintf(stdout,"%" NFFT__FES__ "\n%" NFFT__FES__ "\n%" NFFT__FES__ "\n%" NFFT__FES__
+            "\n%" NFFT__FES__ "\n%" NFFT__FES__ "\n\n",t_d,t_dp,t_fd,t_f,err_fd,
             err_f);
 
           /* Finalize the NFSFT plans */
-          nfsft_finalize(&plan_adjoint);
-          nfsft_finalize(&plan);
+          NFSFT(finalize)(&plan_adjoint);
+          NFSFT(finalize)(&plan);
         } /* for (im = 0; im < im_max; im++) - Process all cut-off
            * bandwidths.*/
       } /* for (ild = 0; ild < ild_max; ild++) - Process all node sets. */
     } /* for (ip = 0; ip < ip_max; ip++) - Process all parameter sets. */
 
     /* Delete precomputed data. */
-    nfsft_forget();
+    NFSFT(forget)();
 
     /* Check if memory for precomputed data of the matrix K has been
      * allocated. */
     if (precompute == YES)
     {
       /* Free memory for precomputed matrix K. */
-      nfft_free(prec);
+      NFFT(free)(prec);
     }
     /* Free data arrays. */
-    nfft_free(f);
-    nfft_free(f_m);
-    nfft_free(xi);
-    nfft_free(eta);
-    nfft_free(a);
-    nfft_free(f_hat);
-    nfft_free(b);
+    NFFT(free)(f);
+    NFFT(free)(f_m);
+    NFFT(free)(xi);
+    NFFT(free)(eta);
+    NFFT(free)(a);
+    NFFT(free)(f_hat);
+    NFFT(free)(b);
 
     /* Free memory for node sets. */
     for (ild = 0; ild < ild_max; ild++)
-      nfft_free(ld[ild]);
-    nfft_free(ld);
+      NFFT(free)(ld[ild]);
+    NFFT(free)(ld);
 
     /* Free memory for cut-off bandwidths. */
-    nfft_free(m);
+    NFFT(free)(m);
 
     /* Free memory for parameter sets. */
     for (ip = 0; ip < ip_max; ip++)
-      nfft_free(p[ip]);
-    nfft_free(p);
+      NFFT(free)(p[ip]);
+    NFFT(free)(p);
   } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */
 
   /* Return exit code for successful run. */
