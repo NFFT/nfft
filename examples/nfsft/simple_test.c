@@ -25,19 +25,18 @@
 #include <complex.h>
 
 #include "nfft3.h" /* NFFT3 header */
-
-#define __FES__ "E"
-#define K(x) ((double) x)
+/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 static void simple_test_nfsft(void)
 {
   const int N = 4; /* bandwidth/maximum degree */
   const int M = 8; /* number of nodes */
-  nfsft_plan plan; /* transform plan */
+  NFSFT(plan) plan; /* transform plan */
   int j, k, n; /* loop variables */
 
   /* precomputation (for fast polynomial transform) */
-  nfsft_precompute(N,1000.0,0U,0U);
+  NFSFT(precompute)(N,NFFT_K(1000.0),0U,0U);
 
   /* Initialize transform plan using the guru interface. All input and output
    * arrays are allocated by nfsft_init_guru(). Computations are performed with
@@ -45,73 +44,73 @@ static void simple_test_nfsft(void)
    * Fourier coefficients is preserved during transformations. The NFFT uses a
    * cut-off parameter m = 6. See the NFFT 3 manual for details.
    */
-  nfsft_init_guru(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
+  NFSFT(init_guru)(&plan, N, M, NFSFT_MALLOC_X | NFSFT_MALLOC_F |
     NFSFT_MALLOC_F_HAT | NFSFT_NORMALIZED | NFSFT_PRESERVE_F_HAT,
     PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE, 6);
 
   /* pseudo-random nodes */
   for (j = 0; j < plan.M_total; j++)
   {
-    plan.x[2*j]= nfft_drand48() - K(0.5);
-    plan.x[2*j+1]= K(0.5) * nfft_drand48();
+    plan.x[2*j]= NFFT(drand48)() - NFFT_K(0.5);
+    plan.x[2*j+1]= NFFT_K(0.5) * NFFT(drand48)();
   }
 
   /* precomputation (for NFFT, node-dependent) */
-  nfsft_precompute_x(&plan);
+  NFSFT(precompute_x)(&plan);
 
   /* pseudo-random Fourier coefficients */
   for (k = 0; k <= plan.N; k++)
     for (n = -k; n <= k; n++)
       plan.f_hat[NFSFT_INDEX(k,n,&plan)] =
-          nfft_drand48() - K(0.5) + _Complex_I*(nfft_drand48() - K(0.5));
+          NFFT(drand48)() - NFFT_K(0.5) + _Complex_I*(NFFT(drand48)() - NFFT_K(0.5));
 
   /* Direct transformation, display result. */
-  nfsft_trafo_direct(&plan);
+  NFSFT(trafo_direct)(&plan);
   printf("Vector f (NDSFT):\n");
   for (j = 0; j < plan.M_total; j++)
-    printf("f[%+2d] = %+5.3" __FES__ " %+5.3" __FES__ "*I\n",j,
-      creal(plan.f[j]), cimag(plan.f[j]));
+    printf("f[%+2d] = %+5.3" NFFT__FES__ " %+5.3" NFFT__FES__ "*I\n",j,
+      NFFT_CREAL(plan.f[j]), NFFT_CIMAG(plan.f[j]));
 
   printf("\n");
 
   /* Fast approximate transformation, display result. */
-  nfsft_trafo(&plan);
+  NFSFT(trafo)(&plan);
   printf("Vector f (NFSFT):\n");
   for (j = 0; j < plan.M_total; j++)
-    printf("f[%+2d] = %+5.3" __FES__ " %+5.3" __FES__ "*I\n",j,
-      creal(plan.f[j]), cimag(plan.f[j]));
+    printf("f[%+2d] = %+5.3" NFFT__FES__ " %+5.3" NFFT__FES__ "*I\n",j,
+      NFFT_CREAL(plan.f[j]), NFFT_CIMAG(plan.f[j]));
 
   printf("\n");
 
   /* Direct adjoint transformation, display result. */
-  nfsft_adjoint_direct(&plan);
+  NFSFT(adjoint_direct)(&plan);
   printf("Vector f_hat (NDSFT):\n");
   for (k = 0; k <= plan.N; k++)
     for (n = -k; n <= k; n++)
-      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" __FES__ " %+5.3" __FES__ "*I\n",k,n,
-        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
-        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
+      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" NFFT__FES__ " %+5.3" NFFT__FES__ "*I\n",k,n,
+        NFFT_CREAL(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+        NFFT_CIMAG(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
 
   printf("\n");
 
   /* Fast approximate adjoint transformation, display result. */
-  nfsft_adjoint(&plan);
+  NFSFT(adjoint)(&plan);
   printf("Vector f_hat (NFSFT):\n");
   for (k = 0; k <= plan.N; k++)
   {
     for (n = -k; n <= k; n++)
     {
-      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" __FES__ " %+5.3" __FES__ "*I\n",k,n,
-        creal(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
-        cimag(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
+      fprintf(stdout,"f_hat[%+2d,%+2d] = %+5.3" NFFT__FES__ " %+5.3" NFFT__FES__ "*I\n",k,n,
+        NFFT_CREAL(plan.f_hat[NFSFT_INDEX(k,n,&plan)]),
+        NFFT_CIMAG(plan.f_hat[NFSFT_INDEX(k,n,&plan)]));
     }
   }
 
   /* Finalize the plan. */
-  nfsft_finalize(&plan);
+  NFSFT(finalize)(&plan);
 
   /* Destroy data precomputed for fast polynomial transform. */
-	nfsft_forget();
+	NFSFT(forget)();
 }
 
 int main(void)

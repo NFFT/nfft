@@ -143,4 +143,15 @@ if(HAVE_MRI)
   nfft_add_serial_program(app_mri3d_reconstruct_data_gridding mri/mri3d reconstruct_data_gridding mri/mri3d/reconstruct_data_gridding.c)
   nfft_add_serial_program(app_mri3d_reconstruct_data_2d1d    mri/mri3d reconstruct_data_2d1d    mri/mri3d/reconstruct_data_2d1d.c)
   nfft_add_serial_program(app_mri3d_reconstruct_data_3d      mri/mri3d reconstruct_data_3d      mri/mri3d/reconstruct_data_3d.c)
+
+  foreach(_mri_target
+      app_mri2d_construct_data_2d app_mri2d_construct_data_inh_2d1d
+      app_mri2d_construct_data_inh_3d app_mri2d_reconstruct_data_gridding
+      app_mri2d_reconstruct_data_2d app_mri2d_reconstruct_data_inh_3d
+      app_mri2d_reconstruct_data_inh_2d1d app_mri2d_reconstruct_data_inh_nnfft
+      app_mri3d_construct_data_2d1d app_mri3d_construct_data_3d
+      app_mri3d_reconstruct_data_gridding app_mri3d_reconstruct_data_2d1d
+      app_mri3d_reconstruct_data_3d)
+    target_compile_definitions(${_mri_target} PRIVATE ${NFFT_PRECISION_MACRO})
+  endforeach()
 endif()

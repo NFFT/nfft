@@ -21,6 +21,8 @@
 #include <complex.h>
 
 #include "nfft3.h"
+/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 /**
  * \defgroup applications_mri2d_construct_data_2d construct_data_2d
@@ -34,20 +36,20 @@
 static void construct(char * file, int N, int M)
 {
   int j,k;            /* some variables */
-  double real;
-  nfft_plan my_plan;  /* plan for the two dimensional nfft  */
+  NFFT_R real;
+  NFFT(plan) my_plan;  /* plan for the two dimensional nfft  */
   FILE* fp;
   FILE* fk;
   FILE* fi;
 
   /* initialise my_plan */
-  nfft_init_2d(&my_plan,N,N,M);
+  NFFT(init_2d)(&my_plan,N,N,M);
 
   fp=fopen("knots.dat","r");
 
   for(j=0;j<my_plan.M_total;j++)
   {
-    fscanf(fp,"%le %le ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
+    fscanf(fp,NFFT__FR__ " " NFFT__FR__ " ",&my_plan.x[2*j+0],&my_plan.x[2*j+1]);
   }
   fclose(fp);
 
@@ -57,24 +59,24 @@ static void construct(char * file, int N, int M)
   for(j=0;j<N;j++)
   {
     for(k=0;k<N;k++) {
-      fscanf(fi,"%le ",&real);
+      fscanf(fi,NFFT__FR__ " ",&real);
       my_plan.f_hat[(N*j+k)] = real;
     }
   }
 
   if(my_plan.flags & PRE_PSI)
-    nfft_precompute_psi(&my_plan);
+    NFFT(precompute_psi)(&my_plan);
 
-  nfft_trafo(&my_plan);
+  NFFT(trafo)(&my_plan);
 
   for(j=0;j<my_plan.M_total;j++)
   {
-    fprintf(fk,"%le %le %le %le\n",my_plan.x[2*j+0],my_plan.x[2*j+1],creal(my_plan.f[j]),cimag(my_plan.f[j]));
+    fprintf(fk,NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ "\n",my_plan.x[2*j+0],my_plan.x[2*j+1],NFFT_CREAL(my_plan.f[j]),NFFT_CIMAG(my_plan.f[j]));
   }
   fclose(fk);
   fclose(fi);
 
-  nfft_finalize(&my_plan);
+  NFFT(finalize)(&my_plan);
 }
 
 int main(int argc, char **argv)

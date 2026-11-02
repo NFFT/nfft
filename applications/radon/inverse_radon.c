@@ -178,9 +178,9 @@ static int inverse_radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w
   for (t = 0; t < T; t++)
   {
     /*    for(r=0; r<R/2; r++)
-     fft[r] = cexp(I*NFFT_KPI*r)*Rf[t*R+(r+R/2)];
+     fft[r] = NFFT_CEXP(I*NFFT_KPI*r)*Rf[t*R+(r+R/2)];
      for(r=0; r<R/2; r++)
-     fft[r+R/2] = cexp(I*NFFT_KPI*r)*Rf[t*R+r];
+     fft[r+R/2] = NFFT_CEXP(I*NFFT_KPI*r)*Rf[t*R+r];
      */
 
     for (r = 0; r < S; r++)

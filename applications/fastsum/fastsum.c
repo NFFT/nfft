@@ -743,7 +743,7 @@ void fastsum_init_guru_kernel(fastsum_plan *ths, int d, kernel k, NFFT_R *param,
         ths->Ad = (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(2.2)/NFFT_POW(delta,NFFT_K(1.0)/NFFT_K(3.0)))));
         ths->Add = (NFFT_C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(NFFT_C)));
 #elif defined(NF_LIN)
-        ths->Ad = (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(1.7)/pow(delta,NFFT_K(1.0)/NFFT_K(2.0)))));
+        ths->Ad = (int)(NFFT_LRINT(NFFT_CEIL(NFFT_K(1.7)/NFFT_POW(delta,NFFT_K(1.0)/NFFT_K(2.0)))));
         ths->Add = (NFFT_C *)NFFT(malloc)((size_t)(ths->Ad+3)*(sizeof(NFFT_C)));
 #else
 #error define NF_LIN or NF_QUADR or NF_KUB

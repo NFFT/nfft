@@ -56,22 +56,28 @@ target_compile_definitions(example_solver_glacier PRIVATE ${NFFT_PRECISION_MACRO
 if(HAVE_NNFFT)
   nfft_add_serial_program(example_nnfft_simple_test nnfft simple_test nnfft/simple_test.c)
   nfft_add_serial_program(example_nnfft_accuracy    nnfft accuracy    nnfft/accuracy.c)
+  target_compile_definitions(example_nnfft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
+  target_compile_definitions(example_nnfft_accuracy PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 # nsfft (double-only)
 if(HAVE_NSFFT)
   nfft_add_serial_program(example_nsfft_simple_test nsfft simple_test nsfft/simple_test.c)
   nfft_add_serial_program(example_nsfft_nsfft_test  nsfft nsfft_test  nsfft/nsfft_test.c)
+  target_compile_definitions(example_nsfft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
+  target_compile_definitions(example_nsfft_nsfft_test PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 # fpt (double-only)
 if(HAVE_FPT)
   nfft_add_serial_program(example_fpt_simple_test fpt simple_test fpt/simple_test.c)
+  target_compile_definitions(example_fpt_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 # nfsoft (double-only)
 if(HAVE_NFSOFT)
   nfft_add_serial_program(example_nfsoft_simple_test nfsoft simple_test nfsoft/simple_test.c)
+  target_compile_definitions(example_nfsoft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
 endif()
 
 # nfsft (double-only)

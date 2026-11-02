@@ -20,6 +20,8 @@
 #include <complex.h>
 
 #include "nfft3.h"
+/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 /**
  * \defgroup applications_mri3d_construct_data_3d construct_data_3d
@@ -30,18 +32,18 @@
 static void construct(char * file, int N, int M, int Z)
 {
   int j,k,l;                /* some variables */
-  double real;
-  nfft_plan my_plan;        /* plan for the three dimensional nfft  */
+  NFFT_R real;
+  NFFT(plan) my_plan;        /* plan for the three dimensional nfft  */
   FILE* fp,*fk;
   int my_N[3],my_n[3];      /* to init the nfft */
 
 
   /* initialise my_plan */
   //nfft_init_3d(&my_plan,Z,N,N,M);
-  my_N[0]=Z; my_n[0]=ceil(Z*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
-  my_N[2]=N; my_n[2]=ceil(N*1.2);
-  nfft_init_guru(&my_plan, 3, my_N, M, my_n, 6,
+  my_N[0]=Z; my_n[0]=NFFT_CEIL(Z*NFFT_K(1.2));
+  my_N[1]=N; my_n[1]=NFFT_CEIL(N*NFFT_K(1.2));
+  my_N[2]=N; my_n[2]=NFFT_CEIL(N*NFFT_K(1.2));
+  NFFT(init_guru)(&my_plan, 3, my_N, M, my_n, 6,
                       PRE_PHI_HUT| PRE_PSI |MALLOC_X| MALLOC_F_HAT|
                       MALLOC_F| FFTW_INIT,
                       FFTW_MEASURE);
@@ -49,7 +51,7 @@ static void construct(char * file, int N, int M, int Z)
   fp=fopen("knots.dat","r");
 
   for(j=0;j<M;j++)
-    fscanf(fp,"%le %le %le",&my_plan.x[3*(j)+1],
+    fscanf(fp,NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__,&my_plan.x[3*(j)+1],
       &my_plan.x[3*(j)+2],&my_plan.x[3*(j)+0]);
 
   fclose(fp);
@@ -63,28 +65,28 @@ static void construct(char * file, int N, int M, int Z)
       for(k=0;k<N;k++)
       {
         //fscanf(fp,"%le ",&my_plan.f_hat[(N*N*(Z-l)+N*j+k+N*N*Z/2)%(N*N*Z)][0]);
-        fscanf(fp,"%le ",&real);
+        fscanf(fp,NFFT__FR__ " ",&real);
         my_plan.f_hat[(N*N*l+N*j+k)] = real;
       }
     }
   }
 
     if(my_plan.flags & PRE_PSI)
-      nfft_precompute_psi(&my_plan);
+      NFFT(precompute_psi)(&my_plan);
 
-    nfft_trafo(&my_plan);
+    NFFT(trafo)(&my_plan);
 
 
     for(j=0;j<my_plan.M_total;j++)
-      fprintf(fk,"%le %le %le %le %le\n",my_plan.x[3*j+1],
-      my_plan.x[3*j+2],my_plan.x[3*j+0],creal(my_plan.f[j]),cimag(my_plan.f[j]));
+      fprintf(fk,NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ "\n",my_plan.x[3*j+1],
+      my_plan.x[3*j+2],my_plan.x[3*j+0],NFFT_CREAL(my_plan.f[j]),NFFT_CIMAG(my_plan.f[j]));
 
 
 
   fclose(fk);
   fclose(fp);
 
-  nfft_finalize(&my_plan);
+  NFFT(finalize)(&my_plan);
 }
 
 int main(int argc, char **argv)

@@ -61,6 +61,11 @@ typedef fftwf_complex NFFT_C;
 #define NFCT(name) NFFT_MP_CONCAT(nfctf_,name)
 #define NFST(name) NFFT_MP_CONCAT(nfstf_,name)
 #define NFSFT(name) NFFT_MP_CONCAT(nfsftf_,name)
+#define NNFFT(name) NFFT_MP_CONCAT(nnfftf_,name)
+#define NSFFT(name) NFFT_MP_CONCAT(nsfftf_,name)
+#define MRI(name) NFFT_MP_CONCAT(mrif_,name)
+#define FPT(name) NFFT_MP_CONCAT(fptf_,name)
+#define NFSOFT(name) NFFT_MP_CONCAT(nfsoftf_,name)
 #define SOLVER(name) NFFT_MP_CONCAT(solverf_,name)
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 typedef long double NFFT_R;
@@ -74,6 +79,11 @@ typedef fftwl_complex NFFT_C;
 #define NFCT(name) NFFT_MP_CONCAT(nfctl_,name)
 #define NFST(name) NFFT_MP_CONCAT(nfstl_,name)
 #define NFSFT(name) NFFT_MP_CONCAT(nfsftl_,name)
+#define NNFFT(name) NFFT_MP_CONCAT(nnfftl_,name)
+#define NSFFT(name) NFFT_MP_CONCAT(nsfftl_,name)
+#define MRI(name) NFFT_MP_CONCAT(mril_,name)
+#define FPT(name) NFFT_MP_CONCAT(fptl_,name)
+#define NFSOFT(name) NFFT_MP_CONCAT(nfsoftl_,name)
 #define SOLVER(name) NFFT_MP_CONCAT(solverl_,name)
 #elif defined(NFFT_PRECISION_DOUBLE)
 typedef double NFFT_R;
@@ -87,6 +97,11 @@ typedef fftw_complex NFFT_C;
 #define NFCT(name) NFFT_MP_CONCAT(nfct_,name)
 #define NFST(name) NFFT_MP_CONCAT(nfst_,name)
 #define NFSFT(name) NFFT_MP_CONCAT(nfsft_,name)
+#define NNFFT(name) NFFT_MP_CONCAT(nnfft_,name)
+#define NSFFT(name) NFFT_MP_CONCAT(nsfft_,name)
+#define MRI(name) NFFT_MP_CONCAT(mri_,name)
+#define FPT(name) NFFT_MP_CONCAT(fpt_,name)
+#define NFSOFT(name) NFFT_MP_CONCAT(nfsoft_,name)
 #define SOLVER(name) NFFT_MP_CONCAT(solver_,name)
 #else
 #error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
