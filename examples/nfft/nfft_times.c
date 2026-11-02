@@ -149,7 +149,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   }
   t_fft /= (NFFT_R)(r);
 
-  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%.1f)+ &\t",t_fft,t_fft/(p.N_total*(log(N)/log(2)*d))*auxC);
+  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%.1" NFFT__FIS__ ")+ &\t",t_fft,t_fft/(p.N_total*(NFFT_LOG(N)/NFFT_LOG(NFFT_K(2.0))*d))*auxC);
   printf("\\verb+%.1" NFFT__FES__ "+ &\t", t_fft);
 
   /** NDFT */
@@ -167,7 +167,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
       t_ndft += t;
     }
     t_ndft /= (NFFT_R)(r);
-    //printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+&\t",t_ndft,(int)round(t_ndft/(p.N_total*p.N_total)*auxC));
+    //printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+&\t",t_ndft,(int)NFFT_ROUND(t_ndft/(p.N_total*p.N_total)*auxC));
     printf("\\verb+%.1" NFFT__FES__ "+ &\t", t_ndft);
   }
   else
@@ -207,7 +207,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
   }
   t_nfft /= (NFFT_R)(r);
 
-  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+ & \\verb+(%.1" NFFT__FES__ ")+\\\\\n",t_nfft,(int)round(t_nfft/(p.N_total*(log(N)/log(2)*d))*auxC),t_nfft/t_fft);
+  //  printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%d)+ & \\verb+(%.1" NFFT__FES__ ")+\\\\\n",t_nfft,(int)NFFT_ROUND(t_nfft/(p.N_total*(NFFT_LOG(N)/NFFT_LOG(NFFT_K(2.0))*d))*auxC),t_nfft/t_fft);
   printf("\\verb+%.1" NFFT__FES__ "+ & \\verb+(%3.1" NFFT__FIS__ ")+\\\\\n", t_nfft, t_nfft / t_fft);
 
   FFTW(destroy_plan)(p_fft);
@@ -248,7 +248,7 @@ static void measure_time_nfft_XXX2(int d, int N, unsigned test_ndft)
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x");
+  //NFFT(vpr_double)(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
 
@@ -368,7 +368,7 @@ static void measure_time_nfft_XXX3(int d, int N, unsigned test_ndft)
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
   qsort(p.x, (size_t)(p.M_total), (size_t)(d) * sizeof(NFFT_R), comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x");
+  //NFFT(vpr_double)(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
 
@@ -490,8 +490,8 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   //for(j=0;j<2*M;j+=2)
   //   p.x[j]=0.5*p.x[j]+0.25*(p.x[j]>=0?1:-1);
 
-  //qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x");
+  //qsort(p.x,p.M_total,d*sizeof(NFFT_R),comp1);
+  //NFFT(vpr_double)(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
 
@@ -535,7 +535,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
     t_ndft /= (NFFT_R)(r);
     printf("%.1" NFFT__FES__ "\t", t_ndft);
 
-    //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+    //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
     NFFT_CSWAP(p.f, swapndft);
   }
@@ -559,7 +559,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
-  //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+  //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
   /** NFFT_2d */
   t_nfft = NFFT_K(0.0);
@@ -578,7 +578,7 @@ static void measure_time_nfft_XXX4(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
-  //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+  //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
   printf("\n");
 
@@ -664,7 +664,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
     t_ndft /= (NFFT_R)(r);
     printf("%.1" NFFT__FES__ "\t", t_ndft);
 
-    //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+    //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
     NFFT_CSWAP(p.f_hat, swapndft);
   }
@@ -688,7 +688,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
-  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+  //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
   /** NFFT_2d */
   t_nfft = NFFT_K(0.0);
@@ -707,7 +707,7 @@ static void measure_time_nfft_XXX5(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
-  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+  //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
   printf("\n");
 
@@ -749,8 +749,8 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   /** init pseudo random nodes */
   NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
 
-  //qsort(p.x,p.M_total,d*sizeof(double),comp1);
-  //nfft_vpr_double(p.x,p.M_total,"nodes x");
+  //qsort(p.x,p.M_total,d*sizeof(NFFT_R),comp1);
+  //NFFT(vpr_double)(p.x,p.M_total,"nodes x");
 
   NFFT(precompute_one_psi)(&p);
 
@@ -794,7 +794,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
     t_ndft /= (NFFT_R)(r);
     printf("%.1" NFFT__FES__ "\t", t_ndft);
 
-    //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+    //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
     NFFT_CSWAP(p.f, swapndft);
   }
@@ -818,7 +818,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
-  //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+  //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
   /** NFFT_3d */
   t_nfft = NFFT_K(0.0);
@@ -837,7 +837,7 @@ static void measure_time_nfft_XXX6(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f, p.M_total));
 
-  //printf("f=%e+i%e\t",creal(p.f[0]),cimag(p.f[0]));
+  //printf("f=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f[0]),NFFT_CIMAG(p.f[0]));
 
   printf("\n");
 
@@ -923,7 +923,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
     t_ndft /= (NFFT_R)(r);
     printf("%.1" NFFT__FES__ "\t", t_ndft);
 
-    //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+    //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
     NFFT_CSWAP(p.f_hat, swapndft);
   }
@@ -947,7 +947,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
-  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+  //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
   /** NFFT_3d */
   t_nfft = NFFT_K(0.0);
@@ -966,7 +966,7 @@ static void measure_time_nfft_XXX7(int d, int N, unsigned test_ndft)
   if (test_ndft)
     printf("(%.1" NFFT__FES__ ")\t", NFFT(error_l_2_complex)(swapndft, p.f_hat, p.N_total));
 
-  //printf("\nf_hat=%e+i%e\t",creal(p.f_hat[0]),cimag(p.f_hat[0]));
+  //printf("\nf_hat=%" NFFT__FES__ "+i%" NFFT__FES__ "\t",NFFT_CREAL(p.f_hat[0]),NFFT_CIMAG(p.f_hat[0]));
 
   printf("\n");
 

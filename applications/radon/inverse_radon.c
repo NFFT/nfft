@@ -213,10 +213,10 @@ static int inverse_radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w
     for (l = 1; l <= max_i; l++)
     {
       SOLVER(loop_one_step_complex)(&my_infft_plan);
-      /*if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;*/
+      /*if (NFFT_SQRT(my_infft_plan.dot_r_iter)<=NFFT_K(1e-12)) break;*/
     }
   }
-  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));*/
+  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %" NFFT__FGS__ "\n",l-1,NFFT_SQRT(my_infft_plan.dot_r_iter));*/
 
   /** copy result */
   for (k = 0; k < my_nfft_plan.N_total; k++)

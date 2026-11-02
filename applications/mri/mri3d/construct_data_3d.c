@@ -64,7 +64,7 @@ static void construct(char * file, int N, int M, int Z)
     {
       for(k=0;k<N;k++)
       {
-        //fscanf(fp,"%le ",&my_plan.f_hat[(N*N*(Z-l)+N*j+k+N*N*Z/2)%(N*N*Z)][0]);
+        //fscanf(fp,NFFT__FR__ " ",(NFFT_R *)&my_plan.f_hat[(N*N*(Z-l)+N*j+k+N*N*Z/2)%(N*N*Z)]);
         fscanf(fp,NFFT__FR__ " ",&real);
         my_plan.f_hat[(N*N*l+N*j+k)] = real;
       }

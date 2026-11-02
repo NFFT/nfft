@@ -974,7 +974,7 @@ int main (int argc, char **argv)
           //fprintf(stderr,"Copying original values\n");
           //fflush(stderr);
           /* Copy exact funtion values to working array. */
-          //memcpy(f,f_grid,m_total*sizeof(double _Complex));
+          //memcpy(f,f_grid,m_total*sizeof(NFFT_C));
 
           /* Initialize time measurement. */
           t0 = NFFT(clock_gettime_seconds)();
@@ -988,8 +988,8 @@ int main (int argc, char **argv)
           {
             for (n = 0; n < m_phi; n++)
             {
-              /*fprintf(stderr,"f_ref[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
-              d,creal(f_ref[d]),cimag(f_ref[d]),d,creal(f[d]),cimag(f[d]),k,
+              /*fprintf(stderr,"f_ref[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",\t f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",  \t w[%d] = %" NFFT__FES__ "\n",
+              d,NFFT_CREAL(f_ref[d]),NFFT_CIMAG(f_ref[d]),d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]),k,
               w[k]);*/
               f_grid[d] *= w[k];
               d++;
@@ -1007,8 +1007,8 @@ int main (int argc, char **argv)
           d = 0;
           for (d = 0; d < grid_total; d++)
           {
-            fprintf(stderr,"f[%d] = %le + I*%le, theta[%d] = %le, phi[%d] = %le\n",
-                    d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
+            fprintf(stderr,"f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ", theta[%d] = %" NFFT__FES__ ", phi[%d] = %" NFFT__FES__ "\n",
+                    d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]),d,x[2*d+1],d,x[2*d]);
           }*/
 
           //fprintf(stderr,"Executing adjoint\n");
@@ -1030,9 +1030,9 @@ int main (int argc, char **argv)
           {
             for (n = -k; n <= k; n++)
             {
-              fprintf(stderr,"f_hat[%d,%d] = %le\t + I*%le\n",k,n,
-                      creal(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
-                      cimag(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
+              fprintf(stderr,"f_hat[%d,%d] = %" NFFT__FES__ "\t + I*%" NFFT__FES__ "\n",k,n,
+                      NFFT_CREAL(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
+                      NFFT_CIMAG(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
             }
           }*/
 
@@ -1080,8 +1080,8 @@ int main (int argc, char **argv)
 
           /*for (d = 0; d < m_total; d++)
           {
-            fprintf(stderr,"f_ref[%d] = %le + I*%le,\t f[%d] = %le + I*%le\n",
-              d,creal(f_ref[d]),cimag(f_ref[d]),d,creal(f[d]),cimag(f[d]));
+            fprintf(stderr,"f_ref[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",\t f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ "\n",
+              d,NFFT_CREAL(f_ref[d]),NFFT_CIMAG(f_ref[d]),d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]));
           }*/
         }
 

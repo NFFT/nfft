@@ -408,7 +408,7 @@ int main(int argc, char **argv)
       /* E_max=0.0;
        for(k=0;k<N*N;k++)
        {
-       temp = cabs((f_hat[k]-f_tilde[k])/f_hat[k]);
+       temp = NFFT_CABS((f_hat[k]-f_tilde[k])/f_hat[k]);
        if (temp>E_max) E_max=temp;
        }
        */

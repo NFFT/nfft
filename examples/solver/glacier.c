@@ -182,7 +182,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   for (l = 0; l < 40; l++)
     SOLVER(loop_one_step_complex)(&ip);
 
-  //fprintf(stderr,"r=%1.2e, ",sqrt(ip.dot_r_iter)/M_re);
+  //fprintf(stderr,"r=%1.2" NFFT__FES__ ", ",NFFT_SQRT(ip.dot_r_iter)/M_re);
 
   NFFT_CSWAP(p.f_hat, ip.f_hat_iter);
   NFFT(trafo)(&p);

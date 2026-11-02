@@ -188,17 +188,17 @@ int main(int argc, char **argv)
 
   for (k = 0; k < N; k++)
   {
-    /*    NFFT_R r=(0.25-my_fastsum_plan.eps_B/2.0)*pow((NFFT_R)rand()/(NFFT_R)RAND_MAX,1.0/d);
+    /*    NFFT_R r=(NFFT_K(0.25)-my_fastsum_plan.eps_B/NFFT_K(2.0))*NFFT_POW((NFFT_R)rand()/(NFFT_R)RAND_MAX,NFFT_K(1.0)/d);
      my_fastsum_plan.x[k*d+0] = r;
      for (j=1; j<d; j++)
      {
-     NFFT_R phi=2.0*NFFT_KPI*(NFFT_R)rand()/(NFFT_R)RAND_MAX;
+     NFFT_R phi=NFFT_K(2.0)*NFFT_KPI*(NFFT_R)rand()/(NFFT_R)RAND_MAX;
      my_fastsum_plan.x[k*d+j] = r;
      for (t=0; t<j; t++)
      {
-     my_fastsum_plan.x[k*d+t] *= cos(phi);
+     my_fastsum_plan.x[k*d+t] *= NFFT_COS(phi);
      }
-     my_fastsum_plan.x[k*d+j] *= sin(phi);
+     my_fastsum_plan.x[k*d+j] *= NFFT_SIN(phi);
      }
      */
     my_fastsum_plan.alpha[k] = NFFT(drand48)() + NFFT_II * NFFT(drand48)();
@@ -224,17 +224,17 @@ int main(int argc, char **argv)
   }
   /*  for (k=0; k<M; k++)
    {
-   NFFT_R r=(0.25-my_fastsum_plan.eps_B/2.0)*pow((NFFT_R)rand()/(NFFT_R)RAND_MAX,1.0/d);
+   NFFT_R r=(NFFT_K(0.25)-my_fastsum_plan.eps_B/NFFT_K(2.0))*NFFT_POW((NFFT_R)rand()/(NFFT_R)RAND_MAX,NFFT_K(1.0)/d);
    my_fastsum_plan.y[k*d+0] = r;
    for (j=1; j<d; j++)
    {
-   NFFT_R phi=2.0*NFFT_KPI*(NFFT_R)rand()/(NFFT_R)RAND_MAX;
+   NFFT_R phi=NFFT_K(2.0)*NFFT_KPI*(NFFT_R)rand()/(NFFT_R)RAND_MAX;
    my_fastsum_plan.y[k*d+j] = r;
    for (t=0; t<j; t++)
    {
-   my_fastsum_plan.y[k*d+t] *= cos(phi);
+   my_fastsum_plan.y[k*d+t] *= NFFT_COS(phi);
    }
-   my_fastsum_plan.y[k*d+j] *= sin(phi);
+   my_fastsum_plan.y[k*d+j] *= NFFT_SIN(phi);
    }
    } */
 
