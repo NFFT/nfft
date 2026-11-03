@@ -357,6 +357,9 @@ static int check_single(const testcase_delegate_t *testcase,
   printf(", %-28s", init_delegate->name);
   init_delegate->init(init_delegate, &p, d, N, M);
 
+  /* a real plan holds the half spectrum */
+  NN = (int)p.N_total;
+
   printf(", m = %2d", (int)p.m);
   printf(", %-14s", trafo_delegate->name);
 
@@ -1323,6 +1326,54 @@ void X(check_adjoint_4d_online)(void)
     testcases_adjoint_4d_online_, initializers_4d, &check_adjoint, trafos_adjoint_4d_online);
 }
 #endif
+
+/* real-valued functions */
+
+static init_delegate_t init_real_pre_psi = {"init_guru (REAL, PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, NFFT_REAL | PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_real_no_pre = {"init_guru (REAL, no PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, NFFT_REAL | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+
+static const init_delegate_t* initializers_real[] = {&init_real_pre_psi, &init_real_no_pre};
+
+static const testcase_delegate_online_t nfft_real_online_1d_50_50 = {setup_online, destroy_online, fill_online, 1, 50, 50};
+static const testcase_delegate_online_t nfft_real_online_2d_50_50 = {setup_online, destroy_online, fill_online, 2, 50, 50};
+static const testcase_delegate_online_t nfft_real_online_3d_20_50 = {setup_online, destroy_online, fill_online, 3, 20, 50};
+static const testcase_delegate_online_t nfft_adjoint_real_online_1d_50_50 = {setup_online, destroy_online, fill_adjoint_online, 1, 50, 50};
+static const testcase_delegate_online_t nfft_adjoint_real_online_2d_50_50 = {setup_online, destroy_online, fill_adjoint_online, 2, 50, 50};
+static const testcase_delegate_online_t nfft_adjoint_real_online_3d_20_50 = {setup_online, destroy_online, fill_adjoint_online, 3, 20, 50};
+
+static const testcase_delegate_online_t *testcases_real_online[] =
+{
+  &nfft_real_online_1d_50_50,
+  &nfft_real_online_2d_50_50,
+  &nfft_real_online_3d_20_50,
+};
+
+static const testcase_delegate_online_t *testcases_adjoint_real_online[] =
+{
+  &nfft_adjoint_real_online_1d_50_50,
+  &nfft_adjoint_real_online_2d_50_50,
+  &nfft_adjoint_real_online_3d_20_50,
+};
+
+static const testcase_delegate_t **testcases_real_online_ = (const testcase_delegate_t**)testcases_real_online;
+static const testcase_delegate_t **testcases_adjoint_real_online_ = (const testcase_delegate_t**)testcases_adjoint_real_online;
+
+static const trafo_delegate_t* trafos_real_online[] = {&trafo};
+static const trafo_delegate_t* trafos_adjoint_real_online[] = {&adjoint};
+
+void X(check_real_online)(void)
+{
+  printf("check_real_online:\n");
+  check_many(SIZE(testcases_real_online), SIZE(initializers_real), SIZE(trafos_real_online),
+    testcases_real_online_, initializers_real, &check_trafo, trafos_real_online);
+}
+
+void X(check_adjoint_real_online)(void)
+{
+  printf("check_adjoint_real_online:\n");
+  check_many(SIZE(testcases_adjoint_real_online), SIZE(initializers_real), SIZE(trafos_adjoint_real_online),
+    testcases_adjoint_real_online_, initializers_real, &check_adjoint, trafos_adjoint_real_online);
+}
 
 /* accuracy */
 
