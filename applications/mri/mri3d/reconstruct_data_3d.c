@@ -57,10 +57,6 @@ static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weig
                       MALLOC_F| FFTW_INIT,
                       FFTW_MEASURE);
 
-  /* precompute lin psi */
-  if(my_plan.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&my_plan);
-
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
@@ -112,13 +108,7 @@ static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weig
     my_iplan.y[j] = real + _Complex_I*imag;
   }
 
-  /* precompute psi */
-  if(my_plan.flags & PRE_PSI)
-    NFFT(precompute_psi)(&my_plan);
-
-  /* precompute full psi */
-  if(my_plan.flags & PRE_FULL_PSI)
-    NFFT(precompute_full_psi)(&my_plan);
+  NFFT(precompute_one_psi)(&my_plan);
 
   /* init some guess */
   for(k=0;k<my_plan.N_total;k++)

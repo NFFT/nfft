@@ -123,8 +123,7 @@ static void construct(char * file, int N, int M)
     my_plan.f_hat[j] = real*NFFT_CEXP(NFFT_K(2.0)*_Complex_I*NFFT_KPI*Ts*my_plan.w[j]*W);
   }
 
-  if(my_plan.plan.flags & PRE_PSI)
-    NFFT(precompute_psi)(&my_plan.plan);
+  NFFT(precompute_one_psi)(&my_plan.plan);
 
   MRI(inh_3d_trafo)(&my_plan);
 
