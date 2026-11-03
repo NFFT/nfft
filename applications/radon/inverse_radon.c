@@ -41,7 +41,7 @@
 #include <string.h>
 #include <complex.h>
 #include "nfft3.h"
-/* NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /** define weights of kernel function for discrete Radon transform */
