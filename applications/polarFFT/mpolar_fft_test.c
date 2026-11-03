@@ -41,6 +41,19 @@
 
 double GLOBAL_elapsed_time;
 
+/** Number of offsets per slope in mpolar_grid. */
+static int mpolar_r2(int S)
+{
+  return 2 * (int)(NFFT_M(lrint)(NFFT_M(ceil)(NFFT_M(sqrt)(NFFT_K(2.0)) * (NFFT_R)(S) / NFFT_K(2.0))));
+}
+
+/** Upper bound for the number of nodes of mpolar_grid, which keeps a subset
+ *  of T * mpolar_r2(S) points. */
+static int mpolar_max_nodes(int T, int S)
+{
+  return T * mpolar_r2(S);
+}
+
 /** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
  *  for the modified polar grid with \f$T\f$ angles and \f$R\f$ offsets.
  *
@@ -58,7 +71,7 @@ static int mpolar_grid(int T, int S, NFFT_R *x, NFFT_R *w)
 {
   int t, r;
   NFFT_R W;
-  int R2 = 2 * (int)(NFFT_M(lrint)(NFFT_M(ceil)(NFFT_M(sqrt)(NFFT_K(2.0)) * (NFFT_R)(S) / NFFT_K(2.0))));
+  int R2 = mpolar_r2(S);
   NFFT_R xx, yy;
   int M = 0;
 
@@ -114,11 +127,11 @@ static int mpolar_dft(NFFT_C *f_hat, int NN, NFFT_C *f, int T, int S, int m)
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (NFFT_R *) NFFT(malloc)((size_t)(5 * (T / 2) * S) * (sizeof(NFFT_R)));
+  x = (NFFT_R *) NFFT(malloc)((size_t)(2 * mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (NFFT_R *) NFFT(malloc)((size_t)(5 * (T * S) / 4) * (sizeof(NFFT_R)));
+  w = (NFFT_R *) NFFT(malloc)((size_t)(mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
@@ -176,11 +189,11 @@ static int mpolar_fft(NFFT_C *f_hat, int NN, NFFT_C *f, int T, int S, int m)
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(NFFT_R)));
+  x = (NFFT_R *) NFFT(malloc)((size_t)(2 * mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(NFFT_R)));
+  w = (NFFT_R *) NFFT(malloc)((size_t)(mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
@@ -253,11 +266,11 @@ static int inverse_mpolar_fft(NFFT_C *f, int T, int S, NFFT_C *f_hat, int NN, in
   N[1] = NN;
   n[1] = 2 * N[1]; /**< oversampling factor sigma=2      */
 
-  x = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(NFFT_R)));
+  x = (NFFT_R *) NFFT(malloc)((size_t)(2 * mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (x == NULL)
     return EXIT_FAILURE;
 
-  w = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(NFFT_R)));
+  w = (NFFT_R *) NFFT(malloc)((size_t)(mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
   if (w == NULL)
     return EXIT_FAILURE;
 
@@ -352,7 +365,7 @@ static int comparison_fft(FILE *fp, int N, int T, int S)
   double t_fft, t_dft_mpolar;
 
   f_hat = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(N * N));
-  f = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)((T * S / 4) * 5));
+  f = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(NFFT_MAX(N * N, mpolar_max_nodes(T, S))));
 
   my_fftw_plan = FFTW(plan_dft_2d)(N, N, f_hat, f, FFTW_BACKWARD, FFTW_MEASURE);
 
@@ -449,12 +462,12 @@ int main(int argc, char **argv)
   S = atoi(argv[3]);
   printf("N=%d, modified polar grid with T=%d, R=%d => ", N, T, S);
 
-  x = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 2) * (sizeof(NFFT_R)));
-  w = (NFFT_R *) NFFT(malloc)((size_t)(5 * T * S / 4) * (sizeof(NFFT_R)));
+  x = (NFFT_R *) NFFT(malloc)((size_t)(2 * mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
+  w = (NFFT_R *) NFFT(malloc)((size_t)(mpolar_max_nodes(T, S)) * (sizeof(NFFT_R)));
 
   f_hat = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(N * N));
-  f = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(1.25 * T * S)); /* 4/pi*log(1+sqrt(2)) = 1.122... < 1.25 */
-  f_direct = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(1.25 * T * S));
+  f = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(mpolar_max_nodes(T, S)));
+  f_direct = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(mpolar_max_nodes(T, S)));
   f_tilde = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(N * N));
 
   /** generate knots of mpolar grid */
