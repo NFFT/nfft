@@ -1311,7 +1311,7 @@ void fpt_precompute(fpt_set set, const int m, double *alpha, double *beta,
   fpt_precompute_2(set, m, alpha, beta, gam, k_start, threshold);
 }
 
-void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
+void fpt_trafo_direct(fpt_set set, const int m, double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags)
 {
   int j;
@@ -1372,7 +1372,7 @@ void fpt_trafo_direct(fpt_set set, const int m, const double _Complex *x, double
   }
 }
 
-void fpt_trafo(fpt_set set, const int m, const double _Complex *x, double _Complex *y,
+void fpt_trafo(fpt_set set, const int m, double _Complex *x, double _Complex *y,
   const int k_end, const unsigned int flags)
 {
   /* Get transformation data. */

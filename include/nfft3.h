@@ -642,9 +642,9 @@ typedef struct X(set_s_) *X(set); /**< A set of precomputed data for a set of
 NFFT_EXTERN X(set) X(init)(const int M, const int t, const unsigned int flags); \
 NFFT_EXTERN void X(precompute)(X(set) set, const int m, R *alpha, R *beta, \
   R *gam, int k_start, const R threshold); \
-NFFT_EXTERN void X(trafo_direct)(X(set) set, const int m, const C *x, C *y, \
+NFFT_EXTERN void X(trafo_direct)(X(set) set, const int m, C *x, C *y, \
   const int k_end, const unsigned int flags); \
-NFFT_EXTERN void X(trafo)(X(set) set, const int m, const C *x, C *y, \
+NFFT_EXTERN void X(trafo)(X(set) set, const int m, C *x, C *y, \
   const int k_end, const unsigned int flags); \
 NFFT_EXTERN void X(transposed_direct)(X(set) set, const int m, C *x, \
   C *y, const int k_end, const unsigned int flags); \
@@ -878,10 +878,10 @@ void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* time.c */ \
 double Y(clock_gettime_seconds)(void); \
 /* error.c */ \
-R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
-  const C *z, const NFFT_INT m); \
-R Y(error_l_2_complex)(const C *x, const C *y, const NFFT_INT n); \
+R Y(error_l_infty_complex)(C *x, C *y, const NFFT_INT n); \
+R Y(error_l_infty_1_complex)(C *x, C *y, const NFFT_INT n, \
+  C *z, const NFFT_INT m); \
+R Y(error_l_2_complex)(C *x, C *y, const NFFT_INT n); \
 /* int.c */ \
 NFFT_INT Y(exp2i)(const NFFT_INT a); \
 NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
