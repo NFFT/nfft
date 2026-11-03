@@ -1,7 +1,7 @@
 .PHONY: libfastsumjulia-link clean-libfastsumjulia-link
 
 # compiler flags
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/applications/fastsum
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/applications/fastsum -D@NFFT_PRECISION_MACRO@
 
 # library
 lib_LTLIBRARIES = libfastsumjulia.la

@@ -40,6 +40,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /** define weights of kernel function for discrete Radon transform */
@@ -176,9 +178,9 @@ static int inverse_radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w
   for (t = 0; t < T; t++)
   {
     /*    for(r=0; r<R/2; r++)
-     fft[r] = cexp(I*NFFT_KPI*r)*Rf[t*R+(r+R/2)];
+     fft[r] = NFFT_CEXP(I*NFFT_KPI*r)*Rf[t*R+(r+R/2)];
      for(r=0; r<R/2; r++)
-     fft[r+R/2] = cexp(I*NFFT_KPI*r)*Rf[t*R+r];
+     fft[r+R/2] = NFFT_CEXP(I*NFFT_KPI*r)*Rf[t*R+r];
      */
 
     for (r = 0; r < S; r++)
@@ -211,10 +213,10 @@ static int inverse_radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w
     for (l = 1; l <= max_i; l++)
     {
       SOLVER(loop_one_step_complex)(&my_infft_plan);
-      /*if (sqrt(my_infft_plan.dot_r_iter)<=1e-12) break;*/
+      /*if (NFFT_SQRT(my_infft_plan.dot_r_iter)<=NFFT_K(1e-12)) break;*/
     }
   }
-  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %g\n",l-1,sqrt(my_infft_plan.dot_r_iter));*/
+  /*printf("after %d iteration(s): weighted 2-norm of original residual vector = %" NFFT__FGS__ "\n",l-1,NFFT_SQRT(my_infft_plan.dot_r_iter));*/
 
   /** copy result */
   for (k = 0; k < my_nfft_plan.N_total; k++)

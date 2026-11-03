@@ -22,25 +22,30 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "config.h"
-
 #include "nfft3.h"
-#include "infft.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
+
+/* Significant decimal digits that round-trip an NFFT_R through text:
+ * floor(MANT_DIG * log10(2)) + 2, i.e. 9 (float), 17 (double), 21 (x87 long
+ * double), 36 (binary128 long double). nfft_benchomp_detail reads the data back
+ * in the same precision. */
+#define DATA_DIGITS (2 + (NFFT_R_MANT_DIG * 30103) / 100000)
 
 void nfft_benchomp_createdataset(unsigned int d, unsigned int trafo_adjoint, int *N, int M, double sigma)
 {
   int n[d];
   int t, j;
-  R *x;
-  C *f, *f_hat;
+  NFFT_R *x;
+  NFFT_C *f, *f_hat;
   int N_total = 1;
 
   for (t = 0; t < d; t++)
     N_total *= N[t];
 
-  x = (R*) NFFT(malloc)(sizeof(R)*d*M);
-  f = (C*) NFFT(malloc)(M*sizeof(C));
-  f_hat = (C*) NFFT(malloc)(N_total*sizeof(C));
+  x = (NFFT_R*) NFFT(malloc)(sizeof(NFFT_R)*d*M);
+  f = (NFFT_C*) NFFT(malloc)(M*sizeof(NFFT_C));
+  f_hat = (NFFT_C*) NFFT(malloc)(N_total*sizeof(NFFT_C));
 
   for (t=0; t<d; t++)
     n[t] = sigma*NFFT(next_power_of_2)(N[t]);
@@ -70,19 +75,21 @@ void nfft_benchomp_createdataset(unsigned int d, unsigned int trafo_adjoint, int
   for (j=0; j < M; j++)
   {
     for (t=0; t < d; t++)
-      printf("%.16e ", x[d*j+t]);
+      printf("%.*" NFFT__FES__ " ", DATA_DIGITS - 1, x[d*j+t]);
     printf("\n");
   }
 
   if (trafo_adjoint==0)
   {
     for (j=0; j < N_total; j++)
-      printf("%.16e %.16e\n", creal(f_hat[j]), cimag(f_hat[j]));
+      printf("%.*" NFFT__FES__ " %.*" NFFT__FES__ "\n", DATA_DIGITS - 1,
+             NFFT_CREAL(f_hat[j]), DATA_DIGITS - 1, NFFT_CIMAG(f_hat[j]));
   }
   else
   {
     for (j=0; j < M; j++)
-      printf("%.16e %.16e\n", creal(f[j]), cimag(f[j]));
+      printf("%.*" NFFT__FES__ " %.*" NFFT__FES__ "\n", DATA_DIGITS - 1,
+             NFFT_CREAL(f[j]), DATA_DIGITS - 1, NFFT_CIMAG(f[j]));
   }
 
   NFFT(free)(x);

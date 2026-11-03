@@ -15,15 +15,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#include "config.h"
-
 #include <stdlib.h>
 #include <math.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 #include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 /**
  * \defgroup applications_mri3d_reconstruct_data_gridding reconstruct_data_gridding
@@ -34,28 +32,28 @@
 /**
  * reconstruct makes an 2d-adjoint-nfft for every slice
  */
-static void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_complex *mem)
+static void reconstruct(char* filename,int N,int M,int Z, int weight ,NFFT_C *mem)
 {
   int j,k,z;               /* some variables  */
-  double weights;          /* store one weight temporary */
-  double tmp;              /* tmp to read the obsolent z from the input file */
-  double real,imag;        /* to read the real and imag part of a complex number */
-  nfft_plan my_plan;       /* plan for the two dimensional nfft  */
+  NFFT_R weights;          /* store one weight temporary */
+  NFFT_R tmp;              /* tmp to read the obsolent z from the input file */
+  NFFT_R real,imag;        /* to read the real and imag part of a complex number */
+  NFFT(plan) my_plan;       /* plan for the two dimensional nfft  */
   int my_N[2],my_n[2];     /* to init the nfft */
   FILE* fin;               /* input file  */
   FILE* fweight;           /* input file for the weights */
 
   /* initialise my_plan */
-  my_N[0]=N; my_n[0]=ceil(N*1.2);
-  my_N[1]=N; my_n[1]=ceil(N*1.2);
-  nfft_init_guru(&my_plan, 2, my_N, M/Z, my_n, 6, PRE_PHI_HUT| PRE_PSI|
+  my_N[0]=N; my_n[0]=NFFT_CEIL(N*NFFT_K(1.2));
+  my_N[1]=N; my_n[1]=NFFT_CEIL(N*NFFT_K(1.2));
+  NFFT(init_guru)(&my_plan, 2, my_N, M/Z, my_n, 6, PRE_PHI_HUT| PRE_PSI|
                         MALLOC_X| MALLOC_F_HAT| MALLOC_F|
                         FFTW_INIT,
                         FFTW_MEASURE);
 
   /* precompute lin psi if set */
   if(my_plan.flags & PRE_LIN_PSI)
-    nfft_precompute_lin_psi(&my_plan);
+    NFFT(precompute_lin_psi)(&my_plan);
 
   fin=fopen(filename,"r");
 
@@ -63,8 +61,8 @@ static void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_compl
     fweight=fopen("weights.dat","r");
     for(j=0;j<my_plan.M_total;j++)
     {
-      fscanf(fweight,"%le ",&weights);
-      fscanf(fin,"%le %le %le %le %le",
+      fscanf(fweight,NFFT__FR__ " ",&weights);
+      fscanf(fin,NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__ " " NFFT__FR__,
              &my_plan.x[2*j+0],&my_plan.x[2*j+1],&tmp,&real,&imag);
       my_plan.f[j] = real + _Complex_I*imag;
       if(weight)
@@ -74,14 +72,14 @@ static void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_compl
 
     /* precompute psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.flags & PRE_PSI)
-      nfft_precompute_psi(&my_plan);
+      NFFT(precompute_psi)(&my_plan);
 
     /* precompute full psi if set just one time because the knots equal each slice */
     if(z==0 && my_plan.flags & PRE_FULL_PSI)
-      nfft_precompute_full_psi(&my_plan);
+      NFFT(precompute_full_psi)(&my_plan);
 
     /* compute the adjoint nfft */
-    nfft_adjoint(&my_plan);
+    NFFT(adjoint)(&my_plan);
 
     for(k=0;k<my_plan.N_total;k++) {
       /* write every slice in the memory.
@@ -91,14 +89,14 @@ static void reconstruct(char* filename,int N,int M,int Z, int weight ,fftw_compl
   }
   fclose(fin);
 
-  nfft_finalize(&my_plan);
+  NFFT(finalize)(&my_plan);
 }
 
  /**
  * print writes the memory back in a file
  * output_real.dat for the real part and output_imag.dat for the imaginary part
  */
-static void print(int N,int M,int Z, fftw_complex *mem)
+static void print(int N,int M,int Z, NFFT_C *mem)
 {
   int i,j;
   FILE* fout_real;
@@ -108,8 +106,8 @@ static void print(int N,int M,int Z, fftw_complex *mem)
 
   for(i=0;i<Z;i++) {
     for (j=0;j<N*N;j++) {
-      fprintf(fout_real,"%le ",creal(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(double)Z);
-      fprintf(fout_imag,"%le ",cimag(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(double)Z);
+      fprintf(fout_real,NFFT__FR__ " ",NFFT_CREAL(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(NFFT_R)Z);
+      fprintf(fout_imag,NFFT__FR__ " ",NFFT_CIMAG(mem[(Z*N*N/2+i*N*N+ j)%(Z*N*N)]) /(NFFT_R)Z);
     }
     fprintf(fout_real,"\n");
     fprintf(fout_imag,"\n");
@@ -122,8 +120,8 @@ static void print(int N,int M,int Z, fftw_complex *mem)
 
 int main(int argc, char **argv)
 {
-  fftw_complex *mem;
-  fftw_plan plan;
+  NFFT_C *mem;
+  FFTW(plan) plan;
   int N,M,Z;
 
   if (argc <= 6) {
@@ -137,10 +135,10 @@ int main(int argc, char **argv)
 
   /* Allocate memory to hold every slice in memory after the
   2D-infft */
-  mem = (fftw_complex*) nfft_malloc(sizeof(fftw_complex) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
+  mem = (NFFT_C*) NFFT(malloc)(sizeof(NFFT_C) * atoi(argv[2]) * atoi(argv[2]) * atoi(argv[4]));
 
   /* Create plan for the 1d-ifft */
-  plan = fftw_plan_many_dft(1, &Z, N*N,
+  plan = FFTW(plan_many_dft)(1, &Z, N*N,
                                   mem, NULL,
                                   N*N, 1,
                                   mem, NULL,
@@ -151,13 +149,13 @@ int main(int argc, char **argv)
   reconstruct(argv[1],atoi(argv[2]),atoi(argv[3]),atoi(argv[4]),atoi(argv[6]),mem);
 
   /* execute the 1d-fft's */
-  fftw_execute(plan);
+  FFTW(execute)(plan);
 
   /* write the memory back in files */
   print(N,M,Z, mem);
 
   /* free memory */
-  nfft_free(mem);
+  NFFT(free)(mem);
 
   return 0;
 }

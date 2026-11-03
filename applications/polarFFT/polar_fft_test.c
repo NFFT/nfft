@@ -28,6 +28,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /**
@@ -406,7 +408,7 @@ int main(int argc, char **argv)
       /* E_max=0.0;
        for(k=0;k<N*N;k++)
        {
-       temp = cabs((f_hat[k]-f_tilde[k])/f_hat[k]);
+       temp = NFFT_CABS((f_hat[k]-f_tilde[k])/f_hat[k]);
        if (temp>E_max) E_max=temp;
        }
        */

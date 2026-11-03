@@ -41,6 +41,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /** define weights of kernel function for discrete Radon transform */
@@ -183,9 +185,9 @@ static int Radon_trafo(int (*gridfcn)(int T, int S, NFFT_R *x, NFFT_R *w), int T
       Rf[t * S + r] = NFFT_M(creal)(fft[r]) / (NFFT_R)(S);
 
     /*    for(r=0; r<R/2; r++)
-     Rf[t*R+(r+R/2)] = creal(cexp(-I*NFFT_KPI*r)*fft[r]);
+     Rf[t*R+(r+R/2)] = NFFT_CREAL(NFFT_CEXP(-I*NFFT_KPI*r)*fft[r]);
      for(r=0; r<R/2; r++)
-     Rf[t*R+r] = creal(cexp(-I*NFFT_KPI*r)*fft[r+R/2]);
+     Rf[t*R+r] = NFFT_CREAL(NFFT_CEXP(-I*NFFT_KPI*r)*fft[r+R/2]);
      */
   }
 

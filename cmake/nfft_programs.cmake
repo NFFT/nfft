@@ -17,9 +17,8 @@ function(nfft_add_serial_program target subdir output)
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME ${output}
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
-  target_include_directories(${target} PRIVATE
-    ${NFFT_GENERATED_INCLUDE_DIR}        # build/ : config.h, ticks.h (must win)
-    ${PROJECT_SOURCE_DIR}/include)
+  target_include_directories(${target} PRIVATE ${PROJECT_SOURCE_DIR}/include)
+  target_compile_definitions(${target} PRIVATE ${NFFT_PROGRAM_DEFS})
   target_link_libraries(${target} PRIVATE nfft3 FFTW3::fftw3)
   if(UNIX)
     target_link_libraries(${target} PRIVATE m)
@@ -31,9 +30,8 @@ function(nfft_add_omp_program target subdir output)
   set_target_properties(${target} PROPERTIES
     OUTPUT_NAME ${output}
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${subdir})
-  target_include_directories(${target} PRIVATE
-    ${NFFT_GENERATED_INCLUDE_DIR}
-    ${PROJECT_SOURCE_DIR}/include)
+  target_include_directories(${target} PRIVATE ${PROJECT_SOURCE_DIR}/include)
+  target_compile_definitions(${target} PRIVATE ${NFFT_PROGRAM_DEFS})
   target_link_libraries(${target} PRIVATE
     nfft3_omp OpenMP::OpenMP_C FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS})
   if(FFTW3_OMP_FOUND)

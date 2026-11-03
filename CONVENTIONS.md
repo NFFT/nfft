@@ -1,5 +1,47 @@
 # Code Conventions Used Internally by NFFT3 (not in API)
 
+## Headers
+
+Header            | Installed | Contents                                     | Who includes it
+:-----------------|:----------|:---------------------------------------------|:---------------
+`nfft3.h`         | yes       | transform APIs, `nfft_malloc`/`nfft_free`, thread count, version, window name, helpers (random data, printing, timing, error norms) | anyone
+`nfft3mp.h`       | yes       | precision-agnostic aliases: `NFFT_R`, `NFFT_C`, `NFFT_K(...)`, `NFFT(...)`, `FFTW(...)`, format strings | anyone writing precision-agnostic code
+`infft.h`         | no        | the internal names below (`R`, `C`, `Y`, `X`, `A`, `CK`, `DM`, window macros, `ticks`) | `kernel/`, `tests/`, and for now the Julia and Matlab bindings
+
+Examples and applications use only the installed headers `nfft3.h` and
+`nfft3mp.h`. They must not include `infft.h`. The Julia and Matlab bindings
+still include `infft.h`.
+
+The rest of this document describes `infft.h`'s names.
+
+### Include order
+
+`<complex.h>` must be visible before anything pulls in `<fftw3.h>`, or
+`fftw_complex`, and therefore `NFFT_C`, is a two-element array of reals that no
+arithmetic works on. This is FFTW's contract, not ours. Canonical order:
+
+```c
+#include <complex.h>
+#include <nfft3.h>
+#define NFFT_PRECISION_DOUBLE   /* or -DNFFT_PRECISION_* on the command line */
+#include <nfft3mp.h>
+```
+
+Autotools and CMake both pass the precision macro as `-D`, so in-tree sources
+skip the `#define` step.
+
+`nfft3mp.h` needs `nfft3.h` first. If `nfft3.h` is missing, `nfft3mp.h`
+includes it and emits a deprecation warning. This automatic inclusion will be
+removed in the next release.
+
+Examples and applications are user code and must not include `config.h`. The
+build passes the `config.h` macros they need (`HAVE_FFTW_THREADS`,
+`MEASURE_TIME`, `MEASURE_TIME_FFTW`) as `-D`: `NFFT_PROGRAM_CPPFLAGS` in
+`configure.ac`, `NFFT_PROGRAM_DEFS` in `CMakeLists.txt`. The public headers do
+not include `config.h`; only `infft.h` does.
+
+
+
 ## Common Names
 
 Symbol      | Meaning / Role

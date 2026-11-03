@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /**
@@ -332,14 +334,15 @@ static void fgt_test_init_rand(fgt_plan *ths)
  *
  * \author Stefan Kunis
  */
-static NFFT_R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
+static double fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
 {
   int r;
-  NFFT_R t0, t1, time_diff;
-  NFFT_R t_out;
-  NFFT_R tau = NFFT_K(0.01);
+  double t0, t1;
+  double time_diff;
+  double t_out;
+  double tau = 0.01;
 
-  t_out = NFFT_K(0.0);
+  t_out = 0.0;
   r = 0;
   while (t_out < tau)
   {
@@ -353,7 +356,7 @@ static NFFT_R fgt_test_measure_time(fgt_plan *ths, unsigned dgt)
     time_diff = t1 - t0;
     t_out += time_diff;
   }
-  t_out /= (NFFT_R)(r);
+  t_out /= (double)(r);
 
   return t_out;
 }
@@ -434,7 +437,7 @@ static void fgt_test_andersson(void)
       if (N < N_dgt_pre_exp)
         my_plan.flags ^= DGT_PRE_CEXP;
 
-      printf("$%1.1" NFFT__FES__ "$\t & ", fgt_test_measure_time(&my_plan, 1));
+      printf("$%1.1E$\t & ", fgt_test_measure_time(&my_plan, 1));
       if (N < N_dgt_pre_exp)
         my_plan.flags ^= DGT_PRE_CEXP;
       NFFT_CSWAP(swap_dgt, my_plan.f);
@@ -443,15 +446,15 @@ static void fgt_test_andersson(void)
       printf("\t\t & ");
 
     if (N < N_dgt_pre_exp)
-      printf("$%1.1" NFFT__FES__ "$\t & ", fgt_test_measure_time(&my_plan, 1));
+      printf("$%1.1E$\t & ", fgt_test_measure_time(&my_plan, 1));
     else
       printf("\t\t & ");
 
     my_plan.flags ^= FGT_NDFT;
-    printf("$%1.1" NFFT__FES__ "$\t & ", fgt_test_measure_time(&my_plan, 0));
+    printf("$%1.1E$\t & ", fgt_test_measure_time(&my_plan, 0));
     my_plan.flags ^= FGT_NDFT;
 
-    printf("$%1.1" NFFT__FES__ "$\t & ", fgt_test_measure_time(&my_plan, 0));
+    printf("$%1.1E$\t & ", fgt_test_measure_time(&my_plan, 0));
 
     printf("$%1.1" NFFT__FES__ "$\t \\\\ \n",
     NFFT(error_l_infty_1_complex)(swap_dgt, my_plan.f, my_plan.M, my_plan.alpha, my_plan.N));

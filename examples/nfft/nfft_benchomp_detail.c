@@ -23,7 +23,8 @@
 #include <complex.h>
 
 #include "nfft3.h"
-#include "infft.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -35,8 +36,8 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   int *n;
   int M, d, trafo_adjoint;
   int t, j;
-  double re,im;
-  ticks t0, t1;
+  NFFT_R re, im;
+  double t0, t1;
   double tt_total, tt_preonepsi;
 
   fscanf(infile, "%d %d", &d, &trafo_adjoint);
@@ -72,14 +73,14 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   for (j=0; j < p.M_total; j++)
   {
     for (t=0; t < p.d; t++)
-      fscanf(infile, "%lg", p.x+p.d*j+t);
+      fscanf(infile, "%" NFFT__FGS__, p.x+p.d*j+t);
   }
 
   if (trafo_adjoint==0)
   {
     for (j=0; j < p.N_total; j++)
     {
-      fscanf(infile, "%lg %lg", &re, &im);
+      fscanf(infile, "%" NFFT__FGS__ " %" NFFT__FGS__, &re, &im);
       p.f_hat[j] = re + _Complex_I * im;
     }
   }
@@ -87,24 +88,24 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   {
     for (j=0; j < p.M_total; j++)
     {
-      fscanf(infile, "%lg %lg", &re, &im);
+      fscanf(infile, "%" NFFT__FGS__ " %" NFFT__FGS__, &re, &im);
       p.f[j] = re + _Complex_I * im;
     }
   }
 
-  t0 = getticks();
+  t0 = NFFT(clock_gettime_seconds)();
   /** precompute psi, the entries of the matrix B */
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
-  t1 = getticks();
-  tt_preonepsi = NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_preonepsi = t1 - t0;
 
   if (trafo_adjoint==0)
     NFFT(trafo)(&p);
   else
     NFFT(adjoint)(&p);
-  t1 = getticks();
-  tt_total = NFFT(elapsed_seconds)(t1,t0);
+  t1 = NFFT(clock_gettime_seconds)();
+  tt_total = t1 - t0;
 
 #ifndef MEASURE_TIME
   p.MEASURE_TIME_t[0] = 0.0;
@@ -115,7 +116,10 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   p.MEASURE_TIME_t[1] = 0.0;
 #endif
 
-  printf("%.6e %.6e %6e %.6e %.6e %.6e\n", tt_preonepsi, p.MEASURE_TIME_t[0], p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], tt_total-tt_preonepsi-p.MEASURE_TIME_t[0]-p.MEASURE_TIME_t[1]-p.MEASURE_TIME_t[2], tt_total);
+  printf("%.6e %.6e %6e %.6e %.6e %.6e\n", tt_preonepsi, p.MEASURE_TIME_t[0],
+    p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2],
+    tt_total-tt_preonepsi-p.MEASURE_TIME_t[0]-p.MEASURE_TIME_t[1]-p.MEASURE_TIME_t[2],
+    tt_total);
 //  printf("%.6e\n", tt);
 
   free(N);

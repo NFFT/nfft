@@ -28,6 +28,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 /**
@@ -36,7 +38,7 @@
  * \{
  */
 
-NFFT_R GLOBAL_elapsed_time;
+double GLOBAL_elapsed_time;
 
 /** Generates the points x with weights w
  *  for the linogram grid with T slopes and R offsets.
@@ -318,7 +320,7 @@ static int comparison_fft(FILE *fp, int N, int T, int rr)
   FFTW(plan) my_fftw_plan;
   NFFT_C *f_hat, *f;
   int m, k;
-  NFFT_R t_fft, t_dft_linogram;
+  double t_fft, t_dft_linogram;
 
   f_hat = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)(N * N));
   f = (NFFT_C *) NFFT(malloc)(sizeof(NFFT_C) * (size_t)((T * rr / 4) * 5));
@@ -337,7 +339,7 @@ static int comparison_fft(FILE *fp, int N, int T, int rr)
   }
   t1 = NFFT(clock_gettime_seconds)();
   GLOBAL_elapsed_time = (t1 - t0);
-  t_fft = (NFFT_R)(N) * GLOBAL_elapsed_time / NFFT_K(65536.0);
+  t_fft = (double)(N) * GLOBAL_elapsed_time / 65536.0;
 
   if (N < 256)
   {
@@ -348,25 +350,25 @@ static int comparison_fft(FILE *fp, int N, int T, int rr)
   for (m = 3; m <= 9; m += 3)
   {
     if ((m == 3) && (N < 256))
-      fprintf(fp, "%d\t&\t&\t%1.1" NFFT__FES__ "&\t%1.1" NFFT__FES__ "&\t%d\t", N, t_fft, t_dft_linogram,
+      fprintf(fp, "%d\t&\t&\t%1.1E&\t%1.1E&\t%d\t", N, t_fft, t_dft_linogram,
           m);
     else if (m == 3)
-      fprintf(fp, "%d\t&\t&\t%1.1" NFFT__FES__ "&\t       &\t%d\t", N, t_fft, m);
+      fprintf(fp, "%d\t&\t&\t%1.1E&\t       &\t%d\t", N, t_fft, m);
     else
       fprintf(fp, "  \t&\t&\t       &\t       &\t%d\t", m);
 
-    printf("N=%d\tt_fft=%1.1" NFFT__FES__ "\tt_dft_linogram=%1.1" NFFT__FES__ "\tm=%d\t", N, t_fft,
+    printf("N=%d\tt_fft=%1.1E\tt_dft_linogram=%1.1E\tm=%d\t", N, t_fft,
         t_dft_linogram, m);
 
     linogram_fft(f_hat, N, f, T, rr, m);
-    fprintf(fp, "%1.1" NFFT__FES__ "&\t", GLOBAL_elapsed_time);
-    printf("t_linogram=%1.1" NFFT__FES__ "\t", GLOBAL_elapsed_time);
+    fprintf(fp, "%1.1E&\t", GLOBAL_elapsed_time);
+    printf("t_linogram=%1.1E\t", GLOBAL_elapsed_time);
     inverse_linogram_fft(f, T, rr, f_hat, N, m + 3, m);
     if (m == 9)
-      fprintf(fp, "%1.1" NFFT__FES__ "\\\\\\hline\n", GLOBAL_elapsed_time);
+      fprintf(fp, "%1.1E\\\\\\hline\n", GLOBAL_elapsed_time);
     else
-      fprintf(fp, "%1.1" NFFT__FES__ "\\\\\n", GLOBAL_elapsed_time);
-    printf("t_ilinogram=%1.1" NFFT__FES__ "\n", GLOBAL_elapsed_time);
+      fprintf(fp, "%1.1E\\\\\n", GLOBAL_elapsed_time);
+    printf("t_ilinogram=%1.1E\n", GLOBAL_elapsed_time);
   }
 
   fflush(fp);

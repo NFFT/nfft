@@ -107,7 +107,7 @@ struct check_delegate_s
 
 /* Trafo delegate. */
 typedef void (*trafo_t)(X(plan) *p);
-typedef R (*cost_t)(X(plan) *p);
+typedef double (*cost_t)(X(plan) *p);
 typedef const char* (*check_t)(X(plan) *p);
 typedef R (*acc_t)(X(plan) *p);
 
@@ -121,7 +121,7 @@ typedef struct trafo_delegate_s
 
 } trafo_delegate_t;
 
-static R trafo_direct_cost(X(plan) *p);
+static double trafo_direct_cost(X(plan) *p);
 
 static R err_trafo(X(plan) *p);
 
@@ -179,9 +179,9 @@ static check_delegate_t check_adjoint;
 static trafo_delegate_t trafo_direct;
 static trafo_delegate_t trafo;
 
-static R trafo_direct_cost_factor = K(1.0E-6);
+static double trafo_direct_cost_factor = 1.0E-6;
 
-static R trafo_direct_cost(X(plan) *p)
+static double trafo_direct_cost(X(plan) *p)
 {
   if (trafo_direct_cost_factor == 0.0)
   {
@@ -208,16 +208,16 @@ static R trafo_direct_cost(X(plan) *p)
             p2.f_hat[i] = K(0.0);
           }
           {
-            R r;
+            double r;
             ticks t0, t1;
             t0 = getticks();
             X(trafo_direct)(&p2);
             t1 = getticks();
-            r = Y(elapsed_seconds)(t1, t0) / (R)(M);
+            r = Y(elapsed_seconds)(t1, t0) / (double)(M);
             for (i = 0; i < d; i++)
-              r = r / Nd;
+              r = r / (double)(Nd);
             trafo_direct_cost_factor += r;
-            printf(__FE__ "\n", r);
+            printf("% 20.16E\n", r);
             x += 1;
           }
           X(finalize)(&p2);
@@ -226,7 +226,7 @@ static R trafo_direct_cost(X(plan) *p)
       }
     }
     trafo_direct_cost_factor = trafo_direct_cost_factor/((double)x);
-    printf("--> " __FE__ "\n", trafo_direct_cost_factor);
+    printf("--> % 20.16E\n", trafo_direct_cost_factor);
   }
 
   {
@@ -235,7 +235,7 @@ static R trafo_direct_cost(X(plan) *p)
     for (i = 0; i < p->d; i++)
       c *= p->N[i];
 
-    return trafo_direct_cost_factor * (R)(c);
+    return trafo_direct_cost_factor * (double)(c);
   }
 }
 
@@ -378,7 +378,7 @@ static int check_single(const testcase_delegate_t *testcase,
   }
   else if (trafo_delegate->cost)
   {
-    const R cost = trafo_delegate->cost(&p);
+    const double cost = trafo_delegate->cost(&p);
     if (cost > MAX_SECONDS)
     {
       printf(" -> %-4s (cost too high)\n","OK");

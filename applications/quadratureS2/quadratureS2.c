@@ -21,24 +21,20 @@
  * \ingroup applications_quadratureS2
  * \{
  */
-#include "config.h"
-
 /* Include standard C headers. */
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#ifdef HAVE_COMPLEX_H
 #include <complex.h>
-#endif
 
 /* Include NFFT 3 utilities headers. */
 
 /* Include NFFT 3 library header. */
 #include "nfft3.h"
-
-#include "infft.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 /** Enumeration for parameter values */
 enum boolean {NO = 0, YES = 1};
@@ -89,29 +85,29 @@ int main (int argc, char **argv)
   int use_nfft;                /**< Whether to use the NFFT algorithm or not  */
   int use_fpt;                 /**< Whether to use the FPT algorithm or not   */
   int cutoff;                  /**< The current NFFT cut-off parameter        */
-  double threshold;            /**< The current NFSFT threshold parameter     */
+  NFFT_R threshold;            /**< The current NFSFT threshold parameter     */
 
   int gridtype;                /**< The type of quadrature grid to be used    */
   int repetitions;             /**< The number of repetitions to be performed */
   int mode;                    /**< The number of repetitions to be performed */
 
-  double *w;                   /**< The quadrature weights                    */
-  double *x_grid;              /**< The quadrature nodes                      */
-  double *x_compare;           /**< The quadrature nodes                      */
-  double _Complex *f_grid;             /**< The reference function values             */
-  double _Complex *f_compare;          /**< The function values                       */
-  double _Complex *f;                  /**< The function values                       */
-  double _Complex *f_hat_gen;         /**< The reference spherical Fourier           *
+  NFFT_R *w;                   /**< The quadrature weights                    */
+  NFFT_R *x_grid;              /**< The quadrature nodes                      */
+  NFFT_R *x_compare;           /**< The quadrature nodes                      */
+  NFFT_C *f_grid;             /**< The reference function values             */
+  NFFT_C *f_compare;          /**< The function values                       */
+  NFFT_C *f;                  /**< The function values                       */
+  NFFT_C *f_hat_gen;         /**< The reference spherical Fourier           *
                                     coefficients                              */
-  double _Complex *f_hat;              /**< The spherical Fourier coefficients        */
+  NFFT_C *f_hat;              /**< The spherical Fourier coefficients        */
 
-  nfsft_plan plan_adjoint;     /**< The NFSFT plan                            */
-  nfsft_plan plan;             /**< The NFSFT plan                            */
-  nfsft_plan plan_gen;         /**< The NFSFT plan                            */
+  NFSFT(plan) plan_adjoint;     /**< The NFSFT plan                            */
+  NFSFT(plan) plan;             /**< The NFSFT plan                            */
+  NFSFT(plan) plan_gen;         /**< The NFSFT plan                            */
 
   double t_avg;                /**< The average computation time needed       */
-  double err_infty_avg;        /**< The average error \f$E_\infty\f$          */
-  double err_2_avg;            /**< The average error \f$E_2\f$               */
+  NFFT_R err_infty_avg;        /**< The average error \f$E_\infty\f$          */
+  NFFT_R err_2_avg;            /**< The average error \f$E_2\f$               */
 
   int i;                       /**< A loop variable                           */
   int k;                       /**< A loop variable                           */
@@ -123,23 +119,23 @@ int main (int argc, char **argv)
   int m_phi;                   /**< The current number of different           *
                                     longitudinal angles (for grids).          */
   int m_total;                 /**< The total number nodes.                   */
-  double *theta;               /**< An array for saving the angles theta of a *
+  NFFT_R *theta;               /**< An array for saving the angles theta of a *
                                     grid                                      */
-  double *phi;                 /**< An array for saving the angles phi of a   *
+  NFFT_R *phi;                 /**< An array for saving the angles phi of a   *
                                     grid                                      */
-  fftw_plan fplan;             /**< An FFTW plan for computing Clenshaw-Curtis
+  FFTW(plan) fplan;             /**< An FFTW plan for computing Clenshaw-Curtis
                                     quadrature weights                        */
   //int nside;                   /**< The size parameter for the HEALPix grid   */
   int d2;
   int M;
-  double theta_s;
-  double x1,x2,x3,temp;
+  NFFT_R theta_s;
+  NFFT_R x1,x2,x3,temp;
   int m_compare;
-  nfsft_plan *plan_adjoint_ptr;
-  nfsft_plan *plan_ptr;
-  double *w_temp;
+  NFSFT(plan) *plan_adjoint_ptr;
+  NFSFT(plan) *plan_ptr;
+  NFFT_R *w_temp;
   int testmode;
-  ticks t0, t1;
+  double t0, t1;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -174,14 +170,14 @@ int main (int argc, char **argv)
       if (use_fpt != NO)
       {
         /* Read the NFSFT threshold parameter. */
-        fscanf(stdin,"threshold=%lf\n",&threshold);
-        fprintf(stdout,"%lf\n",threshold);
+        fscanf(stdin,"threshold=%" NFFT__FIS__ "\n",&threshold);
+        fprintf(stdout,"%" NFFT__FIS__ "\n",threshold);
       }
       else
       {
         /* TODO remove this */
         /* Initialize unused variable with dummy value. */
-        threshold = 1000.0;
+        threshold = NFFT_K(1000.0);
       }
     }
     else
@@ -191,7 +187,7 @@ int main (int argc, char **argv)
       use_nfft = NO;
       use_fpt = NO;
       cutoff = 3;
-      threshold = 1000.0;
+      threshold = NFFT_K(1000.0);
     }
 
     /* Read the testmode type. */
@@ -232,32 +228,32 @@ int main (int argc, char **argv)
         /* Read the bandwidht. */
         fscanf(stdin,"points=%d\n",&m_compare);
         fprintf(stdout,"%d\n",m_compare);
-        x_compare = (double*) nfft_malloc(2*m_compare*sizeof(double));
+        x_compare = (NFFT_R*) NFFT(malloc)(2*m_compare*sizeof(NFFT_R));
         d = 0;
         while (d < m_compare)
         {
-          x1 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
-          x2 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
-          x3 = 2.0*(((double)rand())/RAND_MAX) - 1.0;
-          temp = sqrt(x1*x1+x2*x2+x3*x3);
+          x1 = NFFT_K(2.0)*(((NFFT_R)rand())/RAND_MAX) - NFFT_K(1.0);
+          x2 = NFFT_K(2.0)*(((NFFT_R)rand())/RAND_MAX) - NFFT_K(1.0);
+          x3 = NFFT_K(2.0)*(((NFFT_R)rand())/RAND_MAX) - NFFT_K(1.0);
+          temp = NFFT_SQRT(x1*x1+x2*x2+x3*x3);
           if (temp <= 1)
           {
-            x_compare[2*d+1] = acos(x3);
-            if (x_compare[2*d+1] == 0 || x_compare[2*d+1] == KPI)
+            x_compare[2*d+1] = NFFT_M(acos)(x3);
+            if (x_compare[2*d+1] == 0 || x_compare[2*d+1] == NFFT_KPI)
             {
-              x_compare[2*d] = 0.0;
+              x_compare[2*d] = NFFT_K(0.0);
             }
             else
             {
-              x_compare[2*d] = atan2(x2/sin(x_compare[2*d+1]),x1/sin(x_compare[2*d+1]));
+              x_compare[2*d] = NFFT_M(atan2)(x2/NFFT_SIN(x_compare[2*d+1]),x1/NFFT_SIN(x_compare[2*d+1]));
             }
-            x_compare[2*d] *= 1.0/(2.0*KPI);
-            x_compare[2*d+1] *= 1.0/(2.0*KPI);
+            x_compare[2*d] *= NFFT_K(1.0)/(NFFT_K(2.0)*NFFT_KPI);
+            x_compare[2*d+1] *= NFFT_K(1.0)/(NFFT_K(2.0)*NFFT_KPI);
             d++;
           }
         }
-        f_compare = (double _Complex*) nfft_malloc(m_compare*sizeof(double _Complex));
-        f = (double _Complex*) nfft_malloc(m_compare*sizeof(double _Complex));
+        f_compare = (NFFT_C*) NFFT(malloc)(m_compare*sizeof(NFFT_C));
+        f = (NFFT_C*) NFFT(malloc)(m_compare*sizeof(NFFT_C));
       }
     }
 
@@ -270,11 +266,11 @@ int main (int argc, char **argv)
     fprintf(stdout,"%d\n",iNQ_max);
 
     /* Allocate memory for the cut-off degrees and grid size parameters. */
-    NQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
-    SQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
+    NQ = (int*) NFFT(malloc)(iNQ_max*sizeof(int));
+    SQ = (int*) NFFT(malloc)(iNQ_max*sizeof(int));
     if (testmode == TIMING)
     {
-      RQ = (int*) nfft_malloc(iNQ_max*sizeof(int));
+      RQ = (int*) NFFT(malloc)(iNQ_max*sizeof(int));
     }
 
     /* Read the cut-off degrees and grid size parameters. */
@@ -285,36 +281,36 @@ int main (int argc, char **argv)
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d %d\n",&NQ[iNQ],&SQ[iNQ],&RQ[iNQ]);
         fprintf(stdout,"%d %d %d\n",NQ[iNQ],SQ[iNQ],RQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
       else
       {
         /* Read cut-off degree and grid size parameter. */
         fscanf(stdin,"%d %d\n",&NQ[iNQ],&SQ[iNQ]);
         fprintf(stdout,"%d %d\n",NQ[iNQ],SQ[iNQ]);
-        NQ_max = MAX(NQ_max,NQ[iNQ]);
-        SQ_max = MAX(SQ_max,SQ[iNQ]);
+        NQ_max = NFFT_MAX(NQ_max,NQ[iNQ]);
+        SQ_max = NFFT_MAX(SQ_max,SQ[iNQ]);
       }
     }
 
     /* Do precomputation. */
     //fprintf(stderr,"NFSFT Precomputation\n");
     //fflush(stderr);
-    nfsft_precompute(NQ_max, threshold,
+    NFSFT(precompute)(NQ_max, threshold,
       ((use_nfsft==NO)?(NFSFT_NO_FAST_ALGORITHM):(0U)), 0U);
 
     if (testmode == TIMING)
     {
       /* Allocate data structures. */
-      f_hat = (double _Complex*) nfft_malloc(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(double _Complex));
-      f = (double _Complex*) nfft_malloc(SQ_max*sizeof(double _Complex));
-      x_grid = (double*) nfft_malloc(2*SQ_max*sizeof(double));
+      f_hat = (NFFT_C*) NFFT(malloc)(NFSFT_F_HAT_SIZE(NQ_max)*sizeof(NFFT_C));
+      f = (NFFT_C*) NFFT(malloc)(SQ_max*sizeof(NFFT_C));
+      x_grid = (NFFT_R*) NFFT(malloc)(2*SQ_max*sizeof(NFFT_R));
       for (d = 0; d < SQ_max; d++)
       {
-        f[d] = (((double)rand())/RAND_MAX)-0.5 + _Complex_I*((((double)rand())/RAND_MAX)-0.5);
-        x_grid[2*d] = (((double)rand())/RAND_MAX) - 0.5;
-        x_grid[2*d+1] = (((double)rand())/RAND_MAX) * 0.5;
+        f[d] = (((NFFT_R)rand())/RAND_MAX)-NFFT_K(0.5) + _Complex_I*((((NFFT_R)rand())/RAND_MAX)-NFFT_K(0.5));
+        x_grid[2*d] = (((NFFT_R)rand())/RAND_MAX) - NFFT_K(0.5);
+        x_grid[2*d+1] = (((NFFT_R)rand())/RAND_MAX) * NFFT_K(0.5);
       }
     }
 
@@ -325,7 +321,7 @@ int main (int argc, char **argv)
     {
       if (testmode == TIMING)
       {
-        nfsft_init_guru(&plan,NQ[iNQ],SQ[iNQ], NFSFT_NORMALIZED |
+        NFSFT(init_guru)(&plan,NQ[iNQ],SQ[iNQ], NFSFT_NORMALIZED |
           ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
           ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
           PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFTW_MEASURE,
@@ -335,35 +331,35 @@ int main (int argc, char **argv)
         plan.x = x_grid;
         plan.f = f;
 
-        nfsft_precompute_x(&plan);
+        NFSFT(precompute_x)(&plan);
 
         t_avg = 0.0;
 
         for (i = 0; i < RQ[iNQ]; i++)
         {
-          t0 = getticks();
+          t0 = NFFT(clock_gettime_seconds)();
 
           if (use_nfsft != NO)
           {
             /* Execute the adjoint NFSFT transformation. */
-            nfsft_adjoint(&plan);
+            NFSFT(adjoint)(&plan);
           }
           else
           {
             /* Execute the adjoint direct NDSFT transformation. */
-            nfsft_adjoint_direct(&plan);
+            NFSFT(adjoint_direct)(&plan);
           }
 
-          t1 = getticks();
-          t_avg += nfft_elapsed_seconds(t1,t0);
+          t1 = NFFT(clock_gettime_seconds)();
+          t_avg += t1 - t0;
         }
 
         t_avg = t_avg/((double)RQ[iNQ]);
 
-        nfsft_finalize(&plan);
+        NFSFT(finalize)(&plan);
 
-        fprintf(stdout,"%+le\n", t_avg);
-        fprintf(stderr,"%d: %4d %4d %+le\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
+        fprintf(stdout,"%+e\n", t_avg);
+        fprintf(stderr,"%d: %4d %4d %+e\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
       }
       else
       {
@@ -394,9 +390,9 @@ int main (int argc, char **argv)
             //fprintf(stderr,"ed: m_theta = %d\n",m_theta);
             for (k = 1; k < SQ[iNQ]; k++)
             {
-              m_theta += (int)floor((2*KPI)/acos((cos(KPI/(double)SQ[iNQ])-
-                cos(k*KPI/(double)SQ[iNQ])*cos(k*KPI/(double)SQ[iNQ]))/
-                (sin(k*KPI/(double)SQ[iNQ])*sin(k*KPI/(double)SQ[iNQ]))));
+              m_theta += (int)NFFT_FLOOR((2*NFFT_KPI)/NFFT_M(acos)((NFFT_COS(NFFT_KPI/(NFFT_R)SQ[iNQ])-
+                NFFT_COS(k*NFFT_KPI/(NFFT_R)SQ[iNQ])*NFFT_COS(k*NFFT_KPI/(NFFT_R)SQ[iNQ]))/
+                (NFFT_SIN(k*NFFT_KPI/(NFFT_R)SQ[iNQ])*NFFT_SIN(k*NFFT_KPI/(NFFT_R)SQ[iNQ]))));
               //fprintf(stderr,"ed: m_theta = %d\n",m_theta);
             }
             //fprintf(stderr,"ed: m_theta final = %d\n",m_theta);
@@ -406,8 +402,8 @@ int main (int argc, char **argv)
         }
 
         /* Allocate memory for data structures. */
-        w = (double*) nfft_malloc(m_theta*sizeof(double));
-        x_grid = (double*) nfft_malloc(2*m_total*sizeof(double));
+        w = (NFFT_R*) NFFT(malloc)(m_theta*sizeof(NFFT_R));
+        x_grid = (NFFT_R*) NFFT(malloc)(2*m_total*sizeof(NFFT_R));
 
         //fprintf(stderr,"NQ = %d\n",NQ[iNQ]);
         //fflush(stderr);
@@ -420,15 +416,15 @@ int main (int argc, char **argv)
             /* Read quadrature weights. */
             for (k = 0; k < m_theta; k++)
             {
-              fscanf(stdin,"%le\n",&w[k]);
-              w[k] *= (2.0*KPI)/((double)m_phi);
+              fscanf(stdin,NFFT__FR__ "\n",&w[k]);
+              w[k] *= (NFFT_K(2.0)*NFFT_KPI)/((NFFT_R)m_phi);
             }
 
             //fprintf(stderr,"Allocating theta and phi\n");
             //fflush(stderr);
             /* Allocate memory to store the grid's angles. */
-            theta = (double*) nfft_malloc(m_theta*sizeof(double));
-            phi = (double*) nfft_malloc(m_phi*sizeof(double));
+            theta = (NFFT_R*) NFFT(malloc)(m_theta*sizeof(NFFT_R));
+            phi = (NFFT_R*) NFFT(malloc)(m_phi*sizeof(NFFT_R));
 
             //if (theta == NULL || phi == NULL)
             //{
@@ -440,14 +436,14 @@ int main (int argc, char **argv)
             /* Read angles theta. */
             for (k = 0; k < m_theta; k++)
             {
-              fscanf(stdin,"%le\n",&theta[k]);
+              fscanf(stdin,NFFT__FR__ "\n",&theta[k]);
             }
 
             /* Generate the grid angles phi. */
             for (n = 0; n < m_phi; n++)
             {
-              phi[n] = n/((double)m_phi);
-              phi[n] -= ((phi[n]>=0.5)?(1.0):(0.0));
+              phi[n] = n/((NFFT_R)m_phi);
+              phi[n] -= ((phi[n]>=NFFT_K(0.5))?(NFFT_K(1.0)):(NFFT_K(0.0)));
             }
 
             //fprintf(stderr,"Generating grid nodes\n");
@@ -468,45 +464,45 @@ int main (int argc, char **argv)
             //fprintf(stderr,"Freeing theta and phi\n");
             //fflush(stderr);
             /* Free the arrays for the grid's angles. */
-            nfft_free(theta);
-            nfft_free(phi);
+            NFFT(free)(theta);
+            NFFT(free)(phi);
 
             break;
 
           case GRID_CLENSHAW_CURTIS:
 
             /* Allocate memory to store the grid's angles. */
-            theta = (double*) nfft_malloc(m_theta*sizeof(double));
-            phi = (double*) nfft_malloc(m_phi*sizeof(double));
+            theta = (NFFT_R*) NFFT(malloc)(m_theta*sizeof(NFFT_R));
+            phi = (NFFT_R*) NFFT(malloc)(m_phi*sizeof(NFFT_R));
 
             /* Generate the grid angles theta. */
             for (k = 0; k < m_theta; k++)
             {
-              theta[k] = k/((double)2*(m_theta-1));
+              theta[k] = k/((NFFT_R)2*(m_theta-1));
             }
 
             /* Generate the grid angles phi. */
             for (n = 0; n < m_phi; n++)
             {
-              phi[n] = n/((double)m_phi);
-              phi[n] -= ((phi[n]>=0.5)?(1.0):(0.0));
+              phi[n] = n/((NFFT_R)m_phi);
+              phi[n] -= ((phi[n]>=NFFT_K(0.5))?(NFFT_K(1.0)):(NFFT_K(0.0)));
             }
 
             /* Generate quadrature weights. */
-            fplan = fftw_plan_r2r_1d(SQ[iNQ]+1, w, w, FFTW_REDFT00, 0U);
+            fplan = FFTW(plan_r2r_1d)(SQ[iNQ]+1, w, w, FFTW_REDFT00, 0U);
             for (k = 0; k < SQ[iNQ]+1; k++)
             {
-              w[k] = -2.0/(4*k*k-1);
+              w[k] = -NFFT_K(2.0)/(4*k*k-1);
             }
-            fftw_execute(fplan);
-            w[0] *= 0.5;
+            FFTW(execute)(fplan);
+            w[0] *= NFFT_K(0.5);
 
             for (k = 0; k < SQ[iNQ]+1; k++)
             {
-              w[k] *= (2.0*KPI)/((double)(m_theta-1)*m_phi);
+              w[k] *= (NFFT_K(2.0)*NFFT_KPI)/((NFFT_R)(m_theta-1)*m_phi);
               w[m_theta-1-k] = w[k];
             }
-            fftw_destroy_plan(fplan);
+            FFTW(destroy_plan)(fplan);
 
             /* Generate the grid's nodes. */
             d = 0;
@@ -521,8 +517,8 @@ int main (int argc, char **argv)
             }
 
             /* Free the arrays for the grid's angles. */
-            nfft_free(theta);
-            nfft_free(phi);
+            NFFT(free)(theta);
+            NFFT(free)(phi);
 
             break;
 
@@ -533,9 +529,9 @@ int main (int argc, char **argv)
             {
               for (n = 0; n <= 4*k-1; n++)
               {
-                x_grid[2*d+1] = 1 - (k*k)/((double)(3.0*SQ[iNQ]*SQ[iNQ]));
-                x_grid[2*d] =  ((n+0.5)/(4*k));
-                x_grid[2*d] -= (x_grid[2*d]>=0.5)?(1.0):(0.0);
+                x_grid[2*d+1] = 1 - (k*k)/((NFFT_R)(NFFT_K(3.0)*SQ[iNQ]*SQ[iNQ]));
+                x_grid[2*d] =  ((n+NFFT_K(0.5))/(4*k));
+                x_grid[2*d] -= (x_grid[2*d]>=NFFT_K(0.5))?(NFFT_K(1.0)):(NFFT_K(0.0));
                 d++;
               }
             }
@@ -546,9 +542,9 @@ int main (int argc, char **argv)
             {
               for (n = 0; n <= 4*SQ[iNQ]-1; n++)
               {
-                x_grid[2*d+1] = 2.0/(3*SQ[iNQ])*(2*SQ[iNQ]-k);
-                x_grid[2*d] = (n+((k%2==0)?(0.5):(0.0)))/(4*SQ[iNQ]);
-                x_grid[2*d] -= (x_grid[2*d]>=0.5)?(1.0):(0.0);
+                x_grid[2*d+1] = NFFT_K(2.0)/(3*SQ[iNQ])*(2*SQ[iNQ]-k);
+                x_grid[2*d] = (n+((k%2==0)?(NFFT_K(0.5)):(NFFT_K(0.0))))/(4*SQ[iNQ]);
+                x_grid[2*d] -= (x_grid[2*d]>=NFFT_K(0.5))?(NFFT_K(1.0)):(NFFT_K(0.0));
                 d++;
               }
             }
@@ -566,10 +562,10 @@ int main (int argc, char **argv)
 
             for (d = 0; d < m_total; d++)
             {
-              x_grid[2*d+1] = acos(x_grid[2*d+1])/(2.0*KPI);
+              x_grid[2*d+1] = NFFT_M(acos)(x_grid[2*d+1])/(NFFT_K(2.0)*NFFT_KPI);
             }
 
-            w[0] = (4.0*KPI)/(m_total);
+            w[0] = (NFFT_K(4.0)*NFFT_KPI)/(m_total);
             break;
 
           case GRID_EQUIDISTRIBUTION:
@@ -578,65 +574,65 @@ int main (int argc, char **argv)
 
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
-              w_temp = (double*) nfft_malloc((SQ[iNQ]+1)*sizeof(double));
-              fplan = fftw_plan_r2r_1d(SQ[iNQ]/2+1, w_temp, w_temp, FFTW_REDFT00, 0U);
+              w_temp = (NFFT_R*) NFFT(malloc)((SQ[iNQ]+1)*sizeof(NFFT_R));
+              fplan = FFTW(plan_r2r_1d)(SQ[iNQ]/2+1, w_temp, w_temp, FFTW_REDFT00, 0U);
               for (k = 0; k < SQ[iNQ]/2+1; k++)
               {
-                w_temp[k] = -2.0/(4*k*k-1);
+                w_temp[k] = -NFFT_K(2.0)/(4*k*k-1);
               }
-              fftw_execute(fplan);
-              w_temp[0] *= 0.5;
+              FFTW(execute)(fplan);
+              w_temp[0] *= NFFT_K(0.5);
 
               for (k = 0; k < SQ[iNQ]/2+1; k++)
               {
-                w_temp[k] *= (2.0*KPI)/((double)(SQ[iNQ]));
+                w_temp[k] *= (NFFT_K(2.0)*NFFT_KPI)/((NFFT_R)(SQ[iNQ]));
                 w_temp[SQ[iNQ]-k] = w_temp[k];
               }
-              fftw_destroy_plan(fplan);
+              FFTW(destroy_plan)(fplan);
             }
 
             d = 0;
-            x_grid[2*d] = -0.5;
-            x_grid[2*d+1] = 0.0;
+            x_grid[2*d] = -NFFT_K(0.5);
+            x_grid[2*d+1] = NFFT_K(0.0);
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
               w[d] = w_temp[0];
             }
             else
             {
-              w[d] = (4.0*KPI)/(m_total);
+              w[d] = (NFFT_K(4.0)*NFFT_KPI)/(m_total);
             }
             d = 1;
-            x_grid[2*d] = -0.5;
-            x_grid[2*d+1] = 0.5;
+            x_grid[2*d] = -NFFT_K(0.5);
+            x_grid[2*d+1] = NFFT_K(0.5);
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
               w[d] = w_temp[SQ[iNQ]];
             }
             else
             {
-              w[d] = (4.0*KPI)/(m_total);
+              w[d] = (NFFT_K(4.0)*NFFT_KPI)/(m_total);
             }
             d = 2;
 
             for (k = 1; k < SQ[iNQ]; k++)
             {
-              theta_s = (double)k*KPI/(double)SQ[iNQ];
-              M = (int)floor((2.0*KPI)/acos((cos(KPI/(double)SQ[iNQ])-
-                cos(theta_s)*cos(theta_s))/(sin(theta_s)*sin(theta_s))));
+              theta_s = (NFFT_R)k*NFFT_KPI/(NFFT_R)SQ[iNQ];
+              M = (int)NFFT_FLOOR((NFFT_K(2.0)*NFFT_KPI)/NFFT_M(acos)((NFFT_COS(NFFT_KPI/(NFFT_R)SQ[iNQ])-
+                NFFT_COS(theta_s)*NFFT_COS(theta_s))/(NFFT_SIN(theta_s)*NFFT_SIN(theta_s))));
 
               for (n = 0; n < M; n++)
               {
-                x_grid[2*d] = (n + 0.5)/M;
-                x_grid[2*d] -= (x_grid[2*d]>=0.5)?(1.0):(0.0);
-                x_grid[2*d+1] = theta_s/(2.0*KPI);
+                x_grid[2*d] = (n + NFFT_K(0.5))/M;
+                x_grid[2*d] -= (x_grid[2*d]>=NFFT_K(0.5))?(NFFT_K(1.0)):(NFFT_K(0.0));
+                x_grid[2*d+1] = theta_s/(NFFT_K(2.0)*NFFT_KPI);
                 if (gridtype == GRID_EQUIDISTRIBUTION)
                 {
-                  w[d] = w_temp[k]/((double)(M));
+                  w[d] = w_temp[k]/((NFFT_R)(M));
                 }
                 else
                 {
-                  w[d] = (4.0*KPI)/(m_total);
+                  w[d] = (NFFT_K(4.0)*NFFT_KPI)/(m_total);
                 }
                 d++;
               }
@@ -644,7 +640,7 @@ int main (int argc, char **argv)
 
             if (gridtype == GRID_EQUIDISTRIBUTION)
             {
-              nfft_free(w_temp);
+              NFFT(free)(w_temp);
             }
             break;
 
@@ -653,7 +649,7 @@ int main (int argc, char **argv)
         }
 
         /* Allocate memory for grid values. */
-        f_grid = (double _Complex*) nfft_malloc(m_total*sizeof(double _Complex));
+        f_grid = (NFFT_C*) NFFT(malloc)(m_total*sizeof(NFFT_C));
 
         if (mode == RANDOM)
         {
@@ -661,7 +657,7 @@ int main (int argc, char **argv)
         else
         {
           m_compare = m_total;
-          f_compare = (double _Complex*) nfft_malloc(m_compare*sizeof(double _Complex));
+          f_compare = (NFFT_C*) NFFT(malloc)(m_compare*sizeof(NFFT_C));
           x_compare = x_grid;
           f = f_grid;
         }
@@ -671,12 +667,12 @@ int main (int argc, char **argv)
         switch (testfunction)
         {
           case FUNCTION_RANDOM_BANDLIMITED:
-            f_hat_gen = (double _Complex*) nfft_malloc(NFSFT_F_HAT_SIZE(N)*sizeof(double _Complex));
+            f_hat_gen = (NFFT_C*) NFFT(malloc)(NFSFT_F_HAT_SIZE(N)*sizeof(NFFT_C));
             //fprintf(stderr,"Generating random test function\n");
             //fflush(stderr);
             /* Generate random function samples by sampling a bandlimited
              * function. */
-            nfsft_init_guru(&plan_gen,N,m_total, NFSFT_NORMALIZED |
+            NFSFT(init_guru)(&plan_gen,N,m_total, NFSFT_NORMALIZED |
               ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
               ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
               ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
@@ -686,11 +682,11 @@ int main (int argc, char **argv)
             plan_gen.x = x_grid;
             plan_gen.f = f_grid;
 
-            nfsft_precompute_x(&plan_gen);
+            NFSFT(precompute_x)(&plan_gen);
 
             for (k = 0; k < plan_gen.N_total; k++)
             {
-              f_hat_gen[k] = 0.0;
+              f_hat_gen[k] = NFFT_K(0.0);
             }
 
             for (k = 0; k <= N; k++)
@@ -698,26 +694,26 @@ int main (int argc, char **argv)
               for (n = -k; n <= k; n++)
               {
                 f_hat_gen[NFSFT_INDEX(k,n,&plan_gen)] =
-                (((double)rand())/RAND_MAX)-0.5 + _Complex_I*((((double)rand())/RAND_MAX)-0.5);
+                (((NFFT_R)rand())/RAND_MAX)-NFFT_K(0.5) + _Complex_I*((((NFFT_R)rand())/RAND_MAX)-NFFT_K(0.5));
               }
             }
 
             if (use_nfsft != NO)
             {
               /* Execute the NFSFT transformation. */
-              nfsft_trafo(&plan_gen);
+              NFSFT(trafo)(&plan_gen);
             }
             else
             {
               /* Execute the direct NDSFT transformation. */
-              nfsft_trafo_direct(&plan_gen);
+              NFSFT(trafo_direct)(&plan_gen);
             }
 
-            nfsft_finalize(&plan_gen);
+            NFSFT(finalize)(&plan_gen);
 
             if (mode == RANDOM)
             {
-              nfsft_init_guru(&plan_gen,N,m_compare, NFSFT_NORMALIZED |
+              NFSFT(init_guru)(&plan_gen,N,m_compare, NFSFT_NORMALIZED |
                 ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
                 ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
                 ((N>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
@@ -727,180 +723,180 @@ int main (int argc, char **argv)
               plan_gen.x = x_compare;
               plan_gen.f = f_compare;
 
-              nfsft_precompute_x(&plan_gen);
+              NFSFT(precompute_x)(&plan_gen);
 
               if (use_nfsft != NO)
               {
                 /* Execute the NFSFT transformation. */
-                nfsft_trafo(&plan_gen);
+                NFSFT(trafo)(&plan_gen);
               }
               else
               {
                 /* Execute the direct NDSFT transformation. */
-                nfsft_trafo_direct(&plan_gen);
+                NFSFT(trafo_direct)(&plan_gen);
               }
 
-              nfsft_finalize(&plan_gen);
+              NFSFT(finalize)(&plan_gen);
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
 
-            nfft_free(f_hat_gen);
+            NFFT(free)(f_hat_gen);
 
             break;
 
           case FUNCTION_F1:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
+              x1 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x2 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x3 = NFFT_COS(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
               f_grid[d] = x1*x2*x3;
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
+                x1 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x2 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x3 = NFFT_COS(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
                 f_compare[d] = x1*x2*x3;
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           case FUNCTION_F2:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
-              f_grid[d] = 0.1*exp(x1+x2+x3);
+              x1 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x2 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x3 = NFFT_COS(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+              f_grid[d] = NFFT_K(0.1)*NFFT_EXP(x1+x2+x3);
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
-                f_compare[d] = 0.1*exp(x1+x2+x3);
+                x1 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x2 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x3 = NFFT_COS(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+                f_compare[d] = NFFT_K(0.1)*NFFT_EXP(x1+x2+x3);
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           case FUNCTION_F3:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
-              temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-              f_grid[d] = 0.1*temp;
+              x1 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x2 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x3 = NFFT_COS(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+              temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+              f_grid[d] = NFFT_K(0.1)*temp;
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
-                temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-                f_compare[d] = 0.1*temp;
+                x1 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x2 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x3 = NFFT_COS(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+                temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+                f_compare[d] = NFFT_K(0.1)*temp;
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           case FUNCTION_F4:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
-              temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-              f_grid[d] = 1.0/(temp);
+              x1 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x2 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x3 = NFFT_COS(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+              temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+              f_grid[d] = NFFT_K(1.0)/(temp);
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
-                temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-                f_compare[d] = 1.0/(temp);
+                x1 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x2 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x3 = NFFT_COS(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+                temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+                f_compare[d] = NFFT_K(1.0)/(temp);
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           case FUNCTION_F5:
             for (d = 0; d < m_total; d++)
             {
-              x1 = sin(x_grid[2*d+1]*2.0*KPI)*cos(x_grid[2*d]*2.0*KPI);
-              x2 = sin(x_grid[2*d+1]*2.0*KPI)*sin(x_grid[2*d]*2.0*KPI);
-              x3 = cos(x_grid[2*d+1]*2.0*KPI);
-              temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-              f_grid[d] = 0.1*sin(1+temp)*sin(1+temp);
+              x1 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x2 = NFFT_SIN(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_grid[2*d]*NFFT_K(2.0)*NFFT_KPI);
+              x3 = NFFT_COS(x_grid[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+              temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+              f_grid[d] = NFFT_K(0.1)*NFFT_SIN(1+temp)*NFFT_SIN(1+temp);
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                x1 = sin(x_compare[2*d+1]*2.0*KPI)*cos(x_compare[2*d]*2.0*KPI);
-                x2 = sin(x_compare[2*d+1]*2.0*KPI)*sin(x_compare[2*d]*2.0*KPI);
-                x3 = cos(x_compare[2*d+1]*2.0*KPI);
-                temp = sqrt(x1*x1)+sqrt(x2*x2)+sqrt(x3*x3);
-                f_compare[d] = 0.1*sin(1+temp)*sin(1+temp);
+                x1 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_COS(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x2 = NFFT_SIN(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI)*NFFT_SIN(x_compare[2*d]*NFFT_K(2.0)*NFFT_KPI);
+                x3 = NFFT_COS(x_compare[2*d+1]*NFFT_K(2.0)*NFFT_KPI);
+                temp = NFFT_SQRT(x1*x1)+NFFT_SQRT(x2*x2)+NFFT_SQRT(x3*x3);
+                f_compare[d] = NFFT_K(0.1)*NFFT_SIN(1+temp)*NFFT_SIN(1+temp);
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           case FUNCTION_F6:
             for (d = 0; d < m_total; d++)
             {
-              if (x_grid[2*d+1] <= 0.25)
+              if (x_grid[2*d+1] <= NFFT_K(0.25))
               {
-                f_grid[d] = 1.0;
+                f_grid[d] = NFFT_K(1.0);
               }
               else
               {
-                f_grid[d] = 1.0/(sqrt(1+3*cos(2.0*KPI*x_grid[2*d+1])*cos(2.0*KPI*x_grid[2*d+1])));
+                f_grid[d] = NFFT_K(1.0)/(NFFT_SQRT(1+3*NFFT_COS(NFFT_K(2.0)*NFFT_KPI*x_grid[2*d+1])*NFFT_COS(NFFT_K(2.0)*NFFT_KPI*x_grid[2*d+1])));
               }
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                if (x_compare[2*d+1] <= 0.25)
+                if (x_compare[2*d+1] <= NFFT_K(0.25))
                 {
-                  f_compare[d] = 1.0;
+                  f_compare[d] = NFFT_K(1.0);
                 }
                 else
                 {
-                  f_compare[d] = 1.0/(sqrt(1+3*cos(2.0*KPI*x_compare[2*d+1])*cos(2.0*KPI*x_compare[2*d+1])));
+                  f_compare[d] = NFFT_K(1.0)/(NFFT_SQRT(1+3*NFFT_COS(NFFT_K(2.0)*NFFT_KPI*x_compare[2*d+1])*NFFT_COS(NFFT_K(2.0)*NFFT_KPI*x_compare[2*d+1])));
                 }
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
           default:
@@ -908,18 +904,18 @@ int main (int argc, char **argv)
             //fflush(stderr);
             for (d = 0; d < m_total; d++)
             {
-              f_grid[d] = 1.0;
+              f_grid[d] = NFFT_K(1.0);
             }
             if (mode == RANDOM)
             {
               for (d = 0; d < m_compare; d++)
               {
-                f_compare[d] = 1.0;
+                f_compare[d] = NFFT_K(1.0);
               }
             }
             else
             {
-              memcpy(f_compare,f_grid,m_total*sizeof(double _Complex));
+              memcpy(f_compare,f_grid,m_total*sizeof(NFFT_C));
             }
             break;
         }
@@ -927,7 +923,7 @@ int main (int argc, char **argv)
         //fprintf(stderr,"Initializing trafo\n");
         //fflush(stderr);
         /* Init transform plan. */
-        nfsft_init_guru(&plan_adjoint,NQ[iNQ],m_total, NFSFT_NORMALIZED |
+        NFSFT(init_guru)(&plan_adjoint,NQ[iNQ],m_total, NFSFT_NORMALIZED |
           ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
           ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
           ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
@@ -937,7 +933,7 @@ int main (int argc, char **argv)
 
         if (mode == RANDOM)
         {
-          nfsft_init_guru(&plan,NQ[iNQ],m_compare, NFSFT_NORMALIZED |
+          NFSFT(init_guru)(&plan,NQ[iNQ],m_compare, NFSFT_NORMALIZED |
             ((use_nfft!=NO)?(0U):(NFSFT_USE_NDFT)) |
             ((use_fpt!=NO)?(0U):(NFSFT_USE_DPT)),
             ((NQ[iNQ]>512)?(0U):(PRE_PHI_HUT | PRE_PSI)) | FFTW_INIT,
@@ -949,7 +945,7 @@ int main (int argc, char **argv)
           plan_ptr = &plan_adjoint;
         }
 
-        f_hat = (double _Complex*) nfft_malloc(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(double _Complex));
+        f_hat = (NFFT_C*) NFFT(malloc)(NFSFT_F_HAT_SIZE(NQ[iNQ])*sizeof(NFFT_C));
 
         plan_adjoint_ptr->f_hat = f_hat;
         plan_adjoint_ptr->x = x_grid;
@@ -961,16 +957,16 @@ int main (int argc, char **argv)
 
         //fprintf(stderr,"Precomputing for x\n");
         //fflush(stderr);
-        nfsft_precompute_x(plan_adjoint_ptr);
+        NFSFT(precompute_x)(plan_adjoint_ptr);
         if (plan_adjoint_ptr != plan_ptr)
         {
-          nfsft_precompute_x(plan_ptr);
+          NFSFT(precompute_x)(plan_ptr);
         }
 
         /* Initialize cumulative time variable. */
         t_avg = 0.0;
-        err_infty_avg = 0.0;
-        err_2_avg = 0.0;
+        err_infty_avg = NFFT_K(0.0);
+        err_2_avg = NFFT_K(0.0);
 
         /* Cycle through all runs. */
         for (i = 0; i < 1/*repetitions*/; i++)
@@ -978,10 +974,10 @@ int main (int argc, char **argv)
           //fprintf(stderr,"Copying original values\n");
           //fflush(stderr);
           /* Copy exact funtion values to working array. */
-          //memcpy(f,f_grid,m_total*sizeof(double _Complex));
+          //memcpy(f,f_grid,m_total*sizeof(NFFT_C));
 
           /* Initialize time measurement. */
-          t0 = getticks();
+          t0 = NFFT(clock_gettime_seconds)();
 
           //fprintf(stderr,"Multiplying with quadrature weights\n");
           //fflush(stderr);
@@ -992,27 +988,27 @@ int main (int argc, char **argv)
           {
             for (n = 0; n < m_phi; n++)
             {
-              /*fprintf(stderr,"f_ref[%d] = %le + I*%le,\t f[%d] = %le + I*%le,  \t w[%d] = %le\n",
-              d,creal(f_ref[d]),cimag(f_ref[d]),d,creal(f[d]),cimag(f[d]),k,
+              /*fprintf(stderr,"f_ref[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",\t f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",  \t w[%d] = %" NFFT__FES__ "\n",
+              d,NFFT_CREAL(f_ref[d]),NFFT_CIMAG(f_ref[d]),d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]),k,
               w[k]);*/
               f_grid[d] *= w[k];
               d++;
             }
           }
 
-          t1 = getticks();
-          t_avg += nfft_elapsed_seconds(t1,t0);
+          t1 = NFFT(clock_gettime_seconds)();
+          t_avg += t1 - t0;
 
-          nfft_free(w);
+          NFFT(free)(w);
 
-          t0 = getticks();
+          t0 = NFFT(clock_gettime_seconds)();
 
           /*fprintf(stderr,"\n");
           d = 0;
           for (d = 0; d < grid_total; d++)
           {
-            fprintf(stderr,"f[%d] = %le + I*%le, theta[%d] = %le, phi[%d] = %le\n",
-                    d,creal(f[d]),cimag(f[d]),d,x[2*d+1],d,x[2*d]);
+            fprintf(stderr,"f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ", theta[%d] = %" NFFT__FES__ ", phi[%d] = %" NFFT__FES__ "\n",
+                    d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]),d,x[2*d+1],d,x[2*d]);
           }*/
 
           //fprintf(stderr,"Executing adjoint\n");
@@ -1021,12 +1017,12 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Execute the adjoint NFSFT transformation. */
-            nfsft_adjoint(plan_adjoint_ptr);
+            NFSFT(adjoint)(plan_adjoint_ptr);
           }
           else
           {
             /* Execute the adjoint direct NDSFT transformation. */
-            nfsft_adjoint_direct(plan_adjoint_ptr);
+            NFSFT(adjoint_direct)(plan_adjoint_ptr);
           }
 
           /* Multiplication with the Fourier-Legendre coefficients. */
@@ -1034,9 +1030,9 @@ int main (int argc, char **argv)
           {
             for (n = -k; n <= k; n++)
             {
-              fprintf(stderr,"f_hat[%d,%d] = %le\t + I*%le\n",k,n,
-                      creal(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
-                      cimag(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
+              fprintf(stderr,"f_hat[%d,%d] = %" NFFT__FES__ "\t + I*%" NFFT__FES__ "\n",k,n,
+                      NFFT_CREAL(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]),
+                      NFFT_CIMAG(f_hat[NFSFT_INDEX(k,n,&plan_adjoint)]));
             }
           }*/
 
@@ -1045,47 +1041,47 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Execute the NFSFT transformation. */
-            nfsft_trafo(plan_ptr);
+            NFSFT(trafo)(plan_ptr);
           }
           else
           {
             /* Execute the direct NDSFT transformation. */
-            nfsft_trafo_direct(plan_ptr);
+            NFSFT(trafo_direct)(plan_ptr);
           }
 
-          t1 = getticks();
-          t_avg += nfft_elapsed_seconds(t1,t0);
+          t1 = NFFT(clock_gettime_seconds)();
+          t_avg += t1 - t0;
 
           //fprintf(stderr,"Finalizing\n");
           //fflush(stderr);
           /* Finalize the NFSFT plans */
-          nfsft_finalize(plan_adjoint_ptr);
+          NFSFT(finalize)(plan_adjoint_ptr);
           if (plan_ptr != plan_adjoint_ptr)
           {
-            nfsft_finalize(plan_ptr);
+            NFSFT(finalize)(plan_ptr);
           }
 
           /* Free data arrays. */
-          nfft_free(f_hat);
-          nfft_free(x_grid);
+          NFFT(free)(f_hat);
+          NFFT(free)(x_grid);
 
-          err_infty_avg += X(error_l_infty_complex)(f, f_compare, m_compare);
-          err_2_avg += X(error_l_2_complex)(f, f_compare, m_compare);
+          err_infty_avg += NFFT(error_l_infty_complex)(f, f_compare, m_compare);
+          err_2_avg += NFFT(error_l_2_complex)(f, f_compare, m_compare);
 
-          nfft_free(f_grid);
+          NFFT(free)(f_grid);
 
           if (mode == RANDOM)
           {
           }
           else
           {
-            nfft_free(f_compare);
+            NFFT(free)(f_compare);
           }
 
           /*for (d = 0; d < m_total; d++)
           {
-            fprintf(stderr,"f_ref[%d] = %le + I*%le,\t f[%d] = %le + I*%le\n",
-              d,creal(f_ref[d]),cimag(f_ref[d]),d,creal(f[d]),cimag(f[d]));
+            fprintf(stderr,"f_ref[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ ",\t f[%d] = %" NFFT__FES__ " + I*%" NFFT__FES__ "\n",
+              d,NFFT_CREAL(f_ref[d]),NFFT_CIMAG(f_ref[d]),d,NFFT_CREAL(f[d]),NFFT_CIMAG(f[d]));
           }*/
         }
 
@@ -1095,14 +1091,14 @@ int main (int argc, char **argv)
         t_avg = t_avg/((double)repetitions);
 
         /* Calculate the average error. */
-        err_infty_avg = err_infty_avg/((double)repetitions);
+        err_infty_avg = err_infty_avg/((NFFT_R)repetitions);
 
         /* Calculate the average error. */
-        err_2_avg = err_2_avg/((double)repetitions);
+        err_2_avg = err_2_avg/((NFFT_R)repetitions);
 
         /* Print out the error measurements. */
-        fprintf(stdout,"%+le %+le %+le\n", t_avg, err_infty_avg, err_2_avg);
-        fprintf(stderr,"%d: %4d %4d %+le %+le %+le\n", tc, NQ[iNQ], SQ[iNQ],
+        fprintf(stdout,"%+e %+" NFFT__FES__ " %+" NFFT__FES__ "\n", t_avg, err_infty_avg, err_2_avg);
+        fprintf(stderr,"%d: %4d %4d %+e %+" NFFT__FES__ " %+" NFFT__FES__ "\n", tc, NQ[iNQ], SQ[iNQ],
           t_avg, err_infty_avg, err_2_avg);
       }
     } /* for (im = 0; im < im_max; im++) - Process all cut-off
@@ -1110,29 +1106,29 @@ int main (int argc, char **argv)
     fprintf(stderr,"\n");
 
     /* Delete precomputed data. */
-    nfsft_forget();
+    NFSFT(forget)();
 
     /* Free memory for cut-off bandwidths and grid size parameters. */
-    nfft_free(NQ);
-    nfft_free(SQ);
+    NFFT(free)(NQ);
+    NFFT(free)(SQ);
     if (testmode == TIMING)
     {
-      nfft_free(RQ);
+      NFFT(free)(RQ);
     }
 
     if (mode == RANDOM)
     {
-      nfft_free(x_compare);
-      nfft_free(f_compare);
-      nfft_free(f);
+      NFFT(free)(x_compare);
+      NFFT(free)(f_compare);
+      NFFT(free)(f);
     }
 
     if (testmode == TIMING)
     {
       /* Allocate data structures. */
-      nfft_free(f_hat);
-      nfft_free(f);
-      nfft_free(x_grid);
+      NFFT(free)(f_hat);
+      NFFT(free)(f);
+      NFFT(free)(x_grid);
     }
 
   } /* for (tc = 0; tc < tc_max; tc++) - Process each testcase. */

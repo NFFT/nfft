@@ -20,6 +20,9 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <complex.h>
+#include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
 #include "nfft3mp.h"
 
 static void simple_test_nfst_1d(void)

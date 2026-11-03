@@ -23,59 +23,57 @@
 #include <complex.h>
 
 #include "nfft3.h"
-
-/** Swap two vectors. */
-#define CSWAP(x,y) {double _Complex * NFFT_SWAP_temp__; \
-  NFFT_SWAP_temp__=(x); (x)=(y); (y)=NFFT_SWAP_temp__;}
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 static void accuracy_nsfft(int d, int J, int M, int m)
 {
-  nsfft_plan p;
-  double _Complex *swap_sndft_trafo, *swap_sndft_adjoint;
+  NSFFT(plan) p;
+  NFFT_C *swap_sndft_trafo, *swap_sndft_adjoint;
 
-  nsfft_init(&p, d, J, M, m, NSDFT);
+  NSFFT(init)(&p, d, J, M, m, NSDFT);
 
-  swap_sndft_trafo=(double _Complex*) nfft_malloc(p.M_total*
-						 sizeof(double _Complex));
-  swap_sndft_adjoint=(double _Complex*) nfft_malloc(p.N_total*
-						   sizeof(double _Complex));
+  swap_sndft_trafo=(NFFT_C*) NFFT(malloc)(p.M_total*
+						 sizeof(NFFT_C));
+  swap_sndft_adjoint=(NFFT_C*) NFFT(malloc)(p.N_total*
+						   sizeof(NFFT_C));
 
-  nsfft_init_random_nodes_coeffs(&p);
+  NSFFT(init_random_nodes_coeffs)(&p);
 
   /** direct trafo */
-  nsfft_trafo_direct(&p);
+  NSFFT(trafo_direct)(&p);
 
-  CSWAP(swap_sndft_trafo,p.f);
+  NFFT_CSWAP(swap_sndft_trafo,p.f);
 
   /** approx. trafo */
-  nsfft_trafo(&p);
+  NSFFT(trafo)(&p);
 
-  printf("%5d\t %+.5E\t",J,
-         nfft_error_l_infty_1_complex(swap_sndft_trafo, p.f, p.M_total,
+  printf("%5d\t %+.5" NFFT__FES__ "\t",J,
+         NFFT(error_l_infty_1_complex)(swap_sndft_trafo, p.f, p.M_total,
                                  p.f_hat, p.N_total));
   fflush(stdout);
 
-  nfft_vrand_unit_complex(p.f, p.M_total);
+  NFFT(vrand_unit_complex)(p.f, p.M_total);
 
   /** direct adjoint */
-  nsfft_adjoint_direct(&p);
+  NSFFT(adjoint_direct)(&p);
 
-  CSWAP(swap_sndft_adjoint,p.f_hat);
+  NFFT_CSWAP(swap_sndft_adjoint,p.f_hat);
 
   /** approx. adjoint */
-  nsfft_adjoint(&p);
+  NSFFT(adjoint)(&p);
 
-  printf("%+.5E\n",
-         nfft_error_l_infty_1_complex(swap_sndft_adjoint, p.f_hat,
+  printf("%+.5" NFFT__FES__ "\n",
+         NFFT(error_l_infty_1_complex)(swap_sndft_adjoint, p.f_hat,
                                  p.N_total,
                                  p.f, p.M_total));
   fflush(stdout);
 
-  nfft_free(swap_sndft_adjoint);
-  nfft_free(swap_sndft_trafo);
+  NFFT(free)(swap_sndft_adjoint);
+  NFFT(free)(swap_sndft_trafo);
 
   /** finalise the one dimensional plan */
-  nsfft_finalize(&p);
+  NSFFT(finalize)(&p);
 }
 
 static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_nfft)
@@ -84,19 +82,19 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
   double t, t_nsdft, t_nfft, t_nsfft;
   double t0, t1;
 
-  nsfft_plan p;
-  nfft_plan np;
+  NSFFT(plan) p;
+  NFFT(plan) np;
 
   for(r=0;r<d;r++)
   {
-    N[r]= nfft_exp2i(J+2);
+    N[r]= NFFT(exp2i)(J+2);
     n[r]=(3*N[r])/2;
     /*n[r]=2*N[r];*/
   }
 
   /** init */
-  nsfft_init(&p, d, J, M, 4, NSDFT);
-  nsfft_init_random_nodes_coeffs(&p);
+  NSFFT(init)(&p, d, J, M, 4, NSDFT);
+  NSFFT(init_random_nodes_coeffs)(&p);
 
   /* transforms */
   if(test_nsdft)
@@ -106,9 +104,9 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
     while(t_nsdft<0.1)
     {
       r++;
-      t0 = nfft_clock_gettime_seconds();
-      nsfft_trafo_direct(&p);
-      t1 = nfft_clock_gettime_seconds();
+      t0 = NFFT(clock_gettime_seconds)();
+      NSFFT(trafo_direct)(&p);
+      t1 = NFFT(clock_gettime_seconds)();
       t = (t1 - t0);
       t_nsdft+=t;
     }
@@ -119,27 +117,27 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
 
   if(test_nfft)
   {
-    nfft_init_guru(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
+    NFFT(init_guru)(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
       FFTW_MEASURE);
     np.x=p.act_nfft_plan->x;
     if(np.flags & PRE_ONE_PSI)
-      nfft_precompute_one_psi(&np);
-    nsfft_cp(&p, &np);
+      NFFT(precompute_one_psi)(&np);
+    NSFFT(cp)(&p, &np);
 
     t_nfft=0;
     r=0;
     while(t_nfft<0.1)
     {
       r++;
-      t0 = nfft_clock_gettime_seconds();
-      nfft_trafo(&np);
-      t1 = nfft_clock_gettime_seconds();
+      t0 = NFFT(clock_gettime_seconds)();
+      NFFT(trafo)(&np);
+      t1 = NFFT(clock_gettime_seconds)();
       t = (t1 - t0);
       t_nfft+=t;
     }
     t_nfft/=r;
 
-    nfft_finalize(&np);
+    NFFT(finalize)(&np);
   }
   else
   {
@@ -151,9 +149,9 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
   while(t_nsfft<0.1)
     {
       r++;
-      t0 = nfft_clock_gettime_seconds();
-      nsfft_trafo(&p);
-      t1 = nfft_clock_gettime_seconds();
+      t0 = NFFT(clock_gettime_seconds)();
+      NSFFT(trafo)(&p);
+      t1 = NFFT(clock_gettime_seconds)();
       t = (t1 - t0);
       t_nsfft+=t;
     }
@@ -164,7 +162,7 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
   fflush(stdout);
 
   /** finalise */
-  nsfft_finalize(&p);
+  NSFFT(finalize)(&p);
 }
 
 
@@ -196,9 +194,9 @@ int main(int argc,char **argv)
     for(J=atoi(argv[3]); J<=atoi(argv[4]); J++)
     {
       if(d==2)
-	M=(J+4)*nfft_exp2i(J+1);
+	M=(J+4)*NFFT(exp2i)(J+1);
       else
-	M=6*nfft_exp2i(J)*(nfft_exp2i((J+1)/2+1)-1)+nfft_exp2i(3*(J/2+1));
+	M=6*NFFT(exp2i)(J)*(NFFT(exp2i)((J+1)/2+1)-1)+NFFT(exp2i)(3*(J/2+1));
 
       if(d*(J+2)<=24)
 	time_nsfft(d, J, M, 1, 1);

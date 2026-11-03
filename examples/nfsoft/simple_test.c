@@ -25,16 +25,18 @@
 
 /* Include NFFT3 library header. */
 #include "nfft3.h"
+/* NFFT_PRECISION_DOUBLE, NFFT_PRECISION_SINGLE, or NFFT_PRECISION_LONG_DOUBLE must be defined. */
+#include "nfft3mp.h"
 
 static void simple_test_nfsoft(int bw, int M)
 {
-  nfsoft_plan plan_nfsoft; /**< Plan for the NFSOFT   */
-  nfsoft_plan plan_ndsoft; /**< Plan for the NDSOFT   */
+  NFSOFT(plan) plan_nfsoft; /**< Plan for the NFSOFT   */
+  NFSOFT(plan) plan_ndsoft; /**< Plan for the NDSOFT   */
 
   double t0, t1;
   int j; /** just an index*/
   int k, m; /** the two parameters controlling the accuracy of the NFSOFT*/
-  double d1, d2, d3; /** indeces for initializing the Euler angles*/
+  NFFT_R d1, d2, d3; /** indeces for initializing the Euler angles*/
   double time, error; /**...self-explainatory*/
   unsigned int flags = NFSOFT_MALLOC_X | NFSOFT_MALLOC_F | NFSOFT_MALLOC_F_HAT; /**flags for memory allocation \see nfft3.h*/
 
@@ -49,19 +51,19 @@ static void simple_test_nfsoft(int bw, int M)
    * transformations.
    */
 
-  nfsoft_init_guru(&plan_ndsoft, bw, M, flags | NFSOFT_USE_NDFT
+  NFSOFT(init_guru)(&plan_ndsoft, bw, M, flags | NFSOFT_USE_NDFT
       | NFSOFT_USE_DPT, PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_F_HAT
       | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE, m, k);
 
-  nfsoft_init_guru(&plan_nfsoft, bw, M, flags, PRE_PHI_HUT | PRE_PSI | MALLOC_X
+  NFSOFT(init_guru)(&plan_nfsoft, bw, M, flags, PRE_PHI_HUT | PRE_PSI | MALLOC_X
       | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE, m, k);
 
   /** Init random nodes (for both plans, the same). */
   for (j = 0; j < plan_nfsoft.M_total; j++)
   {
-    d1 = ((double) rand()) / RAND_MAX - 0.5;
-    d2 = 0.5 * ((double) rand()) / RAND_MAX;
-    d3 = ((double) rand()) / RAND_MAX - 0.5;
+    d1 = ((NFFT_R) rand()) / RAND_MAX - NFFT_K(0.5);
+    d2 = NFFT_K(0.5) * ((NFFT_R) rand()) / RAND_MAX;
+    d3 = ((NFFT_R) rand()) / RAND_MAX - NFFT_K(0.5);
 
     plan_nfsoft.x[3* j ] = d1; /**alpha*/
     plan_nfsoft.x[3* j + 1] = d2; /**beta*/
@@ -75,88 +77,88 @@ static void simple_test_nfsoft(int bw, int M)
   /** init random Fourier coefficients (again the same for both plans) and display them*/
   for (j = 0; j < (bw + 1) * (4* (bw +1)*(bw+1)-1)/3;j++)
   {
-    d1=((double)rand())/RAND_MAX - 0.5;
-    d2=((double)rand())/RAND_MAX - 0.5;
+    d1=((NFFT_R)rand())/RAND_MAX - NFFT_K(0.5);
+    d2=((NFFT_R)rand())/RAND_MAX - NFFT_K(0.5);
     plan_nfsoft.f_hat[j]=d1 + I*d2;
     plan_ndsoft.f_hat[j]=d1 + I*d2;
   }
 
   if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
-  nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"randomly generated SO(3) Fourier coefficients");
+  NFFT(vpr_complex)(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"randomly generated SO(3) Fourier coefficients");
 	else
-  nfft_vpr_complex(plan_ndsoft.f_hat,20,"1st-20th randomly generated SO(3) Fourier coefficient");
+  NFFT(vpr_complex)(plan_ndsoft.f_hat,20,"1st-20th randomly generated SO(3) Fourier coefficient");
 
   printf("\n---------------------------------------------\n");
 
   /**Do precomputation for all transforms*/
-  nfsoft_precompute(&plan_nfsoft);
-  nfsoft_precompute(&plan_ndsoft);
+  NFSOFT(precompute)(&plan_nfsoft);
+  NFSOFT(precompute)(&plan_ndsoft);
 
 
   /** Compute NFSOFT and display the time needed. */
-  t0 = nfft_clock_gettime_seconds();
-  nfsoft_trafo(&plan_nfsoft);
-  t1 = nfft_clock_gettime_seconds();
+  t0 = NFFT(clock_gettime_seconds)();
+  NFSOFT(trafo)(&plan_nfsoft);
+  t1 = NFFT(clock_gettime_seconds)();
   time = t1-t0;
   if (plan_nfsoft.M_total<=20)
-    nfft_vpr_complex(plan_nfsoft.f,plan_nfsoft.M_total,"NFSOFT, function samples");
+    NFFT(vpr_complex)(plan_nfsoft.f,plan_nfsoft.M_total,"NFSOFT, function samples");
   else
-    nfft_vpr_complex(plan_nfsoft.f,20,"NFSOFT, 1st-20th function sample");
+    NFFT(vpr_complex)(plan_nfsoft.f,20,"NFSOFT, 1st-20th function sample");
   printf(" computed in %11le seconds\n",time);
 
   /** Compute NDSOFT and display the time needed. */
-  t0 = nfft_clock_gettime_seconds();
-  nfsoft_trafo(&plan_ndsoft);
-  t1 = nfft_clock_gettime_seconds();
+  t0 = NFFT(clock_gettime_seconds)();
+  NFSOFT(trafo)(&plan_ndsoft);
+  t1 = NFFT(clock_gettime_seconds)();
   time = t1-t0;
   if (plan_ndsoft.M_total<=20)
-    nfft_vpr_complex(plan_ndsoft.f,plan_ndsoft.M_total,"NDSOFT, function samples");
+    NFFT(vpr_complex)(plan_ndsoft.f,plan_ndsoft.M_total,"NDSOFT, function samples");
   else
-    nfft_vpr_complex(plan_ndsoft.f,20,"NDSOFT, 1st-20th function sample");
+    NFFT(vpr_complex)(plan_ndsoft.f,20,"NDSOFT, 1st-20th function sample");
   printf(" computed in %11le seconds\n",time);
 
   /**compute the error between the NFSOFT and NDSOFT and display it*/
-  error= nfft_error_l_infty_complex(plan_ndsoft.f,plan_nfsoft.f, plan_nfsoft.M_total);
+  error= NFFT(error_l_infty_complex)(plan_ndsoft.f,plan_nfsoft.f, plan_nfsoft.M_total);
   printf("\n The NFSOFT of bandwidth=%d for %d rotations has infty-error %11le \n",bw, M,error);
 
   printf("\n---------------------------------------------\n");
 
-  plan_nfsoft.f[0]=1.0;
-  plan_ndsoft.f[0]=1.0;
-  nfft_vpr_complex(plan_ndsoft.f,plan_ndsoft.M_total, "function samples to start adjoint trafo");
+  plan_nfsoft.f[0]=NFFT_K(1.0);
+  plan_ndsoft.f[0]=NFFT_K(1.0);
+  NFFT(vpr_complex)(plan_ndsoft.f,plan_ndsoft.M_total, "function samples to start adjoint trafo");
 
   /** Compute the adjoint NFSOFT and display the time needed.*/
-  t0 = nfft_clock_gettime_seconds();
-  nfsoft_adjoint(&plan_nfsoft);
-  t1 = nfft_clock_gettime_seconds();
+  t0 = NFFT(clock_gettime_seconds)();
+  NFSOFT(adjoint)(&plan_nfsoft);
+  t1 = NFFT(clock_gettime_seconds)();
   time = t1-t0;
   if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
-     nfft_vpr_complex(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
+     NFFT(vpr_complex)(plan_nfsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
   else
-     nfft_vpr_complex(plan_nfsoft.f_hat,20,"adjoint NFSOFT, 1st-20th Fourier coefficient");
+     NFFT(vpr_complex)(plan_nfsoft.f_hat,20,"adjoint NFSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
 
   /** Compute adjoint NDSOFT and display the time needed.*/
-  t0 = nfft_clock_gettime_seconds();
-  nfsoft_adjoint(&plan_ndsoft);
-  t1 = nfft_clock_gettime_seconds();
+  t0 = NFFT(clock_gettime_seconds)();
+  NFSOFT(adjoint)(&plan_ndsoft);
+  t1 = NFFT(clock_gettime_seconds)();
   time = t1-t0;
   if ((bw+1)*(4*(bw+1)*(bw+1)-1)/3<=20)
-	nfft_vpr_complex(plan_ndsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
+	NFFT(vpr_complex)(plan_ndsoft.f_hat,(bw+1)*(4*(bw+1)*(bw+1)-1)/3,"SO(3) Fourier coefficients");
   else
-    nfft_vpr_complex(plan_ndsoft.f_hat,20,"adjoint NDSOFT, 1st-20th Fourier coefficient");
+    NFFT(vpr_complex)(plan_ndsoft.f_hat,20,"adjoint NDSOFT, 1st-20th Fourier coefficient");
   printf(" computed in %11le seconds\n",time);
 
 
   /**compute the error between the adjoint NFSOFT and NDSOFT and display it*/
-  error=nfft_error_l_infty_complex(plan_ndsoft.f_hat,plan_nfsoft.f_hat, (bw+1)*(4*(bw+1)*(bw+1)-1)/3);
+  error=NFFT(error_l_infty_complex)(plan_ndsoft.f_hat,plan_nfsoft.f_hat, (bw+1)*(4*(bw+1)*(bw+1)-1)/3);
   printf("\n The adjoint NFSOFT of bandwidth=%d for %d rotations has infty-error %11le \n",bw, M,error);
 
   printf("\n---------------------------------------------\n");
 
   /**destroy the plans*/
-  nfsoft_finalize(&plan_ndsoft);
-  nfsoft_finalize(&plan_nfsoft);
+  NFSOFT(finalize)(&plan_ndsoft);
+  NFSOFT(finalize)(&plan_nfsoft);
 }
 
   /**
