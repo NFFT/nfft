@@ -26,7 +26,8 @@
  *   #define NFFT_PRECISION_DOUBLE  // or NFFT_PRECISION_SINGLE, NFFT_PRECISION_LONG_DOUBLE
  *   #include <nfft3mp.h>
  *
- * Without <complex.h> first, fftw_complex and NFFT_C are 2-element real arrays.
+ * Without <complex.h> first, fftw_complex and NFFT_C are 2-element real arrays
+ * and the C99 complex helpers below are not defined.
  */
 /* Deprecated: include nfft3.h when the program did not. Will be removed in the
  * next release. */
@@ -123,11 +124,6 @@ typedef fftw_complex NFFT_C;
 #define NFFT_SIN sinf
 #define NFFT_TAN tanf
 #define NFFT_TGAMMA tgammaf
-#define NFFT_CREAL crealf
-#define NFFT_CIMAG cimagf
-#define NFFT_CABS cabsf
-#define NFFT_CEXP cexpf
-#define NFFT_CPOW cpowf
 #elif defined(NFFT_PRECISION_LONG_DOUBLE)
 #define NFFT_MKNAN nanl
 #define NFFT_CEIL ceill
@@ -144,11 +140,6 @@ typedef fftw_complex NFFT_C;
 #define NFFT_SIN sinl
 #define NFFT_TAN tanl
 #define NFFT_TGAMMA tgammal
-#define NFFT_CREAL creall
-#define NFFT_CIMAG cimagl
-#define NFFT_CABS cabsl
-#define NFFT_CEXP cexpl
-#define NFFT_CPOW cpowl
 #elif defined(NFFT_PRECISION_DOUBLE)
 #define NFFT_MKNAN nan
 #define NFFT_CEIL ceil
@@ -165,13 +156,35 @@ typedef fftw_complex NFFT_C;
 #define NFFT_SIN sin
 #define NFFT_TAN tan
 #define NFFT_TGAMMA tgamma
+#else
+#error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
+#endif
+
+/* Helpers for the C99 complex type, defined only when fftw3.h makes
+ * fftw_complex that type, by the same test. Otherwise NFFT_C is a 2-element
+ * real array, which these helpers cannot take and NFFT_CEXP and NFFT_CPOW
+ * cannot return. */
+#if !defined(FFTW_NO_Complex) && defined(_Complex_I) && defined(complex) && defined(I)
+#define NFFT_II _Complex_I
+#if defined(NFFT_PRECISION_SINGLE)
+#define NFFT_CREAL crealf
+#define NFFT_CIMAG cimagf
+#define NFFT_CABS cabsf
+#define NFFT_CEXP cexpf
+#define NFFT_CPOW cpowf
+#elif defined(NFFT_PRECISION_LONG_DOUBLE)
+#define NFFT_CREAL creall
+#define NFFT_CIMAG cimagl
+#define NFFT_CABS cabsl
+#define NFFT_CEXP cexpl
+#define NFFT_CPOW cpowl
+#else
 #define NFFT_CREAL creal
 #define NFFT_CIMAG cimag
 #define NFFT_CABS cabs
 #define NFFT_CEXP cexp
 #define NFFT_CPOW cpow
-#else
-#error Either define macro NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE for single, double or long double precision
+#endif
 #endif
 
 /* format strings */
@@ -214,8 +227,6 @@ typedef fftw_complex NFFT_C;
 #define NFFT_MIN(a,b) (((a)<(b))?(a):(b))
 #define NFFT_MAX(a,b) (((a)>(b))?(a):(b))
 #define NFFT_ABS(x) (((x)>NFFT_K(0.0))?(x):(-(x)))
-
-#define NFFT_II _Complex_I
 
 #define NFFT_R_RADIX FLT_RADIX
 
