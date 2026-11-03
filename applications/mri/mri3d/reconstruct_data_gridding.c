@@ -51,10 +51,6 @@ static void reconstruct(char* filename,int N,int M,int Z, int weight ,NFFT_C *me
                         FFTW_INIT,
                         FFTW_MEASURE);
 
-  /* precompute lin psi if set */
-  if(my_plan.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&my_plan);
-
   fin=fopen(filename,"r");
 
   for(z=0;z<Z;z++) {
@@ -70,13 +66,9 @@ static void reconstruct(char* filename,int N,int M,int Z, int weight ,NFFT_C *me
     }
     fclose(fweight);
 
-    /* precompute psi if set just one time because the knots equal each slice */
-    if(z==0 && my_plan.flags & PRE_PSI)
-      NFFT(precompute_psi)(&my_plan);
-
-    /* precompute full psi if set just one time because the knots equal each slice */
-    if(z==0 && my_plan.flags & PRE_FULL_PSI)
-      NFFT(precompute_full_psi)(&my_plan);
+    /* precompute psi just one time because the knots equal each slice */
+    if(z==0)
+      NFFT(precompute_one_psi)(&my_plan);
 
     /* compute the adjoint nfft */
     NFFT(adjoint)(&my_plan);

@@ -102,10 +102,6 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
                       FFTW_MEASURE| FFTW_DESTROY_INPUT);
 
 
-  /* precompute lin psi if set */
-  if(my_plan.plan.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&my_plan.plan);
-
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
 
@@ -163,12 +159,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
 
-  if(my_plan.plan.flags & PRE_PSI) {
-    NFFT(precompute_psi)(&my_plan.plan);
-  }
-  if(my_plan.plan.flags & PRE_FULL_PSI) {
-      NFFT(precompute_full_psi)(&my_plan.plan);
-  }
+  NFFT(precompute_one_psi)(&my_plan.plan);
 
   /* init some guess */
   for(j=0;j<my_plan.N_total;j++)
