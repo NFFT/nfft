@@ -38,6 +38,20 @@ transform, MRI, polar FFT, Radon, S² quadrature, …) and `examples/`.
   FFTW (all precisions), CUnit, Octave, Julia, autotools, and clang-format
   preinstalled. Assume these are available on the local host.
 
+### Dev container bind mount
+
+In the dev container the checkout sits on a bind mount (virtiofs). Heavy
+filesystem work there fails at random: `ar`/`ranlib` write corrupt archives or
+crash, `git rebase` and `git checkout` can truncate files, `cp` can write NULs.
+Do such work in a clone outside the mount:
+
+```bash
+git clone --no-local /workspaces/nfft /tmp/nfft  # apply uncommitted work as a patch
+```
+
+Build, test, and rebase there; out-of-tree build directories are fine. Bring
+results back with `git fetch` from the clone, not `cp`.
+
 ### Code conventions
 
 The library is **precision-agnostic**: the same C sources compile in float,
