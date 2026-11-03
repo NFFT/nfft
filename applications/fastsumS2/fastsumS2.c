@@ -573,15 +573,15 @@ int main (int argc, char **argv)
   int kt;                      /* The kernel function                         */
   int cutoff;                  /* The current NFFT cut-off parameter          */
   NFFT_R threshold;            /* The current NFSFT threshold parameter       */
-  NFFT_R t_d;                  /* Time for direct algorithm in seconds        */
-  NFFT_R t_dp;                 /* Time for direct algorithm with              *
+  double t_d;                  /* Time for direct algorithm in seconds        */
+  double t_dp;                 /* Time for direct algorithm with              *
                                   precomputation in seconds                   */
-  NFFT_R t_fd;                 /* Time for fast direct algorithm in seconds   */
-  NFFT_R t_f;                  /* Time for fast algorithm in seconds          */
+  double t_fd;                 /* Time for fast direct algorithm in seconds   */
+  double t_f;                  /* Time for fast algorithm in seconds          */
   NFFT_R temp;                 /*                                             */
   NFFT_R err_f;                /* Error E_infty for fast algorithm            */
   NFFT_R err_fd;               /* Error E_\infty for fast direct algorithm    */
-  NFFT_R t0, t1;                /*                                             */
+  double t0, t1;                /*                                             */
   int precompute = NO;         /*                                             */
   NFFT_C *ptr;         /*                                             */
   NFFT_R* steed;               /*                                             */
@@ -896,7 +896,7 @@ int main (int argc, char **argv)
             }
 
             /* Initialize cumulative time variable. */
-            t_dp = NFFT_K(0.0);
+            t_dp = 0.0;
 
             /* Initialize time measurement. */
             t0 = NFFT(clock_gettime_seconds)();
@@ -958,16 +958,16 @@ int main (int argc, char **argv)
             t_dp = t1 - t0;
 
             /* Calculate average time needed. */
-            t_dp = t_dp/((NFFT_R)ld[ild][4]);
+            t_dp = t_dp/((double)ld[ild][4]);
           }
           else
           {
             /* Initialize cumulative time variable with dummy value. */
-            t_dp = -NFFT_K(1.0);
+            t_dp = -1.0;
           }
 
           /* Initialize cumulative time variable. */
-          t_d = NFFT_K(0.0);
+          t_d = 0.0;
 
           /* Initialize time measurement. */
           t0 = NFFT(clock_gettime_seconds)();
@@ -1074,21 +1074,21 @@ int main (int argc, char **argv)
           t1 = NFFT(clock_gettime_seconds)();
           t_d = t1 - t0;
           /* Calculate average time needed. */
-          t_d = t_d/((NFFT_R)ld[ild][4]);
+          t_d = t_d/((double)ld[ild][4]);
         }
         else
         {
           /* Initialize cumulative time variable with dummy value. */
-          t_d = -NFFT_K(1.0);
-          t_dp = -NFFT_K(1.0);
+          t_d = -1.0;
+          t_dp = -1.0;
         }
 
         /* Initialize error and cumulative time variables for the fast
          * algorithm. */
         err_fd = -NFFT_K(1.0);
         err_f = -NFFT_K(1.0);
-        t_fd = -NFFT_K(1.0);
-        t_f = -NFFT_K(1.0);
+        t_fd = -1.0;
+        t_f = -1.0;
 
         /* Process all cut-off bandwidths. */
         for (im = 0; im < im_max; im++)
@@ -1117,7 +1117,7 @@ int main (int argc, char **argv)
           if (use_nfsft == BOTH)
           {
             /* Initialize cumulative time variable. */
-            t_fd = NFFT_K(0.0);
+            t_fd = 0.0;
 
             /* Initialize time measurement. */
             t0 = NFFT(clock_gettime_seconds)();
@@ -1144,7 +1144,7 @@ int main (int argc, char **argv)
             t_fd = t1 - t0;
 
             /* Calculate average time needed. */
-            t_fd = t_fd/((NFFT_R)ld[ild][4]);
+            t_fd = t_fd/((double)ld[ild][4]);
 
             /* Check if error E_infty should be computed. */
             if (ld[ild][2] != NO)
@@ -1159,13 +1159,13 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Initialize cumulative time variable for the NFSFT algorithm. */
-            t_f = NFFT_K(0.0);
+            t_f = 0.0;
           }
           else
           {
             /* Initialize cumulative time variable for the direct NDSFT
              * algorithm. */
-            t_fd = NFFT_K(0.0);
+            t_fd = 0.0;
           }
 
           /* Initialize time measurement. */
@@ -1216,12 +1216,12 @@ int main (int argc, char **argv)
           if (use_nfsft != NO)
           {
             /* Calculate average time needed. */
-            t_f = t_f/((NFFT_R)ld[ild][4]);
+            t_f = t_f/((double)ld[ild][4]);
           }
           else
           {
             /* Calculate average time needed. */
-            t_fd = t_fd/((NFFT_R)ld[ild][4]);
+            t_fd = t_fd/((double)ld[ild][4]);
           }
 
           /* Check if error E_infty should be computed. */
@@ -1243,7 +1243,7 @@ int main (int argc, char **argv)
           }
 
           /* Print out the error measurements. */
-          fprintf(stdout,"%" NFFT__FES__ "\n%" NFFT__FES__ "\n%" NFFT__FES__ "\n%" NFFT__FES__
+          fprintf(stdout,"%e\n%e\n%e\n%e"
             "\n%" NFFT__FES__ "\n%" NFFT__FES__ "\n\n",t_d,t_dp,t_fd,t_f,err_fd,
             err_f);
 

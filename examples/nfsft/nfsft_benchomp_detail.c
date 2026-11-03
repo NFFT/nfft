@@ -89,8 +89,8 @@ void bench_openmp(int trafo_adjoint, int N, int M, NFFT_R *x, NFFT_C *f_hat, NFF
   NFSFT(plan) plan;
   int k, n;
   int t, j;
-  NFFT_R t0, t1;
-  NFFT_R tt_total, tt_pre;
+  double t0, t1;
+  double tt_total, tt_pre;
 
   /* Initialize transform plan using the guru interface. All input and output
    * arrays are allocated by NFSFT(init_guru)(). Computations are performed with
@@ -149,12 +149,9 @@ void bench_openmp(int trafo_adjoint, int N, int M, NFFT_R *x, NFFT_C *f_hat, NFF
   plan.MEASURE_TIME_t[1] = 0.0;
 #endif
 
-  /* MEASURE_TIME_t is double in every precision; the sums are printed in
-   * NFFT_R like the other timings. */
-  printf("%.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__
-    " %.6" NFFT__FES__ " %.6" NFFT__FES__ "\n", tt_pre, (NFFT_R)plan.MEASURE_TIME_t[0],
-    (NFFT_R)plan.MEASURE_TIME_t[1], (NFFT_R)plan.MEASURE_TIME_t[2],
-    (NFFT_R)(tt_total-tt_pre-plan.MEASURE_TIME_t[0]-plan.MEASURE_TIME_t[1]-plan.MEASURE_TIME_t[2]),
+  printf("%.6e %.6e %6e %.6e %.6e %.6e\n", tt_pre, plan.MEASURE_TIME_t[0],
+    plan.MEASURE_TIME_t[1], plan.MEASURE_TIME_t[2],
+    tt_total-tt_pre-plan.MEASURE_TIME_t[0]-plan.MEASURE_TIME_t[1]-plan.MEASURE_TIME_t[2],
     tt_total);
 
   /** finalise the one dimensional plan */

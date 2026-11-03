@@ -105,7 +105,7 @@ int main (int argc, char **argv)
   NFSFT(plan) plan;             /**< The NFSFT plan                            */
   NFSFT(plan) plan_gen;         /**< The NFSFT plan                            */
 
-  NFFT_R t_avg;                /**< The average computation time needed       */
+  double t_avg;                /**< The average computation time needed       */
   NFFT_R err_infty_avg;        /**< The average error \f$E_\infty\f$          */
   NFFT_R err_2_avg;            /**< The average error \f$E_2\f$               */
 
@@ -135,7 +135,7 @@ int main (int argc, char **argv)
   NFSFT(plan) *plan_ptr;
   NFFT_R *w_temp;
   int testmode;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   /* Read the number of testcases. */
   fscanf(stdin,"testcases=%d\n",&tc_max);
@@ -333,7 +333,7 @@ int main (int argc, char **argv)
 
         NFSFT(precompute_x)(&plan);
 
-        t_avg = NFFT_K(0.0);
+        t_avg = 0.0;
 
         for (i = 0; i < RQ[iNQ]; i++)
         {
@@ -354,12 +354,12 @@ int main (int argc, char **argv)
           t_avg += t1 - t0;
         }
 
-        t_avg = t_avg/((NFFT_R)RQ[iNQ]);
+        t_avg = t_avg/((double)RQ[iNQ]);
 
         NFSFT(finalize)(&plan);
 
-        fprintf(stdout,"%+" NFFT__FES__ "\n", t_avg);
-        fprintf(stderr,"%d: %4d %4d %+" NFFT__FES__ "\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
+        fprintf(stdout,"%+e\n", t_avg);
+        fprintf(stderr,"%d: %4d %4d %+e\n", tc, NQ[iNQ], SQ[iNQ], t_avg);
       }
       else
       {
@@ -964,7 +964,7 @@ int main (int argc, char **argv)
         }
 
         /* Initialize cumulative time variable. */
-        t_avg = NFFT_K(0.0);
+        t_avg = 0.0;
         err_infty_avg = NFFT_K(0.0);
         err_2_avg = NFFT_K(0.0);
 
@@ -1088,7 +1088,7 @@ int main (int argc, char **argv)
         //fprintf(stderr,"Calculating the error\n");
         //fflush(stderr);
         /* Calculate average time needed. */
-        t_avg = t_avg/((NFFT_R)repetitions);
+        t_avg = t_avg/((double)repetitions);
 
         /* Calculate the average error. */
         err_infty_avg = err_infty_avg/((NFFT_R)repetitions);
@@ -1097,8 +1097,8 @@ int main (int argc, char **argv)
         err_2_avg = err_2_avg/((NFFT_R)repetitions);
 
         /* Print out the error measurements. */
-        fprintf(stdout,"%+" NFFT__FES__ " %+" NFFT__FES__ " %+" NFFT__FES__ "\n", t_avg, err_infty_avg, err_2_avg);
-        fprintf(stderr,"%d: %4d %4d %+" NFFT__FES__ " %+" NFFT__FES__ " %+" NFFT__FES__ "\n", tc, NQ[iNQ], SQ[iNQ],
+        fprintf(stdout,"%+e %+" NFFT__FES__ " %+" NFFT__FES__ "\n", t_avg, err_infty_avg, err_2_avg);
+        fprintf(stderr,"%d: %4d %4d %+e %+" NFFT__FES__ " %+" NFFT__FES__ "\n", tc, NQ[iNQ], SQ[iNQ],
           t_avg, err_infty_avg, err_2_avg);
       }
     } /* for (im = 0; im < im_max; im++) - Process all cut-off

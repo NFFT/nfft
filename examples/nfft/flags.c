@@ -63,9 +63,10 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     unsigned test_pre_full_psi)
 {
   int r, NN[d], nn[d];
-  NFFT_R t_ndft, t, e;
+  double t_ndft, t;
+  NFFT_R e;
   NFFT_C *swapndft = NULL;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) p;
   NFFT(plan) p_pre_phi_hut;
@@ -136,9 +137,9 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   {
     NFFT_CSWAP(p.f, swapndft);
 
-    t_ndft = NFFT_K(0.0);
+    t_ndft = 0.0;
     r = 0;
-    while (t_ndft < NFFT_K(0.01))
+    while (t_ndft < 0.01)
     {
       r++;
       t0 = NFFT(clock_gettime_seconds)();
@@ -147,12 +148,12 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
       t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (NFFT_R)(r);
+    t_ndft /= (double)(r);
 
     NFFT_CSWAP(p.f, swapndft);
   }
   else
-    t_ndft = NFFT_MKNAN("");
+    t_ndft = nan("");
 
   /* NFFTs */
   NFFT(trafo)(&p);
@@ -160,20 +161,20 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   if (test_fg)
     NFFT(trafo)(&p_fg_psi);
   else
-    p_fg_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
+    p_fg_psi.MEASURE_TIME_t[2] = nan("");
   NFFT(trafo)(&p_pre_lin_psi);
   if (test_fg)
     NFFT(trafo)(&p_pre_fg_psi);
   else
-    p_pre_fg_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
+    p_pre_fg_psi.MEASURE_TIME_t[2] = nan("");
   NFFT(trafo)(&p_pre_psi);
   if (test_pre_full_psi)
     NFFT(trafo)(&p_pre_full_psi);
   else
-    p_pre_full_psi.MEASURE_TIME_t[2] = NFFT_MKNAN("");
+    p_pre_full_psi.MEASURE_TIME_t[2] = nan("");
 
   if (test_fftw == 0)
-    p.MEASURE_TIME_t[1] = NFFT_MKNAN("");
+    p.MEASURE_TIME_t[1] = nan("");
 
   if (test_ndft)
     e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
@@ -181,7 +182,7 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     e = NFFT_MKNAN("");
 
   printf(
-      "%.2" NFFT__FES__ "\t%d\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\t%.2" NFFT__FES__ "\n",
+      "%.2E\t%d\t%.2" NFFT__FES__ "\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\n",
       t_ndft, m, e, p.MEASURE_TIME_t[0], p_pre_phi_hut.MEASURE_TIME_t[0],
       p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], p_fg_psi.MEASURE_TIME_t[2],
       p_pre_lin_psi.MEASURE_TIME_t[2], p_pre_fg_psi.MEASURE_TIME_t[2],

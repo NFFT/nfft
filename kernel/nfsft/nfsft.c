@@ -1235,7 +1235,7 @@ void nfsft_trafo(nfsft_plan *plan)
     }
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[0] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[0] = Y(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -1245,7 +1245,7 @@ void nfsft_trafo(nfsft_plan *plan)
     c2e(plan);
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[1] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[1] = Y(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -1308,7 +1308,7 @@ void nfsft_trafo(nfsft_plan *plan)
     }
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[2] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[2] = Y(elapsed_seconds)(t1,t0);
 #endif
   }
 }
@@ -1409,7 +1409,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[2] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[2] = Y(elapsed_seconds)(t1,t0);
 #endif
 
     //fprintf(stderr,"nfsft_adjoint: Executing c2e_transposed\n");
@@ -1421,7 +1421,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     c2e_transposed(plan);
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[1] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[1] = Y(elapsed_seconds)(t1,t0);
 #endif
 
 #ifdef MEASURE_TIME
@@ -1507,7 +1507,7 @@ void nfsft_adjoint(nfsft_plan *plan)
     }
 #ifdef MEASURE_TIME
     t1 = getticks();
-    plan->MEASURE_TIME_t[0] = nfft_elapsed_seconds(t1,t0);
+    plan->MEASURE_TIME_t[0] = Y(elapsed_seconds)(t1,t0);
 #endif
 
     /* Check, if we compute with L^2-normalized spherical harmonics. If so,

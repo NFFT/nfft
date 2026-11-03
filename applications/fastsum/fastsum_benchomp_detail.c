@@ -37,8 +37,8 @@ int bench_openmp(FILE *infile, int n, int m, int p,
   int t, j;
   NFFT_R re, im;
   NFFT_R r_max = NFFT_K(0.25) - my_fastsum_plan.eps_B / NFFT_K(2.0);
-  NFFT_R t0, t1;
-  NFFT_R tt_total;
+  double t0, t1;
+  double tt_total;
 
   fscanf(infile, "%d %d %d", &d, &L, &M);
 
@@ -93,26 +93,26 @@ int bench_openmp(FILE *infile, int n, int m, int p,
   tt_total = t1 - t0;
 
 #ifndef MEASURE_TIME
-  my_fastsum_plan.MEASURE_TIME_t[0] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[1] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[2] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[3] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[4] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[5] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[6] = NFFT_K(0.0);
-  my_fastsum_plan.MEASURE_TIME_t[7] = NFFT_K(0.0);
-  my_fastsum_plan.mv1.MEASURE_TIME_t[0] = NFFT_K(0.0);
-  my_fastsum_plan.mv1.MEASURE_TIME_t[2] = NFFT_K(0.0);
-  my_fastsum_plan.mv2.MEASURE_TIME_t[0] = NFFT_K(0.0);
-  my_fastsum_plan.mv2.MEASURE_TIME_t[2] = NFFT_K(0.0);
+  my_fastsum_plan.MEASURE_TIME_t[0] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[1] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[2] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[3] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[4] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[5] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[6] = 0.0;
+  my_fastsum_plan.MEASURE_TIME_t[7] = 0.0;
+  my_fastsum_plan.mv1.MEASURE_TIME_t[0] = 0.0;
+  my_fastsum_plan.mv1.MEASURE_TIME_t[2] = 0.0;
+  my_fastsum_plan.mv2.MEASURE_TIME_t[0] = 0.0;
+  my_fastsum_plan.mv2.MEASURE_TIME_t[2] = 0.0;
 #endif
 #ifndef MEASURE_TIME_FFTW
-  my_fastsum_plan.mv1.MEASURE_TIME_t[1] = NFFT_K(0.0);
-  my_fastsum_plan.mv2.MEASURE_TIME_t[1] = NFFT_K(0.0);
+  my_fastsum_plan.mv1.MEASURE_TIME_t[1] = 0.0;
+  my_fastsum_plan.mv2.MEASURE_TIME_t[1] = 0.0;
 #endif
 
   printf(
-      "%.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %6" NFFT__FES__ "\n",
+      "%.6E %.6E %.6E %6E %.6E %.6E %.6E %.6E %.6E %6E %.6E %.6E %6E %.6E %.6E %6E\n",
       my_fastsum_plan.MEASURE_TIME_t[0], my_fastsum_plan.MEASURE_TIME_t[1],
       my_fastsum_plan.MEASURE_TIME_t[2], my_fastsum_plan.MEASURE_TIME_t[3],
       my_fastsum_plan.MEASURE_TIME_t[4], my_fastsum_plan.MEASURE_TIME_t[5],

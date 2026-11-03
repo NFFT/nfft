@@ -137,7 +137,7 @@ typedef struct\
 \
   R *x; /**< Nodes in time/spatial domain, size is \f$dM\f$ R ## s */\
 \
-  R MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
+  double MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME is
     set */\
 \
   /* internal use only */\
@@ -876,7 +876,7 @@ void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 /** Print complex vector to standard output. */ \
 void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* time.c */ \
-R Y(clock_gettime_seconds)(void); \
+double Y(clock_gettime_seconds)(void); \
 /* error.c */ \
 R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
 R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \

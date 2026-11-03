@@ -37,8 +37,8 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   int M, d, trafo_adjoint;
   int t, j;
   NFFT_R re, im;
-  NFFT_R t0, t1;
-  NFFT_R tt_total, tt_preonepsi;
+  double t0, t1;
+  double tt_total, tt_preonepsi;
 
   fscanf(infile, "%d %d", &d, &trafo_adjoint);
 
@@ -116,8 +116,7 @@ void bench_openmp(FILE *infile, int m, int psi_flag)
   p.MEASURE_TIME_t[1] = 0.0;
 #endif
 
-  printf("%.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__ " %.6" NFFT__FES__
-    " %.6" NFFT__FES__ " %.6" NFFT__FES__ "\n", tt_preonepsi, p.MEASURE_TIME_t[0],
+  printf("%.6e %.6e %6e %.6e %.6e %.6e\n", tt_preonepsi, p.MEASURE_TIME_t[0],
     p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2],
     tt_total-tt_preonepsi-p.MEASURE_TIME_t[0]-p.MEASURE_TIME_t[1]-p.MEASURE_TIME_t[2],
     tt_total);

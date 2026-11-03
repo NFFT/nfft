@@ -48,8 +48,8 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   FILE* fout_real;              /* output file                        */
   FILE* fout_imag;              /* output file                        */
   int my_N[3],my_n[3];          /* to init the nfft */
-  NFFT_R t0, t1;
-  NFFT_R t,epsilon=NFFT_K(0.0000003);     /* epsilon is a the break criterium for
+  double t0, t1, t;
+  NFFT_R epsilon=NFFT_K(0.0000003);       /* epsilon is a the break criterium for
                                    the iteration */
   unsigned infft_flags = CGNR | PRECOMPUTE_DAMP; /* flags for the infft*/
   NFFT_R time,min_time,max_time,min_inh,max_inh;

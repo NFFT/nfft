@@ -172,9 +172,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     int m_taylor, unsigned test_accuracy)
 {
   int r;
-  NFFT_R t_ndft, t_nfft, t_taylor, t;
+  double t_ndft, t_nfft, t_taylor, t;
   NFFT_C *swapndft = NULL;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   taylor_plan tp;
   NFFT(plan) np;
@@ -214,9 +214,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
   {
     NFFT_CSWAP(np.f, swapndft);
 
-    t_ndft = NFFT_K(0.0);
+    t_ndft = 0.0;
     r = 0;
-    while (t_ndft < NFFT_K(0.01))
+    while (t_ndft < 0.01)
     {
       r++;
       t0 = NFFT(clock_gettime_seconds)();
@@ -225,18 +225,18 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
       t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (NFFT_R)(r);
+    t_ndft /= (double)(r);
 
     NFFT_CSWAP(np.f, swapndft);
-    printf("%.2" NFFT__FES__ "\t", t_ndft);
+    printf("%.2E\t", t_ndft);
   }
   else
     printf("NaN\t");
 
   /* NFFT */
-  t_nfft = NFFT_K(0.0);
+  t_nfft = 0.0;
   r = 0;
-  while (t_nfft < NFFT_K(0.01))
+  while (t_nfft < 0.01)
   {
     r++;
     t0 = NFFT(clock_gettime_seconds)();
@@ -245,9 +245,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (NFFT_R)(r);
+  t_nfft /= (double)(r);
 
-  printf("%.2" NFFT__FES__ "\t%d\t%.2" NFFT__FES__ "\t", ((NFFT_R)(n)) / ((NFFT_R)(N)), m, t_nfft);
+  printf("%.2" NFFT__FES__ "\t%d\t%.2E\t", ((NFFT_R)(n)) / ((NFFT_R)(N)), m, t_nfft);
 
   if (test_accuracy)
     printf("%.2" NFFT__FES__ "\t", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));
@@ -255,9 +255,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     printf("NaN\t");
 
   /** TAYLOR NFFT */
-  t_taylor = NFFT_K(0.0);
+  t_taylor = 0.0;
   r = 0;
-  while (t_taylor < NFFT_K(0.01))
+  while (t_taylor < 0.01)
   {
     r++;
     t0 = NFFT(clock_gettime_seconds)();
@@ -266,9 +266,9 @@ static void taylor_time_accuracy(int N, int M, int n, int m, int n_taylor,
     t = t1 - t0;
     t_taylor += t;
   }
-  t_taylor /= (NFFT_R)(r);
+  t_taylor /= (double)(r);
 
-  printf("%.2" NFFT__FES__ "\t%d\t%.2" NFFT__FES__ "\t", ((NFFT_R)(n_taylor)) / ((NFFT_R)(N)), m_taylor, t_taylor);
+  printf("%.2" NFFT__FES__ "\t%d\t%.2E\t", ((NFFT_R)(n_taylor)) / ((NFFT_R)(N)), m_taylor, t_taylor);
 
   if (test_accuracy)
     printf("%.2" NFFT__FES__ "\n", NFFT(error_l_infty_complex)(swapndft, np.f, np.M_total));

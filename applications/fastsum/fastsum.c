@@ -603,10 +603,10 @@ static void fastsum_precompute_kernel(fastsum_plan *ths)
   NFFT_INT N[ths->d];
   int n_total;
 #ifdef MEASURE_TIME
-  NFFT_R t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[0] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[0] = 0.0;
 
 #ifdef MEASURE_TIME
   t0 = NFFT(clock_gettime_seconds)();
@@ -988,11 +988,11 @@ void fastsum_exact(fastsum_plan *ths)
 void fastsum_precompute_source_nodes(fastsum_plan *ths)
 {
 #ifdef MEASURE_TIME
-  NFFT_R t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[1] = NFFT_K(0.0);
-  ths->MEASURE_TIME_t[3] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[1] = 0.0;
+  ths->MEASURE_TIME_t[3] = 0.0;
 
 #ifdef MEASURE_TIME
   t0 = NFFT(clock_gettime_seconds)();
@@ -1037,10 +1037,10 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
 void fastsum_precompute_target_nodes(fastsum_plan *ths)
 {
 #ifdef MEASURE_TIME
-  NFFT_R t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[2] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[2] = 0.0;
 
 #ifdef MEASURE_TIME
   t0 = NFFT(clock_gettime_seconds)();
@@ -1074,13 +1074,13 @@ void fastsum_trafo(fastsum_plan *ths)
 {
   int j, k, t;
 #ifdef MEASURE_TIME
-  NFFT_R t0, t1;
+  double t0, t1;
 #endif
 
-  ths->MEASURE_TIME_t[4] = NFFT_K(0.0);
-  ths->MEASURE_TIME_t[5] = NFFT_K(0.0);
-  ths->MEASURE_TIME_t[6] = NFFT_K(0.0);
-  ths->MEASURE_TIME_t[7] = NFFT_K(0.0);
+  ths->MEASURE_TIME_t[4] = 0.0;
+  ths->MEASURE_TIME_t[5] = 0.0;
+  ths->MEASURE_TIME_t[6] = 0.0;
+  ths->MEASURE_TIME_t[7] = 0.0;
 
 #ifdef MEASURE_TIME
   t0 = NFFT(clock_gettime_seconds)();

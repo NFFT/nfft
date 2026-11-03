@@ -38,8 +38,8 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
 {
   int j,k,l;
   NFFT_R time,min_time,max_time,min_inh,max_inh;
-  NFFT_R t0, t1;
-  NFFT_R t,real,imag;
+  double t0, t1, t;
+  NFFT_R real,imag;
   NFFT_R w,epsilon=NFFT_K(0.0000003);     /* epsilon is a the break criterium for
                                    the iteration */;
   MRI(inh_2d1d_plan) my_plan;

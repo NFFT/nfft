@@ -32,7 +32,7 @@ int main(void)
   NFFT(plan) p;
   const int N = 1000000;
   const int M = 1000000;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   printf("nthreads = " NFFT__D__ "\n", NFFT(get_num_threads)());
 
@@ -50,7 +50,7 @@ int main(void)
   if(p.flags & PRE_ONE_PSI)
       NFFT(precompute_one_psi)(&p);
   t1 = NFFT(clock_gettime_seconds)();
-  fprintf(stderr,"precompute elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
+  fprintf(stderr,"precompute elapsed time: %.3f seconds\n",t1-t0);
 
   /* pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat,p.N_total);
@@ -59,7 +59,7 @@ int main(void)
   t0 = NFFT(clock_gettime_seconds)();
   NFFT(trafo)(&p);
   t1 = NFFT(clock_gettime_seconds)();
-  fprintf(stderr,"compute    elapsed time: %.3" NFFT__FIS__ " seconds\n",t1-t0);
+  fprintf(stderr,"compute    elapsed time: %.3f seconds\n",t1-t0);
   fflush(stderr);
 
   /* cleanup */

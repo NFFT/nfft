@@ -1589,7 +1589,7 @@ extern double _Complex catanh(double _Complex z);
 #endif /* ! HAVE_ALLOCA */
 
 /** Return number of elapsed seconds between two time points. */
-R Y(elapsed_seconds)(ticks t1, ticks t0);
+double Y(elapsed_seconds)(ticks t1, ticks t0);
 
 /** Dummy use of unused parameters to silence compiler warnings */
 #define UNUSED(x) (void)x
@@ -1601,13 +1601,11 @@ R Y(elapsed_seconds)(ticks t1, ticks t0);
  *  ffts.
  */
 #ifdef MEASURE_TIME
- int MEASURE_TIME_r;
- double MEASURE_TIME_tt;
- ticks MEASURE_TIME_t0, MEASURE_TIME_t1;
-
 #define TIC(a)                                                                \
-  ths->MEASURE_TIME_t[(a)]=0;                                                 \
-  MEASURE_TIME_r=0;                                                           \
+  {                                                                           \
+  int MEASURE_TIME_r = 0;                                                     \
+  ticks MEASURE_TIME_t0, MEASURE_TIME_t1;                                     \
+  ths->MEASURE_TIME_t[(a)] = 0.0;                                             \
   /* DISABLED LOOP due to code blocks causing segfault when repeatedly run */ \
   /*while(ths->MEASURE_TIME_t[(a)]<0.01)*/                                    \
     {                                                                         \
@@ -1618,10 +1616,11 @@ R Y(elapsed_seconds)(ticks t1, ticks t0);
 
 #define TOC(a)                                                                \
       MEASURE_TIME_t1 = getticks();                                           \
-      MEASURE_TIME_tt = Y(elapsed_seconds)(MEASURE_TIME_t1,MEASURE_TIME_t0);\
-      ths->MEASURE_TIME_t[(a)]+=MEASURE_TIME_tt;                              \
+      ths->MEASURE_TIME_t[(a)] +=                                             \
+        Y(elapsed_seconds)(MEASURE_TIME_t1, MEASURE_TIME_t0);                 \
     }                                                                         \
-  ths->MEASURE_TIME_t[(a)]/=MEASURE_TIME_r;                                   \
+  ths->MEASURE_TIME_t[(a)] /= (double)MEASURE_TIME_r;                         \
+  }                                                                           \
 
 #else
 #define TIC(a)

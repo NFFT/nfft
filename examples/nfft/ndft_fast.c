@@ -82,9 +82,9 @@ static void ndft_pre_full_init(NFFT(plan) *ths, NFFT_C *A)
 static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
 {
   int r;
-  NFFT_R t, t_ndft, t_horner, t_pre_full, t_nfft;
+  double t, t_ndft, t_horner, t_pre_full, t_nfft;
   NFFT_C *A = NULL;
-  NFFT_R t0, t1;
+  double t0, t1;
 
   NFFT(plan) np;
 
@@ -107,9 +107,9 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
   /* NDFT */
   if (test_ndft)
   {
-    t_ndft = NFFT_K(0.0);
+    t_ndft = 0.0;
     r = 0;
-    while (t_ndft < NFFT_K(0.1))
+    while (t_ndft < 0.1)
     {
       r++;
       t0 = NFFT(clock_gettime_seconds)();
@@ -118,17 +118,17 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       t = t1 - t0;
       t_ndft += t;
     }
-    t_ndft /= (NFFT_R) (r);
+    t_ndft /= (double)(r);
 
-    printf("%.2" NFFT__FES__ "\t", t_ndft);
+    printf("%.2E\t", t_ndft);
   }
   else
     printf("N/A\t\t");
 
   /* Horner NDFT */
-  t_horner = NFFT_K(0.0);
+  t_horner = 0.0;
   r = 0;
-  while (t_horner < NFFT_K(0.1))
+  while (t_horner < 0.1)
   {
     r++;
     t0 = NFFT(clock_gettime_seconds)();
@@ -137,16 +137,16 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
     t = t1 - t0;
     t_horner += t;
   }
-  t_horner /= (NFFT_R)(r);
+  t_horner /= (double)(r);
 
-  printf("%.2" NFFT__FES__ "\t", t_horner);
+  printf("%.2E\t", t_horner);
 
   /* Fully precomputed NDFT */
   if (test_pre_full)
   {
-    t_pre_full = NFFT_K(0.0);
+    t_pre_full = 0.0;
     r = 0;
-    while (t_pre_full < NFFT_K(0.1))
+    while (t_pre_full < 0.1)
     {
       r++;
       t0 = NFFT(clock_gettime_seconds)();
@@ -155,16 +155,16 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
       t = t1 - t0;
       t_pre_full += t;
     }
-    t_pre_full /= (NFFT_R)(r);
+    t_pre_full /= (double)(r);
 
-    printf("%.2" NFFT__FES__ "\t", t_pre_full);
+    printf("%.2E\t", t_pre_full);
   }
   else
     printf("N/A\t\t");
 
-  t_nfft = NFFT_K(0.0);
+  t_nfft = 0.0;
   r = 0;
-  while (t_nfft < NFFT_K(0.1))
+  while (t_nfft < 0.1)
   {
     r++;
     t0 = NFFT(clock_gettime_seconds)();
@@ -173,9 +173,9 @@ static void ndft_time(int N, int M, unsigned test_ndft, unsigned test_pre_full)
     t = t1 - t0;
     t_nfft += t;
   }
-  t_nfft /= (NFFT_R)(r);
+  t_nfft /= (double)(r);
 
-  printf("%.2" NFFT__FES__ "\n", t_nfft);
+  printf("%.2E\n", t_nfft);
 
   fflush(stdout);
 

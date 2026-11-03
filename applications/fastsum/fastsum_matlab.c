@@ -51,8 +51,8 @@ int main(int argc, char **argv)
   NFFT_R c; /**< parameter for kernel    */
   fastsum_plan my_fastsum_plan; /**< plan for fast summation */
   NFFT_C *direct; /**< array for direct computation */
-  NFFT_R t0, t1; /**< for time measurement    */
-  NFFT_R time; /**< for time measurement    */
+  double t0, t1; /**< for time measurement    */
+  double time; /**< for time measurement    */
   NFFT_R error = NFFT_K(0.0); /**< for error computation   */
   NFFT_R eps_I; /**< inner boundary          */
   NFFT_R eps_B; /**< outer boundary          */
@@ -173,7 +173,7 @@ int main(int argc, char **argv)
   fastsum_exact(&my_fastsum_plan);
   t1 = NFFT(clock_gettime_seconds)();
   time = t1 - t0;
-  printf(NFFT__FI__ "sec\n", time);
+  printf("%fsec\n", time);
 
   /** copy result */
   direct = (NFFT_C *) NFFT(malloc)((size_t)(my_fastsum_plan.M_total) * (sizeof(NFFT_C)));
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
   fastsum_precompute(&my_fastsum_plan);
   t1 = NFFT(clock_gettime_seconds)();
   time = t1 - t0;
-  printf(NFFT__FI__ "sec\n", time);
+  printf("%fsec\n", time);
 
   /** fast computation */
   printf("fast computation:   ");
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
   fastsum_trafo(&my_fastsum_plan);
   t1 = NFFT(clock_gettime_seconds)();
   time = t1 - t0;
-  printf(NFFT__FI__ "sec\n", time);
+  printf("%fsec\n", time);
 
   /** compute max error */
   error = NFFT_K(0.0);

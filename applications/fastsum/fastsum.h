@@ -125,7 +125,7 @@ typedef struct fastsum_plan_
   
   int *permutation_x_alpha;    /**< permutation vector of source nodes if STORE_PERMUTATION_X_ALPHA is set */
 
-  NFFT_R MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
+  double MEASURE_TIME_t[8]; /**< Measured time for each step if MEASURE_TIME is set */
 
 } fastsum_plan;
 

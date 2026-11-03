@@ -22,14 +22,14 @@
 #include <time.h>
 #endif
 
-R Y(elapsed_seconds)(ticks t1, ticks t0)
+double Y(elapsed_seconds)(ticks t1, ticks t0)
 {
   UNUSED(t1);
   UNUSED(t0);
-  return (R)(elapsed(t1,t0)) / (R)(TICKS_PER_SECOND);
+  return (double)(elapsed(t1,t0)) / (double)(TICKS_PER_SECOND);
 }
 
-R Y(clock_gettime_seconds)(void)
+double Y(clock_gettime_seconds)(void)
 {
 #if defined(HAVE_CLOCK_GETTIME)
   struct timespec tp;
@@ -39,9 +39,9 @@ R Y(clock_gettime_seconds)(void)
     tp.tv_nsec = 0;
   }
 
-  return tp.tv_sec+(R)tp.tv_nsec/K(1e9);
+  return (double)tp.tv_sec + (double)tp.tv_nsec / 1e9;
 #else
-  return K(0.0);
+  return 0.0;
 #endif
 }
 

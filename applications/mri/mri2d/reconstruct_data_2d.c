@@ -35,8 +35,8 @@
 static void reconstruct(char* filename,int N,int M,int iteration, int weight)
 {
   int j,k,l;                    /* some variables  */
-  NFFT_R t0, t1;
-  NFFT_R real,imag,t;           /* to read the real and imag part of a complex number */
+  double t0, t1, t;
+  NFFT_R real,imag;             /* to read the real and imag part of a complex number */
   NFFT(plan) my_plan;            /* plan for the two dimensional nfft  */
   SOLVER(plan_complex) my_iplan; /* plan for the two dimensional infft */
   FILE* fin;                    /* input file                         */
