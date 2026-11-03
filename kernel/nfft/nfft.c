@@ -5779,79 +5779,76 @@ static void real_D_adjoint(X(plan) *ths)
   }
 }
 
-/* The window run of node j along dimension t restricted to the indices
- * [lo, hi]: the lattice indices in idx, the window values in psi, and their
- * number as the result. */
-static INT real_run(const X(plan) *ths, const INT j, const INT t, const INT lo,
-  const INT hi, INT *idx, R *psi)
-{
-  const INT w = 2 * ths->m + 2, n = ths->n[t];
-  INT u, o, l, i, c = 0;
-  R run[w];
-  const R *p = run;
-
-  uo(ths, j, &u, &o, t);
-  if (ths->flags & PRE_PSI)
-    p = ths->psi + (j * ths->d + t) * w;
-  else
-  {
-    PHI_RUN(run, n, ths->x[j * ths->d + t], u, t);
-  }
-
-  for (l = 0, i = (u % n + n) % n; l < w; l++, i = i + 1 == n ? 0 : i + 1)
-    if (lo <= i && i <= hi)
-    {
-      idx[c] = i;
-      psi[c++] = p[l];
-    }
-  return c;
-}
-
-/* f_j from the real g, or for the adjoint f_j psi added to g, d = 1, 2, 3 as
- * three dimensions with leading ones of length 1; the adjoint only writes
- * the rows [lo, hi] of dimension 0. Along the last dimension the run is at
- * most two contiguous pieces, [i0, n) and [0, ...). */
+/* f_j from the real g, or for the adjoint f_j psi added to g, the d
+ * dimensions right-aligned in three padded with ones; the adjoint writes only
+ * the indices [lo, hi] of dimension 0. Along the last dimension the run is the
+ * taps [l0, l1) at u + l and [l2, l3) at u + l - n. */
 static void real_B_node(const X(plan) *ths, R *g, const INT j, const INT lo,
   const INT hi, const int adjoint)
 {
-  const INT d = ths->d, w = 2 * ths->m + 2, e = 3 - d, nl = ths->n[d - 1];
-  INT c[3] = {1, 1, 1}, s[3] = {0, 0, 1}, idx[3][w], a, b, l, i0, c1;
-  R psi[3][w], v[w], f = K(0.0);
+  const INT d = ths->d, w = 2 * ths->m + 2, e = 3 - d;
+  INT n[3] = {1, 1, 1}, u[3] = {0, 0, 0}, c[3] = {1, 1, 1}, rlo[3] = {0, 0, 0},
+    rhi[3] = {0, 0, 0}, t, a, b, l, l0, l1, l2, l3;
+  R buf[3 * w], v[w], f = K(0.0);
+  const R one = K(1.0), *psi[3] = {&one, &one, &one};
 
-  idx[0][0] = idx[1][0] = 0;
-  psi[0][0] = psi[1][0] = K(1.0);
-  for (a = 0; a < d; a++)
-    c[e + a] = real_run(ths, j, a, a == 0 ? lo : 0, a == 0 ? hi : ths->n[a] - 1,
-      idx[e + a], psi[e + a]);
-  s[1] = d > 1 ? nl : 0;
-  s[0] = d > 2 ? ths->n[1] * nl : 0;
-  i0 = idx[2][0];
-  c1 = MIN(c[2], nl - i0);
+  for (t = 0; t < d; t++)
+  {
+    const R x = ths->x[j * d + t];
+    const INT s = (INT)FLOOR(x * (R)(ths->n[t])) - ths->m;
+
+    n[e + t] = ths->n[t];
+    c[e + t] = w;
+    u[e + t] = s < 0 ? s + n[e + t] : s;
+    rhi[e + t] = n[e + t] - 1;
+    if (ths->flags & PRE_PSI)
+      psi[e + t] = ths->psi + (j * d + t) * w;
+    else
+    {
+      PHI_RUN(buf + t * w, n[e + t], x, s, t);
+      psi[e + t] = buf + t * w;
+    }
+  }
+  rlo[e] = lo;
+  rhi[e] = hi;
+  l0 = MAX(rlo[2] - u[2], 0);
+  l1 = MIN(MIN(c[2], n[2] - u[2]), rhi[2] + 1 - u[2]);
+  l2 = MAX(rlo[2], 0) + n[2] - u[2];
+  l3 = MIN(u[2] + c[2] - n[2], rhi[2] + 1) + n[2] - u[2];
 
   for (l = 0; l < c[2]; l++)
     v[l] = adjoint ? CREAL(ths->f[j]) * psi[2][l] : K(0.0);
 
   for (a = 0; a < c[0]; a++)
+  {
+    const INT i = u[0] + a < n[0] ? u[0] + a : u[0] + a - n[0];
+
+    if (i < rlo[0] || i > rhi[0])
+      continue;
     for (b = 0; b < c[1]; b++)
     {
-      R *gr = g + idx[0][a] * s[0] + idx[1][b] * s[1];
+      const INT k = u[1] + b < n[1] ? u[1] + b : u[1] + b - n[1];
+      R *gr = g + (i * n[1] + k) * n[2] + u[2];
       const R p = psi[0][a] * psi[1][b];
 
+      if (k < rlo[1] || k > rhi[1])
+        continue;
       if (adjoint)
       {
-        for (l = 0; l < c1; l++)
-          gr[i0 + l] += p * v[l];
-        for (l = c1; l < c[2]; l++)
-          gr[l - c1] += p * v[l];
+        for (l = l0; l < l1; l++)
+          gr[l] += p * v[l];
+        for (l = l2; l < l3; l++)
+          gr[l - n[2]] += p * v[l];
       }
       else
       {
-        for (l = 0; l < c1; l++)
-          v[l] += p * gr[i0 + l];
-        for (l = c1; l < c[2]; l++)
-          v[l] += p * gr[l - c1];
+        for (l = l0; l < l1; l++)
+          v[l] += p * gr[l];
+        for (l = l2; l < l3; l++)
+          v[l] += p * gr[l - n[2]];
       }
     }
+  }
 
   if (!adjoint)
   {
