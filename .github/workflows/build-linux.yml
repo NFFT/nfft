@@ -382,7 +382,7 @@ jobs:
   accuracy-report:  # Accuracy report publishing (only baseline and in-repo PRs).
     name: accuracy-report
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     if: ${{ always() && needs.build.result != 'skipped' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
     permissions:
       contents: write  # push to gh-pages
@@ -513,7 +513,7 @@ jobs:
     name: linux-ok
     if: always()
     needs: [ changes, build, distcheck, cmake-octave ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.build == 'true' && contains(needs.*.result, 'skipped'))
         run: exit 1

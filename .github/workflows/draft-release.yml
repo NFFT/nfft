@@ -25,7 +25,7 @@ jobs:
     permissions:
       contents: write  # Required to create GitHub release.
       pull-requests: read  # Required to read PR contents.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - id: base
         env:
@@ -60,7 +60,7 @@ jobs:
     permissions:
       contents: write  # Required to create GitHub release.
       pull-requests: read  # Required to read PR contents.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - id: base
         env:

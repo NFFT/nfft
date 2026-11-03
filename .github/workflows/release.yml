@@ -17,7 +17,7 @@ jobs:
   prepare:
     name: Prepare
     if: startsWith(github.ref, 'refs/heads/release/') || github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       contents: read  # Required to read configure.ac and the tags.
       actions: read  # Required to read the CI result of the commit.
@@ -110,7 +110,7 @@ jobs:
   release:
     name: Release
     needs: [ prepare, dist ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     # Holds the app key. Only release branches and master can use it.
     environment: release
     permissions: {}
