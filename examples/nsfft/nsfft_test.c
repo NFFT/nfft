@@ -120,8 +120,7 @@ static void time_nsfft(int d, int J, int M, unsigned test_nsdft, unsigned test_n
     NFFT(init_guru)(&np,d,N,M,n,6, FG_PSI| MALLOC_F_HAT| MALLOC_F| FFTW_INIT,
       FFTW_MEASURE);
     np.x=p.act_nfft_plan->x;
-    if(np.flags & PRE_ONE_PSI)
-      NFFT(precompute_one_psi)(&np);
+    NFFT(precompute_one_psi)(&np);
     NSFFT(cp)(&p, &np);
 
     t_nfft=0;

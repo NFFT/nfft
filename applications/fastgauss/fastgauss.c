@@ -276,10 +276,8 @@ static void fgt_init_node_dependent(fgt_plan *ths)
   for (j = 0; j < ths->nplan2->M_total; j++)
     ths->nplan2->x[j] = ths->y[j] / ths->p;
 
-  if (ths->nplan1->flags & PRE_PSI)
-    NFFT(precompute_psi)(ths->nplan1);
-  if (ths->nplan2->flags & PRE_PSI)
-    NFFT(precompute_psi)(ths->nplan2);
+  NFFT(precompute_one_psi)(ths->nplan1);
+  NFFT(precompute_one_psi)(ths->nplan2);
 }
 
 /**

@@ -1018,14 +1018,7 @@ void fastsum_precompute_source_nodes(fastsum_plan *ths)
   /** init NFFT plan for transposed transform in first step*/
 
   /** precompute psi, the entries of the matrix B */
-  if (ths->mv1.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&(ths->mv1));
-
-  if (ths->mv1.flags & PRE_PSI)
-    NFFT(precompute_psi)(&(ths->mv1));
-
-  if (ths->mv1.flags & PRE_FULL_PSI)
-    NFFT(precompute_full_psi)(&(ths->mv1));
+  NFFT(precompute_one_psi)(&(ths->mv1));
 #ifdef MEASURE_TIME
   t1 = NFFT(clock_gettime_seconds)();
   ths->MEASURE_TIME_t[1] += t1 - t0;
@@ -1048,14 +1041,7 @@ void fastsum_precompute_target_nodes(fastsum_plan *ths)
   /** init NFFT plan for transform in third step*/
 
   /** precompute psi, the entries of the matrix B */
-  if (ths->mv2.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&(ths->mv2));
-
-  if (ths->mv2.flags & PRE_PSI)
-    NFFT(precompute_psi)(&(ths->mv2));
-
-  if (ths->mv2.flags & PRE_FULL_PSI)
-    NFFT(precompute_full_psi)(&(ths->mv2));
+  NFFT(precompute_one_psi)(&(ths->mv2));
 #ifdef MEASURE_TIME
   t1 = NFFT(clock_gettime_seconds)();
   ths->MEASURE_TIME_t[2] += t1 - t0;
