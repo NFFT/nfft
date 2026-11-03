@@ -54,15 +54,11 @@ static int mpolar_max_nodes(int T, int S)
   return T * mpolar_r2(S);
 }
 
-/** Shifts a node coordinate by a period into [-0.5,0.5), the node domain of
- *  the NFFT. */
+/** Maps 1/2 to -1/2, the same point on the torus; NFFT nodes are in
+ *  [-1/2,1/2). */
 static NFFT_R mpolar_wrap(NFFT_R x)
 {
-  if (x >= NFFT_K(0.5))
-    return x - NFFT_K(1.0);
-  if (x < -NFFT_K(0.5))
-    return x + NFFT_K(1.0);
-  return x;
+  return x >= NFFT_K(0.5) ? x - NFFT_K(1.0) : x;
 }
 
 /** Generates the points \f$x_{t,j}\f$ with weights \f$w_{t,j}\f$
@@ -75,8 +71,7 @@ static NFFT_R mpolar_wrap(NFFT_R x)
  *    (j,t)^{\top}\in I_{\sqrt{2}R}\times I_T\,.
  *  \f]
  *  with \f$r_j\f$ and \f$\theta_t\f$ as for the polar grid.
- *  Nodes up to \f$1/R\f$ outside the unit square are kept and shifted by a
- *  period into \f$[-1/2,1/2)^2\f$.
+ *  The unit square is closed, \f$[-1/2,1/2]^2\f$.
  *  The number of nodes for the modified polar grid can be estimated as
  *  \f$M \approx \frac{4}{\pi}\log(1+\sqrt{2}) T R\f$.
  */
@@ -95,9 +90,7 @@ static int mpolar_grid(int T, int S, NFFT_R *x, NFFT_R *w)
       xx = (NFFT_R) (r) / (NFFT_R)(S) * NFFT_M(cos)(NFFT_KPI * (NFFT_R)(t) / (NFFT_R)(T));
       yy = (NFFT_R) (r) / (NFFT_R)(S) * NFFT_M(sin)(NFFT_KPI * (NFFT_R)(t) / (NFFT_R)(T));
 
-      if (((-NFFT_K(0.5) - NFFT_K(1.0) / (NFFT_R) S) <= xx) & (xx <= (NFFT_K(0.5) + NFFT_K(1.0) / (NFFT_R) S))
-          & ((-NFFT_K(0.5) - NFFT_K(1.0) / (NFFT_R) S) <= yy)
-          & (yy <= (NFFT_K(0.5) + NFFT_K(1.0) / (NFFT_R) S)))
+      if ((-NFFT_K(0.5) <= xx) & (xx <= NFFT_K(0.5)) & (-NFFT_K(0.5) <= yy) & (yy <= NFFT_K(0.5)))
       {
         x[2 * M + 0] = mpolar_wrap(xx);
         x[2 * M + 1] = mpolar_wrap(yy);
