@@ -70,7 +70,7 @@ jobs:
   # Signs the archive digest. Runs no build code.
   attest:
     needs: dist
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     name: "attest"
     permissions:
       id-token: write  # Required to request the Sigstore signing certificate.

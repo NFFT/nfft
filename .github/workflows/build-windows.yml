@@ -81,7 +81,7 @@ jobs:
     name: windows-ok
     if: always()
     needs: [ changes, cmake-windows ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.build == 'true' && contains(needs.*.result, 'skipped'))
         run: exit 1

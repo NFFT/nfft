@@ -414,7 +414,7 @@ jobs:
     name: macos-ok
     if: always()
     needs: [ changes, build, distcheck ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || (needs.changes.outputs.build == 'true' && contains(needs.*.result, 'skipped'))
         run: exit 1
