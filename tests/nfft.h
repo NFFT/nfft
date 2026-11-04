@@ -31,6 +31,7 @@ void X(check_3d_direct_file)(void);
 void X(check_3d_fast_file)(void);
 void X(check_3d_online)(void);
 void X(check_4d_online)(void);
+void X(check_real_online)(void);
 
 void X(check_adjoint_1d_direct_file)(void);
 void X(check_adjoint_1d_fast_file)(void);
@@ -42,6 +43,7 @@ void X(check_adjoint_3d_direct_file)(void);
 void X(check_adjoint_3d_fast_file)(void);
 void X(check_adjoint_3d_online)(void);
 void X(check_adjoint_4d_online)(void);
+void X(check_adjoint_real_online)(void);
 
 #if defined(GAUSSIAN)
 void X(check_1d_online_gaussian_m)(void);
