@@ -5691,7 +5691,16 @@ void X(adjoint_3d)(X(plan) *ths)
 }
 
 /* NFFT_REAL: g1 holds the half lattice l_{d-1} = 0, ..., n_{d-1}/2 of the
- * Hermitian g_hat, g2 the real g, and FFTW's c2r and r2c transform between them. */
+ * Hermitian g_hat, g2 the real g, and FFTW's c2r and r2c transform between them.
+ * In place, g2 is g1 with the rows of g padded to 2 (n_{d-1}/2 + 1). */
+
+/* row length of the real g */
+static inline INT real_stride(const X(plan) *ths)
+{
+  const INT n = ths->n[ths->d - 1];
+
+  return ths->g2 == ths->g1 ? 2 * (n / 2 + 1) : n;
+}
 
 /* 1/phi_hat(k) along dimension t */
 static inline R real_phi_inv(const X(plan) *ths, const INT t, const INT k)
@@ -5786,7 +5795,7 @@ static void real_D_adjoint(X(plan) *ths)
 static void real_B_node(const X(plan) *ths, R *g, const INT j, const INT lo,
   const INT hi, const int adjoint)
 {
-  const INT d = ths->d, w = 2 * ths->m + 2, e = 3 - d;
+  const INT d = ths->d, w = 2 * ths->m + 2, e = 3 - d, st = real_stride(ths);
   INT n[3] = {1, 1, 1}, u[3] = {0, 0, 0}, c[3] = {1, 1, 1}, rlo[3] = {0, 0, 0},
     rhi[3] = {0, 0, 0}, t, a, b, l, l0, l1, l2, l3;
   R buf[3 * w], v[w], f = K(0.0);
@@ -5828,7 +5837,7 @@ static void real_B_node(const X(plan) *ths, R *g, const INT j, const INT lo,
     for (b = 0; b < c[1]; b++)
     {
       const INT k = u[1] + b < n[1] ? u[1] + b : u[1] + b - n[1];
-      R *gr = g + (i * n[1] + k) * n[2] + u[2];
+      R *gr = g + (i * n[1] + k) * st + u[2];
       const R p = psi[0][a] * psi[1][b];
 
       if (k < rlo[1] || k > rhi[1])
@@ -5878,7 +5887,8 @@ static void real_B(X(plan) *ths, const int adjoint)
     return;
   }
 
-  memset(g, 0, (size_t)(ths->n_total) * sizeof(R));
+  memset(g, 0, (size_t)(ths->n_total / ths->n[ths->d - 1] * real_stride(ths))
+    * sizeof(R));
 #ifdef _OPENMP
   /* each thread writes its own rows of dimension 0, from the nodes sorted by them */
   #pragma omp parallel private(k)
@@ -6260,10 +6270,9 @@ static void init_help(X(plan) *ths)
   INT t; /* index over all dimensions */
   INT lprod; /* 'bandwidth' of matrix B */
 
-  /* a real plan transforms between the half lattice g1 and the real g2, and
-   * its threaded adjoint goes by blocks of rows */
+  /* the threaded adjoint of a real plan goes by blocks of rows */
   if (ths->flags & NFFT_REAL)
-    ths->flags |= FFT_OUT_OF_PLACE | NFFT_OMP_BLOCKWISE_ADJOINT;
+    ths->flags |= NFFT_OMP_BLOCKWISE_ADJOINT;
 
   if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     ths->flags |= NFFT_SORT_NODES;
@@ -6327,10 +6336,9 @@ static void init_help(X(plan) *ths)
     ths->g1 = (C*)Y(malloc)((size_t)((ths->flags & NFFT_REAL) ? ths->n_total
       / ths->n[ths->d - 1] * (ths->n[ths->d - 1] / 2 + 1) : ths->n_total) * sizeof(C));
 
-    if (ths->flags & NFFT_REAL)
-      ths->g2 = (C*)Y(malloc)((size_t)(ths->n_total) * sizeof(R));
-    else if(ths->flags & FFT_OUT_OF_PLACE)
-      ths->g2 = (C*) Y(malloc)((size_t)(ths->n_total) * sizeof(C));
+    if(ths->flags & FFT_OUT_OF_PLACE)
+      ths->g2 = (C*) Y(malloc)((size_t)(ths->n_total) * ((ths->flags & NFFT_REAL)
+        ? sizeof(R) : sizeof(C)));
     else
       ths->g2 = ths->g1;
 

@@ -1330,7 +1330,7 @@ void X(check_adjoint_4d_online)(void)
 /* real-valued functions */
 
 static init_delegate_t init_real_pre_psi = {"init_guru (REAL, PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, NFFT_REAL | PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-static init_delegate_t init_real_no_pre = {"init_guru (REAL, no PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, NFFT_REAL | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
+static init_delegate_t init_real_no_pre = {"init_guru (REAL, no PRE PSI, in place)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, NFFT_REAL | (DEFAULT_NFFT_FLAGS ^ FFT_OUT_OF_PLACE), DEFAULT_FFTW_FLAGS};
 
 static const init_delegate_t* initializers_real[] = {&init_real_pre_psi, &init_real_no_pre};
 
