@@ -23,5 +23,6 @@ void X(check_kaiser_bessel_poly)(void);
 void X(check_kaiser_bessel_poly_trafo)(void);
 void X(check_kaiser_bessel_poly_sigma)(void);
 void X(check_kaiser_bessel_poly_opt)(void);
+void X(check_socp3)(void);
 
 #endif

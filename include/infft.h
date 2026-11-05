@@ -148,6 +148,7 @@ typedef ptrdiff_t INT;
   typedef double E;
   #define E_MANT_DIG DBL_MANT_DIG
   #define EK(x) ((E) x)
+  #define E_EPSILON DBL_EPSILON
   #define E_PI EK(3.1415926535897932384626433832795028841971693993751)
   #define E_SQRT(x) sqrt(x)
   #define E_COS(x) cos(x)
@@ -156,6 +157,7 @@ typedef ptrdiff_t INT;
   typedef R E;
   #define E_MANT_DIG MANT_DIG
   #define EK(x) K(x)
+  #define E_EPSILON EPSILON
   #define E_PI KPI
   #define E_SQRT(x) SQRT(x)
   #define E_COS(x) COS(x)
@@ -1852,6 +1854,30 @@ int Y(kb_poly_correct_ok)(const R b, const INT m);
  * and hut[0] = 0. */
 void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax);
+
+/* Status of Y(socp3_solve). */
+#define SOCP3_OPTIMAL 0
+#define SOCP3_INFEASIBLE 1   /* early: dobj > margin, dres < tol */
+#define SOCP3_FEASIBLE 2     /* early: pobj < -margin, pres < tol */
+#define SOCP3_STALLED 3
+#define SOCP3_MAXIT 4
+#define SOCP3_NUMERICAL 5
+
+/* Work size in E for M cones and n unknowns. */
+INT Y(socp3_work)(const INT M, const INT n);
+
+/* min q^T x  s.t.  s = h - G x in (Q^3)^M.  h: M x 3, G: M x 3 x n row-major
+ * (G[(i * 3 + r) * n + k]), q: n.  x: n, in: start (zeros if !warm), out:
+ * solution.  y: M x 3 dual, in: warm start if warm, out: multipliers.
+ * early != 0: return as soon as the sign of the optimum is known, margin
+ * = 10 tol.  tol: residual tolerance, relative to 1 + |h| and 1 + |q|,
+ * and the relative gap at which SOCP3_OPTIMAL is returned.  eps: the eps
+ * of E (ridge and cone guards).  On return *it is the iteration count,
+ * *pobj, *dobj, *pres, *dres the final objectives and residuals. */
+int Y(socp3_solve)(const INT M, const INT n, const E *h, const E *G,
+    const E *q, E *x, E *y, const int warm, const int early, const E tol,
+    const E eps, const INT maxit, E *work, INT *it, E *pobj, E *dobj,
+    E *pres, E *dres);
 
 /* Deconvolution table of an optimized window: hut[0] the number of terms,
  * 0 for the Kaiser-Bessel formula; hut[1] = 1 / xi_max^2; then the Chebyshev

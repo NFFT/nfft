@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <CUnit/CUnit.h>
 #include "nfft3.h"
 #include "infft.h"
@@ -547,3 +548,122 @@ void X(check_kaiser_bessel_poly_sigma)(void)
 }
 
 #endif
+
+/* |a_i + w| <= tau + z for a = (1, -1, 0.5): x = (w, z), min z = 1 - tau. */
+static void socp3_min_abs_data(E *h, E *G, E *q, const E tau)
+{
+  const E a[3] = {EK(1.0), EK(-1.0), EK(0.5)};
+  INT i;
+
+  memset(G, 0, 18 * sizeof(E));
+  for (i = 0; i < 3; i++)
+  {
+    h[3 * i] = tau;
+    h[3 * i + 1] = a[i];
+    h[3 * i + 2] = EK(0.0);
+    G[(3 * i) * 2 + 1] = EK(-1.0);
+    G[(3 * i + 1) * 2] = EK(-1.0);
+  }
+  q[0] = EK(0.0);
+  q[1] = EK(1.0);
+}
+
+/* ilogb, as isfinite folds to 1 under -ffast-math. */
+static int socp3_finite(const E *v, const INT n)
+{
+  INT i;
+  for (i = 0; i < n; i++)
+  {
+#if defined(NFFT_LDOUBLE)
+    const int e = ilogbl(v[i]);
+#else
+    const int e = ilogb(v[i]);
+#endif
+    if (v[i] != EK(0.0) && (e == FP_ILOGBNAN || e == INT_MAX))
+      return 0;
+  }
+  return 1;
+}
+
+void X(check_socp3)(void)
+{
+  const E tol = EK(1E-4);
+  E h[600], q[30], x[30], y[600], *G, *work, pobj, dobj, pres, dres;
+  INT it, i;
+  int st;
+
+  printf("SOCP3\n-----\n");
+
+  work = (E *)Y(malloc)((size_t)Y(socp3_work)(200, 30) * sizeof(E));
+  G = (E *)Y(malloc)(200 * 3 * 30 * sizeof(E));
+
+  socp3_min_abs_data(h, G, q, EK(0.4));
+  st = Y(socp3_solve)(3, 2, h, G, q, x, y, 0, 0, tol, E_EPSILON, 60, work,
+      &it, &pobj, &dobj, &pres, &dres);
+  printf("min_abs:  status %d it %td pobj %.6e x0 %.2e\n", st, (ptrdiff_t)it,
+      (double)pobj, (double)x[0]);
+  CU_ASSERT(st == SOCP3_OPTIMAL);
+  CU_ASSERT(fabs((double)pobj - 0.6) < 1E-3);
+  CU_ASSERT(fabs((double)x[0]) < 1E-2);
+
+  st = Y(socp3_solve)(3, 2, h, G, q, x, y, 0, 1, tol, E_EPSILON, 60, work,
+      &it, &pobj, &dobj, &pres, &dres);
+  printf("early:    status %d it %td dobj %.6e\n", st, (ptrdiff_t)it,
+      (double)dobj);
+  CU_ASSERT(st == SOCP3_INFEASIBLE);
+  CU_ASSERT(dobj > EK(1E-3));
+
+  socp3_min_abs_data(h, G, q, EK(1.5));
+  st = Y(socp3_solve)(3, 2, h, G, q, x, y, 0, 1, tol, E_EPSILON, 60, work,
+      &it, &pobj, &dobj, &pres, &dres);
+  printf("early:    status %d it %td pobj %.6e\n", st, (ptrdiff_t)it,
+      (double)pobj);
+  CU_ASSERT(st == SOCP3_FEASIBLE);
+  CU_ASSERT(pobj < EK(-1E-3));
+
+  for (i = 0; i < 600; i++)
+    h[i] = (E)Y(drand48)() - EK(0.5);
+  for (i = 0; i < 200; i++)
+    h[3 * i] += EK(2.0);
+  for (i = 0; i < 200 * 3 * 30; i++)
+    G[i] = (E)Y(drand48)() - EK(0.5);
+  for (i = 0; i < 30; i++)
+    q[i] = (E)Y(drand48)() - EK(0.5);
+  st = Y(socp3_solve)(200, 30, h, G, q, x, y, 0, 0, tol, E_EPSILON, 60, work,
+      &it, &pobj, &dobj, &pres, &dres);
+  printf("random:   status %d it %td pres %.2e dres %.2e\n", st,
+      (ptrdiff_t)it, (double)pres, (double)dres);
+  CU_ASSERT(st == SOCP3_OPTIMAL);
+  CU_ASSERT(pres < EK(1E-4));
+  CU_ASSERT(dres < EK(1E-4));
+  CU_ASSERT(it <= 60);
+
+  st = Y(socp3_solve)(200, 30, h, G, q, x, y, 0, 0, tol, E_EPSILON, 1, work,
+      &it, &pobj, &dobj, &pres, &dres);
+  printf("maxit:    status %d it %td\n", st, (ptrdiff_t)it);
+  CU_ASSERT(st == SOCP3_MAXIT);
+  CU_ASSERT(it == 1);
+  CU_ASSERT(socp3_finite(x, 30) && socp3_finite(y, 600));
+  CU_ASSERT(socp3_finite(&pobj, 1) && socp3_finite(&dobj, 1)
+      && socp3_finite(&pres, 1) && socp3_finite(&dres, 1));
+
+  {
+    const E hb[6] = {EK(1.0), EK(1.0), EK(0.0), EK(1.0), EK(0.0), EK(0.0)};
+    const E Gb[6] = {EK(0.0), EK(0.0), EK(0.0), EK(1.0), EK(0.0), EK(0.0)};
+    const E qb[1] = {EK(-1.0)};
+    st = Y(socp3_solve)(2, 1, hb, Gb, qb, x, y, 0, 0, tol, E_EPSILON, 60,
+        work, &it, &pobj, &dobj, &pres, &dres);
+    printf("boundary: status %d it %td pobj %.6e\n", st, (ptrdiff_t)it,
+        (double)pobj);
+    CU_ASSERT(st == SOCP3_OPTIMAL || st == SOCP3_NUMERICAL);
+    CU_ASSERT(socp3_finite(x, 1) && socp3_finite(y, 6));
+    CU_ASSERT(socp3_finite(&pobj, 1) && socp3_finite(&dobj, 1)
+        && socp3_finite(&pres, 1) && socp3_finite(&dres, 1));
+    if (st == SOCP3_OPTIMAL)
+      CU_ASSERT(fabs((double)pobj + 1.0) < 1E-3);
+  }
+
+  Y(free)(G);
+  Y(free)(work);
+  printf("\n");
+}
