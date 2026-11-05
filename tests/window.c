@@ -555,8 +555,6 @@ void X(check_log_sinc_exp)(void)
   CU_ASSERT(ok == 1);
 }
 
-#define BSPLINE_RUN_MAX_M 16
-
 /* The per-cell polynomial run against the direct evaluation, within the
  * rounding floor the degree is cut at. */
 void X(check_sincpow_poly_run)(void)
@@ -598,123 +596,42 @@ void X(check_sincpow_poly_run)(void)
 #endif
 }
 
-/* The per-cell polynomial run against de Boor, within the degree rule's
- * truncation plus rounding. */
+/* The per-cell polynomial run against de Boor, within the eps/2 cut plus
+ * rounding. */
 void X(check_bspline_poly_run)(void)
 {
 #if defined(B_SPLINE)
-  static const int ms[] = {1, 2, 4, 8, 11};
-  static const R sigmas[] = {K(1.25), K(2.0)};
-  static const R fracs[] = {K(0.0), K(0.25), K(0.5), K(0.999)};
-  unsigned int i, si, f;
+  static const int ms[] = {1, 2, 4, 8, 11, 16};
+  static const R fracs[] = {K(0.0), K(0.25), K(0.5), K(0.999), K(1.0)};
+  const R b = tight_bound();
+  unsigned int i, f;
 
   printf("B-SPLINE POLY RUN\n-----------------\n");
 
   for (i = 0; i < SIZE(ms); i++)
-    for (si = 0; si < SIZE(sigmas); si++)
-    {
-      const INT m = (INT)ms[i], k = 2 * m + 2;
-      R *tab = Y(bspline_poly_init)(&sigmas[si], 1, m);
-      const INT deg = (INT)tab[0];
-      const R peak = Y(bsplines)(k, (R)k / K(2.0));
-      const R e = K(4.0) * POW(K(2.0) * sigmas[si] - K(1.0), -(R)k);
-      const R bound = (MAX(e / K(40.0), EPSILON / K(2.0)) / K(2.0)
-          + K(16.0) * EPSILON) * peak;
-      R run[2 * 11 + 2], err = K(0.0);
-      INT l;
-
-      for (f = 0; f < SIZE(fracs); f++)
-      {
-        Y(cell_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
-
-        for (l = 0; l < 2 * m + 2; l++)
-          err = FMAX(err, FABS(run[l]
-              - Y(bsplines)(k, (R)m + fracs[f] - (R)l + (R)k / K(2.0))));
-      }
-
-      printf("bspline_poly[m=" __D__ ", sigma=" __FE__ "] deg=" __D__
-          " err/peak=" __FE__ " bound=" __FE__ " %s\n", m, sigmas[si], deg,
-          err / peak, bound / peak, err <= bound ? "ok" : "FAIL");
-      CU_ASSERT(err <= bound);
-      Y(free)(tab);
-    }
-#endif
-}
-
-/* Every independent Clenshaw evaluation in the run must reproduce what one
- * evaluation per point gives, at every offset of the run against the support
- * and at every cutoff, and the run must sum to one, because the cardinal
- * B-splines of one order partition unity. */
-void X(check_bspline_run)(void)
-{
-#if defined(B_SPLINE)
-  static const int bs_run_m[] = {1, 2, 4, 8, 11, BSPLINE_RUN_MAX_M};
-  /* fractions of a grid cell, the ends included */
-  static const R bs_run_frac[] =
   {
-    K(0.0), K(1.0E-12), K(1.0E-6), K(0.25), K(0.5), K(0.75),
-    K(1.0) - K(1.0E-6), K(1.0)
-  };
-  const R b = tight_bound();
-  R inv[2 * BSPLINE_RUN_MAX_M];
-  unsigned int i, f;
-  INT j;
+    const INT m = (INT)ms[i], k = 2 * m + 2;
+    R *tab = Y(bspline_poly_init)(m);
+    const INT deg = (INT)tab[0];
+    const R peak = Y(bsplines)(k, (R)k / K(2.0));
+    R run[2 * 16 + 2], err = K(0.0);
+    INT l;
 
-  printf("B-SPLINE RUN\n------------\n");
-
-  for (j = 0; j < 2 * BSPLINE_RUN_MAX_M; j++)
-    inv[j] = K(1.0) / (R)(j + 1);
-
-  for (i = 0; i < SIZE(bs_run_m); i++)
-  {
-    const INT m = (INT)bs_run_m[i];
-    R *run = (R*)Y(malloc)((size_t)(2 * m + 2) * sizeof(R));
-
-    for (f = 0; f < SIZE(bs_run_frac); f++)
+    for (f = 0; f < SIZE(fracs); f++)
     {
-      const R t = (R)(2 * m) + bs_run_frac[f];
-      R peak = K(0.0), err = K(0.0), sum = K(0.0);
-      INT l, worst = 0;
-      int ok;
-
-      Y(bspline_phi_run)(run, inv, 2 * m, 2 * m + 1, t, K(1.0));
+      Y(cell_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
 
       for (l = 0; l < 2 * m + 2; l++)
-        peak = FMAX(peak, Y(bsplines)(2 * m, t - (R)l));
-
-      for (l = 0; l < 2 * m + 2; l++)
-      {
-        const R ref = Y(bsplines)(2 * m, t - (R)l);
-        R e;
-
-        if (!(FINITE(run[l])))
-        {
-          err = K(1.0);
-          worst = l;
-          break;
-        }
-        e = ABS(run[l] - ref) / peak;
-        if (e > err)
-        {
-          err = e;
-          worst = l;
-        }
-        sum += run[l];
-      }
-
-      ok = IF(err < b && ERR(sum, K(1.0)) < b, 1, 0);
-      printf("bspline_run[m=" __D__ ", frac=" __FE__ "] max err_peak = " __FE__
-        " %-2s " __FE__ " at l = " __D__ " sum-1 = " __FE__ " -> %-4s\n", m,
-        bs_run_frac[f], err, IF(ok == 0, ">=", "<"), b, worst,
-        ERR(sum, K(1.0)), IF(ok == 0, "FAIL", "OK"));
-      CU_ASSERT(ok == 1);
+        err = FMAX(err, FABS(run[l]
+            - Y(bsplines)(k, (R)m + fracs[f] - (R)l + (R)k / K(2.0))));
     }
 
-    Y(free)(run);
+    printf("bspline_poly[m=" __D__ "] deg=" __D__ " err/peak=" __FE__
+        " bound=" __FE__ " %s\n", m, deg, err / peak, b,
+        err <= b * peak ? "ok" : "FAIL");
+    CU_ASSERT(err <= b * peak);
+    Y(free)(tab);
   }
-#else
-  printf("B-SPLINE RUN\n------------\nskipped: %s window\n",
-    Y(get_window_name)());
 #endif
 }
 
@@ -756,7 +673,7 @@ void X(check_bspline_phi_hut_reference)(void)
   {
     const INT k = (INT)(8 * j);
     const R ref = bspline_phi_hut_ref_512_256_11[j];
-    const R v = Y(bspline_phi_hut)((R)m, (R)n, (R)k);
+    const R v = Y(bspline_phi_hut)((R)m, (R)n, (R)k) / (R)n;
     const R err = ERR(v, ref);
     const int ok = IF(FINITE(v) && err < b, 1, 0);
 
@@ -801,36 +718,36 @@ static const R bspline_phi_ref_512_11[] =
 
 /* Scaled by the peak of the run, which is what the psi table owes the
  * transform: relative error is not the yardstick in a tail that is 1e-30 of
- * the peak. */
+ * the peak. Order 22 is the table of m = 10, whose run of 22 taps leaves out
+ * the zero ends of the reference. The window drops 1/n, and n = 512 divides
+ * exactly. */
 void X(check_bspline_phi_reference)(void)
 {
-  const INT m = 11, n = 512;
-  const R t = (R)(2 * m) + K(0.3125);
+  const INT m = 10, n = 512;
   const R peak = BSPLINE_PHI_PEAK_512_11;
   const R b = tight_bound();
-  R inv[2 * 11];
-  R run[2 * 11 + 2];
-  INT j;
+  R *tab = Y(bspline_poly_init)(m);
+  R run[2 * 10 + 2];
   unsigned int l;
 
   printf("B-SPLINE PHI REFERENCE\n----------------------\n");
 
-  for (j = 0; j < 2 * m; j++)
-    inv[j] = K(1.0) / (R)(j + 1);
+  Y(cell_poly_run)(run, tab + 1, m, (INT)tab[0], (R)m + K(0.3125));
 
-  Y(bspline_phi_run)(run, inv, 2 * m, 2 * m + 1, t, K(1.0) / (R)n);
-
-  for (l = 0; l < SIZE(bspline_phi_ref_512_11); l++)
+  for (l = 0; l < 2 * 10 + 2; l++)
   {
-    const R ref = bspline_phi_ref_512_11[l];
-    const R err = ABS(run[l] - ref) / peak;
-    const int ok = IF(FINITE(run[l]) && err < b, 1, 0);
+    const R v = run[l] / (R)n;
+    const R ref = bspline_phi_ref_512_11[l + 1];
+    const R err = ABS(v - ref) / peak;
+    const int ok = IF(FINITE(v) && err < b, 1, 0);
 
     printf("phi[l=%u] = " __FE__ " err_peak = " __FE__ " %-2s " __FE__
-      " -> %-4s\n", l, run[l], err, IF(ok == 0, ">=", "<"), b,
+      " -> %-4s\n", l + 1, v, err, IF(ok == 0, ">=", "<"), b,
       IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
   }
+
+  Y(free)(tab);
 }
 
 /* Sinc-power phi over one full run for n = 512, m = 8, sigma = 2,

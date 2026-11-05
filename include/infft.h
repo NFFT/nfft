@@ -289,30 +289,23 @@ typedef ptrdiff_t INT;
     #define WINDOW_HELP_ESTIMATE_m 13
   #endif
 #elif defined(B_SPLINE)
-  /* The window is the centred B-spline of order BS_ORDER, half-width
+  /* The window is the centred B-spline of order 2m + 2, half-width
    * WINDOW_STENCIL_REACH, so it reaches every point of the run. No factor
    * 1/n: NFCT and NFST pass a doubled n, and a constant common to PHI and
    * PHI_HUT cancels in the transform.
    *
    * spline_coeffs[0] is the degree, then one CELL_POLY_ROWS x CELL_POLY_COLS
    * table shared by all axes. */
-  #define BS_ORDER ((INT)(K(2.0) * WINDOW_STENCIL_REACH))
   #define BS_POLY_DEG ((INT)ths->spline_coeffs[0])
-  #define PHI_HUT(n,k,ax) EXP(K(2.0) * WINDOW_STENCIL_REACH \
-                             * Y(log_sinc)((R)(k) * KPI / (R)(n)))
-  #define PHI(n,x,ax) (Y(bspline_cheb)(ths->b, BS_ORDER, \
-                          (x) * (R)(n) + WINDOW_STENCIL_REACH))
+  #define PHI_HUT(n,k,ax) (Y(bspline_phi_hut)(WINDOW_STENCIL_REACH, (R)(n), \
+                              (R)(k)))
+  #define PHI(n,x,ax) (Y(cell_poly_phi)(ths->spline_coeffs + 1, ths->m, \
+                          BS_POLY_DEG, (R)(n) * (R)(x)))
   #define PHI_RUN(dst,n,x,u,ax) \
     Y(cell_poly_run)((dst), ths->spline_coeffs + 1, ths->m, BS_POLY_DEG, \
         NX_SUB(n, x, u))
-  #define WINDOW_HELP_INIT \
-    { \
-      const INT WINDOW_k = BS_ORDER; \
-      ths->b = (R*) Y(malloc)((size_t)(WINDOW_k * WINDOW_k) * sizeof(R)); \
-      Y(bspline_cheb_init)(ths->b, WINDOW_k); \
-      ths->spline_coeffs = Y(bspline_poly_init)(ths->sigma, ths->d, ths->m); \
-    }
-  #define WINDOW_HELP_FINALIZE {Y(free)(ths->b); Y(free)(ths->spline_coeffs);}
+  #define WINDOW_HELP_INIT {ths->spline_coeffs = Y(bspline_poly_init)(ths->m);}
+  #define WINDOW_HELP_FINALIZE {Y(free)(ths->spline_coeffs);}
   #if MANT_DIG == 113
     // IEEE 754 quadruple precision, 128 bits.
     // TODO: Set good value for quadruple precision.
@@ -1821,9 +1814,29 @@ static inline R Y(cell_poly_phi)(const R *tab, const INT m, const INT deg,
   return v;
 }
 
-/* The B-spline window of order 2m+2 in this layout, one table for all
- * axes; the tightest sigma sets the degree. The caller frees the result. */
-R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m);
+/* Degree cap of the B-spline table. The exact Chebyshev tail of B_(2m+2) per
+ * cell past this degree is within eps/2 of the peak for every m in 1 .. 32,
+ * computed in mpmath; below the cap the table takes the exact degree 2m+1,
+ * raised to 2m+2:
+ *   float: 8, reached from m = 3.
+ *   double: 14, from m = 6.
+ *   80-bit: 16, from m = 7.
+ *   binary128: 26, from m = 12.
+ * The needed degree falls again for large m. Each cap is short of the rise of
+ * the conversion error noted at KB_POLY_DEG_MAX. */
+#if MANT_DIG == 113
+  #define BS_POLY_DEG_MAX 26
+#elif MANT_DIG == 64
+  #define BS_POLY_DEG_MAX 16
+#elif MANT_DIG == 24
+  #define BS_POLY_DEG_MAX 8
+#else
+  #define BS_POLY_DEG_MAX 14
+#endif
+
+/* The B-spline window of order 2m+2 in this layout, one table for all axes,
+ * exact to rounding. The caller frees the result. */
+R *Y(bspline_poly_init)(const INT m);
 
 /* The sinc-power window in this layout, one table per axis from w, at
  * degree KB_POLY_DEG_MAX. The caller frees the result. */
@@ -2056,68 +2069,13 @@ static inline R Y(bspline_cheb_rel)(const R *tab, const INT k, const INT i0,
   return Y(bspline_cheb)(tab, k, x);
 }
 
-/* sinc(t)^(2m)/n with t = k pi / n. Formed as exp(2m log|sinc t|), because 2m
+/* sinc(t)^(2m) with t = k pi / n. Formed as exp(2m log|sinc t|), because 2m
  * multiplies the rounding error of sinc but only the absolute error of its
  * logarithm. Here |t| <= pi/(2 sigma), so log_sinc never leaves its polynomial
  * branch, and k = 0 needs no special case: log_sinc(0) is zero. */
 static inline R Y(bspline_phi_hut)(R m, R n, R k)
 {
-  return EXP(K(2.0) * m * Y(log_sinc)(k * KPI / n)) / n;
-}
-
-/* dst[l] = B_k(t - l) / n for l = 0 .. last, with inv[j] = 1/(j+1).
- *
- * The run arguments are one grid cell apart, so the nonzero entries are the k
- * cardinal B-splines of order k at a single point, and de Boor's scheme gives
- * all of them in one triangular sweep of O(k^2) rather than one sweep each.
- * The recurrence is linear in its seed, so the 1/n enters there instead of
- * costing a rounding per entry.
- *
- * The nonzero stretch is derived from t, so a run that sits differently against
- * the support still gets one evaluation per point. */
-static inline void Y(bspline_phi_run)(R *dst, const R *inv, INT k, INT last,
-  R t, R inv_n)
-{
-  const INT i = (INT)FLOOR(t);
-  const INT lo = i - k + 1;
-  INT j, l, r;
-
-  if (lo < 0 || lo + k > last + 1)
-  {
-    for (l = 0; l <= last; l++)
-      dst[l] = Y(bsplines)(k, t - (R)l) * inv_n;
-
-    return;
-  }
-
-  {
-    const R g = t - (R)i;
-    R *b = dst + lo;
-
-    for (l = 0; l < lo; l++)
-      dst[l] = K(0.0);
-
-    for (l = lo + k; l <= last; l++)
-      dst[l] = K(0.0);
-
-    b[0] = inv_n;
-
-    for (j = 0; j < k - 1; j++)
-    {
-      const R iv = inv[j];
-      R saved = K(0.0);
-
-      for (r = 0; r <= j; r++)
-      {
-        const R term = b[r] * iv;
-
-        b[r] = saved + ((R)(r + 1) - g) * term;
-        saved = (g + (R)(j - r)) * term;
-      }
-
-      b[j + 1] = saved;
-    }
-  }
+  return EXP(K(2.0) * m * Y(log_sinc)(k * KPI / n));
 }
 
 /* w sinc(a)^(2m). The exponent is even, so the sign of sinc past its first zero

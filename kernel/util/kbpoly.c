@@ -134,33 +134,6 @@ static void cheb_fit(R *cheb, R *node, R *cm, R *val, const INT m,
   cheb_of(cheb, val, cm, w, deg);
 }
 
-/* The lowest even degree d with 2 sum_{j>d} max_cells |cheb_j| <= thr, at
- * most KB_POLY_DEG_MAX. Even, because the leading error is then odd in the
- * cell and has no mean. */
-static INT cut_degree(const R *cheb, const INT w, const INT dg, const R thr)
-{
-  R sum = K(0.0);
-  INT deg, l;
-
-  for (deg = dg; deg >= 0; deg--)
-  {
-    R tail = K(0.0);
-
-    for (l = 0; l < w; l++)
-      tail = MAX(tail, FABS(cheb[deg * w + l]));
-
-    if (K(2.0) * (sum + tail) > thr)
-      break;
-
-    sum += tail;
-  }
-
-  deg = IF(deg < 0, 0, deg);
-  deg += deg & 1;
-
-  return IF(deg > KB_POLY_DEG_MAX, KB_POLY_DEG_MAX, deg);
-}
-
 static void fit(R *coef, const INT m, const INT deg, sampler phi,
     const void *ctx)
 {
@@ -269,37 +242,28 @@ static R bs_sample(const void *ctx, const R x)
 }
 
 /* The pieces have degree k-1, so k Chebyshev nodes fit them exactly. The
- * series is cut by the gen/kbpolygen rule against E = 4 (2 sigma - 1)^-k, the
- * window's own transform error at the tightest axis. */
-R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
+ * sampled coefficients carry about 2 eps of noise, too much to read an eps/2
+ * cut from, so the series is cut at the fixed BS_POLY_DEG_MAX. */
+R *Y(bspline_poly_init)(const INT m)
 {
   const INT k = 2 * m + 2, w = CELL_POLY_COLS(m), n = k, dg = k - 1;
+  const INT deg = IF(k < BS_POLY_DEG_MAX, k, BS_POLY_DEG_MAX);
   const struct bs_ctx c = {k};
   /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
   R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
       + (n + 1) * (n + 1) + n) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *coef = cheb + (n + 1) * w;
   R *cm = coef + (n + 1) * w, *tp = cm + n * n, *node = tp + (n + 1) * (n + 1);
-  const R peak = Y(bsplines)(k, (R)k / K(2.0));
-  R thr = K(0.0), *tab;
-  INT l, t, deg;
+  R *tab;
+  INT l;
 
   cheb_fit(cheb, node, cm, val, m, dg, bs_sample, &c);
 
+  /* k - 1 is odd, so an uncut series is raised to k, whose row is zero. */
   for (l = 0; l < w; l++)
     cheb[n * w + l] = K(0.0);
 
-  for (t = 0; t < d; t++)
-  {
-    const R e = K(4.0) * POW(K(2.0) * sigma[t] - K(1.0), -(R)k);
-    const R th = MAX(e / K(40.0), EPSILON / K(2.0)) * peak;
-
-    thr = IF(t == 0 || th < thr, th, thr);
-  }
-
-  deg = cut_degree(cheb, w, dg, thr);
-  /* An odd KB_POLY_DEG_MAX fills its last row from the next coefficient. */
-  cheb_to_monomial(coef, cheb, tp, w, CELL_POLY_ROWS(deg) - 1);
+  cheb_to_monomial(coef, cheb, tp, w, deg);
 
   tab = (R*) Y(malloc)((size_t)(1 + CELL_POLY_ROWS(deg) * w) * sizeof(R));
   tab[0] = (R)deg;

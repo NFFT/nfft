@@ -27,7 +27,6 @@ void X(check_kaiser_bessel_run)(void);
 void X(check_kaiser_bessel_phi)(void);
 void X(check_log_sinc)(void);
 void X(check_log_sinc_exp)(void);
-void X(check_bspline_run)(void);
 void X(check_bspline_poly_run)(void);
 void X(check_sincpow_poly_run)(void);
 void X(check_bspline_phi_hut_reference)(void);
