@@ -21,7 +21,7 @@
  * centre. Each cell is analytic: both branches of the window are even in the
  * radical and ra^2 is a polynomial in the offset, so the fit converges
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
- * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
+ * its error, which would cap the fit. Y(cell_poly_run) and Y(cell_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
  * m + 1 mirrored columns. Y(bspline_poly_init) and Y(sincpow_poly_init)
  * build the B-spline and sinc-power tables the same way. */
@@ -117,7 +117,7 @@ typedef R (*sampler)(const void *ctx, R x);
 static void cheb_fit(R *cheb, R *node, R *cm, R *val, const INT m,
     const INT deg, sampler phi, const void *ctx)
 {
-  const INT w = KB_POLY_COLS(m), n = deg + 1;
+  const INT w = CELL_POLY_COLS(m), n = deg + 1;
   INT j, k, l;
 
   for (k = 0; k < n; k++)
@@ -164,7 +164,7 @@ static INT cut_degree(const R *cheb, const INT w, const INT dg, const R thr)
 static void fit(R *coef, const INT m, const INT deg, sampler phi,
     const void *ctx)
 {
-  const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
+  const INT w = CELL_POLY_COLS(m), n = CELL_POLY_ROWS(deg), dg = n - 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
   R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
@@ -182,7 +182,8 @@ static void fit(R *coef, const INT m, const INT deg, sampler phi,
     {
       R v, mirror;
 
-      KB_POLY_HORNER(1, &v, &mirror, coef + l, w, KB_POLY_HALF(dg), node[k]);
+      CELL_POLY_HORNER(1, &v, &mirror, coef + l, w, CELL_POLY_HALF(dg),
+          node[k]);
       res[k * w + l] = val[k * w + l] - v;
     }
 
@@ -239,7 +240,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
     deg = IF(dt > deg, dt, deg);
   }
 
-  stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
   tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   tab[0] = (R)deg;
 
@@ -272,7 +273,7 @@ static R bs_sample(const void *ctx, const R x)
  * window's own transform error at the tightest axis. */
 R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
 {
-  const INT k = 2 * m + 2, w = KB_POLY_COLS(m), n = k, dg = k - 1;
+  const INT k = 2 * m + 2, w = CELL_POLY_COLS(m), n = k, dg = k - 1;
   const struct bs_ctx c = {k};
   /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
   R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
@@ -298,11 +299,11 @@ R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m)
 
   deg = cut_degree(cheb, w, dg, thr);
   /* An odd KB_POLY_DEG_MAX fills its last row from the next coefficient. */
-  cheb_to_monomial(coef, cheb, tp, w, KB_POLY_ROWS(deg) - 1);
+  cheb_to_monomial(coef, cheb, tp, w, CELL_POLY_ROWS(deg) - 1);
 
-  tab = (R*) Y(malloc)((size_t)(1 + KB_POLY_ROWS(deg) * w) * sizeof(R));
+  tab = (R*) Y(malloc)((size_t)(1 + CELL_POLY_ROWS(deg) * w) * sizeof(R));
   tab[0] = (R)deg;
-  memcpy(tab + 1, coef, (size_t)(KB_POLY_ROWS(deg) * w) * sizeof(R));
+  memcpy(tab + 1, coef, (size_t)(CELL_POLY_ROWS(deg) * w) * sizeof(R));
 
   Y(free)(mem);
 
@@ -325,7 +326,8 @@ static R sp_sample(const void *ctx, const R x)
  * KB_POLY_DEG_MAX; no usable transform-error bound exists to cut lower. */
 R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m)
 {
-  const INT deg = KB_POLY_DEG_MAX, stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  const INT deg = KB_POLY_DEG_MAX;
+  const INT stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
   R *tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   INT t;
 

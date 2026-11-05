@@ -294,7 +294,7 @@ typedef ptrdiff_t INT;
    * 1/n: NFCT and NFST pass a doubled n, and a constant common to PHI and
    * PHI_HUT cancels in the transform.
    *
-   * spline_coeffs[0] is the degree, then one KB_POLY_ROWS x KB_POLY_COLS
+   * spline_coeffs[0] is the degree, then one CELL_POLY_ROWS x CELL_POLY_COLS
    * table shared by all axes. */
   #define BS_ORDER ((INT)(K(2.0) * WINDOW_STENCIL_REACH))
   #define BS_POLY_DEG ((INT)ths->spline_coeffs[0])
@@ -303,7 +303,7 @@ typedef ptrdiff_t INT;
   #define PHI(n,x,ax) (Y(bspline_cheb)(ths->b, BS_ORDER, \
                           (x) * (R)(n) + WINDOW_STENCIL_REACH))
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(kb_poly_run)((dst), ths->spline_coeffs + 1, ths->m, BS_POLY_DEG, \
+    Y(cell_poly_run)((dst), ths->spline_coeffs + 1, ths->m, BS_POLY_DEG, \
         NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
@@ -348,12 +348,12 @@ typedef ptrdiff_t INT;
   #define PHI(n,x,ax) (Y(sincpow_phi)(SP_W(ax), (R)ths->m, \
                            KPI * (R)(n) * SP_W(ax) * (x)))
   /* Polynomial window from Y(sincpow_poly_init) (kbpoly.c): spline_coeffs[0]
-   * is the degree, then one KB_POLY_ROWS x KB_POLY_COLS table per axis. */
+   * is the degree, then one CELL_POLY_ROWS x CELL_POLY_COLS table per axis. */
   #define SP_POLY_DEG ((INT)ths->spline_coeffs[0])
   #define SP_POLY(ax) (ths->spline_coeffs + 1 \
-      + (ax) * KB_POLY_ROWS(SP_POLY_DEG) * KB_POLY_COLS(ths->m))
+      + (ax) * CELL_POLY_ROWS(SP_POLY_DEG) * CELL_POLY_COLS(ths->m))
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(kb_poly_run)((dst), SP_POLY(ax), ths->m, SP_POLY_DEG, NX_SUB(n, x, u))
+    Y(cell_poly_run)((dst), SP_POLY(ax), ths->m, SP_POLY_DEG, NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -411,15 +411,15 @@ typedef ptrdiff_t INT;
   #define PHI_HUT(n,k,ax) (Y(kb_phi_hut)(KB_B(ax), KB_I0E_PEAK_INV(ax), \
                              WINDOW_STENCIL_REACH, (R)(n), (R)(k)))
   /* Polynomial window from Y(kb_poly_init) (kbpoly.c): spline_coeffs[0] is the
-   * degree, then one KB_POLY_ROWS x KB_POLY_COLS table per axis. */
+   * degree, then one CELL_POLY_ROWS x CELL_POLY_COLS table per axis. */
   #define KB_POLY_DEG ((INT)ths->spline_coeffs[0])
   #define KB_POLY(ax) (ths->spline_coeffs + 1 \
-      + (ax) * KB_POLY_ROWS(KB_POLY_DEG) * KB_POLY_COLS(ths->m))
-  #define PHI(n,x,ax) (Y(kb_poly_phi)(KB_POLY(ax), ths->m, KB_POLY_DEG, \
+      + (ax) * CELL_POLY_ROWS(KB_POLY_DEG) * CELL_POLY_COLS(ths->m))
+  #define PHI(n,x,ax) (Y(cell_poly_phi)(KB_POLY(ax), ths->m, KB_POLY_DEG, \
                          (R)(n) * (R)(x)))
   /* dst[l] = phi(x - (u + l)/n), l = 0 .. 2m+1. */
   #define PHI_RUN(dst,n,x,u,ax) \
-    Y(kb_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
+    Y(cell_poly_run)((dst), KB_POLY(ax), ths->m, KB_POLY_DEG, NX_SUB(n, x, u))
   #define WINDOW_HELP_INIT \
     { \
       int WINDOW_idx; \
@@ -1717,6 +1717,118 @@ R Y(lambda2)(R mu, R nu);
 R Y(bessel_i0_logtail)(R x); /* log I0(x) - x, <= 0 */
 R Y(bessel_i0_exp_scaled)(R x); /* exp(-x) * I0(x), in (0, 1] */
 
+/* Per-cell polynomial windows, tables built in kbpoly.c.
+ *
+ * Column c is the cell [m + 1 - c, m + 2 - c) of |nx|, c = 0 .. m + 1, as a
+ * polynomial in the offset s in [-1/2, 1/2] from the cell centre. Row k holds
+ * the coefficients of s^k. The window is even, so the mirror cell is the same
+ * column at -s, evaluated as E(s^2) +- s O(s^2) from the even and odd rows.
+ * An odd degree is raised by one: at even degree 2h the interpolation error
+ * leads with T_(2h+1), which has no mean over the cell. A mean would add up
+ * over the taps and the deconvolution amplifies it at the band edge. */
+#define CELL_POLY_COLS(m) ((m) + 2)
+#define CELL_POLY_HALF(deg) (((deg) + 1) / 2)
+#define CELL_POLY_ROWS(deg) (2 * CELL_POLY_HALF(deg) + 1)
+
+/* NB adjacent columns C[0 .. NB-1] at offsets S and -S: LO[l] = E + S O,
+ * HI[-l] = E - S O, CS the row stride, H = CELL_POLY_HALF(deg). A macro, so NB
+ * is a constant at each site and the column loops unroll and vectorise
+ * without relying on inlining. Every evaluation of the tables goes through
+ * here, so the fit sees the arithmetic of the transforms. */
+#define CELL_POLY_HORNER(NB, LO, HI, C, CS, H, S) \
+  do \
+  { \
+    const R *restrict cp_c = (C); \
+    R *cp_lo = (LO), *cp_hi = (HI); \
+    const INT cp_cs = (CS), cp_h = (H); \
+    const R cp_s = (S), cp_u = cp_s * cp_s; \
+    R cp_e[NB], cp_o[NB]; \
+    INT cp_j, cp_l; \
+    for (cp_l = 0; cp_l < (NB); cp_l++) \
+    { \
+      cp_e[cp_l] = cp_c[(2 * cp_h) * cp_cs + cp_l]; \
+      cp_o[cp_l] = cp_c[(2 * cp_h - 1) * cp_cs + cp_l]; \
+    } \
+    for (cp_j = cp_h - 1; cp_j >= 1; cp_j--) \
+      for (cp_l = 0; cp_l < (NB); cp_l++) \
+      { \
+        cp_e[cp_l] = cp_e[cp_l] * cp_u + cp_c[(2 * cp_j) * cp_cs + cp_l]; \
+        cp_o[cp_l] = cp_o[cp_l] * cp_u + cp_c[(2 * cp_j - 1) * cp_cs + cp_l]; \
+      } \
+    for (cp_l = 0; cp_l < (NB); cp_l++) \
+    { \
+      cp_e[cp_l] = cp_e[cp_l] * cp_u + cp_c[cp_l]; \
+      cp_lo[cp_l] = cp_e[cp_l] + cp_s * cp_o[cp_l]; \
+      cp_hi[-cp_l] = cp_e[cp_l] - cp_s * cp_o[cp_l]; \
+    } \
+  } while (0)
+
+/* The whole run of Y(cell_poly_run) as one block of P column pairs. */
+#define CELL_POLY_RUN_CASE(P) \
+  case P: \
+    CELL_POLY_HORNER(P, dst, dst + 2 * (P) - 1, coef, (P) + 1, h, s); \
+    return;
+
+/* Columns l .. l + B - 1 of a wider run. */
+#define CELL_POLY_RUN_BLOCK(B) \
+  CELL_POLY_HORNER(B, dst + l, dst + 2 * p - 1 - l, coef + l, cs, h, s)
+
+/* dst[l] = phi(nx0 - l), l = 0 .. 2m+1, for a run anchored at the grid point
+ * below the node, nx0 in [m, m + 1]. Tap l and tap 2m+1-l fall in mirror
+ * cells, column l + 1, at s and -s. */
+static inline void Y(cell_poly_run)(R *restrict dst, const R *restrict tab,
+    const INT m, const INT deg, const R nx0)
+{
+  const INT p = m + 1, cs = CELL_POLY_COLS(m), h = CELL_POLY_HALF(deg);
+  const R s = nx0 - ((R)m + K(0.5));
+  const R *coef = tab + 1;
+  INT l;
+
+  switch (p)
+  {
+  CELL_POLY_RUN_CASE(1) CELL_POLY_RUN_CASE(2) CELL_POLY_RUN_CASE(3)
+  CELL_POLY_RUN_CASE(4) CELL_POLY_RUN_CASE(5) CELL_POLY_RUN_CASE(6)
+  CELL_POLY_RUN_CASE(7) CELL_POLY_RUN_CASE(8) CELL_POLY_RUN_CASE(9)
+  CELL_POLY_RUN_CASE(10) CELL_POLY_RUN_CASE(11) CELL_POLY_RUN_CASE(12)
+  CELL_POLY_RUN_CASE(13) CELL_POLY_RUN_CASE(14) CELL_POLY_RUN_CASE(15)
+  CELL_POLY_RUN_CASE(16) CELL_POLY_RUN_CASE(17)
+  default: break;
+  }
+
+  for (l = 0; l + 4 <= p; l += 4)
+    CELL_POLY_RUN_BLOCK(4);
+
+  switch (p - l)
+  {
+  case 1: CELL_POLY_RUN_BLOCK(1); break;
+  case 2: CELL_POLY_RUN_BLOCK(2); break;
+  case 3: CELL_POLY_RUN_BLOCK(3); break;
+  default: break;
+  }
+}
+
+/* phi(nx) from the cell of |nx|. Extrapolates past |nx| = m + 2. */
+static inline R Y(cell_poly_phi)(const R *tab, const INT m, const INT deg,
+    const R nx)
+{
+  const R a = FABS(nx);
+  const INT f = IF((INT)a > m + 1, m + 1, (INT)a);
+  const R *coef = tab + (m + 1 - f), s = (a - (R)f) - K(0.5);
+  R v, w;
+
+  CELL_POLY_HORNER(1, &v, &w, coef, CELL_POLY_COLS(m), CELL_POLY_HALF(deg), s);
+
+  return v;
+}
+
+/* The B-spline window of order 2m+2 in this layout, one table for all
+ * axes; the tightest sigma sets the degree. The caller frees the result. */
+R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m);
+
+/* The sinc-power window in this layout, one table per axis from w, at
+ * degree KB_POLY_DEG_MAX. The caller frees the result. */
+R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m);
+
 /* Kaiser-Bessel window, scaled by 1/I0(m b) so that phi_hut(0) == 1.
  *
  *   phi(nx) = sinh(b ra) / (pi ra I0(m b)),  ra = sqrt(m^2 - nx^2),  |nx| < m
@@ -1861,125 +1973,15 @@ static inline void Y(kb_phi_run)(R *dst, R b, R lg_tail, R peak_inv, R m,
  * kbpoly_data.h, generated by gen/kbpolygen. */
 INT Y(kb_poly_degree)(const R b, const R reach, const INT m);
 
-/* Column c is the cell [m + 1 - c, m + 2 - c) of |nx|, c = 0 .. m + 1, as a
- * polynomial in the offset s in [-1/2, 1/2] from the cell centre. Row k holds
- * the coefficients of s^k. The window is even, so the mirror cell is the same
- * column at -s, evaluated as E(s^2) +- s O(s^2) from the even and odd rows.
- * An odd degree is raised by one: at even degree 2h the interpolation error
- * leads with T_(2h+1), which has no mean over the cell. A mean would add up
- * over the taps and the deconvolution amplifies it at the band edge. */
-#define KB_POLY_COLS(m) ((m) + 2)
-#define KB_POLY_HALF(deg) (((deg) + 1) / 2)
-#define KB_POLY_ROWS(deg) (2 * KB_POLY_HALF(deg) + 1)
-
-/* NB adjacent columns C[0 .. NB-1] at offsets S and -S: LO[l] = E + S O,
- * HI[-l] = E - S O, CS the row stride, H = KB_POLY_HALF(deg). A macro, so NB
- * is a constant at each site and the column loops unroll and vectorise
- * without relying on inlining. Every evaluation of the tables goes through
- * here, so the fit sees the arithmetic of the transforms. */
-#define KB_POLY_HORNER(NB, LO, HI, C, CS, H, S) \
-  do \
-  { \
-    const R *restrict kb_c = (C); \
-    R *kb_lo = (LO), *kb_hi = (HI); \
-    const INT kb_cs = (CS), kb_h = (H); \
-    const R kb_s = (S), kb_u = kb_s * kb_s; \
-    R kb_e[NB], kb_o[NB]; \
-    INT kb_j, kb_l; \
-    for (kb_l = 0; kb_l < (NB); kb_l++) \
-    { \
-      kb_e[kb_l] = kb_c[(2 * kb_h) * kb_cs + kb_l]; \
-      kb_o[kb_l] = kb_c[(2 * kb_h - 1) * kb_cs + kb_l]; \
-    } \
-    for (kb_j = kb_h - 1; kb_j >= 1; kb_j--) \
-      for (kb_l = 0; kb_l < (NB); kb_l++) \
-      { \
-        kb_e[kb_l] = kb_e[kb_l] * kb_u + kb_c[(2 * kb_j) * kb_cs + kb_l]; \
-        kb_o[kb_l] = kb_o[kb_l] * kb_u + kb_c[(2 * kb_j - 1) * kb_cs + kb_l]; \
-      } \
-    for (kb_l = 0; kb_l < (NB); kb_l++) \
-    { \
-      kb_e[kb_l] = kb_e[kb_l] * kb_u + kb_c[kb_l]; \
-      kb_lo[kb_l] = kb_e[kb_l] + kb_s * kb_o[kb_l]; \
-      kb_hi[-kb_l] = kb_e[kb_l] - kb_s * kb_o[kb_l]; \
-    } \
-  } while (0)
-
-/* The whole run of Y(kb_poly_run) as one block of P column pairs. */
-#define KB_POLY_RUN_CASE(P) \
-  case P: \
-    KB_POLY_HORNER(P, dst, dst + 2 * (P) - 1, coef, (P) + 1, h, s); \
-    return;
-
-/* Columns l .. l + B - 1 of a wider run. */
-#define KB_POLY_RUN_BLOCK(B) \
-  KB_POLY_HORNER(B, dst + l, dst + 2 * p - 1 - l, coef + l, cs, h, s)
-
-/* dst[l] = phi(nx0 - l), l = 0 .. 2m+1, for a run anchored at the grid point
- * below the node, nx0 in [m, m + 1]. Tap l and tap 2m+1-l fall in mirror
- * cells, column l + 1, at s and -s. */
-static inline void Y(kb_poly_run)(R *restrict dst, const R *restrict tab,
-    const INT m, const INT deg, const R nx0)
-{
-  const INT p = m + 1, cs = KB_POLY_COLS(m), h = KB_POLY_HALF(deg);
-  const R s = nx0 - ((R)m + K(0.5));
-  const R *coef = tab + 1;
-  INT l;
-
-  switch (p)
-  {
-  KB_POLY_RUN_CASE(1) KB_POLY_RUN_CASE(2) KB_POLY_RUN_CASE(3)
-  KB_POLY_RUN_CASE(4) KB_POLY_RUN_CASE(5) KB_POLY_RUN_CASE(6)
-  KB_POLY_RUN_CASE(7) KB_POLY_RUN_CASE(8) KB_POLY_RUN_CASE(9)
-  KB_POLY_RUN_CASE(10) KB_POLY_RUN_CASE(11) KB_POLY_RUN_CASE(12)
-  KB_POLY_RUN_CASE(13) KB_POLY_RUN_CASE(14) KB_POLY_RUN_CASE(15)
-  KB_POLY_RUN_CASE(16) KB_POLY_RUN_CASE(17)
-  default: break;
-  }
-
-  for (l = 0; l + 4 <= p; l += 4)
-    KB_POLY_RUN_BLOCK(4);
-
-  switch (p - l)
-  {
-  case 1: KB_POLY_RUN_BLOCK(1); break;
-  case 2: KB_POLY_RUN_BLOCK(2); break;
-  case 3: KB_POLY_RUN_BLOCK(3); break;
-  default: break;
-  }
-}
-
-/* phi(nx) from the cell of |nx|. Extrapolates past |nx| = m + 2. */
-static inline R Y(kb_poly_phi)(const R *tab, const INT m, const INT deg,
-    const R nx)
-{
-  const R a = FABS(nx);
-  const INT f = IF((INT)a > m + 1, m + 1, (INT)a);
-  const R *coef = tab + (m + 1 - f), s = (a - (R)f) - K(0.5);
-  R v, w;
-
-  KB_POLY_HORNER(1, &v, &w, coef, KB_POLY_COLS(m), KB_POLY_HALF(deg), s);
-
-  return v;
-}
-
-/* Fits coef, KB_POLY_ROWS(deg) x KB_POLY_COLS(m), coef[k * KB_POLY_COLS(m) + c]
- * the coefficient of s^k in column c. reach is the window half-width; m fixes
- * only the cells. */
+/* Fits coef, CELL_POLY_ROWS(deg) x CELL_POLY_COLS(m), coef[k *
+ * CELL_POLY_COLS(m) + c] the coefficient of s^k in column c. reach is the
+ * window half-width; m fixes only the cells. */
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R reach, const INT m, const INT deg);
 
 /* All axes' tables from b as WINDOW_HELP_INIT fills it, in the spline_coeffs
  * layout. The caller frees the result. */
 R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach);
-
-/* The B-spline window of order 2m+2 in the same layout, one table for all
- * axes; the tightest sigma sets the degree. The caller frees the result. */
-R *Y(bspline_poly_init)(const R *sigma, const INT d, const INT m);
-
-/* The sinc-power window in the same layout, one table per axis from w, at
- * degree KB_POLY_DEG_MAX. The caller frees the result. */
-R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m);
 
 /* I0(a)/I0(m b) with a = m sqrt(b^2 - t^2), t = 2 pi k / n. Both exponentially
  * scaled Bessel values lie in (0, 1] and a - m b = -m t^2/(ra + b) is formed

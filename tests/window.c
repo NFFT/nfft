@@ -582,7 +582,7 @@ void X(check_sincpow_poly_run)(void)
 
       for (f = 0; f < SIZE(fracs); f++)
       {
-        Y(kb_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
+        Y(cell_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
 
         for (l = 0; l < 2 * m + 2; l++)
           err = FMAX(err, FABS(run[l] - Y(sincpow_phi)(w, (R)m,
@@ -625,7 +625,7 @@ void X(check_bspline_poly_run)(void)
 
       for (f = 0; f < SIZE(fracs); f++)
       {
-        Y(kb_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
+        Y(cell_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
 
         for (l = 0; l < 2 * m + 2; l++)
           err = FMAX(err, FABS(run[l]

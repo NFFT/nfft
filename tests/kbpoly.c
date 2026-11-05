@@ -86,9 +86,10 @@ void X(check_kaiser_bessel_poly)(void)
       const R pki = EXP(-reach * b - lt);
       const R peak = kb_peak(b, lt, pki, reach);
       const INT deg = Y(kb_poly_degree)(b, reach, m), w = 2 * m + 2;
-      const INT cols = KB_POLY_COLS(m);
+      const INT cols = CELL_POLY_COLS(m);
       const R bound = K(2.0) * pick_target(b, reach);
-      R *coef = (R*) Y(malloc)((size_t)(KB_POLY_ROWS(deg) * cols) * sizeof(R));
+      R *coef = (R*) Y(malloc)((size_t)(CELL_POLY_ROWS(deg) * cols)
+          * sizeof(R));
       R *got = (R*) Y(malloc)((size_t)w * sizeof(R));
       R worst = K(0.0);
       INT i, l;
@@ -105,7 +106,7 @@ void X(check_kaiser_bessel_poly)(void)
         const R nx = (R)(m + 2) * ((R)i / K(256.0) - K(1.0));
         R err;
 
-        Y(kb_poly_run)(got, coef, m, deg, nx0);
+        Y(cell_poly_run)(got, coef, m, deg, nx0);
 
         for (l = 0; l < w; l++)
         {
@@ -117,7 +118,7 @@ void X(check_kaiser_bessel_poly)(void)
             worst = err;
         }
 
-        err = ABS(Y(kb_poly_phi)(coef, m, deg, nx)
+        err = ABS(Y(cell_poly_phi)(coef, m, deg, nx)
             - Y(kb_phi)(b, lt, pki, reach, nx)) / peak;
 
         if (err > worst)
