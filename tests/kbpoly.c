@@ -658,3 +658,71 @@ void X(check_socp3)(void)
   Y(free)(work);
   printf("\n");
 }
+
+void X(check_kbpoly_qr)(void)
+{
+  enum { rows = 400, cols = 40 };
+  static E A[rows * cols], B[rows * cols], T[cols * cols];
+  E tau[cols];
+  INT perm[cols], i, j, l, k, k2;
+  E err = EK(0.0);
+
+  printf("kb_poly_qr\n----------\n");
+
+  for (i = 0; i < rows * cols; i++)
+    A[i] = (E)Y(drand48)() - EK(0.5);
+  for (i = 0; i < rows; i++)
+    A[39 * rows + i] = A[i] + EK(1E-9) * ((E)Y(drand48)() - EK(0.5));
+
+  memcpy(B, A, sizeof(A));
+  k = Y(kb_poly_qr)(B, rows, cols, EK(500.0) * E_EPSILON, perm, tau);
+  Y(kb_poly_qr_basis)(B, rows, cols, k, perm, T);
+  for (j = 0; j < k; j++)
+    for (l = 0; l < k; l++)
+    {
+      E s = EK(0.0);
+      for (i = 0; i < rows; i++)
+      {
+        E qj = EK(0.0), ql = EK(0.0);
+        INT c;
+        for (c = 0; c < cols; c++)
+        {
+          qj += A[c * rows + i] * T[j * cols + c];
+          ql += A[c * rows + i] * T[l * cols + c];
+        }
+        s += qj * ql;
+      }
+      s -= IF(j == l, EK(1.0), EK(0.0));
+      err = IF(E_FABS(s) > err, E_FABS(s), err);
+    }
+  printf("qr_orthonormal: k %td err %.2e\n", (ptrdiff_t)k, (double)err);
+  CU_ASSERT(k == 40);
+  CU_ASSERT(err < EK(1E-6));
+
+  memcpy(B, A, sizeof(A));
+  k2 = Y(kb_poly_qr)(B, rows, cols, EK(1E-6), perm, tau);
+  printf("qr_truncated:   k %td\n", (ptrdiff_t)k2);
+  CU_ASSERT(k2 == 39);
+
+  {
+    enum { m = 100, n = 10 };
+    E M[m * n], y[m], x[n], xs[n];
+    err = EK(0.0);
+    for (i = 0; i < n; i++)
+      xs[i] = (E)Y(drand48)() - EK(0.5);
+    for (i = 0; i < m * n; i++)
+      M[i] = (E)Y(drand48)() - EK(0.5);
+    for (i = 0; i < m; i++)
+    {
+      y[i] = EK(0.0);
+      for (j = 0; j < n; j++)
+        y[i] += M[j * m + i] * xs[j];
+    }
+    Y(kb_poly_ls)(M, y, x, m, n);
+    for (j = 0; j < n; j++)
+      err = IF(E_FABS(x[j] - xs[j]) > err, E_FABS(x[j] - xs[j]), err);
+    printf("ls_known:       err %.2e\n", (double)err);
+    CU_ASSERT(err < EK(1E-10));
+  }
+  printf("\n");
+}

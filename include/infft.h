@@ -152,6 +152,7 @@ typedef ptrdiff_t INT;
   #define E_EPSILON DBL_EPSILON
   #define E_PI EK(3.1415926535897932384626433832795028841971693993751)
   #define E_SQRT(x) sqrt(x)
+  #define E_FABS(x) fabs(x)
   #define E_COS(x) cos(x)
   #define E_SIN(x) sin(x)
 #else
@@ -161,6 +162,7 @@ typedef ptrdiff_t INT;
   #define E_EPSILON EPSILON
   #define E_PI KPI
   #define E_SQRT(x) SQRT(x)
+  #define E_FABS(x) FABS(x)
   #define E_COS(x) COS(x)
   #define E_SIN(x) SIN(x)
 #endif
@@ -1870,6 +1872,20 @@ int Y(kb_poly_correct_ok)(const R b, const INT m);
  * and hut[0] = 0. */
 void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax);
+
+/* Householder QR with column pivoting of A (rows x cols, column-major, in
+ * place). perm: cols. Returns k = number of columns with |R_jj| >
+ * trunc |R_00|; R is in the upper triangle of the leading k columns. */
+INT Y(kb_poly_qr)(E *A, const INT rows, const INT cols, const E trunc,
+    INT *perm, E *tau);
+
+/* T = P R_k^{-1} (cols x k, column-major) from the output of Y(kb_poly_qr):
+ * columns of A T are orthonormal. */
+void Y(kb_poly_qr_basis)(const E *A, const INT rows, const INT cols,
+    const INT k, const INT *perm, E *T);
+
+/* Least squares min |A x - y| by Y(kb_poly_qr) without truncation; x: cols. */
+void Y(kb_poly_ls)(E *A, E *y, E *x, const INT rows, const INT cols);
 
 /* Status of Y(socp3_solve). */
 #define SOCP3_OPTIMAL 0

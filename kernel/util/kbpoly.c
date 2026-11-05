@@ -189,55 +189,172 @@ static INT first_alike(const R *b, const INT t)
   return s;
 }
 
-/* min |A x - y|, A rows x cols column-major, rows >= cols, by Householder
- * QR in place; y is overwritten. The design matrix below has condition
+/* Reflections are stored LAPACK style: v below the diagonal with v_j = 1
+ * implied, tau in tau. The design matrix of the correction has condition
  * number up to 1e10, which rules out the normal equations in any E. */
-static void qr_solve(E *A, E *y, E *x, const INT rows, const INT cols)
+INT Y(kb_poly_qr)(E *A, const INT rows, const INT cols, const E trunc,
+    INT *perm, E *tau)
 {
-  INT i, j, k;
+  INT i, j, k, p, n = IF(rows < cols, rows, cols);
+  E *nrm = (E *)Y(malloc)((size_t)(2 * cols) * sizeof(E)), *nrm0 = nrm + cols;
 
   for (j = 0; j < cols; j++)
   {
-    E *v = A + j * rows, nrm = EK(0.0), alpha, beta;
+    E s = EK(0.0);
 
-    for (i = j; i < rows; i++)
-      nrm += v[i] * v[i];
+    for (i = 0; i < rows; i++)
+      s += A[j * rows + i] * A[j * rows + i];
 
-    nrm = E_SQRT(nrm);
+    nrm[j] = nrm0[j] = E_SQRT(s);
+    perm[j] = j;
+  }
 
-    if (nrm == EK(0.0))
-      continue;
+  for (j = 0; j < n; j++)
+  {
+    E *v, s = EK(0.0), beta;
 
-    alpha = IF(v[j] > EK(0.0), -nrm, nrm);
-    v[j] -= alpha;
-    beta = EK(1.0) / (alpha * v[j]); /* -2 / (v . v) */
+    p = j;
+    for (k = j + 1; k < cols; k++)
+      if (nrm[k] > nrm[p])
+        p = k;
 
-    /* Reflect the remaining columns and, as column cols, y. */
-    for (k = j + 1; k <= cols; k++)
+    if (p != j)
     {
-      E *u = IF(k < cols, A + k * rows, y), sum = EK(0.0);
+      E t;
+      INT ti = perm[j];
 
-      for (i = j; i < rows; i++)
-        sum += v[i] * u[i];
-
-      sum *= beta;
-
-      for (i = j; i < rows; i++)
-        u[i] += sum * v[i];
+      perm[j] = perm[p];
+      perm[p] = ti;
+      t = nrm[j];
+      nrm[j] = nrm[p];
+      nrm[p] = t;
+      t = nrm0[j];
+      nrm0[j] = nrm0[p];
+      nrm0[p] = t;
+      for (i = 0; i < rows; i++)
+      {
+        t = A[j * rows + i];
+        A[j * rows + i] = A[p * rows + i];
+        A[p * rows + i] = t;
+      }
     }
 
-    v[j] = alpha;
-  }
+    v = A + j * rows;
+    for (i = j + 1; i < rows; i++)
+      s += v[i] * v[i];
 
-  for (j = cols - 1; j >= 0; j--)
-  {
-    E sum = y[j];
+    if (s == EK(0.0))
+      tau[j] = EK(0.0);
+    else
+    {
+      const E nv = E_SQRT(v[j] * v[j] + s);
+
+      beta = IF(v[j] > EK(0.0), -nv, nv);
+      tau[j] = (beta - v[j]) / beta;
+      s = EK(1.0) / (v[j] - beta);
+      for (i = j + 1; i < rows; i++)
+        v[i] *= s;
+      v[j] = beta;
+    }
 
     for (k = j + 1; k < cols; k++)
-      sum -= A[k * rows + j] * x[k];
+    {
+      E *u = A + k * rows, w = u[j];
 
-    x[j] = IF(A[j * rows + j] != EK(0.0), sum / A[j * rows + j], EK(0.0));
+      for (i = j + 1; i < rows; i++)
+        w += v[i] * u[i];
+
+      w *= tau[j];
+      u[j] -= w;
+      for (i = j + 1; i < rows; i++)
+        u[i] -= w * v[i];
+
+      /* Downdate the column norm; recompute once it lost 90 %. */
+      s = nrm[k] * nrm[k] - u[j] * u[j];
+      if (s > EK(0.0) && E_SQRT(s) >= EK(0.1) * nrm0[k])
+        nrm[k] = E_SQRT(s);
+      else
+      {
+        s = EK(0.0);
+        for (i = j + 1; i < rows; i++)
+          s += u[i] * u[i];
+        nrm[k] = nrm0[k] = E_SQRT(s);
+      }
+    }
   }
+
+  Y(free)(nrm);
+
+  for (k = 0; k < n; k++)
+    if (E_FABS(A[k * rows + k]) <= trunc * E_FABS(A[0]))
+      break;
+
+  return k;
+}
+
+void Y(kb_poly_qr_basis)(const E *A, const INT rows, const INT cols,
+    const INT k, const INT *perm, E *T)
+{
+  INT i, l, c;
+
+  for (i = 0; i < cols * k; i++)
+    T[i] = EK(0.0);
+
+  /* Column c of R_k^{-1}, written to the row perm[i] of T. */
+  for (c = 0; c < k; c++)
+  {
+    E *x = T + c * cols;
+
+    x[perm[c]] = EK(1.0) / A[c * rows + c];
+    for (i = c - 1; i >= 0; i--)
+    {
+      E s = EK(0.0);
+
+      for (l = i + 1; l <= c; l++)
+        s += A[l * rows + i] * x[perm[l]];
+
+      x[perm[i]] = -s / A[i * rows + i];
+    }
+  }
+}
+
+void Y(kb_poly_ls)(E *A, E *y, E *x, const INT rows, const INT cols)
+{
+  INT i, j, k;
+  INT *perm = (INT *)Y(malloc)((size_t)cols * sizeof(INT));
+  E *tau = (E *)Y(malloc)((size_t)cols * sizeof(E));
+
+  k = Y(kb_poly_qr)(A, rows, cols, EK(0.0), perm, tau);
+
+  /* y := Q^T y */
+  for (j = 0; j < k; j++)
+  {
+    E w = y[j];
+
+    for (i = j + 1; i < rows; i++)
+      w += A[j * rows + i] * y[i];
+
+    w *= tau[j];
+    y[j] -= w;
+    for (i = j + 1; i < rows; i++)
+      y[i] -= w * A[j * rows + i];
+  }
+
+  for (j = 0; j < cols; j++)
+    x[j] = EK(0.0);
+
+  for (j = k - 1; j >= 0; j--)
+  {
+    E s = y[j];
+
+    for (i = j + 1; i < k; i++)
+      s -= A[i * rows + j] * x[perm[i]];
+
+    x[perm[j]] = s / A[j * rows + j];
+  }
+
+  Y(free)(perm);
+  Y(free)(tau);
 }
 
 /* Gauss-Legendre nodes and weights on [0, 1]. */
@@ -445,6 +562,7 @@ static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
  * guards coarsely and the hold-out exactly. Unknowns are Chebyshev
  * coefficients T_k(2s) of the m + 1 stencil columns; column 0, outside the
  * stencil, keeps its interpolant. */
+#define KB_POLY_CORR_TRUNC (EK(500.0) * E_EPSILON)
 #define KB_POLY_CORR_NXI 40
 #define KB_POLY_CORR_NT 32
 #define KB_POLY_CORR_NIT 24
@@ -636,7 +754,7 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       yw[2 * i + 1] = -wi * rr[2 * i + 1];
     }
 
-    qr_solve(Aw, yw, g, 2 * npt, nr);
+    Y(kb_poly_ls)(Aw, yw, g, 2 * npt, nr);
 
     for (k = 0; k < nk; k++)
       for (c = 0; c < w; c++)
