@@ -573,17 +573,17 @@ static void psi_hat_basis(E *Bf, const E *ej, const E *eg, const INT nc,
 
 /* Design set: npt points (xi[p], t[p]) with capacity cap. Per point the
  * complex row G (D - C per unknown, nr unknowns after the elimination of
- * unknown 0) and the real row B (psi_hat per unknown, reduced to nr the
+ * unknown piv) and the real row B (psi_hat per unknown, reduced to nr the
  * same way). Rows act on the correction d of the Chebyshev unknowns; the
  * current window coef enters as gc (G c) and bc (B c). */
 typedef struct
 {
-  INT npt, cap, nr;
+  INT npt, cap, nr, piv;
   E *xi, *t, *w; /* points and weights of the first LS pass */
   E *G; /* 2 * cap * nr, interleaved re/im, row-major */
   E *B; /* cap * nr */
   E *gc, *bc; /* 2 * cap, cap: G c and B c of the current window */
-  E *el; /* nr: unknown 0 = sum_j el[j] d_j */
+  E *el; /* nr: unknown piv = sum_j el[j] d_j, j over the others */
   const R *coef; /* the current window */
 } kb_design;
 
@@ -629,9 +629,11 @@ static void design_add(kb_design *d, const E xi, const E t, const E w,
 
   for (j = 0; j < nr; j++)
   {
-    gp[2 * j] = Gf[2 * (j + 1)] + Gf[0] * d->el[j];
-    gp[2 * j + 1] = Gf[2 * (j + 1) + 1] + Gf[1] * d->el[j];
-    bp[j] = Bf[j + 1] + Bf[0] * d->el[j];
+    const INT u = j + IF(j >= d->piv, 1, 0);
+
+    gp[2 * j] = Gf[2 * u] + Gf[2 * d->piv] * d->el[j];
+    gp[2 * j + 1] = Gf[2 * u + 1] + Gf[2 * d->piv + 1] * d->el[j];
+    bp[j] = Bf[u] + Bf[d->piv] * d->el[j];
   }
 
   taps(lo, hi, d->coef, m, h, t);
@@ -784,8 +786,9 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
         * (E_SIN(th) + EK(0.02));
   }
 
-  /* Unknown 0 (T_0 of the outermost stencil column) eliminated by the scale
-   * constraint over the initial design: d_0 = sum_(j>0) el_j d_j. */
+  /* The scale constraint over the initial design eliminates the unknown with
+   * the largest |Bsum|. The band sum of T_0 of the outermost column changes
+   * sign with sigma and m. */
   phases(ej, et, eg, xi, nxi, ts, 0, tg, ng, m);
 
   for (j = 0; j < nu; j++)
@@ -800,8 +803,13 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       Bsum[j] += (E)ntt * Bf[j];
   }
 
+  d.piv = 0;
+
+  for (j = 1; j < nu; j++)
+    d.piv = IF(E_FABS(Bsum[j]) > E_FABS(Bsum[d.piv]), j, d.piv);
+
   for (j = 0; j < nr; j++)
-    el[j] = -Bsum[j + 1] / Bsum[0];
+    el[j] = -Bsum[j + IF(j >= d.piv, 1, 0)] / Bsum[d.piv];
 
   for (i = 0; i < nxi; i++)
     for (q = 0; q < ntt; q++)
@@ -894,8 +902,10 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
 
   for (j = 0; j < nr; j++)
   {
-    cheb[((j + 1) % nk) * w + 1 + (j + 1) / nk] = (R)dbest[j];
-    cheb[1] += (R)(el[j] * dbest[j]);
+    const INT u = j + IF(j >= d.piv, 1, 0);
+
+    cheb[(u % nk) * w + 1 + u / nk] = (R)dbest[j];
+    cheb[(d.piv % nk) * w + 1 + d.piv / nk] += (R)(el[j] * dbest[j]);
   }
 
   cheb_to_monomial(res, cheb, tp, w, deg);

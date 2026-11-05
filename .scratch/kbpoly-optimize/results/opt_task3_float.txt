@@ -1,7 +1,7 @@
 opt[sigma= 1.10000002E+00, m= 2, deg= 6, max] optimized  3.42265554E-02 ->  2.02121376E-03 (16.93x) -> OK  
 opt[sigma= 1.10000002E+00, m= 2, deg= 6, rms] optimized  3.73111339E-03 ->  1.15726842E-03 (3.22x) -> OK  
-opt[sigma= 1.10000002E+00, m= 3, deg= 6, max] optimized  3.87592404E-03 ->  1.56444978E-04 (24.77x) -> OK  
-opt[sigma= 1.10000002E+00, m= 3, deg= 6, rms] optimized  5.91576565E-04 ->  9.58547753E-05 (6.17x) -> OK  
+opt[sigma= 1.10000002E+00, m= 3, deg= 6, max] optimized  3.87592404E-03 ->  1.57563147E-04 (24.60x) -> OK  
+opt[sigma= 1.10000002E+00, m= 3, deg= 6, rms] optimized  5.91576565E-04 ->  9.62999111E-05 (6.14x) -> OK  
 opt[sigma= 1.10000002E+00, m= 4, deg= 8, max] guarded    7.01193989E-04 ->  7.01193989E-04 (1.00x) -> OK  
 opt[sigma= 1.10000002E+00, m= 4, deg= 8, rms] guarded    9.81303165E-05 ->  9.81303165E-05 (1.00x) -> OK  
 opt[sigma= 1.10000002E+00, m= 5, deg= 8, max] guarded    9.35957476E-04 ->  9.35957476E-04 (1.00x) -> OK  
@@ -27,7 +27,7 @@ opt[sigma= 1.25000012E+00, m= 7, deg= 8, rms] guarded    2.00780414E-05 ->  2.00
 opt[sigma= 1.25000012E+00, m= 8, deg= 8, max] guarded    5.48993994E-04 ->  5.48993994E-04 (1.00x) -> OK  
 opt[sigma= 1.25000012E+00, m= 8, deg= 8, rms] guarded    5.40361543E-05 ->  5.40361543E-05 (1.00x) -> OK  
 opt[sigma= 1.50000012E+00, m= 2, deg= 6, max] optimized  1.85588593E-04 ->  4.25101716E-05 (4.37x) -> OK  
-opt[sigma= 1.50000012E+00, m= 2, deg= 6, rms] optimized  3.64918196E-05 ->  2.17476827E-05 (1.68x) -> OK  
+opt[sigma= 1.50000012E+00, m= 2, deg= 6, rms] optimized  3.64918196E-05 ->  2.17476336E-05 (1.68x) -> OK  
 opt[sigma= 1.50000012E+00, m= 3, deg= 8, max] guarded    7.65543973E-06 ->  7.65543973E-06 (1.00x) -> OK  
 opt[sigma= 1.50000012E+00, m= 3, deg= 8, rms] guarded    1.07820290E-06 ->  1.07820290E-06 (1.00x) -> OK  
 opt[sigma= 1.50000012E+00, m= 4, deg= 8, max] guarded    1.96766678E-06 ->  1.96766678E-06 (1.00x) -> OK  
@@ -40,8 +40,8 @@ opt[sigma= 1.50000012E+00, m= 7, deg= 8, max] guarded    8.44211172E-06 ->  8.44
 opt[sigma= 1.50000012E+00, m= 7, deg= 8, rms] guarded    1.30862986E-06 ->  1.30862986E-06 (1.00x) -> OK  
 opt[sigma= 1.50000012E+00, m= 8, deg= 8, max] guarded    1.41236187E-05 ->  1.41236187E-05 (1.00x) -> OK  
 opt[sigma= 1.50000012E+00, m= 8, deg= 8, rms] guarded    2.04303774E-06 ->  2.04303774E-06 (1.00x) -> OK  
-opt[sigma= 1.75000012E+00, m= 2, deg= 6, max] optimized  4.99916496E-05 ->  1.17854288E-05 (4.24x) -> OK  
-opt[sigma= 1.75000012E+00, m= 2, deg= 6, rms] optimized  1.04940364E-05 ->  5.49434708E-06 (1.91x) -> OK  
+opt[sigma= 1.75000012E+00, m= 2, deg= 6, max] optimized  4.99916496E-05 ->  1.17895261E-05 (4.24x) -> OK  
+opt[sigma= 1.75000012E+00, m= 2, deg= 6, rms] optimized  1.04940364E-05 ->  5.49429751E-06 (1.91x) -> OK  
 opt[sigma= 1.75000012E+00, m= 3, deg= 8, max] guarded    1.33098570E-06 ->  1.33098570E-06 (1.00x) -> OK  
 opt[sigma= 1.75000012E+00, m= 3, deg= 8, rms] guarded    2.66768438E-07 ->  2.66768438E-07 (1.00x) -> OK  
 opt[sigma= 1.75000012E+00, m= 4, deg= 8, max] guarded    7.80035521E-07 ->  7.80035521E-07 (1.00x) -> OK  
@@ -54,8 +54,8 @@ opt[sigma= 1.75000012E+00, m= 7, deg= 8, max] guarded    2.18262994E-06 ->  2.18
 opt[sigma= 1.75000012E+00, m= 7, deg= 8, rms] guarded    4.02114892E-07 ->  4.02114892E-07 (1.00x) -> OK  
 opt[sigma= 1.75000012E+00, m= 8, deg= 8, max] guarded    2.85586793E-06 ->  2.85586793E-06 (1.00x) -> OK  
 opt[sigma= 1.75000012E+00, m= 8, deg= 8, rms] guarded    4.28662332E-07 ->  4.28662332E-07 (1.00x) -> OK  
-opt[sigma= 2.00000000E+00, m= 2, deg= 6, max] optimized  2.21887694E-05 ->  3.76828666E-06 (5.89x) -> OK  
-opt[sigma= 2.00000000E+00, m= 2, deg= 6, rms] optimized  4.47897628E-06 ->  1.86801731E-06 (2.40x) -> OK  
+opt[sigma= 2.00000000E+00, m= 2, deg= 6, max] optimized  2.21887694E-05 ->  3.76829757E-06 (5.89x) -> OK  
+opt[sigma= 2.00000000E+00, m= 2, deg= 6, rms] optimized  4.47897628E-06 ->  1.86818124E-06 (2.40x) -> OK  
 opt[sigma= 2.00000000E+00, m= 3, deg= 8, max] guarded    5.76794321E-07 ->  5.76794321E-07 (1.00x) -> OK  
 opt[sigma= 2.00000000E+00, m= 3, deg= 8, rms] guarded    1.78827733E-07 ->  1.78827733E-07 (1.00x) -> OK  
 opt[sigma= 2.00000000E+00, m= 4, deg= 8, max] guarded    6.48216030E-07 ->  6.48216030E-07 (1.00x) -> OK  
