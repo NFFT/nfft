@@ -112,18 +112,18 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   return IF(2 * h > KB_POLY_DEG_MAX, 2 * ((KB_POLY_DEG_MAX + 1) / 2), 2 * h);
 }
 
-#if E_MANT_DIG == 24
+#if MANT_DIG == 24
   #define KB_POLY_BR_LS KB_POLY_BR_LS_24
-#elif E_MANT_DIG == 64
+#elif MANT_DIG == 64
   #define KB_POLY_BR_LS KB_POLY_BR_LS_64
-#elif E_MANT_DIG == 113
+#elif MANT_DIG == 113
   #define KB_POLY_BR_LS KB_POLY_BR_LS_113
 #else
   #define KB_POLY_BR_LS KB_POLY_BR_LS_53
 #endif
 
 /* The transform error is still 100 times the round-off floor
- * u I0(bR) / I0(aR) of the type the fit runs in. */
+ * u I0(bR) / I0(aR) of R. */
 int Y(kb_poly_correct_ok)(const R b, const INT m)
 {
   return b * ((R)m + K(1.0)) <= KB_POLY_BR_LS;
@@ -543,6 +543,154 @@ static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
   return mx;
 }
 
+/* psi_hat(xi) per unknown into Bf (nu), with the phases of phases() at one
+ * frequency. The mirror tap carries the mirror anchor phase and T_k(-2s) =
+ * (-1)^k T_k(2s). Tg is nk scratch. */
+static void psi_hat_basis(E *Bf, const E *ej, const E *eg, const INT nc,
+    const INT nk, const E *tg, const E *wg, const INT ng, E *Tg)
+{
+  INT q, c, k;
+
+  for (k = 0; k < nc * nk; k++)
+    Bf[k] = EK(0.0);
+
+  for (q = 0; q < ng; q++)
+  {
+    const E cg = eg[2 * q], sg = eg[2 * q + 1];
+
+    cheb_row(Tg, nk, tg[q]);
+
+    for (c = 0; c < nc; c++)
+    {
+      const E *e = ej + 4 * c;
+      const E a1 = e[0] * cg - e[1] * sg, a2 = e[2] * cg - e[3] * sg;
+
+      for (k = 0; k < nk; k++)
+        Bf[c * nk + k] += wg[q] * Tg[k] * (a1 + IF(k & 1, -a2, a2));
+    }
+  }
+}
+
+/* Design set: npt points (xi[p], t[p]) with capacity cap. Per point the
+ * complex row G (D - C per unknown, nr unknowns after the elimination of
+ * unknown 0) and the real row B (psi_hat per unknown, reduced to nr the
+ * same way). Rows act on the correction d of the Chebyshev unknowns; the
+ * current window coef enters as gc (G c) and bc (B c). */
+typedef struct
+{
+  INT npt, cap, nr;
+  E *xi, *t, *w; /* points and weights of the first LS pass */
+  E *G; /* 2 * cap * nr, interleaved re/im, row-major */
+  E *B; /* cap * nr */
+  E *gc, *bc; /* 2 * cap, cap: G c and B c of the current window */
+  E *el; /* nr: unknown 0 = sum_j el[j] d_j */
+  const R *coef; /* the current window */
+} kb_design;
+
+/* Appends one point: phases, psi_hat per unknown (Gauss-Legendre nodes tg,
+ * weights wg, ng of them), row G and row B, gc and bc through the
+ * transform's taps and psi_hat of coef. */
+static void design_add(kb_design *d, const E xi, const E t, const E w,
+    const INT m, const INT h, const E *tg, const E *wg, const INT ng)
+{
+  const INT nc = m + 1, nk = 2 * h + 1, nu = nc * nk, nr = d->nr, p = d->npt;
+  E *ws = (E*) Y(malloc)((size_t)(8 * nc + 2 + 2 * ng + 2 * nk + 3 * nu)
+      * sizeof(E));
+  E *ej = ws, *et = ej + 4 * nc, *eg = et + 2, *T = eg + 2 * ng;
+  E *Tg = T + nk, *Bf = Tg + nk, *Gf = Bf + nu, *lo = Gf + 2 * nu;
+  E *hi = lo + nc, *lg = hi + nc, *hg = lg + nc;
+  E *gp = d->G + 2 * p * nr, *bp = d->B + p * nr;
+  E C, re, im;
+  INT c, k, j;
+
+  A(p < d->cap);
+  d->xi[p] = xi;
+  d->t[p] = t;
+  d->w[p] = w;
+
+  phases(ej, et, eg, &xi, 1, &t, 1, tg, ng, m);
+  psi_hat_basis(Bf, ej, eg, nc, nk, tg, wg, ng, Tg);
+  cheb_row(T, nk, t);
+
+  for (c = 0; c < nc; c++)
+  {
+    const E *e = ej + 4 * c;
+    const E c1 = e[0] * et[0] - e[1] * et[1], s1 = e[0] * et[1] + e[1] * et[0];
+    const E c2 = e[2] * et[0] - e[3] * et[1], s2 = e[2] * et[1] + e[3] * et[0];
+
+    for (k = 0; k < nk; k++)
+    {
+      const E tk = T[k], sg = IF(k & 1, -tk, tk);
+
+      Gf[2 * (c * nk + k)] = tk * c1 + sg * c2 - Bf[c * nk + k];
+      Gf[2 * (c * nk + k) + 1] = tk * s1 + sg * s2;
+    }
+  }
+
+  for (j = 0; j < nr; j++)
+  {
+    gp[2 * j] = Gf[2 * (j + 1)] + Gf[0] * d->el[j];
+    gp[2 * j + 1] = Gf[2 * (j + 1) + 1] + Gf[1] * d->el[j];
+    bp[j] = Bf[j + 1] + Bf[0] * d->el[j];
+  }
+
+  taps(lo, hi, d->coef, m, h, t);
+  C = psi_hat(d->coef, m, h, ej, eg, tg, wg, ng, lg, hg);
+  re = -C;
+  im = EK(0.0);
+
+  for (c = 0; c < nc; c++)
+  {
+    const E *e = ej + 4 * c;
+
+    re += lo[c] * (e[0] * et[0] - e[1] * et[1])
+        + hi[c] * (e[2] * et[0] - e[3] * et[1]);
+    im += lo[c] * (e[0] * et[1] + e[1] * et[0])
+        + hi[c] * (e[2] * et[1] + e[3] * et[0]);
+  }
+
+  d->gc[2 * p] = re;
+  d->gc[2 * p + 1] = im;
+  d->bc[p] = C;
+  d->npt++;
+
+  Y(free)(ws);
+}
+
+/* max_i |gc_i + G_i dtot| / (bc_i + B_i dtot); returns -1 if a denominator
+ * is <= 0 or the maximum not finite; fills gcn (2 npt), bcn (npt). */
+static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
+{
+  const INT nr = d->nr;
+  E mx = EK(0.0);
+  INT p, j;
+
+  for (p = 0; p < d->npt; p++)
+  {
+    const E *g = d->G + 2 * p * nr, *bb = d->B + p * nr;
+    E re = d->gc[2 * p], im = d->gc[2 * p + 1], den = d->bc[p], r;
+
+    for (j = 0; j < nr; j++)
+    {
+      re += g[2 * j] * dtot[j];
+      im += g[2 * j + 1] * dtot[j];
+      den += bb[j] * dtot[j];
+    }
+
+    gcn[2 * p] = re;
+    gcn[2 * p + 1] = im;
+    bcn[p] = den;
+
+    if (!(den > EK(0.0)))
+      return EK(-1.0);
+
+    r = E_SQRT(re * re + im * im) / den;
+    mx = IF(r > mx, r, mx);
+  }
+
+  return IF(Y(e_finite)(mx), mx, EK(-1.0));
+}
+
 /* The transform sees the table through the 2m + 2 taps at a node's offset
  * t and the deconvolution C(xi); its relative error at frequency xi is
  * E(xi, t) = (D(xi, t) - C(xi)) / C(xi), D the tap sum with the phases
@@ -550,21 +698,28 @@ static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
  * D and C are linear in the coefficients and the worst case of |E| over the
  * band and the offsets is quasiconvex in them (Keiner, Potts: Optimized
  * piecewise polynomial window functions for the NFFT, 2026). Iteratively
- * reweighted least squares in correction form: each pass fits a change d to
- * the table, min sum w |G (c + d)|^2 / psi_hat(c)^2, G = D - C, under
- * sum_cells int d = 0, which fixes the scale; the first pass with the band's
- * quadrature weights is the RMS optimum, Lawson's reweighting then moves to
- * the discrete minimax; the best pass by the chosen objective is kept. The
- * offsets are the limit t -> 0, where a window with jumps peaks, and the
- * midpoints of [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The
- * residual is a difference of quantities near one, so the fit resolves it
- * only while the error is well above eps_E, which Y(kb_poly_correct_ok)
- * guards coarsely and the hold-out exactly. Unknowns are Chebyshev
- * coefficients T_k(2s) of the m + 1 stencil columns; column 0, outside the
- * stencil, keeps its interpolant. */
+ * reweighted least squares in correction form on a design of points: each
+ * pass fits a change d to the table, min sum w |G (c + d)|^2 / psi_hat(c)^2,
+ * G = D - C, under sum_i B_i d = 0 over the initial design, B = psi_hat,
+ * which fixes the scale; the first pass with the band's quadrature weights
+ * is the RMS optimum, Lawson's reweighting then moves to the discrete
+ * minimax; the best pass by the chosen objective is kept. The offsets are
+ * the limit t -> 0, where a window with jumps peaks, and the midpoints of
+ * [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The residual is a
+ * difference of quantities near one, so the fit resolves it only while the
+ * error is well above eps_E, which Y(kb_poly_correct_ok) guards coarsely
+ * and the hold-out exactly. Unknowns are Chebyshev coefficients T_k(2s) of
+ * the m + 1 stencil columns; column 0, outside the stencil, keeps its
+ * interpolant. The design capacity holds the initial design, the points of
+ * a table cell and the exchange rounds. */
 #define KB_POLY_CORR_TRUNC (EK(500.0) * E_EPSILON)
-#define KB_POLY_CORR_NXI 40
-#define KB_POLY_CORR_NT 32
+#define KB_POLY_CORR_NXI 24
+#define KB_POLY_CORR_NT 16
+#define KB_POLY_CORR_CELL 400
+#define KB_POLY_CORR_ADD 40
+#define KB_POLY_CORR_ROUNDS 10
+#define KB_POLY_CORR_CAP (KB_POLY_CORR_NXI * (KB_POLY_CORR_NT / 2 + 1) \
+    + KB_POLY_CORR_CELL + KB_POLY_CORR_ADD * KB_POLY_CORR_ROUNDS)
 #define KB_POLY_CORR_NIT 24
 #define KB_POLY_CORR_STALL 4
 
@@ -575,34 +730,48 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   const INT nc = m + 1, nu = nc * nk, nr = nu - 1, n = nk * w;
   const INT nxi = KB_POLY_CORR_NXI, ntt = KB_POLY_CORR_NT / 2 + 1;
   const INT ng = h + 12, npt = nxi * ntt, nh = KB_POLY_HUT_MAX;
+  const INT cap = KB_POLY_CORR_CAP;
   const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
-  E *A = (E*) Y(malloc)((size_t)(4 * npt * nr + nxi * nu + 3 * nr
-      + 5 * npt + 3 * nxi + ntt * nk + ng * nk + 2 * ng + 4 * nxi * nc
-      + 2 * nxi * ntt + 2 * nxi * ng + 2 * ntt * nc + 2 * ng * nc + 2 * nh
-      + ntt) * sizeof(E));
-  E *Aw = A + 2 * npt * nr, *Bk = Aw + 2 * npt * nr, *g = Bk + nxi * nu;
-  E *scale = g + nr, *el = scale + nr, *wt = el + nr, *rr = wt + npt;
-  E *yw = rr + 2 * npt, *den = yw + 2 * npt, *xi = den + nxi, *xw = xi + nxi;
-  E *T = xw + nxi, *Tg = T + ntt * nk, *tg = Tg + ng * nk, *wg = tg + ng;
+  E *A = (E*) Y(malloc)((size_t)(cap * (6 + 3 * nr) + 2 * npt * nr + 5 * nr
+      + 8 * npt + 2 * nu + 3 * nxi + 2 * ng + 4 * nxi * nc + 2 * nxi * ntt
+      + 2 * nxi * ng + 2 * ntt * nc + 2 * ng * nc + 2 * nh + ntt + nk)
+      * sizeof(E));
+  E *Aw = A + cap * (6 + 3 * nr), *g = Aw + 2 * npt * nr, *scale = g + nr;
+  E *dtot = scale + nr, *dbest = dtot + nr, *el = dbest + nr;
+  E *wt = el + nr, *gcn = wt + npt, *bcn = gcn + 2 * npt, *yw = bcn + npt;
+  E *rr = yw + 2 * npt, *Bsum = rr + 2 * nxi * ntt, *Bf = Bsum + nu;
+  E *den = Bf + nu;
+  E *xi = den + nxi, *xw = xi + nxi, *tg = xw + nxi, *wg = tg + ng;
   E *ej = wg + ng, *et = ej + 4 * nxi * nc, *eg = et + 2 * nxi * ntt;
   E *lo = eg + 2 * nxi * ng, *hi = lo + ntt * nc, *lg = hi + ntt * nc;
   E *hg = lg + ng * nc, *fh = hg + ng * nc, *fc = fh + nh, *ts = fc + nh;
+  E *Tg = ts + ntt;
   R *mem = (R*) Y(malloc)((size_t)(4 * n + nk * nk) * sizeof(R));
   R *cheb = mem, *res = cheb + n, *tp = res + n, *best = tp + nk * nk;
   R *orig = best + n;
+  kb_design d;
   E best_obj = EK(0.0), obj, plain, mx, rms;
-  INT i, q, c, k, j, it, nt, stall = 0;
+  INT i, q, c, k, j, p, it, nt, stall = 0;
+
+  d.npt = 0;
+  d.cap = cap;
+  d.nr = nr;
+  d.xi = A;
+  d.t = d.xi + cap;
+  d.w = d.t + cap;
+  d.G = d.w + cap;
+  d.B = d.G + 2 * cap * nr;
+  d.gc = d.B + cap * nr;
+  d.bc = d.gc + 2 * cap;
+  d.el = el;
+  d.coef = orig;
+
+  memcpy(orig, coef, (size_t)n * sizeof(R));
 
   gauleg(tg, wg, ng);
 
   for (q = 0; q < ntt; q++)
-  {
     ts[q] = IF(q == 0, EK(0.0), ((E)q - EK(0.5)) / (E)KB_POLY_CORR_NT);
-    cheb_row(T + q * nk, nk, ts[q]);
-  }
-
-  for (q = 0; q < ng; q++)
-    cheb_row(Tg + q * nk, nk, tg[q]);
 
   /* Frequencies clustered towards the band ends, where the error peaks,
    * with their quadrature weights. */
@@ -613,116 +782,73 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     xi[i] = ximax * (EK(1.0) - E_COS(th)) / EK(2.0);
     xw[i] = IF(i == 0 || i == nxi - 1, EK(0.5), EK(1.0))
         * (E_SIN(th) + EK(0.02));
-
-    for (q = 0; q < ntt; q++)
-      wt[i * ntt + q] = xw[i];
   }
 
-  phases(ej, et, eg, xi, nxi, ts, ntt, tg, ng, m);
+  /* Unknown 0 (T_0 of the outermost stencil column) eliminated by the scale
+   * constraint over the initial design: d_0 = sum_(j>0) el_j d_j. */
+  phases(ej, et, eg, xi, nxi, ts, 0, tg, ng, m);
 
-  /* Bk: psi_hat(xi) per unknown. The mirror tap carries the mirror anchor
-   * phase and T_k(-2s) = (-1)^k T_k(2s). */
+  for (j = 0; j < nu; j++)
+    Bsum[j] = EK(0.0);
+
   for (i = 0; i < nxi; i++)
-    for (c = 0; c < nc; c++)
-    {
-      const E *e = ej + 4 * (i * nc + c);
-
-      for (k = 0; k < nk; k++)
-      {
-        E s1 = EK(0.0), s2 = EK(0.0);
-
-        for (q = 0; q < ng; q++)
-        {
-          const E cg = eg[2 * (i * ng + q)], sg = eg[2 * (i * ng + q) + 1];
-
-          s1 += wg[q] * Tg[q * nk + k] * (e[0] * cg - e[1] * sg);
-          s2 += wg[q] * Tg[q * nk + k] * (e[2] * cg - e[3] * sg);
-        }
-
-        Bk[i * nu + c * nk + k] = s1 + IF(k & 1, -s2, s2);
-      }
-    }
-
-  /* A: the rows G = D - C per unknown, complex, with unknown 0 (T_0 of the
-   * outermost stencil column) eliminated by the scale constraint
-   * sum_(c,k) a_k d_(c,k) = 0, a_k = int_-1^1 T_k = 2 / (1 - k^2) for even k
-   * and 0 for odd: d_0 = sum_(j>0) el_j d_j. Columns scaled to unit norm. */
-  for (j = 0; j < nr; j++)
   {
-    const INT kk = (j + 1) % nk;
+    psi_hat_basis(Bf, ej + 4 * i * nc, eg + 2 * i * ng, nc, nk, tg, wg, ng,
+        Tg);
 
-    el[j] = IF(kk & 1, EK(0.0), -EK(1.0) / (EK(1.0) - (E)(kk * kk)));
+    for (j = 0; j < nu; j++)
+      Bsum[j] += (E)ntt * Bf[j];
   }
+
+  for (j = 0; j < nr; j++)
+    el[j] = -Bsum[j + 1] / Bsum[0];
 
   for (i = 0; i < nxi; i++)
     for (q = 0; q < ntt; q++)
-    {
-      const INT row = i * ntt + q;
-      const E ct = et[2 * row], st = et[2 * row + 1];
-      E a0re = EK(0.0), a0im = EK(0.0);
+      design_add(&d, xi[i], ts[q], xw[i], m, h, tg, wg, ng);
 
-      for (c = 0; c < nc; c++)
-      {
-        const E *e = ej + 4 * (i * nc + c);
-        const E c1 = e[0] * ct - e[1] * st, s1 = e[0] * st + e[1] * ct;
-        const E c2 = e[2] * ct - e[3] * st, s2 = e[2] * st + e[3] * ct;
-
-        for (k = 0; k < nk; k++)
-        {
-          const E tk = T[q * nk + k], sg = IF(k & 1, -tk, tk);
-          const E re = tk * c1 + sg * c2 - Bk[i * nu + c * nk + k];
-          const E im = tk * s1 + sg * s2;
-          const INT u = c * nk + k;
-
-          if (u == 0)
-          {
-            a0re = re;
-            a0im = im;
-          }
-          else
-          {
-            A[2 * (row * nr + u - 1)] = re + a0re * el[u - 1];
-            A[2 * (row * nr + u - 1) + 1] = im + a0im * el[u - 1];
-          }
-        }
-      }
-    }
-
+  /* Columns scaled to unit norm for the LS. */
   for (j = 0; j < nr; j++)
   {
     E ss = EK(0.0);
 
-    for (i = 0; i < npt; i++)
-      ss += A[2 * (i * nr + j)] * A[2 * (i * nr + j)]
-          + A[2 * (i * nr + j) + 1] * A[2 * (i * nr + j) + 1];
+    for (p = 0; p < npt; p++)
+      ss += d.G[2 * (p * nr + j)] * d.G[2 * (p * nr + j)]
+          + d.G[2 * (p * nr + j) + 1] * d.G[2 * (p * nr + j) + 1];
 
     scale[j] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
-
-    for (i = 0; i < npt; i++)
-    {
-      A[2 * (i * nr + j)] *= scale[j];
-      A[2 * (i * nr + j) + 1] *= scale[j];
-    }
+    dtot[j] = EK(0.0);
+    dbest[j] = EK(0.0);
   }
 
-  memcpy(best, coef, (size_t)n * sizeof(R));
-  memcpy(orig, coef, (size_t)n * sizeof(R));
+  for (p = 0; p < npt; p++)
+    wt[p] = d.w[p];
 
   for (it = 0; it <= KB_POLY_CORR_NIT; it++)
   {
-    mx = grid_max(coef, 0, m, h, xi, xw, nxi, ntt, ts, tg, wg, ng, ej, et,
-        eg, den, rr, lo, hi, lg, hg, &rms);
+    E ss = EK(0.0), sw = EK(0.0);
+
+    mx = design_ratio(&d, dtot, gcn, bcn);
 
     if (mx < EK(0.0))
       break;
 
-    obj = IF(minimax, mx, rms);
+    for (p = 0; p < npt; p++)
+    {
+      const E e = E_SQRT(gcn[2 * p] * gcn[2 * p]
+          + gcn[2 * p + 1] * gcn[2 * p + 1]) / bcn[p];
+
+      ss += d.w[p] * e * e;
+      sw += d.w[p];
+    }
+
+    obj = IF(minimax, mx, E_SQRT(ss / sw));
 
     if (it == 0 || obj < best_obj)
     {
       best_obj = obj;
       stall = 0;
-      memcpy(best, coef, (size_t)n * sizeof(R));
+      memcpy(dbest, dtot, (size_t)nr * sizeof(E));
     }
     else
       stall++;
@@ -731,49 +857,52 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       break;
 
     if (minimax && it > 0)
-      for (i = 0; i < npt; i++)
+      for (p = 0; p < npt; p++)
       {
-        const E e = E_SQRT(rr[2 * i] * rr[2 * i]
-            + rr[2 * i + 1] * rr[2 * i + 1]);
+        const E e = E_SQRT(gcn[2 * p] * gcn[2 * p]
+            + gcn[2 * p + 1] * gcn[2 * p + 1]) / bcn[p];
 
-        wt[i] *= IF(e > EK(0.1) * mx, e, EK(0.1) * mx) / mx;
+        wt[p] *= IF(e > EK(0.1) * mx, e, EK(0.1) * mx) / mx;
       }
 
     /* Rows scaled by sqrt(w) / den, so the residual is the relative error. */
-    for (i = 0; i < npt; i++)
+    for (p = 0; p < npt; p++)
     {
-      const E wi = E_SQRT(wt[i]), wa = wi / den[i / ntt];
+      const E wi = E_SQRT(wt[p]), wa = wi / bcn[p];
 
       for (j = 0; j < nr; j++)
       {
-        Aw[j * 2 * npt + 2 * i] = wa * A[2 * (i * nr + j)];
-        Aw[j * 2 * npt + 2 * i + 1] = wa * A[2 * (i * nr + j) + 1];
+        Aw[j * 2 * npt + 2 * p] = wa * scale[j] * d.G[2 * (p * nr + j)];
+        Aw[j * 2 * npt + 2 * p + 1] = wa * scale[j]
+            * d.G[2 * (p * nr + j) + 1];
       }
 
-      yw[2 * i] = -wi * rr[2 * i];
-      yw[2 * i + 1] = -wi * rr[2 * i + 1];
+      yw[2 * p] = -wa * gcn[2 * p];
+      yw[2 * p + 1] = -wa * gcn[2 * p + 1];
     }
 
     Y(kb_poly_ls)(Aw, yw, g, 2 * npt, nr);
 
-    for (k = 0; k < nk; k++)
-      for (c = 0; c < w; c++)
-        cheb[k * w + c] = K(0.0);
-
     for (j = 0; j < nr; j++)
-    {
-      const E dj = g[j] * scale[j];
-
-      cheb[((j + 1) % nk) * w + 1 + (j + 1) / nk] = (R)dj;
-      cheb[1] += (R)(el[j] * dj);
-    }
-
-    cheb_to_monomial(res, cheb, tp, w, deg);
-
-    for (k = 0; k < nk; k++)
-      for (c = 1; c < w; c++)
-        coef[k * w + c] += res[k * w + c];
+      dtot[j] += g[j] * scale[j];
   }
+
+  /* best = orig + the correction of the best pass. */
+  for (k = 0; k < nk; k++)
+    for (c = 0; c < w; c++)
+      cheb[k * w + c] = K(0.0);
+
+  for (j = 0; j < nr; j++)
+  {
+    cheb[((j + 1) % nk) * w + 1 + (j + 1) / nk] = (R)dbest[j];
+    cheb[1] += (R)(el[j] * dbest[j]);
+  }
+
+  cheb_to_monomial(res, cheb, tp, w, deg);
+
+  for (k = 0; k < nk; k++)
+    for (c = 0; c < w; c++)
+      best[k * w + c] = orig[k * w + c] + IF(c > 0, res[k * w + c], K(0.0));
 
   /* The deconvolution table of the best pass (layout at KB_POLY_HUT_MAX),
    * trailing terms below the rounding of R dropped. */
