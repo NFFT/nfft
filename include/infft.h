@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <limits.h>
 #ifdef HAVE_COMPLEX_H
 #include <complex.h>
 #endif
@@ -163,6 +164,21 @@ typedef ptrdiff_t INT;
   #define E_COS(x) COS(x)
   #define E_SIN(x) SIN(x)
 #endif
+
+/* Whether v is finite, without a floating-point compare: -ffast-math folds
+ * isfinite to 1 and drops the unordered case of v != 0. ilogb(0) may equal
+ * FP_ILOGBNAN; v + 1 separates 0 from NaN. */
+#if defined(NFFT_LDOUBLE)
+  #define E_ILOGB(x) ilogbl(x)
+#else
+  #define E_ILOGB(x) ilogb(x)
+#endif
+static inline int Y(e_finite)(const E v)
+{
+  const int e = E_ILOGB(v);
+  return e != INT_MAX && (e != FP_ILOGBNAN || E_ILOGB(v + EK(1.0))
+      != FP_ILOGBNAN);
+}
 
 #define KPI K(3.1415926535897932384626433832795028841971693993751)
 #define K2PI K(6.2831853071795864769252867665590057683943387987502)

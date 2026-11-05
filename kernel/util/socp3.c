@@ -23,7 +23,6 @@
 
 #include "nfft3.h"
 #include "infft.h"
-#include <limits.h>
 
 static E e_abs(const E a)
 {
@@ -39,23 +38,12 @@ static E dot(const E *a, const E *b, const INT n)
   return r;
 }
 
-#if defined(NFFT_LDOUBLE)
-#define E_ILOGB(x) ilogbl(x)
-#else
-#define E_ILOGB(x) ilogb(x)
-#endif
-
-/* -ffast-math folds isfinite to 1; the library call ilogb survives it.
- * ilogb(0) may equal FP_ILOGBNAN, hence the test for 0. */
 static int all_finite(const E *v, const INT n)
 {
   INT k;
   for (k = 0; k < n; k++)
-  {
-    const int e = E_ILOGB(v[k]);
-    if (v[k] != EK(0.0) && (e == FP_ILOGBNAN || e == INT_MAX))
+    if (!Y(e_finite)(v[k]))
       return 0;
-  }
   return 1;
 }
 

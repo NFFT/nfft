@@ -18,7 +18,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 #include <CUnit/CUnit.h>
 #include "nfft3.h"
 #include "infft.h"
@@ -568,20 +567,12 @@ static void socp3_min_abs_data(E *h, E *G, E *q, const E tau)
   q[1] = EK(1.0);
 }
 
-/* ilogb, as isfinite folds to 1 under -ffast-math. */
 static int socp3_finite(const E *v, const INT n)
 {
   INT i;
   for (i = 0; i < n; i++)
-  {
-#if defined(NFFT_LDOUBLE)
-    const int e = ilogbl(v[i]);
-#else
-    const int e = ilogb(v[i]);
-#endif
-    if (v[i] != EK(0.0) && (e == FP_ILOGBNAN || e == INT_MAX))
+    if (!Y(e_finite)(v[i]))
       return 0;
-  }
   return 1;
 }
 
