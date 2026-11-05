@@ -699,18 +699,19 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
  * e^(-2 pi i xi (tap position)). With C the window's own transform psi_hat,
  * D and C are linear in the coefficients and the worst case of |E| over the
  * band and the offsets is quasiconvex in them (Keiner, Potts: Optimized
- * piecewise polynomial window functions for the NFFT, 2026). Iteratively
- * reweighted least squares in correction form on a design of points: each
- * pass fits a change d to the table, min sum w |G (c + d)|^2 / psi_hat(c)^2,
- * G = D - C, under sum_i B_i d = 0 over the initial design, B = psi_hat,
- * which fixes the scale; the first pass with the band's quadrature weights
- * is the RMS optimum, Lawson's reweighting then moves to the discrete
- * minimax; the best pass by the chosen objective is kept. The offsets are
- * the limit t -> 0, where a window with jumps peaks, and the midpoints of
- * [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The residual is a
- * difference of quantities near one, so the fit resolves it only while the
- * error is well above eps_E, which Y(kb_poly_correct_ok) guards coarsely
- * and the hold-out exactly. Unknowns are Chebyshev coefficients T_k(2s) of
+ * piecewise polynomial window functions for the NFFT, 2026). Weighted least
+ * squares in correction form on a design of points: a pass fits a change d
+ * to the table, min sum w |G (c + d)|^2 / psi_hat(c)^2, G = D - C, under
+ * sum_i B_i d = 0 over the initial design, B = psi_hat, which fixes the
+ * scale; the first pass with the band's quadrature weights is the RMS
+ * optimum. RMS repeats the pass with the new denominators and keeps the
+ * best one; minimax starts there and solves the discrete minimax of the
+ * ratio by Dinkelbach steps and bisection on second-order cone subproblems.
+ * The offsets are the limit t -> 0, where a window with jumps peaks, and
+ * the midpoints of [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The
+ * residual is a difference of quantities near one, so the fit resolves it
+ * only while the error is well above eps_E, which Y(kb_poly_correct_ok)
+ * guards coarsely and the hold-out exactly. Unknowns are Chebyshev coefficients T_k(2s) of
  * the m + 1 stencil columns; column 0, outside the stencil, keeps its
  * interpolant. The design capacity holds the initial design, the points of
  * a table cell and the exchange rounds. */
@@ -724,8 +725,196 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
     + KB_POLY_CORR_CELL + KB_POLY_CORR_ADD * KB_POLY_CORR_ROUNDS)
 #define KB_POLY_CORR_NIT 24
 #define KB_POLY_CORR_STALL 4
+#define KB_POLY_CORR_DELTA EK(0.01)
+#define KB_POLY_CORR_GAIN EK(1.3)
+#define KB_POLY_CORR_SOLVES 30
+#define KB_POLY_CORR_MAXIT 60
+#define KB_POLY_CORR_TOL (KB_POLY_CORR_DELTA / EK(100.0))
 
-void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
+/* Preconditioner at the window with G c = gcn, B c = bcn: rows over bcn_i,
+ * stacked re/im (As: 2 npt x nr, column-major), pivoted QR, T = P R_k^{-1}
+ * (nr x k). Returns k; kappa = max |gcn_i| / bcn_i, E0n = gcn / (bcn kappa),
+ * Gam = G T / bcn (re/im interleaved, npt x k), beta = B T kappa / bcn. */
+static INT model(const kb_design *d, const E *gcn, const E *bcn, E *As,
+    E *T, INT *perm, E *tau_h, E *kappa, E *E0n, E *Gam, E *beta)
+{
+  const INT npt = d->npt, nr = d->nr;
+  E kp = EK(0.0);
+  INT p, j, l, k;
+
+  for (p = 0; p < npt; p++)
+  {
+    const E r = E_SQRT(gcn[2 * p] * gcn[2 * p]
+        + gcn[2 * p + 1] * gcn[2 * p + 1]) / bcn[p];
+
+    kp = IF(r > kp, r, kp);
+
+    for (j = 0; j < nr; j++)
+    {
+      As[j * 2 * npt + 2 * p] = d->G[2 * (p * nr + j)] / bcn[p];
+      As[j * 2 * npt + 2 * p + 1] = d->G[2 * (p * nr + j) + 1] / bcn[p];
+    }
+  }
+
+  k = Y(kb_poly_qr)(As, 2 * npt, nr, KB_POLY_CORR_TRUNC, perm, tau_h);
+  Y(kb_poly_qr_basis)(As, 2 * npt, nr, k, perm, T);
+
+  for (p = 0; p < npt; p++)
+  {
+    const E *g = d->G + 2 * p * nr, *bb = d->B + p * nr;
+
+    E0n[2 * p] = gcn[2 * p] / (bcn[p] * kp);
+    E0n[2 * p + 1] = gcn[2 * p + 1] / (bcn[p] * kp);
+
+    for (l = 0; l < k; l++)
+    {
+      const E *tl = T + l * nr;
+      E re = EK(0.0), im = EK(0.0), be = EK(0.0);
+
+      for (j = 0; j < nr; j++)
+      {
+        re += g[2 * j] * tl[j];
+        im += g[2 * j + 1] * tl[j];
+        be += bb[j] * tl[j];
+      }
+
+      Gam[2 * (p * k + l)] = re / bcn[p];
+      Gam[2 * (p * k + l) + 1] = im / bcn[p];
+      beta[p * k + l] = be * kp / bcn[p];
+    }
+  }
+
+  *kappa = kp;
+
+  return k;
+}
+
+/* Subproblem at level tau_n = tau / kappa, x = (w, z): min z subject to
+ * |E0n_i + Gam_i w| <= tau_n (1 + beta_i w) + z. Cones h_i = (tau_n, Re
+ * E0n_i, Im E0n_i), G_i = [[-tau_n beta_i, -1], [-Re Gam_i, 0], [-Im Gam_i,
+ * 0]] (3 x (k + 1)), q = e_k. Layout as Y(socp3_solve) expects. */
+static void subproblem(const INT npt, const INT k, const E tau_n,
+    const E *E0n, const E *Gam, const E *beta, E *h, E *G, E *q)
+{
+  const INT n = k + 1;
+  INT i, l;
+
+  for (i = 0; i < npt; i++)
+  {
+    E *g0 = G + 3 * i * n, *g1 = g0 + n, *g2 = g1 + n;
+
+    h[3 * i] = tau_n;
+    h[3 * i + 1] = E0n[2 * i];
+    h[3 * i + 2] = E0n[2 * i + 1];
+
+    for (l = 0; l < k; l++)
+    {
+      g0[l] = -tau_n * beta[i * k + l];
+      g1[l] = -Gam[2 * (i * k + l)];
+      g2[l] = -Gam[2 * (i * k + l) + 1];
+    }
+
+    g0[k] = EK(-1.0);
+    g1[k] = g2[k] = EK(0.0);
+  }
+
+  for (l = 0; l < k; l++)
+    q[l] = EK(0.0);
+
+  q[k] = EK(1.0);
+}
+
+/* dnew = dtot + kappa T w (w: k). */
+static void apply_step(const INT nr, const INT k, const E *T, const E kappa,
+    const E *w, const E *dtot, E *dnew)
+{
+  INT j, l;
+
+  for (j = 0; j < nr; j++)
+  {
+    E s = EK(0.0);
+
+    for (l = 0; l < k; l++)
+      s += T[l * nr + j] * w[l];
+
+    dnew[j] = dtot[j] + kappa * s;
+  }
+}
+
+/* E in the driver's workspace for a design of capacity cap, nr unknowns. */
+static INT driver_work(const INT cap, const INT nr)
+{
+  return cap * (11 + 8 * nr) + nr * (nr + 4) + 2 + Y(socp3_work)(cap, nr + 1);
+}
+
+/* Safeguarded Dinkelbach on the design d from dtot (in/out): hi the true
+ * ratio of dtot, lo = *lo_io. Dinkelbach steps at tau = hi while they gain
+ * KB_POLY_CORR_GAIN, else bisection at sqrt(lo hi), hi / 4 while lo = 0. A
+ * window is accepted only if its true ratio is below tau; a level proven
+ * infeasible, or undecided below hi, raises lo. y (3 npt) warm starts each
+ * solve. ws: driver_work(cap, nr). Returns hi, -1 if dtot has no valid
+ * ratio. */
+static E driver(kb_design *d, E *dtot, E *lo_io, E *y, E *ws,
+    const INT maxit)
+{
+  const INT cap = d->cap, nr = d->nr, npt = d->npt;
+  E *As = ws, *Gam = As + 2 * cap * nr, *beta = Gam + 2 * cap * nr;
+  E *G = beta + cap * nr, *h = G + 3 * cap * (nr + 1), *E0n = h + 3 * cap;
+  E *gcn = E0n + 2 * cap, *bcn = gcn + 2 * cap, *T = bcn + cap;
+  E *tau_h = T + nr * nr, *dnew = tau_h + nr, *q = dnew + nr;
+  E *x = q + nr + 1, *work = x + nr + 1;
+  INT *perm = (INT*) Y(malloc)((size_t)nr * sizeof(INT));
+  E hi = design_ratio(d, dtot, gcn, bcn), lo = *lo_io, kappa = EK(0.0);
+  E tau, r, pobj, dobj, pres, dres;
+  INT k = 0, ns, j, it;
+  int dink = 1, fresh = 0, st;
+
+  for (ns = 0; hi >= EK(0.0) && ns < KB_POLY_CORR_SOLVES
+      && hi > (EK(1.0) + KB_POLY_CORR_DELTA) * lo; ns++)
+  {
+    tau = IF(dink, hi, IF(lo > EK(0.0), E_SQRT(lo * hi), hi / EK(4.0)));
+
+    if (!fresh)
+    {
+      k = model(d, gcn, bcn, As, T, perm, tau_h, &kappa, E0n, Gam, beta);
+      fresh = 1;
+    }
+
+    subproblem(npt, k, tau / kappa, E0n, Gam, beta, h, G, q);
+
+    for (j = 0; j <= k; j++)
+      x[j] = EK(0.0);
+
+    st = Y(socp3_solve)(npt, k + 1, h, G, q, x, y, 1, !dink,
+        KB_POLY_CORR_TOL, E_EPSILON, maxit, work, &it, &pobj, &dobj, &pres,
+        &dres);
+    apply_step(nr, k, T, kappa, x, dtot, dnew);
+    r = design_ratio(d, dnew, gcn, bcn);
+
+    if (r >= EK(0.0) && r < tau)
+    {
+      dink = r * KB_POLY_CORR_GAIN < hi;
+      hi = r;
+      memcpy(dtot, dnew, (size_t)nr * sizeof(E));
+      fresh = 0;
+    }
+    else
+    {
+      if (st == SOCP3_INFEASIBLE || tau < hi || (dres < KB_POLY_CORR_TOL
+          && dobj > EK(10.0) * KB_POLY_CORR_TOL))
+        lo = IF(tau > lo, tau, lo);
+
+      dink = 0;
+    }
+  }
+
+  Y(free)(perm);
+  *lo_io = lo;
+
+  return hi;
+}
+
+R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax)
 {
   const INT w = KB_POLY_COLS(m), h = KB_POLY_HALF(deg), nk = 2 * h + 1;
@@ -735,12 +924,12 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   const INT cap = KB_POLY_CORR_CAP;
   const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
   E *A = (E*) Y(malloc)((size_t)(cap * (6 + 3 * nr) + 2 * npt * nr + 5 * nr
-      + 8 * npt + 2 * nu + 3 * nxi + 2 * ng + 4 * nxi * nc + 2 * nxi * ntt
+      + 7 * npt + 2 * nu + 3 * nxi + 2 * ng + 4 * nxi * nc + 2 * nxi * ntt
       + 2 * nxi * ng + 2 * ntt * nc + 2 * ng * nc + 2 * nh + ntt + nk)
       * sizeof(E));
   E *Aw = A + cap * (6 + 3 * nr), *g = Aw + 2 * npt * nr, *scale = g + nr;
   E *dtot = scale + nr, *dbest = dtot + nr, *el = dbest + nr;
-  E *wt = el + nr, *gcn = wt + npt, *bcn = gcn + 2 * npt, *yw = bcn + npt;
+  E *gcn = el + nr, *bcn = gcn + 2 * npt, *yw = bcn + npt;
   E *rr = yw + 2 * npt, *Bsum = rr + 2 * nxi * ntt, *Bf = Bsum + nu;
   E *den = Bf + nu;
   E *xi = den + nxi, *xw = xi + nxi, *tg = xw + nxi, *wg = tg + ng;
@@ -829,54 +1018,48 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     dbest[j] = EK(0.0);
   }
 
-  for (p = 0; p < npt; p++)
-    wt[p] = d.w[p];
-
+  /* Weighted LS passes with the current denominators. The first is the RMS
+   * optimum and the start of the minimax driver; RMS keeps the best pass. */
   for (it = 0; it <= KB_POLY_CORR_NIT; it++)
   {
-    E ss = EK(0.0), sw = EK(0.0);
-
     mx = design_ratio(&d, dtot, gcn, bcn);
 
     if (mx < EK(0.0))
       break;
 
-    for (p = 0; p < npt; p++)
+    if (it > 0)
     {
-      const E e = E_SQRT(gcn[2 * p] * gcn[2 * p]
-          + gcn[2 * p + 1] * gcn[2 * p + 1]) / bcn[p];
+      E ss = EK(0.0), sw = EK(0.0);
 
-      ss += d.w[p] * e * e;
-      sw += d.w[p];
-    }
+      if (minimax)
+        break;
 
-    obj = IF(minimax, mx, E_SQRT(ss / sw));
-
-    if (it == 0 || obj < best_obj)
-    {
-      best_obj = obj;
-      stall = 0;
-      memcpy(dbest, dtot, (size_t)nr * sizeof(E));
-    }
-    else
-      stall++;
-
-    if (it == KB_POLY_CORR_NIT || stall == KB_POLY_CORR_STALL)
-      break;
-
-    if (minimax && it > 0)
       for (p = 0; p < npt; p++)
       {
-        const E e = E_SQRT(gcn[2 * p] * gcn[2 * p]
-            + gcn[2 * p + 1] * gcn[2 * p + 1]) / bcn[p];
-
-        wt[p] *= IF(e > EK(0.1) * mx, e, EK(0.1) * mx) / mx;
+        ss += d.w[p] * (gcn[2 * p] * gcn[2 * p]
+            + gcn[2 * p + 1] * gcn[2 * p + 1]) / (bcn[p] * bcn[p]);
+        sw += d.w[p];
       }
+
+      obj = E_SQRT(ss / sw);
+
+      if (it == 1 || obj < best_obj)
+      {
+        best_obj = obj;
+        stall = 0;
+        memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+      }
+      else
+        stall++;
+
+      if (it == KB_POLY_CORR_NIT || stall == KB_POLY_CORR_STALL)
+        break;
+    }
 
     /* Rows scaled by sqrt(w) / den, so the residual is the relative error. */
     for (p = 0; p < npt; p++)
     {
-      const E wi = E_SQRT(wt[p]), wa = wi / bcn[p];
+      const E wa = E_SQRT(d.w[p]) / bcn[p];
 
       for (j = 0; j < nr; j++)
       {
@@ -893,6 +1076,23 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
 
     for (j = 0; j < nr; j++)
       dtot[j] += g[j] * scale[j];
+  }
+
+  if (minimax)
+  {
+    E *ws = (E*) Y(malloc)((size_t)(driver_work(cap, nr) + 3 * cap)
+        * sizeof(E));
+    E *y = ws + driver_work(cap, nr), lo = EK(0.0);
+
+    for (p = 0; p < cap; p++)
+    {
+      y[3 * p] = EK(1.0);
+      y[3 * p + 1] = y[3 * p + 2] = EK(0.0);
+    }
+
+    driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
+    memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+    Y(free)(ws);
   }
 
   /* best = orig + the correction of the best pass. */
@@ -971,10 +1171,13 @@ void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   {
     memcpy(coef, orig, (size_t)n * sizeof(R));
     hut[0] = K(0.0);
+    mx = EK(-1.0);
   }
 
   Y(free)(mem);
   Y(free)(A);
+
+  return (R)mx;
 }
 
 R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,

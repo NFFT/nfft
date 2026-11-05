@@ -726,3 +726,37 @@ void X(check_kbpoly_qr)(void)
   }
   printf("\n");
 }
+
+#if MANT_DIG >= 53
+/* Hold-out maximum of the minimax correction at sigma, library m, deg. */
+static R kbpoly_driver_case(const R sigma, const INT m, const INT deg)
+{
+  const R b = KPI * (K(2.0) - K(1.0) / sigma), reach = (R)m + K(1.0);
+  const R lt = Y(bessel_i0_logtail)(reach * b), pki = EXP(-reach * b - lt);
+  const INT n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  R *coef = (R*) Y(malloc)((size_t)(n + KB_POLY_HUT_LEN) * sizeof(R));
+  R e;
+
+  Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
+  e = Y(kb_poly_correct)(coef, coef + n, b, m, deg, 1);
+  Y(free)(coef);
+  return e;
+}
+#endif
+
+void X(check_kbpoly_driver)(void)
+{
+#if MANT_DIG >= 53
+  R e;
+
+  printf("kbpoly_driver\n-------------\n");
+
+  e = kbpoly_driver_case(K(2.0), 3, 10);
+  printf("driver_reference: %.4e (%.3fx)\n", (double)e,
+      (double)(e / K(2.183E-8)));
+  CU_ASSERT(e >= K(0.95) * K(2.183E-8) && e <= K(1.15) * K(2.183E-8));
+  printf("\n");
+#else
+  CU_ASSERT(1);
+#endif
+}

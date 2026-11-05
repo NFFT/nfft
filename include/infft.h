@@ -1869,8 +1869,9 @@ int Y(kb_poly_correct_ok)(const R b, const INT m);
 /* Optimizes coef (KB_POLY_ROWS(deg) x KB_POLY_COLS(m)) in place for the
  * worst-case (minimax) or RMS transform error and writes its deconvolution
  * to hut (KB_POLY_HUT_LEN); where that does not validate, coef is restored
- * and hut[0] = 0. */
-void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
+ * and hut[0] = 0. Returns the hold-out maximum of the accepted table, -1 when
+ * the plain table was kept. */
+R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax);
 
 /* Householder QR with column pivoting of A (rows x cols, column-major, in

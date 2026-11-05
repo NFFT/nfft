@@ -25,5 +25,6 @@ void X(check_kaiser_bessel_poly_sigma)(void);
 void X(check_kaiser_bessel_poly_opt)(void);
 void X(check_socp3)(void);
 void X(check_kbpoly_qr)(void);
+void X(check_kbpoly_driver)(void);
 
 #endif
