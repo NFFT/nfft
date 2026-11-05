@@ -20,13 +20,13 @@
  *
  * KB_POLY_BR_LS_<mant>: b R up to which the plan-time correction of
  * Y(kb_poly_correct) pays in a type of that mantissa width: the truncation
- * error c / I0(a R), c = 1.10, is still K_LS = 30 times the round-off floor
+ * error c / I0(a R), c = 1.10, is still K_LS = 100 times the round-off floor
  * u I0(b R) / I0(a R). The m_opt rule above with that margin. */
 
-#define KB_POLY_BR_LS_24 K(15.543579)
-#define KB_POLY_BR_LS_53 K(36.104592)
-#define KB_POLY_BR_LS_64 K(43.831934)
-#define KB_POLY_BR_LS_113 K(78.097558)
+#define KB_POLY_BR_LS_24 K(14.292273)
+#define KB_POLY_BR_LS_53 K(34.882280)
+#define KB_POLY_BR_LS_64 K(42.613079)
+#define KB_POLY_BR_LS_113 K(76.885496)
 
 #if MANT_DIG == 24
   #define KB_POLY_TAB_MMAX 5

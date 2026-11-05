@@ -206,13 +206,13 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FFTW_INIT                  (1U<<10)
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
-/** Kaiser-Bessel window only: after fitting the polynomial window, correct
- *  its coefficients by least squares against the transform's own error
- *  functional, which lowers the worst-case error 2 to 4 times and the RMS
- *  error 1.2 to 1.7 times at the same degree (see kernel/util/kbpoly.c).
- *  Costs a few to about ten milliseconds per axis at plan time. Ignored by
- *  the other windows and where the error is already at the rounding floor. */
+/** Kaiser-Bessel only: optimize the polynomial window and its deconvolution
+ *  at plan time for the smallest worst-case error, 6 to 120 times lower;
+ *  5 to 70 ms per axis. */
 #define OPT_WINDOW                 (1U<<13)
+/** As OPT_WINDOW for the smallest RMS error, 2 to 26 times lower; with
+ *  OPT_WINDOW the worst case wins. */
+#define OPT_WINDOW_RMS             (1U<<14)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 /* nfct */

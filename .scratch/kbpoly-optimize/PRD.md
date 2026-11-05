@@ -1,6 +1,6 @@
 # PRD: Fit the polynomial Kaiser-Bessel window to the transform error
 
-Status: implemented on `feature/kbpoly-optimize` (issues 01 to 04, 06 and 09 in one pass; 05 folded into 03 as the bounded reweighting; 07 and 08 open). Measurements in analysis section 15.1. Background and measurements: `analysis.md` in this
+Status: implemented on `feature/kbpoly-optimize` (issues 01 to 04, 06 and 09 in one pass; 05 folded into 03 as the bounded reweighting; 07 and 08 open). Superseded in part by analysis section 16 (2026-11-03): the deconvolution is now the window's own transform (non-goal "Re-optimizing PHI_HUT" reversed, G4 relaxed: `PHI_HUT` reads a per-axis table), the correction step is a free-deconvolution minimax loop, and the guard is the generator margin plus a hold-out validation. Measurements in analysis section 15.1. Background and measurements: `analysis.md` in this
 directory (sections referenced below as A.n).
 
 ## Problem

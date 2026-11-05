@@ -45,10 +45,15 @@ two `h` lower in most of the table.
 ## The correction guard
 
 `KB_POLY_BR_LS_<mant>` is the `b R` up to which the optional plan-time
-correction of `Y(kb_poly_correct)` pays in a type of that mantissa width:
-the truncation error `1.10 / I0(a R)` is still 30 times the round-off floor
-`u I0(b R) / I0(a R)`, the `m_opt` rule below with a margin of 30. Past it
-the correction would fit rounding noise; `Y(kb_poly_init)` skips it there.
+optimization of `Y(kb_poly_correct)` can pay in a type of that mantissa
+width: the truncation error `1.10 / I0(a R)` is still 100 times the
+round-off floor `u I0(b R) / I0(a R)`, the `m_opt` rule below with a margin
+of 100. Past it the optimization would fit rounding noise;
+`Y(kb_poly_init)` skips it there. The margin is a coarse first filter only:
+the optimized window lowers the error up to 100 times, so near the floor
+it can still fit noise and come out worse, which `Y(kb_poly_correct)`
+catches itself by validating the result on a hold-out sample set and
+keeping the plain table where the optimized one does not beat it.
 
 ## Layout
 

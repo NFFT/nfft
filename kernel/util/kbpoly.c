@@ -23,7 +23,9 @@
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
- * m + 1 mirrored columns. */
+ * m + 1 mirrored columns. Y(kb_poly_correct) optimizes a table and its
+ * deconvolution against the transform's error for OPT_WINDOW and
+ * OPT_WINDOW_RMS. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -120,8 +122,8 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   #define KB_POLY_BR_LS KB_POLY_BR_LS_53
 #endif
 
-/* The truncation error is still 30 times the round-off floor u I0(bR)/I0(aR)
- * of the type the fit runs in; past that the fit would see noise. */
+/* The transform error is still 100 times the round-off floor
+ * u I0(bR) / I0(aR) of the type the fit runs in. */
 int Y(kb_poly_correct_ok)(const R b, const INT m)
 {
   return b * ((R)m + K(1.0)) <= KB_POLY_BR_LS;
@@ -187,262 +189,532 @@ static INT first_alike(const R *b, const INT t)
   return s;
 }
 
-/* Solves the symmetric positive definite system G x = g, order n, by
- * Cholesky in place; g is overwritten by x. Returns 0 if G is not positive
- * definite. */
-static int cholesky_solve(E *G, E *g, const INT n)
+/* min |A x - y|, A rows x cols column-major, rows >= cols, by Householder
+ * QR in place; y is overwritten. The design matrix below has condition
+ * number up to 1e10, which rules out the normal equations in any E. */
+static void qr_solve(E *A, E *y, E *x, const INT rows, const INT cols)
 {
   INT i, j, k;
 
-  for (j = 0; j < n; j++)
+  for (j = 0; j < cols; j++)
   {
-    E d = G[j * n + j];
+    E *v = A + j * rows, nrm = EK(0.0), alpha, beta;
 
-    for (k = 0; k < j; k++)
-      d -= G[j * n + k] * G[j * n + k];
+    for (i = j; i < rows; i++)
+      nrm += v[i] * v[i];
 
-    if (!(d > EK(0.0)))
-      return 0;
+    nrm = E_SQRT(nrm);
 
-    d = E_SQRT(d);
-    G[j * n + j] = d;
+    if (nrm == EK(0.0))
+      continue;
 
-    for (i = j + 1; i < n; i++)
+    alpha = IF(v[j] > EK(0.0), -nrm, nrm);
+    v[j] -= alpha;
+    beta = EK(1.0) / (alpha * v[j]); /* -2 / (v . v) */
+
+    /* Reflect the remaining columns and, as column cols, y. */
+    for (k = j + 1; k <= cols; k++)
     {
-      E s = G[i * n + j];
+      E *u = IF(k < cols, A + k * rows, y), sum = EK(0.0);
 
-      for (k = 0; k < j; k++)
-        s -= G[i * n + k] * G[j * n + k];
+      for (i = j; i < rows; i++)
+        sum += v[i] * u[i];
 
-      G[i * n + j] = s / d;
+      sum *= beta;
+
+      for (i = j; i < rows; i++)
+        u[i] += sum * v[i];
     }
+
+    v[j] = alpha;
   }
 
-  for (i = 0; i < n; i++)
+  for (j = cols - 1; j >= 0; j--)
   {
-    E s = g[i];
+    E sum = y[j];
 
-    for (k = 0; k < i; k++)
-      s -= G[i * n + k] * g[k];
+    for (k = j + 1; k < cols; k++)
+      sum -= A[k * rows + j] * x[k];
 
-    g[i] = s / G[i * n + i];
+    x[j] = IF(A[j * rows + j] != EK(0.0), sum / A[j * rows + j], EK(0.0));
   }
-
-  for (i = n - 1; i >= 0; i--)
-  {
-    E s = g[i];
-
-    for (k = i + 1; k < n; k++)
-      s -= G[k * n + i] * g[k];
-
-    g[i] = s / G[i * n + i];
-  }
-
-  return 1;
 }
 
-/* The transform sees the table only through the 2m + 2 taps at a node's
- * offset t and the deconvolution C(xi), xi = k / n; its relative error at
- * frequency xi is D(xi, t) / C(xi) - 1 with D the sum of the taps times
- * exp(-2 pi i xi (tap position)). D is linear in the coefficients, so a
- * least-squares fit of a correction to the residual D / C - 1 on a grid of
- * (xi, t) lowers that error directly, the function the table approximates no
- * longer mattering. The residual is the difference of quantities near one,
- * so the fit resolves it only while the error is well above eps_E: that is
- * what Y(kb_poly_correct_ok) guards, and why E rather than R where E is
- * wider. The unknowns are Chebyshev coefficients T_k(2s) per stencil column,
- * converted to monomials at the end as the fit itself is; column 0, outside
- * the stencil, keeps its interpolant. */
-#define KB_POLY_CORR_NXI 40
-#define KB_POLY_CORR_NT 32
-
-void Y(kb_poly_correct)(R *coef, const R b, const R i0e_peak_inv,
-    const INT m, const INT deg)
+/* Gauss-Legendre nodes and weights on [0, 1]. */
+static void gauleg(E *x, E *w, const INT n)
 {
-  const INT w = KB_POLY_COLS(m), h = KB_POLY_HALF(deg), nk = 2 * h + 1;
-  const INT nc = m + 1, nu = nc * nk;
-  const INT nxi = KB_POLY_CORR_NXI, nt = KB_POLY_CORR_NT;
-  const INT rows = 2 * nxi * nt, npt = nxi * nt;
-  const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
-  E *A = (E*) Y(malloc)((size_t)(rows * nu + rows + nu * nu + 4 * nu + 2 * npt
-      + nt * nk + 2 * nc) * sizeof(E));
-  E *y = A + rows * nu, *G = y + rows, *g = G + nu * nu, *best = g + nu;
-  E *scale = best + nu, *wt = scale + nu, *r = wt + npt, *T = r + npt;
-  E *lo = T + nt * nk, *hi = lo + nc;
-  R *mem = (R*) Y(malloc)((size_t)(2 * nk * w + nk * nk) * sizeof(R));
-  R *cheb = mem, *res = cheb + nk * w, *tp = res + nk * w;
-  E lambda = EK(0.0), best_max = EK(0.0), rms_ls = EK(0.0);
-  INT i, q, c, k, j, row = 0, it;
+  INT i, j, s;
 
-  /* T_k(2s) at the offsets s = t - 1/2 of the grid. */
-  for (q = 0; q < nt; q++)
+  for (i = 0; i < (n + 1) / 2; i++)
   {
-    const E x = EK(2.0) * (((E)q + EK(0.5)) / (E)nt - EK(0.5));
+    E z = E_COS(E_PI * ((E)i + EK(0.75)) / ((E)n + EK(0.5))), pp = EK(1.0);
 
-    T[q * nk] = EK(1.0);
-    T[q * nk + 1] = x;
+    for (s = 0; s < 8; s++)
+    {
+      E p1 = EK(1.0), p2 = EK(0.0);
 
-    for (k = 2; k < nk; k++)
-      T[q * nk + k] = EK(2.0) * x * T[q * nk + k - 1] - T[q * nk + k - 2];
+      for (j = 0; j < n; j++)
+      {
+        const E p3 = p2;
+
+        p2 = p1;
+        p1 = ((EK(2.0) * (E)j + EK(1.0)) * z * p2 - (E)j * p3)
+            / ((E)j + EK(1.0));
+      }
+
+      pp = (E)n * (z * p1 - p2) / (z * z - EK(1.0));
+      z -= p1 / pp;
+    }
+
+    x[i] = (EK(1.0) - z) / EK(2.0);
+    x[n - 1 - i] = (EK(1.0) + z) / EK(2.0);
+    w[i] = w[n - 1 - i] = EK(1.0) / ((EK(1.0) - z * z) * pp * pp);
   }
+}
+
+/* T_k(2 (t - 1/2)), k < nk. */
+static void cheb_row(E *T, const INT nk, const E t)
+{
+  const E x = EK(2.0) * (t - EK(0.5));
+  INT k;
+
+  T[0] = EK(1.0);
+  T[1] = x;
+
+  for (k = 2; k < nk; k++)
+    T[k] = EK(2.0) * x * T[k - 1] - T[k - 2];
+}
+
+/* The 2m + 2 taps at offset t: lo[c] at cell j = m - c (column c + 1 at
+ * s = t - 1/2), hi[c] at the mirror cell -j - 1 (the same column at -s). */
+static void taps(E *lo, E *hi, const R *coef, const INT m, const INT h,
+    const E t)
+{
+  const INT w = KB_POLY_COLS(m);
+  INT c;
+
+  for (c = 0; c <= m; c++)
+  {
+    R lor, hir;
+
+    KB_POLY_HORNER(1, &lor, &hir, coef + c + 1, w, h, (R)(t - EK(0.5)));
+    lo[c] = (E)lor;
+    hi[c] = (E)hir;
+  }
+}
+
+/* Phases e^(-2 pi i xi y) of a sample set: ej, four per frequency and cell,
+ * at the anchors y = j and y = -j - 1; et at the offsets; eg at the
+ * quadrature nodes. */
+static void phases(E *ej, E *et, E *eg, const E *xi, const INT nxi,
+    const E *t, const INT ntt, const E *tg, const INT ng, const INT m)
+{
+  const E ph = -EK(2.0) * E_PI;
+  INT i, c, q;
 
   for (i = 0; i < nxi; i++)
   {
-    /* Clustered towards the band ends, where the error peaks. */
-    const E xi = ximax * (EK(1.0) - E_COS(E_PI * (E)i / (E)(nxi - 1))) / EK(2.0);
-    const E C = (E)Y(kb_phi_hut)(b, i0e_peak_inv, (R)m + K(1.0), K(1.0), (R)xi);
-
-    for (q = 0; q < nt; q++)
+    for (c = 0; c <= m; c++)
     {
-      const E t = ((E)q + EK(0.5)) / (E)nt;
-      const E ph = -EK(2.0) * E_PI * xi;
-      E dre = EK(0.0), dim = EK(0.0);
-      R lor, hir;
+      const E a = ph * xi[i] * (E)(m - c), am = -ph * xi[i] * (E)(m - c + 1);
+      E *e = ej + 4 * (i * (m + 1) + c);
 
-      /* The taps the transform uses at this offset: column c is the cell
-       * j = m + 1 - c at s, and its mirror at -s. */
-      for (c = 1; c <= nc; c++)
+      e[0] = E_COS(a);
+      e[1] = E_SIN(a);
+      e[2] = E_COS(am);
+      e[3] = E_SIN(am);
+    }
+
+    for (q = 0; q < ntt; q++)
+    {
+      const E a = ph * xi[i] * t[q];
+
+      et[2 * (i * ntt + q)] = E_COS(a);
+      et[2 * (i * ntt + q) + 1] = E_SIN(a);
+    }
+
+    for (q = 0; q < ng; q++)
+    {
+      const E a = ph * xi[i] * tg[q];
+
+      eg[2 * (i * ng + q)] = E_COS(a);
+      eg[2 * (i * ng + q) + 1] = E_SIN(a);
+    }
+  }
+}
+
+/* psi_hat(xi) of the table by quadrature in t; real, the window is even. */
+static E psi_hat(const R *coef, const INT m, const INT h, const E *ej,
+    const E *eg, const E *tg, const E *wg, const INT ng, E *lg, E *hg)
+{
+  E sum = EK(0.0);
+  INT q, c;
+
+  for (q = 0; q < ng; q++)
+  {
+    const E cg = eg[2 * q], sg = eg[2 * q + 1];
+
+    taps(lg, hg, coef, m, h, tg[q]);
+
+    for (c = 0; c <= m; c++)
+      sum += wg[q] * (lg[c] * (ej[4 * c] * cg - ej[4 * c + 1] * sg)
+          + hg[c] * (ej[4 * c + 2] * cg - ej[4 * c + 3] * sg));
+  }
+
+  return sum;
+}
+
+/* Error |D - C| / C of the table over a sample set with the phases of
+ * phases(), through the run-time Horner; C = psi_hat by quadrature or, given
+ * hut, from that table as the transform evaluates it. Returns the maximum,
+ * negative if C is not positive or the error not finite somewhere; *rms the
+ * root mean square with the frequency weights xw; den gets C, rr the error
+ * per sample. */
+static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
+    const E *xi, const E *xw, const INT nxi, const INT ntt, const E *t,
+    const E *tg, const E *wg, const INT ng, const E *ej, const E *et,
+    const E *eg, E *den, E *rr, E *lo, E *hi, E *lg, E *hg, E *rms)
+{
+  const INT nc = m + 1;
+  E mx = EK(0.0), ss = EK(0.0), sw = EK(0.0);
+  INT i, q, c;
+
+  for (q = 0; q < ntt; q++)
+    taps(lo + q * nc, hi + q * nc, coef, m, h, t[q]);
+
+  for (i = 0; i < nxi; i++)
+  {
+    den[i] = IF(hut == 0,
+        psi_hat(coef, m, h, ej + 4 * i * nc, eg + 2 * i * ng, tg, wg, ng, lg,
+            hg),
+        (E)Y(kb_poly_phi_hut)(hut, K(0.0), K(0.0), K(0.0), K(1.0), (R)xi[i]));
+
+    if (!(den[i] > EK(0.0)))
+      return EK(-1.0);
+
+    for (q = 0; q < ntt; q++)
+    {
+      const INT row = i * ntt + q;
+      const E ct = et[2 * row], st = et[2 * row + 1];
+      E re = -den[i], im = EK(0.0), e;
+
+      for (c = 0; c < nc; c++)
       {
-        KB_POLY_HORNER(1, &lor, &hir, coef + c, w, h, (R)(t - EK(0.5)));
-        lo[c - 1] = (E)lor;
-        hi[c - 1] = (E)hir;
+        const E *ph = ej + 4 * (i * nc + c);
+
+        re += lo[q * nc + c] * (ph[0] * ct - ph[1] * st)
+            + hi[q * nc + c] * (ph[2] * ct - ph[3] * st);
+        im += lo[q * nc + c] * (ph[0] * st + ph[1] * ct)
+            + hi[q * nc + c] * (ph[2] * st + ph[3] * ct);
       }
 
-      for (c = 1; c <= nc; c++)
-      {
-        const E jj = (E)(m + 1 - c);
-        const E a1 = ph * (jj + t), a2 = ph * (t - jj - EK(1.0));
-        const E c1 = E_COS(a1), s1 = E_SIN(a1), c2 = E_COS(a2), s2 = E_SIN(a2);
+      rr[2 * row] = re / den[i];
+      rr[2 * row + 1] = im / den[i];
+      e = E_SQRT(re * re + im * im) / den[i];
 
-        dre += lo[c - 1] * c1 + hi[c - 1] * c2;
-        dim += lo[c - 1] * s1 + hi[c - 1] * s2;
+      if (!(e <= EK(1E30)))
+        return EK(-1.0);
+
+      mx = IF(e > mx, e, mx);
+      ss += xw[i] * e * e;
+      sw += xw[i];
+    }
+  }
+
+  *rms = E_SQRT(ss / sw);
+
+  return mx;
+}
+
+/* The transform sees the table through the 2m + 2 taps at a node's offset
+ * t and the deconvolution C(xi); its relative error at frequency xi is
+ * E(xi, t) = (D(xi, t) - C(xi)) / C(xi), D the tap sum with the phases
+ * e^(-2 pi i xi (tap position)). With C the window's own transform psi_hat,
+ * D and C are linear in the coefficients and the worst case of |E| over the
+ * band and the offsets is quasiconvex in them (Keiner, Potts: Optimized
+ * piecewise polynomial window functions for the NFFT, 2026). Iteratively
+ * reweighted least squares in correction form: each pass fits a change d to
+ * the table, min sum w |G (c + d)|^2 / psi_hat(c)^2, G = D - C, under
+ * sum_cells int d = 0, which fixes the scale; the first pass with the band's
+ * quadrature weights is the RMS optimum, Lawson's reweighting then moves to
+ * the discrete minimax; the best pass by the chosen objective is kept. The
+ * offsets are the limit t -> 0, where a window with jumps peaks, and the
+ * midpoints of [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The
+ * residual is a difference of quantities near one, so the fit resolves it
+ * only while the error is well above eps_E, which Y(kb_poly_correct_ok)
+ * guards coarsely and the hold-out exactly. Unknowns are Chebyshev
+ * coefficients T_k(2s) of the m + 1 stencil columns; column 0, outside the
+ * stencil, keeps its interpolant. */
+#define KB_POLY_CORR_NXI 40
+#define KB_POLY_CORR_NT 32
+#define KB_POLY_CORR_NIT 24
+#define KB_POLY_CORR_STALL 4
+
+void Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
+    const INT deg, const int minimax)
+{
+  const INT w = KB_POLY_COLS(m), h = KB_POLY_HALF(deg), nk = 2 * h + 1;
+  const INT nc = m + 1, nu = nc * nk, nr = nu - 1, n = nk * w;
+  const INT nxi = KB_POLY_CORR_NXI, ntt = KB_POLY_CORR_NT / 2 + 1;
+  const INT ng = h + 12, npt = nxi * ntt, nh = KB_POLY_HUT_MAX;
+  const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
+  E *A = (E*) Y(malloc)((size_t)(4 * npt * nr + nxi * nu + 3 * nr
+      + 5 * npt + 3 * nxi + ntt * nk + ng * nk + 2 * ng + 4 * nxi * nc
+      + 2 * nxi * ntt + 2 * nxi * ng + 2 * ntt * nc + 2 * ng * nc + 2 * nh
+      + ntt) * sizeof(E));
+  E *Aw = A + 2 * npt * nr, *Bk = Aw + 2 * npt * nr, *g = Bk + nxi * nu;
+  E *scale = g + nr, *el = scale + nr, *wt = el + nr, *rr = wt + npt;
+  E *yw = rr + 2 * npt, *den = yw + 2 * npt, *xi = den + nxi, *xw = xi + nxi;
+  E *T = xw + nxi, *Tg = T + ntt * nk, *tg = Tg + ng * nk, *wg = tg + ng;
+  E *ej = wg + ng, *et = ej + 4 * nxi * nc, *eg = et + 2 * nxi * ntt;
+  E *lo = eg + 2 * nxi * ng, *hi = lo + ntt * nc, *lg = hi + ntt * nc;
+  E *hg = lg + ng * nc, *fh = hg + ng * nc, *fc = fh + nh, *ts = fc + nh;
+  R *mem = (R*) Y(malloc)((size_t)(4 * n + nk * nk) * sizeof(R));
+  R *cheb = mem, *res = cheb + n, *tp = res + n, *best = tp + nk * nk;
+  R *orig = best + n;
+  E best_obj = EK(0.0), obj, plain, mx, rms;
+  INT i, q, c, k, j, it, nt, stall = 0;
+
+  gauleg(tg, wg, ng);
+
+  for (q = 0; q < ntt; q++)
+  {
+    ts[q] = IF(q == 0, EK(0.0), ((E)q - EK(0.5)) / (E)KB_POLY_CORR_NT);
+    cheb_row(T + q * nk, nk, ts[q]);
+  }
+
+  for (q = 0; q < ng; q++)
+    cheb_row(Tg + q * nk, nk, tg[q]);
+
+  /* Frequencies clustered towards the band ends, where the error peaks,
+   * with their quadrature weights. */
+  for (i = 0; i < nxi; i++)
+  {
+    const E th = E_PI * (E)i / (E)(nxi - 1);
+
+    xi[i] = ximax * (EK(1.0) - E_COS(th)) / EK(2.0);
+    xw[i] = IF(i == 0 || i == nxi - 1, EK(0.5), EK(1.0))
+        * (E_SIN(th) + EK(0.02));
+
+    for (q = 0; q < ntt; q++)
+      wt[i * ntt + q] = xw[i];
+  }
+
+  phases(ej, et, eg, xi, nxi, ts, ntt, tg, ng, m);
+
+  /* Bk: psi_hat(xi) per unknown. The mirror tap carries the mirror anchor
+   * phase and T_k(-2s) = (-1)^k T_k(2s). */
+  for (i = 0; i < nxi; i++)
+    for (c = 0; c < nc; c++)
+    {
+      const E *e = ej + 4 * (i * nc + c);
+
+      for (k = 0; k < nk; k++)
+      {
+        E s1 = EK(0.0), s2 = EK(0.0);
+
+        for (q = 0; q < ng; q++)
+        {
+          const E cg = eg[2 * (i * ng + q)], sg = eg[2 * (i * ng + q) + 1];
+
+          s1 += wg[q] * Tg[q * nk + k] * (e[0] * cg - e[1] * sg);
+          s2 += wg[q] * Tg[q * nk + k] * (e[2] * cg - e[3] * sg);
+        }
+
+        Bk[i * nu + c * nk + k] = s1 + IF(k & 1, -s2, s2);
+      }
+    }
+
+  /* A: the rows G = D - C per unknown, complex, with unknown 0 (T_0 of the
+   * outermost stencil column) eliminated by the scale constraint
+   * sum_(c,k) a_k d_(c,k) = 0, a_k = int_-1^1 T_k = 2 / (1 - k^2) for even k
+   * and 0 for odd: d_0 = sum_(j>0) el_j d_j. Columns scaled to unit norm. */
+  for (j = 0; j < nr; j++)
+  {
+    const INT kk = (j + 1) % nk;
+
+    el[j] = IF(kk & 1, EK(0.0), -EK(1.0) / (EK(1.0) - (E)(kk * kk)));
+  }
+
+  for (i = 0; i < nxi; i++)
+    for (q = 0; q < ntt; q++)
+    {
+      const INT row = i * ntt + q;
+      const E ct = et[2 * row], st = et[2 * row + 1];
+      E a0re = EK(0.0), a0im = EK(0.0);
+
+      for (c = 0; c < nc; c++)
+      {
+        const E *e = ej + 4 * (i * nc + c);
+        const E c1 = e[0] * ct - e[1] * st, s1 = e[0] * st + e[1] * ct;
+        const E c2 = e[2] * ct - e[3] * st, s2 = e[2] * st + e[3] * ct;
 
         for (k = 0; k < nk; k++)
         {
           const E tk = T[q * nk + k], sg = IF(k & 1, -tk, tk);
+          const E re = tk * c1 + sg * c2 - Bk[i * nu + c * nk + k];
+          const E im = tk * s1 + sg * s2;
+          const INT u = c * nk + k;
 
-          A[row * nu + (c - 1) * nk + k] = (tk * c1 + sg * c2) / C;
-          A[(row + 1) * nu + (c - 1) * nk + k] = (tk * s1 + sg * s2) / C;
+          if (u == 0)
+          {
+            a0re = re;
+            a0im = im;
+          }
+          else
+          {
+            A[2 * (row * nr + u - 1)] = re + a0re * el[u - 1];
+            A[2 * (row * nr + u - 1) + 1] = im + a0im * el[u - 1];
+          }
         }
       }
-
-      y[row] = -(dre / C - EK(1.0));
-      y[row + 1] = -dim / C;
-      row += 2;
     }
-  }
 
-  /* Columns scaled to unit norm, which keeps the normal equations as well
-   * conditioned as the design allows; a small ridge on top, so that an
-   * over-provisioned degree cannot turn its free directions into large
-   * coefficients. */
-  for (k = 0; k < nu; k++)
+  for (j = 0; j < nr; j++)
   {
     E ss = EK(0.0);
 
-    for (i = 0; i < rows; i++)
-      ss += A[i * nu + k] * A[i * nu + k];
+    for (i = 0; i < npt; i++)
+      ss += A[2 * (i * nr + j)] * A[2 * (i * nr + j)]
+          + A[2 * (i * nr + j) + 1] * A[2 * (i * nr + j) + 1];
 
-    scale[k] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
-
-    for (i = 0; i < rows; i++)
-      A[i * nu + k] *= scale[k];
-  }
-
-  lambda = EK(1E-8);
-
-  /* Row weights: the clustered frequency samples carry their quadrature
-   * weight, so the least-squares iterate is the RMS optimum of the uniform
-   * band, the measure random data see, while the samples still sit densely
-   * where the error peaks. */
-  for (i = 0; i < nxi; i++)
-  {
-    const E cc = E_SIN(E_PI * (E)i / (E)(nxi - 1));
-    const E wq = IF(i == 0 || i == nxi - 1, EK(0.5), EK(1.0)) * (cc + EK(0.02));
-
-    for (q = 0; q < nt; q++)
-      wt[i * nt + q] = wq;
-  }
-
-  /* Plain least squares first, the RMS optimum, then a few floored Lawson
-   * reweightings towards the worst case: the residual of an iterate is
-   * linear in the correction, r + A x, so no re-evaluation is needed. A
-   * reweighted iterate replaces the best one only if it lowers the maximum
-   * and raises the RMS by at most a tenth, so both measures end up at or
-   * below the least-squares ones in the worst case and the RMS. */
-  for (it = 0; it < 4; it++)
-  {
-    E mx = EK(0.0), ss = EK(0.0);
-
-    for (i = 0; i < nu * nu; i++)
-      G[i] = EK(0.0);
-
-    for (k = 0; k < nu; k++)
-    {
-      G[k * nu + k] = lambda;
-      g[k] = EK(0.0);
-    }
+    scale[j] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
 
     for (i = 0; i < npt; i++)
     {
-      const E *a1 = A + (2 * i) * nu, *a2 = a1 + nu;
-      const E wi = wt[i];
-
-      for (j = 0; j < nu; j++)
-      {
-        const E u1 = wi * a1[j], u2 = wi * a2[j];
-
-        for (k = 0; k <= j; k++)
-          G[j * nu + k] += u1 * a1[k] + u2 * a2[k];
-
-        g[j] += u1 * y[2 * i] + u2 * y[2 * i + 1];
-      }
+      A[2 * (i * nr + j)] *= scale[j];
+      A[2 * (i * nr + j) + 1] *= scale[j];
     }
+  }
 
-    if (!cholesky_solve(G, g, nu))
+  memcpy(best, coef, (size_t)n * sizeof(R));
+  memcpy(orig, coef, (size_t)n * sizeof(R));
+
+  for (it = 0; it <= KB_POLY_CORR_NIT; it++)
+  {
+    mx = grid_max(coef, 0, m, h, xi, xw, nxi, ntt, ts, tg, wg, ng, ej, et,
+        eg, den, rr, lo, hi, lg, hg, &rms);
+
+    if (mx < EK(0.0))
       break;
 
-    for (i = 0; i < npt; i++)
-    {
-      E re = -y[2 * i], im = -y[2 * i + 1];
+    obj = IF(minimax, mx, rms);
 
-      for (k = 0; k < nu; k++)
+    if (it == 0 || obj < best_obj)
+    {
+      best_obj = obj;
+      stall = 0;
+      memcpy(best, coef, (size_t)n * sizeof(R));
+    }
+    else
+      stall++;
+
+    if (it == KB_POLY_CORR_NIT || stall == KB_POLY_CORR_STALL)
+      break;
+
+    if (minimax && it > 0)
+      for (i = 0; i < npt; i++)
       {
-        re += A[(2 * i) * nu + k] * g[k];
-        im += A[(2 * i + 1) * nu + k] * g[k];
+        const E e = E_SQRT(rr[2 * i] * rr[2 * i]
+            + rr[2 * i + 1] * rr[2 * i + 1]);
+
+        wt[i] *= IF(e > EK(0.1) * mx, e, EK(0.1) * mx) / mx;
       }
 
-      r[i] = E_SQRT(re * re + im * im);
-      mx = IF(r[i] > mx, r[i], mx);
-      ss += re * re + im * im;
-    }
-
-    if (it == 0)
-      rms_ls = ss;
-
-    if (it == 0 || (mx < best_max && ss <= EK(1.21) * rms_ls))
-    {
-      best_max = mx;
-
-      for (k = 0; k < nu; k++)
-        best[k] = g[k] * scale[k];
-    }
-
-    /* The next weights: Lawson, floored at half the maximum. */
+    /* Rows scaled by sqrt(w) / den, so the residual is the relative error. */
     for (i = 0; i < npt; i++)
-      wt[i] *= IF(r[i] > EK(0.5) * mx, r[i], EK(0.5) * mx) / mx;
+    {
+      const E wi = E_SQRT(wt[i]), wa = wi / den[i / ntt];
+
+      for (j = 0; j < nr; j++)
+      {
+        Aw[j * 2 * npt + 2 * i] = wa * A[2 * (i * nr + j)];
+        Aw[j * 2 * npt + 2 * i + 1] = wa * A[2 * (i * nr + j) + 1];
+      }
+
+      yw[2 * i] = -wi * rr[2 * i];
+      yw[2 * i + 1] = -wi * rr[2 * i + 1];
+    }
+
+    qr_solve(Aw, yw, g, 2 * npt, nr);
+
+    for (k = 0; k < nk; k++)
+      for (c = 0; c < w; c++)
+        cheb[k * w + c] = K(0.0);
+
+    for (j = 0; j < nr; j++)
+    {
+      const E dj = g[j] * scale[j];
+
+      cheb[((j + 1) % nk) * w + 1 + (j + 1) / nk] = (R)dj;
+      cheb[1] += (R)(el[j] * dj);
+    }
+
+    cheb_to_monomial(res, cheb, tp, w, deg);
+
+    for (k = 0; k < nk; k++)
+      for (c = 1; c < w; c++)
+        coef[k * w + c] += res[k * w + c];
   }
 
-  /* The correction, Chebyshev per column, to monomials and onto the table. */
-  for (k = 0; k < nk; k++)
-    for (c = 0; c < w; c++)
-      cheb[k * w + c] = IF(c == 0, K(0.0), (R)best[(c - 1) * nk + k]);
+  /* The deconvolution table of the best pass (layout at KB_POLY_HUT_MAX),
+   * trailing terms below the rounding of R dropped. */
+  for (j = 0; j < nh; j++)
+  {
+    const E u = E_COS(E_PI * ((E)j + EK(0.5)) / (E)nh);
+    const E x = ximax * E_SQRT((u + EK(1.0)) / EK(2.0));
 
-  cheb_to_monomial(res, cheb, tp, w, deg);
+    phases(ej, et, eg, &x, 1, ts, 0, tg, ng, m);
+    fh[j] = psi_hat(best, m, h, ej, eg, tg, wg, ng, lg, hg);
+  }
 
-  for (k = 0; k < nk; k++)
-    for (c = 1; c < w; c++)
-      coef[k * w + c] += res[k * w + c];
+  for (k = 0; k < nh; k++)
+  {
+    E sum = EK(0.0);
+
+    for (j = 0; j < nh; j++)
+      sum += fh[j] * E_COS(E_PI * (E)k * ((E)j + EK(0.5)) / (E)nh);
+
+    fc[k] = (EK(2.0) / (E)nh) * sum * IF(k == 0, EK(0.5), EK(1.0));
+  }
+
+  for (nt = nh; nt > 1 && FABS((R)fc[nt - 1])
+      <= Y(float_property)(NFFT_EPSILON) * FABS((R)fc[0]) / K(8.0); nt--)
+    ;
+
+  hut[0] = (R)nt;
+  hut[1] = (R)(EK(1.0) / (ximax * ximax));
+
+  for (k = 0; k < nt; k++)
+    hut[2 + k] = (R)fc[k];
+
+  /* Hold-out: frequencies between the design nodes plus the band edge,
+   * where the deconvolution amplifies most, offsets a quarter cell off the
+   * design ones, C from the table as the transform evaluates it. A fit of
+   * rounding noise does not carry over, so the optimized table replaces
+   * the plain one only if it is a fifth better here. */
+  for (i = 0; i < nxi; i++)
+    xi[i] = ximax * (EK(1.0) - E_COS(E_PI * ((E)i + EK(1.0)) / (E)nxi))
+        / EK(2.0);
+
+  for (q = 0; q < ntt; q++)
+    ts[q] = ((E)q + EK(0.25)) / (E)KB_POLY_CORR_NT;
+
+  phases(ej, et, eg, xi, nxi, ts, ntt, tg, ng, m);
+  mx = grid_max(best, hut, m, h, xi, xw, nxi, ntt, ts, tg, wg, ng, ej, et,
+      eg, den, rr, lo, hi, lg, hg, &rms);
+  obj = IF(minimax, mx, rms);
+  plain = grid_max(orig, 0, m, h, xi, xw, nxi, ntt, ts, tg, wg, ng, ej, et,
+      eg, den, rr, lo, hi, lg, hg, &rms);
+  plain = IF(minimax, plain, rms);
+
+  if (mx >= EK(0.0) && obj <= EK(0.8) * plain)
+    memcpy(coef, best, (size_t)n * sizeof(R));
+  else
+  {
+    memcpy(coef, orig, (size_t)n * sizeof(R));
+    hut[0] = K(0.0);
+  }
 
   Y(free)(mem);
   Y(free)(A);
@@ -462,7 +734,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,
     deg = IF(dt > deg, dt, deg);
   }
 
-  stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  stride = KB_POLY_STRIDE(deg, m);
   tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   tab[0] = (R)deg;
 
@@ -472,11 +744,15 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,
 
     if (s == t)
     {
-      Y(kb_poly_fit)(tab + 1 + t * stride, b[t], b[d + t], b[3 * d + t],
-          reach, m, deg);
+      R *coef = tab + 1 + t * stride;
+      R *hut = coef + KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
 
-      if (opt && Y(kb_poly_correct_ok)(b[t], m))
-        Y(kb_poly_correct)(tab + 1 + t * stride, b[t], b[2 * d + t], m, deg);
+      Y(kb_poly_fit)(coef, b[t], b[d + t], b[3 * d + t], reach, m, deg);
+      hut[0] = K(0.0);
+
+      if ((opt & (OPT_WINDOW | OPT_WINDOW_RMS))
+          && Y(kb_poly_correct_ok)(b[t], m))
+        Y(kb_poly_correct)(coef, hut, b[t], m, deg, (opt & OPT_WINDOW) != 0);
     }
     else
       memcpy(tab + 1 + t * stride, tab + 1 + s * stride,

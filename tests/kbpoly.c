@@ -58,15 +58,18 @@ static R pick_target(const R b, const R reach)
 #define KB_FN_NT 32
 
 /* The transform's error functional of a table, on a grid of frequencies xi
- * in [0, 1/(2 sigma)] and offsets t in [0, 1): J_inf = max |D / C - 1| with D
- * the sum of the 2m+2 taps times exp(-2 pi i xi (position)), C = PHI_HUT; and
- * the polynomial's own part max |D_poly - D_phi| / C, D_phi the same sum of
- * the closed-form window. Tap l of a run anchored at the grid point below the
- * node sits at nx0 - l, nx0 = m + t. */
-static void functional(const R *coef, const INT m, const INT deg, const R b,
-    const R lt, const R pki, const R i0e_pki, R *j_inf, R *poly_part)
+ * in [0, 1/(2 sigma)] and offsets t in [0, 1): J_inf = max |D / C - 1| and
+ * J_2 its root mean square, D the sum of the 2m+2 taps times
+ * exp(-2 pi i xi (position)), C = PHI_HUT; and the polynomial's own part
+ * max |D_poly - D_phi| / C, D_phi the same sum of the closed-form window.
+ * Tap l of a run anchored at the grid point below the node sits at nx0 - l,
+ * nx0 = m + t. */
+static void functional(const R *coef, const R *hut, const INT m,
+    const INT deg, const R b, const R lt, const R pki, const R i0e_pki,
+    R *j_inf, R *j_2, R *poly_part)
 {
   const INT w = 2 * m + 2;
+  R ss = K(0.0);
   const R reach = (R)m + K(1.0), sigma = KPI / (K2PI - b);
   R *got = (R*) Y(malloc)((size_t)(2 * w) * sizeof(R)), *ref = got + w;
   INT i, q, l;
@@ -76,7 +79,7 @@ static void functional(const R *coef, const INT m, const INT deg, const R b,
   for (i = 0; i < KB_FN_NXI; i++)
   {
     const R xi = (R)i / (R)(KB_FN_NXI - 1) / (K(2.0) * sigma);
-    const R C = Y(kb_phi_hut)(b, i0e_pki, reach, K(1.0), xi);
+    const R C = Y(kb_poly_phi_hut)(hut, b, i0e_pki, reach, K(1.0), xi);
 
     for (q = 0; q < KB_FN_NT; q++)
     {
@@ -98,11 +101,13 @@ static void functional(const R *coef, const INT m, const INT deg, const R b,
 
       e = SQRT((dre / C - K(1.0)) * (dre / C - K(1.0)) + dim * dim / (C * C));
       *j_inf = IF(e > *j_inf, e, *j_inf);
+      ss += e * e;
       e = SQRT(ere * ere + eim * eim) / C;
       *poly_part = IF(e > *poly_part, e, *poly_part);
     }
   }
 
+  *j_2 = SQRT(ss / (R)(KB_FN_NXI * KB_FN_NT));
   Y(free)(got);
 }
 
@@ -128,6 +133,7 @@ static INT kb_m_next(const INT m)
 
 void X(check_kaiser_bessel_poly)(void)
 {
+  const R nohut[KB_POLY_HUT_LEN] = {K(0.0)};
   unsigned int s;
   INT m;
 
@@ -153,12 +159,13 @@ void X(check_kaiser_bessel_poly)(void)
           / cmin;
       const R bound = K(1.1) * tol + slack;
       R *coef = (R*) Y(malloc)((size_t)(KB_POLY_ROWS(deg) * cols) * sizeof(R));
-      R j_inf, part, worst = K(0.0);
+      R j_inf, j_2, part, worst = K(0.0);
       INT i;
       int ok;
 
       Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
-      functional(coef, m, deg, b, lt, pki, i0e_pki, &j_inf, &part);
+      functional(coef, nohut, m, deg, b, lt, pki, i0e_pki, &j_inf, &j_2,
+          &part);
 
       /* The single-point evaluator, out to |nx| = m + 2 where PRE_LIN_PSI
        * reads it, against the closed form. Its error is the interpolation
@@ -190,17 +197,19 @@ void X(check_kaiser_bessel_poly)(void)
   printf("\n");
 }
 
-/* The least-squares correction lowers the functional's J_inf, or leaves the
- * table alone where its guard says the error is at the rounding floor. */
+/* The optimization lowers the functional's objective, worst case or RMS,
+ * or leaves the table alone where the guard or the hold-out says so. */
 void X(check_kaiser_bessel_poly_opt)(void)
 {
   unsigned int s;
   INT m;
+  int minimax;
 
   printf("KAISER-BESSEL POLYNOMIAL OPT\n----------------------------\n");
 
   for (s = 0; s < KB_NSIGMA; s++)
     for (m = 2; m <= KB_M_MAX; m = kb_m_next(m))
+    for (minimax = 1; minimax >= 0; minimax--)
     {
       const R sigma = (R)kb_n[s] / (R)KB_N;
       const R b = KPI * (K(2.0) - K(1.0) / sigma);
@@ -214,22 +223,27 @@ void X(check_kaiser_bessel_poly_opt)(void)
       const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * sigma, K(1.0));
       const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
           / cmin;
-      R *coef = (R*) Y(malloc)((size_t)(2 * n) * sizeof(R)), *plain = coef + n;
-      R j0, j1, p0, p1;
+      R *coef = (R*) Y(malloc)((size_t)(2 * n + KB_POLY_HUT_LEN) * sizeof(R));
+      R *plain = coef + n, *hut = plain + n;
+      R j0, j1, r0, r1, p0, p1, o0, o1;
       INT i;
-      int ok;
+      int ok, kept;
 
       Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
       memcpy(plain, coef, (size_t)n * sizeof(R));
-      functional(plain, m, deg, b, lt, pki, i0e_pki, &j0, &p0);
+      hut[0] = K(0.0);
+      functional(plain, hut, m, deg, b, lt, pki, i0e_pki, &j0, &r0, &p0);
 
       if (admitted)
-        Y(kb_poly_correct)(coef, b, i0e_pki, m, deg);
+        Y(kb_poly_correct)(coef, hut, b, m, deg, minimax);
 
-      functional(coef, m, deg, b, lt, pki, i0e_pki, &j1, &p1);
+      functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j1, &r1, &p1);
+      o0 = IF(minimax, j0, r0);
+      o1 = IF(minimax, j1, r1);
+      kept = IF(hut[0] == K(0.0), 1, 0);
 
-      if (admitted)
-        ok = IF(j1 <= K(1.02) * j0 + slack, 1, 0);
+      if (admitted && !kept)
+        ok = IF(o1 <= K(1.02) * o0 + slack, 1, 0);
       else
       {
         ok = 1;
@@ -238,10 +252,11 @@ void X(check_kaiser_bessel_poly_opt)(void)
           ok = IF(coef[i] == plain[i], ok, 0);
       }
 
-      printf("opt[sigma=" __FE__ ", m=%2td, deg=%2td] %s J_inf " __FE__
+      printf("opt[sigma=" __FE__ ", m=%2td, deg=%2td, %s] %s " __FE__
           " -> " __FE__ " (%.2fx) -> %-4s\n", sigma, (ptrdiff_t)m,
-          (ptrdiff_t)deg, admitted ? "corrected" : "guarded  ", j0, j1,
-          (double)(j0 / j1), IF(ok == 0, "FAIL", "OK"));
+          (ptrdiff_t)deg, minimax ? "max" : "rms",
+          admitted ? (kept ? "kept     " : "optimized") : "guarded  ", o0,
+          o1, (double)(o0 / o1), IF(ok == 0, "FAIL", "OK"));
       CU_ASSERT(ok == 1);
 
       Y(free)(coef);
@@ -375,15 +390,17 @@ static void MOD##_poly_trafo(void) \
 \
   for (s = 0; s < KB_NSIGMA; s++) \
     for (m = 2; m <= KB_M_MAX; m = kb_m_next(m)) \
-    for (opt = 0; opt < 2; opt++) \
+    for (opt = 0; opt < 3; opt++) \
     { \
+      const unsigned of = IF(opt == 1, OPT_WINDOW, \
+          IF(opt == 2, OPT_WINDOW_RMS, 0)); \
       int N[1] = {KB_N}, n[1] = {(int)kb_n[s] + (NADJ)}; \
       MOD(plan) pp, pa; \
       R ep, ea, uk, bound; \
       int ok; \
 \
-      MOD(init_guru)(&pp, 1, N, (int)M, n, (int)m, \
-          flags | (opt ? OPT_WINDOW : 0), FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
+      MOD(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags | of, \
+          FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
       MOD(init_guru)(&pa, 1, N, (int)M, n, (int)m, flags, \
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
 \
@@ -404,7 +421,8 @@ static void MOD##_poly_trafo(void) \
       printf(NAME "[sigma=%5.2f, m=%2td, deg=%2td%s] poly %10.3e analytic " \
           "%10.3e ratio %6.3f, in u*kappa %7.2f %7.2f -> %-4s\n", \
           (double)((R)kb_n[s] / (R)KB_N), (ptrdiff_t)m, \
-          (ptrdiff_t)(INT)pp.spline_coeffs[0], opt ? ", opt" : "", \
+          (ptrdiff_t)(INT)pp.spline_coeffs[0], \
+          IF(opt == 1, ", max", IF(opt == 2, ", rms", "")), \
           (double)ep, (double)ea, \
           (double)(ep / ea), (double)(ep / uk), (double)(ea / uk), \
           IF(ok == 0, "FAIL", "OK")); \
@@ -442,14 +460,16 @@ void X(check_kaiser_bessel_poly_trafo)(void)
 
   for (s = 0; s < KB_NSIGMA; s++)
     for (m = 2; m <= KB_M_MAX; m = kb_m_next(m))
-    for (opt = 0; opt < 2; opt++)
+    for (opt = 0; opt < 3; opt++)
     {
+      const unsigned of = IF(opt == 1, OPT_WINDOW,
+          IF(opt == 2, OPT_WINDOW_RMS, 0));
       int N[1] = {KB_N}, n[1] = {(int)kb_n[s]};
       NFFT(plan) pp, pa;
       R ep, ea;
 
-      NFFT(init_guru)(&pp, 1, N, (int)M, n, (int)m,
-          flags | (opt ? OPT_WINDOW : 0), FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+      NFFT(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags | of,
+          FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
       NFFT(init_guru)(&pa, 1, N, (int)M, n, (int)m, flags,
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
@@ -475,7 +495,8 @@ void X(check_kaiser_bessel_poly_trafo)(void)
         printf("trafo[sigma=%5.2f, m=%2td, deg=%2td%s] poly %10.3e analytic "
             "%10.3e ratio %6.3f, in u*kappa %7.2f %7.2f -> %-4s\n",
             (double)((R)kb_n[s] / (R)KB_N), (ptrdiff_t)m,
-            (ptrdiff_t)(INT)pp.spline_coeffs[0], opt ? ", opt" : "",
+            (ptrdiff_t)(INT)pp.spline_coeffs[0],
+            IF(opt == 1, ", max", IF(opt == 2, ", rms", "")),
             (double)ep, (double)ea, (double)(ep / ea), (double)(ep / uk),
             (double)(ea / uk), IF(ok == 0, "FAIL", "OK"));
         CU_ASSERT(ok == 1);

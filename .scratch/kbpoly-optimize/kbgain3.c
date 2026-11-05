@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
   if (n % 2) n++;
   INIT(&p, 1, &N, M, &n, m,
-      PRE_PHI_HUT | PRE_PSI | (getenv("OPT") ? OPT_WINDOW : 0) | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
+      PRE_PHI_HUT | PRE_PSI | (getenv("OPT") ? (strcmp(getenv("OPT"), "rms") ? OPT_WINDOW : OPT_WINDOW_RMS) : 0) | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT | FFT_OUT_OF_PLACE,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
   srand(seed);
   for (j = 0; j < p.M_total; j++)

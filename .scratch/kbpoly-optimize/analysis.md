@@ -883,3 +883,194 @@ at `m = 2`, 3.3 ms at `m = 4`, 7.5 ms at `m = 6`, 13 ms at `sigma = 1.25,
 m = 8`; the plain fit is 0.14 ms. The solve is the scaled normal equations
 by Cholesky, four passes (least squares and three reweightings), each
 `2 x 40 x 32` rows by `(m + 1)(2h + 1)` unknowns.
+
+## 16. The deconvolution freed: the manuscript's optimum at plan time
+
+Keiner and Potts (window-optimization.pdf, October 2026) optimize the same
+object, a piecewise polynomial window on the grid cells, against the same
+functional, but with the window's own Fourier transform as the
+deconvolution: `E(u, s) = (D c - b c) / (b c)` with both `D` and `b` linear
+in the coefficients, which makes the worst case quasiconvex and lets a
+bisection over second-order cone programs with an exchange step reach the
+global optimum of the ansatz class. Their gains over the best analytic
+window with its best shape parameter are 1.8x to 830x and grow with `m`;
+against the truncated sinh window with the rule `b` that this library uses
+("msinh (rule)" in their Table 1) they are 3x to 1900x at equal taps. Their
+`m` counts cells per half support, so their `m` is this branch's `m + 1`.
+
+Sections 5 to 15 pinned `C` to the Kaiser-Bessel `I0` formula. That
+constraint pins the window's spectrum inside the band to Kaiser-Bessel's,
+which spends nearly all `(m + 1)(2h + 1)` degrees of freedom; the 2x to 5x of
+section 15.1 is what is left. Section 5.4's "free deconvolution gains
+nothing" tested an alternation that moved `C` only in the denominator from
+the Kaiser-Bessel start, which stalls there. With `C` linear in the
+coefficients in the numerator as well, a plain iteratively reweighted
+least-squares loop (no cone solver) reaches the manuscript's optimum on this
+branch's stencil, in Python (`kbopt10.py`, `kbopt11.py`, `results/freeC_*`)
+and then in C.
+
+**Algorithm, as implemented in `Y(kb_poly_correct)`.** State is the plan's
+table in `R`. Each pass evaluates, through the run-time Horner, the taps at
+40 band frequencies clustered towards the edges and 17 offsets (the limit
+`t -> 0` and the midpoints of `[0, 1/2]`; the window is even, so
+`E(xi, 1 - t)` is the conjugate of `E(xi, t)`), the window's transform
+`psi_hat(xi)` by Gauss-Legendre in `t`, and the relative error; then solves
+for the change `d` of the Chebyshev coefficients of the `m + 1` stencil
+columns, `min sum w |G (c + d)|^2 / psi_hat(c)^2` with `G = D - C` linear
+in `d`, under `sum_cells int d = 0` which fixes the scale; Lawson weights
+`w <- w max(|E|, |E|_max / 10)` after the first pass; up to 24 passes or
+four without a better maximum; the best pass is kept. The solve is a
+Householder QR on the weighted rows in `E`, column-major: the column-scaled
+design matrix has condition number 1e6 at `sigma = 2` and 6e9 at `(1.25,
+6)`, which the normal equations square; with Cholesky and the ridge of
+section 15.1 the loop stalled 2x to 7x above the optimum. The transform's
+deconvolution becomes the window's own `psi_hat`, stored per axis after the
+polynomial table as a Chebyshev series in `2 xi^2 / xi_max^2 - 1` (up to 48
+terms, `KB_POLY_HUT`) and evaluated by Clenshaw in `PHI_HUT` through
+`Y(kb_poly_phi_hut)`, which falls back to the `I0` formula where the table
+is empty.
+
+**Measured through the library** (`kbgain3.c`, long double reference,
+`N = 2048`, 20000 nodes, double, `OPT_WINDOW` versus stock; band-edge
+maximum and RMS on random data; `results/lib_freeC_double.txt`,
+`results/lib_fixedC_double.txt` for section 15.1's correction on the same
+build):
+
+| sigma, m | deg | stock edge / RMS | section 15.1 edge / RMS | free C edge / RMS | gain over stock |
+|---|---|---|---|---|---|
+| 2, 2 | 6 | 2.71e-5 / 4.10e-6 | 1.25e-5 / 2.87e-6 | 3.67e-6 / 2.35e-6 | 7.4x / 1.7x |
+| 2, 3 | 8 | 2.54e-7 / 4.45e-8 | 1.14e-7 / 3.11e-8 | 2.22e-8 / 1.45e-8 | 11x / 3.1x |
+| 2, 4 | 10 | 4.71e-9 / 4.85e-10 | 1.42e-9 / 3.34e-10 | 1.62e-10 / 1.10e-10 | 29x / 4.4x |
+| 2, 6 | 12 | 7.73e-13 / 5.82e-14 | 2.31e-13 / 4.10e-14 | 1.78e-14 / 8.0e-15 | 43x / 7.3x |
+| 1.25, 6 | 10 | 3.82e-8 / 2.26e-9 | 1.55e-8 / 1.93e-9 | 5.44e-10 / 3.52e-10 | 70x / 6.4x |
+| 1.25, 8 | 12 | 2.32e-10 / - | - | 2.88e-12 / 7.7e-12 | 81x / - |
+| 1.5, 4 | 10 | 2.71e-7 / - | - | 1.21e-8 / 8.0e-9 | 22x / - |
+| 4, 2 | 8 | 2.29e-6 / 3.49e-7 | 3.72e-7 / 1.17e-7 | 1.94e-8 / 1.35e-8 | 118x / 26x |
+
+The error is equiripple over the band (the single-frequency columns of
+the raw output are flat), as the manuscript predicts, and the values match
+its Table 1 at equal taps: 3.6e-6, 2.2e-8, 1.6e-10, 1.2e-8, 4.9e-10 for the
+first, second, third, seventh and fifth rows. In the test suite's functional
+(`opt` rows of `tests/kbpoly.c`, double) the gains are 3x to 700x in the 41
+admitted cells; the `k = 0` error, which section 14 took for the rounding
+baseline, falls too (1.2e-13 to 1.5e-14 at `(2, 6)`), so it was aliasing.
+
+**Where it stops, and the two guards.** Near the rounding floor the loop
+fits the noise of the `R` table and can come out worse: at `sigma = 1.1,
+m = 9` in double (admitted by the old margin of 30) the result was 1.8x
+worse than the analytic window in the NFCT and NFST tests, and in float
+some cells came out with error of order one after a pass drove `psi_hat`
+negative and a NaN table compared as a zero maximum. Two guards: the
+generator's margin `K_LS` is 100 (the first filter, `KB_POLY_BR_LS`), and
+the result is validated on a hold-out set (frequencies between the design
+nodes plus the band edge, offsets a quarter cell off, deconvolution from the
+stored table as the transform evaluates it); the optimized table replaces
+the plain one only if its hold-out maximum is at least a fifth lower. The
+validation must see the band edge and the stored series: without the edge
+it accepted the bad `(1.1, 9)` table (the deconvolution there amplifies by
+3.6e6 at the edge only), and with the exact `psi_hat` instead of the stored
+series it accepted it again. With both, the double suite passes, `(1.1, 9)`
+reverts to the plain table and `(1.25, 8)` keeps its 17x.
+
+**Plan-time cost** (`kbinit.c`, double, 1-D, best of five): 7 ms at
+`m = 2`, 40 ms at `m = 4`, 55 ms at `m = 6`, 70 ms at `sigma = 1.25, m = 8`,
+after three cuts (half the offsets by symmetry, column-major QR, early
+stop) from 37, 264, 703 and 1157 ms. The QR is `2 rows nr^2` per pass,
+`rows = 1360`, `nr = (m + 1)(2h + 1) - 1`.
+
+**Float** (`results/lib_freeC_float.txt`, same harness, float build with
+`E = double`): band edge `(2, 1)` 2.6e-3 to 4.1e-4 (6.5x), `(2, 2)` 2.7e-5
+to 3.8e-6 (7.1x), `(1.25, 3)` 2.4e-4 to 1.4e-5 (17x), `(1.25, 6)` 1.3e-4 to
+7.7e-6 (17x), `(4, 2)` 2.2e-6 to 3.6e-7 (6.3x); RMS 1.5x to 13x in those
+cells. At `(2, 3)` and `(1.25, 4)` the edge moves 1.2x and the RMS 1.8x and
+1.0x, and at `(2, 4)` and `(4, 3)`, where the stock error is the float
+floor, the hold-out keeps the plain table. The float suite passes with 22
+admitted cells, all better in its functional; without the hold-out it had
+two cells at error of order one (`(3, 5)`, `(4, 5)`) and one 5x worse
+(`(1.75, 5)`). The margin `KB_POLY_BR_LS` is keyed to `E`, so in float it
+admits every `m` the double table does; the hold-out does the real
+screening there, at 5 to 30 ms per rejected axis.
+
+**What the manuscript adds beyond this.** Its exchange method and cone
+solver certify the optimum; the IRLS here reaches the same values to three
+digits where both were run, with the manuscript as the certificate. Its
+continuous variant (continuity at cell boundaries, `phi(1) = 0`) costs at
+most 35 percent and is not implemented. Its degree study (gain saturates at
+`p = m_man + 4 .. m_man + 5`) matches: at `(2, 3)` degrees 8, 10 and 12 all
+give 2.2e-8. Its Remark 2 (the one-sided limits `t -> 0, 1` raise the
+supremum of a window with jumps by up to 10 percent) is why the sample set
+here includes `t = 0`; the Kaiser-Bessel `J_inf` itself rises 8 percent
+with it against section 6's midpoint grids.
+
+## 17. Node-adaptive optimization: what the plan's own offsets buy
+
+`kbopt12.py` and `kbopt13.py` (`results/nodes_*.txt`, `results/koffsets_*.txt`):
+the same free-C minimax, but the offsets `t` in the design are the plan's
+own `frac(n x_j)` (the distinct values if at most 96, else the occupied
+bins of a 96-bin histogram weighted by the counts), and both the node-
+agnostic optimum of section 16 and the node-adaptive one are measured on
+the actual node offsets, 101 band frequencies. `N = 1024`.
+
+**Typical node sets, per axis** (gain of node-adaptive over node-agnostic,
+maximum / RMS):
+
+| node set (1-D view of one axis) | distinct offsets | sigma 2, m 3 | sigma 1.25, m 4 | sigma 2, m 5 |
+|---|---|---|---|---|
+| uniform random, 4000 nodes | dense | 0.8 / 1.0 | 0.9 / 1.0 | 0.7 / 1.0 |
+| jittered grid, jitter 0.1 cell | in [0, 0.2] | 0.9 / 1.1 | 0.9 / 1.0 | 0.5 / 1.3 |
+| jittered grid, jitter 0.25 cell | in [0, 0.5] | 0.8 / 1.0 | 0.9 / 1.0 | 0.7 / 1.0 |
+| grid shifted by 1/3 cell | 1 (sigma 2), 4 (sigma 1.25) | 210 / 223 | 1.3 / 1.2 | 6.5 / 13 |
+| Chebyshev nodes | dense | 0.8 / 1.0 | 0.9 / 1.0 | 0.7 / 1.0 |
+| polar grid, axis 1 (256 radii, 64 angles) | dense | 0.8 / 1.0 | 0.9 / 1.0 | 0.7 / 1.0 |
+| pseudo-polar grid, axis 2 | 16 | 1.0 / 1.0 | - | 1.0 / 1.0 |
+
+The gains below 1 are the binned design: the node-adaptive fit sees bin
+centres, the measurement the actual offsets. Nothing is gained on any dense
+set, and nothing on a jittered grid either, although its offsets fill only a
+fifth of the cell: what matters is the number of independent offsets, not
+their spread, since every distinct offset is a separate set of `2m + 2` tap
+constraints on the `(m + 1)(2h + 1)` coefficients.
+
+**The law in the number of distinct offsets** (`k` random offsets, equal
+weights; gain in the maximum):
+
+| k | sigma 2, m 3, deg 8 | same, deg 12 | sigma 2, m 5 | sigma 1.25, m 4 |
+|---|---|---|---|---|
+| 1 | 335 | 330 | 776 | 34 |
+| 2 | 8.4 | 8.3 | 12 | 3.0 |
+| 3 | 3.9 | 3.8 | 4.6 | 2.2 |
+| 4 | 1.6 | 1.6 | 2.1 | 1.4 |
+| 6 to 16 | 1.1 to 1.5 | 1.1 to 1.5 | 1.2 to 2.7 | 1.1 to 1.3 |
+
+One offset is Fessler and Sutton's exact min-max interpolator (the taps are
+free numbers): 6.6e-11 at 8 taps and sigma 2, 1.6e-15 at 12 taps, against
+2.2e-8 and 1.2e-12 for the node-agnostic window. The degree does not enter.
+At sigma 1.25 the single-offset optimum is only 34x better, the wide band
+limits the interpolator itself.
+
+**Consequence for a node-adaptive flag.** It pays only on an axis with one
+to three distinct offsets, after pairing `t` with `1 - t` (mirror offsets
+share a window by evenness): shifted or half-shifted grids, the aligned
+axis of a pseudo-polar grid, nodes on a grid of a rational multiple of the
+oversampled spacing. There the gain per axis is 4x to 800x and the fit is
+cheaper than the general one (a handful of offset rows). On every generic
+node set the gain is nil in both measures, so the flag should count the
+distinct offsets per axis at plan time (rounded to the table's resolution)
+and fall back to the node-agnostic window above three. Weighting an RMS
+objective by the offset histogram gains nothing either (last column of the
+first table, 1.0 everywhere dense).
+
+## 18. The two flags
+
+`OPT_WINDOW` minimizes the worst case over the band, `OPT_WINDOW_RMS` the
+RMS over the band (both set: the worst case). The RMS mode is the same loop
+without Lawson's reweighting, so the denominators still iterate; it keeps
+the best pass by the design RMS and validates by the hold-out RMS. Through
+the library (`kbgain3.c`, `OPT=rms`, double, RMS on random data): `(2, 3)`
+1.45e-8 to 1.13e-8, `(2, 4)` 1.10e-10 to 7.7e-11, `(1.25, 6)` 3.5e-10 to
+2.5e-10, `(4, 2)` 1.35e-8 to 1.09e-8 against the minimax window, 20 to 30
+percent, as section 16 predicted. In the test suite's functional the RMS
+mode gains 1.7x to 310x over the plain window in double
+(`results/checkall_double_flags.txt`). A node-adaptive flag is not
+implemented: the nodes are unknown at `init`, where the window is built,
+and section 17 limits its use to axes with at most three distinct offsets.
