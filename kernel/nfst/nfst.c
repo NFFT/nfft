@@ -1326,8 +1326,8 @@ const char* X(check)(X(plan) *ths)
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
 
-#ifdef WINDOW_IS_KAISER_BESSEL
-    if (!KB_POLY_SIGMA_OK(ths->sigma[j]))
+#ifdef WINDOW_SIGMA_OK
+    if (!WINDOW_SIGMA_OK(ths->sigma[j]))
       return "Oversampling factor outside [1.1, 4]";
 #endif
 

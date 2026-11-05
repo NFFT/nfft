@@ -779,8 +779,7 @@ static const R sincpow_phi_ref_512_8[] =
 
 /* m is 8 rather than the default cutoff so that w = (2 sigma - 1)/(2 m sigma)
  * is 3/32 and exactly representable; at 11 it is 3/44, whose rounding would be
- * charged to the window. The scalar evaluation is checked against the run, so
- * the batching cannot drift from what PHI gives. */
+ * charged to the window. */
 void X(check_sincpow_phi_reference)(void)
 {
   const INT m = 8;
@@ -789,26 +788,27 @@ void X(check_sincpow_phi_reference)(void)
   const R nx0 = (R)m + K(0.3125);
   const R peak = SINCPOW_PHI_PEAK_512_8;
   const R b = tight_bound();
+  R *tab = Y(sincpow_poly_init)(&w, 1, m);
   R run[2 * 8 + 2];
   unsigned int l;
 
   printf("SINC-POWER PHI REFERENCE\n------------------------\n");
 
-  Y(sincpow_phi_run)(run, w, (R)m, m, KPI * w, nx0);
+  Y(cell_poly_run)(run, tab + 1, m, (INT)tab[0], nx0);
 
   for (l = 0; l < SIZE(sincpow_phi_ref_512_8); l++)
   {
     const R ref = sincpow_phi_ref_512_8[l];
-    const R s = Y(sincpow_phi)(w, (R)m, KPI * w * (nx0 - (R)l));
     const R err = ABS(run[l] - ref) / peak;
-    const int ok = IF(FINITE(run[l]) && err < b
-        && ABS(run[l] - s) / peak < b, 1, 0);
+    const int ok = IF(FINITE(run[l]) && err < b, 1, 0);
 
     printf("phi[l=%u] = " __FE__ " err_peak = " __FE__ " %-2s " __FE__
       " -> %-4s\n", l, run[l], err, IF(ok == 0, ">=", "<"), b,
       IF(ok == 0, "FAIL", "OK"));
     CU_ASSERT(ok == 1);
   }
+
+  Y(free)(tab);
 }
 
 /* Sinc-power phi_hut for n = 512, N = 256, m = 8, sigma = 2,

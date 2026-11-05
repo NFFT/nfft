@@ -29,6 +29,7 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "kbpoly_data.h"
+#include "sincpowpoly_data.h"
 
 /* Chebyshev coefficients of the values in val, into dst, one column per cell.
  * dst[0] comes out already halved, so the series is sum_j dst[j] T_j. */
@@ -283,18 +284,39 @@ static R sp_sample(const void *ctx, const R x)
   return Y(sincpow_phi)(c->w, c->m, KPI * c->w * x);
 }
 
-/* The window is entire, so the fit converges geometrically, but a fit in
- * working precision cannot certify a cut: its coefficients carry 2 to 4 eps
- * of sampling noise where the true series reaches eps at about 14 of
- * KB_POLY_DEG_MAX 16 in double, and alike in every format. So the degree is
- * KB_POLY_DEG_MAX; no usable transform-error bound exists to cut lower. */
+INT Y(sincpow_poly_degree)(const R w, const INT m)
+{
+  const R sigma = K(1.0) / (K(2.0) - K(2.0) * (R)m * w);
+  /* The degree does not rise with m past the last row. */
+  INT mt = IF(m < SP_POLY_TAB_MMAX, m, SP_POLY_TAB_MMAX), deg, k;
+
+  mt = IF(mt > 1, mt, 1);
+  deg = sp_poly_tab_deg0[mt];
+
+  /* Thresholds are rounded down. */
+  for (k = sp_poly_tab_off[mt]; k < sp_poly_tab_off[mt + 1]; k++)
+    deg += IF(sigma >= K(1E-4) * (R)sp_poly_tab_brk[k], 1, 0);
+
+  return deg;
+}
+
+/* The window is entire, so the fit converges geometrically. A fit in working
+ * precision carries 2 to 4 eps of sampling noise and cannot certify a cut, so
+ * the degree comes from the exact tails in the generated table. */
 R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m)
 {
-  const INT deg = KB_POLY_DEG_MAX;
-  const INT stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
-  R *tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
-  INT t;
+  INT deg = 0, stride, t;
+  R *tab;
 
+  for (t = 0; t < d; t++)
+  {
+    const INT dt = Y(sincpow_poly_degree)(w[t], m);
+
+    deg = IF(dt > deg, dt, deg);
+  }
+
+  stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
+  tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   tab[0] = (R)deg;
 
   for (t = 0; t < d; t++)
