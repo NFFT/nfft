@@ -352,18 +352,18 @@ static R table_correct(const R sigma, const INT m, const INT deg,
   return e;
 }
 
-static int table_lookup(const R sigma, const INT m, const INT deg,
-    const kb_poly_opt_cell *exact, const kb_poly_opt_cell *below,
-    const kb_poly_opt_cell *above)
+static int table_lookup(const char *name, const R sigma, const INT m,
+    const INT deg, const kb_poly_opt_cell *exact,
+    const kb_poly_opt_cell *below, const kb_poly_opt_cell *above)
 {
   const kb_poly_opt_cell *ce, *cb, *ca;
   int ok;
 
   Y(kb_poly_table)(KPI * (K(2.0) - K(1.0) / sigma), m, deg, &ce, &cb, &ca);
   ok = IF(ce == exact && cb == below && ca == above, 1, 0);
-  printf("table_lookup[sigma=%.7f, m=%td, deg=%td] exact %.2f below %.2f "
-      "above %.2f -> %s\n", (double)sigma, (ptrdiff_t)m, (ptrdiff_t)deg,
-      ce ? (double)ce->sigma : 0.0, cb ? (double)cb->sigma : 0.0,
+  printf("%s[sigma=%.7f, m=%td, deg=%td] exact %.2f below %.2f "
+      "above %.2f -> %s\n", name, (double)sigma, (ptrdiff_t)m,
+      (ptrdiff_t)deg, ce ? (double)ce->sigma : 0.0, cb ? (double)cb->sigma : 0.0,
       ca ? (double)ca->sigma : 0.0, IF(ok == 0, "FAIL", "OK"));
 
   return ok;
@@ -381,6 +381,7 @@ void X(check_kbpoly_table)(void)
 
 #if MANT_DIG >= 53
   {
+    const kb_poly_opt_cell *c125 = table_cell(4, K(1.25));
     const kb_poly_opt_cell *c175 = table_cell(4, K(1.75));
     const kb_poly_opt_cell *c2 = table_cell(4, K(2.0));
     const kb_poly_opt_cell *c25 = table_cell(4, K(2.5));
@@ -400,14 +401,18 @@ void X(check_kbpoly_table)(void)
     CU_ASSERT(ok == 1);
     Y(free)(tab);
 
-    CU_ASSERT(table_lookup(K(2.0), m, deg, c2, c2, c25));
-    CU_ASSERT(table_lookup(K(2.0) * (K(1.0) - K(1E-6)), m, deg, NULL, c175,
-        c2));
-    CU_ASSERT(table_lookup(K(2.0) * (K(1.0) + K(1E-6)), m, deg, NULL, c2,
+    CU_ASSERT(table_lookup("table_exact", K(2.0), m, deg, c2, c2, c25));
+    CU_ASSERT(table_lookup("table_below", K(2.0) * (K(1.0) - K(1E-6)), m,
+        deg, NULL, c175, c2));
+    CU_ASSERT(table_lookup("table_below", K(2.0) * (K(1.0) + K(1E-6)), m,
+        deg, NULL, c2, c25));
+    CU_ASSERT(table_lookup("table_below", K(2.1), m, deg, NULL, c2, c25));
+    CU_ASSERT(table_lookup("table_degree", K(2.1), m, deg + 2, NULL, c2,
         c25));
-    CU_ASSERT(table_lookup(K(2.1), m, deg, NULL, c2, c25));
-    CU_ASSERT(table_lookup(K(2.1), m, deg + 2, NULL, c2, c25));
-    CU_ASSERT(table_lookup(K(2.1), m, deg - 2, NULL, NULL, NULL));
+    /* Cells from 1.5 up have h 5: the lookup passes over them to the cell
+     * at 1.25 with h 4, and none is above. */
+    CU_ASSERT(table_lookup("table_fallback", K(2.1), m, deg - 2, NULL, c125,
+        NULL));
 
     e0 = table_correct(K(2.1), m, deg, NULL, NULL);
     e1 = table_correct(K(2.1), m, deg, c2, c25);

@@ -1081,21 +1081,30 @@ INT Y(kb_poly_table)(const R b, const INT m, const INT deg,
   INT r, i;
 
   for (r = 0; r < (INT)KB_POLY_OPT_NROWS; r++)
-    for (i = 0; kb_poly_opt_rows[r].m == m && i < kb_poly_opt_rows[r].ncells;
-        i++)
+  {
+    if (kb_poly_opt_rows[r].m != m)
+      continue;
+
+    for (i = 0; i < kb_poly_opt_rows[r].ncells; i++)
     {
       const kb_poly_opt_cell *c = kb_poly_opt_rows[r].cells + i;
 
-      if (c->sigma <= sigma || same_sigma(sigma, c->sigma))
-        lo = IF(lo == NULL || c->sigma > lo->sigma, c, lo);
-      else
-        hi = IF(hi == NULL || c->sigma < hi->sigma, c, hi);
-    }
+      if (c->h > h)
+        continue;
 
-  *below = IF(lo != NULL && lo->h <= h, lo, NULL);
-  *above = IF(hi != NULL && hi->h <= h, hi, NULL);
-  *exact = IF(*below != NULL && (*below)->h == h
-      && same_sigma(sigma, (*below)->sigma), *below, NULL);
+      if (c->sigma <= sigma || same_sigma(sigma, c->sigma))
+        lo = IF(lo == NULL || c->sigma > lo->sigma
+            || (c->sigma == lo->sigma && c->h > lo->h), c, lo);
+      else
+        hi = IF(hi == NULL || c->sigma < hi->sigma
+            || (c->sigma == hi->sigma && c->h > hi->h), c, hi);
+    }
+  }
+
+  *below = lo;
+  *above = hi;
+  *exact = IF(lo != NULL && lo->h == h && same_sigma(sigma, lo->sigma), lo,
+      NULL);
 
   return IF(*exact != NULL, 1, 0) + IF(*below != NULL, 1, 0)
       + IF(*above != NULL, 1, 0);
@@ -1162,10 +1171,12 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
 
   memcpy(orig, coef, (size_t)n * sizeof(R));
 
-  /* The cell's rows 0 .. 2 h' over zero rows up to 2 h. */
+  /* The cell's rows 0 .. 2 h' over zero rows up to 2 h; a cell start keeps
+   * the interpolant in column 0. */
   if (start != NULL)
     for (i = 0; i < n; i++)
-      base[i] = IF(i < (2 * start->h + 1) * w, start->coef[i], K(0.0));
+      base[i] = IF(i % w == 0 && !exact, orig[i],
+          IF(i < (2 * start->h + 1) * w, start->coef[i], K(0.0)));
   else
     memcpy(base, coef, (size_t)n * sizeof(R));
 
@@ -1307,15 +1318,17 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       INT r, nloc = 0;
 
       /* A cell's exchange points keep their place in the band; the optimum
-       * at the larger sigma above is nearly a lower bound. */
+       * at the larger sigma above, at the same degree, is nearly a lower
+       * bound. The driver never lowers lo again. */
       if (start != NULL)
       {
-        for (p = 0; p < start->npts; p++)
+        for (p = 0; p < start->npts && p < KB_POLY_CORR_CELL; p++)
           design_add(&d, ximax * (E)start->pts[2 * p] / EK(65535.0),
               (E)start->pts[2 * p + 1] / EK(65535.0), EK(1.0), m, h, tg, wg,
               ng);
 
-        lo = IF(above != NULL, (E)above->e / EK(1.05), EK(0.0));
+        lo = IF(above != NULL && above->h == h, (E)above->e / EK(1.05),
+            EK(0.0));
       }
 
       for (p = 0; p < cap; p++)

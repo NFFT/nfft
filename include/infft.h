@@ -1886,12 +1886,12 @@ typedef struct
 } kb_poly_opt_row;
 
 /* Cells for b (sigma = pi / (2 pi - b)), m and deg: *exact the cell with
- * sigma_cell == sigma within 1e-9 relative (32 eps of R where that is
- * larger) and h == KB_POLY_HALF(deg), else NULL; *below the cell with the
- * largest sigma_cell <= sigma, *above the one with the smallest sigma_cell
- * > sigma, each NULL where there is none or its h > KB_POLY_HALF(deg).
- * Returns the number of cells found (0 to 3). A cell is never used for a
- * sigma below its own. */
+ * sigma_cell == sigma within 1e-9 + 32 eps of R relative and h ==
+ * KB_POLY_HALF(deg), else NULL; *below the cell with the largest sigma_cell
+ * <= sigma (same tolerance) and h <= KB_POLY_HALF(deg), else NULL; *above
+ * the cell with the smallest sigma_cell > sigma and h <= KB_POLY_HALF(deg),
+ * else NULL; at equal sigma_cell the larger h. Returns the number of cells
+ * found (0 to 3). A cell is never used for a sigma below its own. */
 INT Y(kb_poly_table)(const R b, const INT m, const INT deg,
     const kb_poly_opt_cell **exact, const kb_poly_opt_cell **below,
     const kb_poly_opt_cell **above);
@@ -1904,8 +1904,9 @@ INT Y(kb_poly_table_rows)(const kb_poly_opt_row **rows);
  * to hut (KB_POLY_HUT_LEN); where that does not validate, coef is restored
  * and hut[0] = 0. cell = NULL: from scratch. cell exact for b and deg: its
  * table, no solve. Else cell is the one below: the solve starts from its
- * table padded with zero rows to deg and adds its points to the design,
- * with the lower bound above->e / 1.05 when above != NULL. RMS ignores cell
+ * table padded with zero rows to deg, column 0 from coef, and adds its
+ * points to the design, with the lower bound above->e / 1.05 when above
+ * has the half degree of deg. RMS ignores cell
  * and above. Returns the hold-out maximum of the accepted table, -1 when
  * the plain table was kept. */
 R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
