@@ -13,6 +13,10 @@ target_compile_definitions(example_nfft_flags PRIVATE ${NFFT_PRECISION_MACRO})
 nfft_add_serial_program(example_nfft_nfft_times   nfft nfft_times   nfft/nfft_times.c)
 target_compile_definitions(example_nfft_nfft_times PRIVATE ${NFFT_PRECISION_MACRO})
 
+# rnfft (all precisions)
+nfft_add_serial_program(example_rnfft_simple_test rnfft simple_test rnfft/simple_test.c)
+target_compile_definitions(example_rnfft_simple_test PRIVATE ${NFFT_PRECISION_MACRO})
+
 # nfft (OpenMP)
 # nfft_benchomp_detail.c is built TWICE: serial (_single) and OpenMP (_threads),
 # so the two can be compared — do not collapse them. The serial helpers link the

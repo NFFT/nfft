@@ -701,6 +701,7 @@ AC_CONFIG_FILES(Makefile \
                 examples/mri/Makefile \
                 examples/nfct/Makefile \
                 examples/nfft/Makefile \
+                examples/rnfft/Makefile \
                 examples/nfsft/Makefile \
                 examples/nfsoft/Makefile \
                 examples/nfst/Makefile \
