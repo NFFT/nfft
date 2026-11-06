@@ -364,7 +364,8 @@ static int table_lookup(const char *name, const R sigma, const INT m,
   printf("%s[sigma=%.7f, m=%td, deg=%td] exact %.2f below %.2f "
       "above %.2f -> %s\n", name, (double)sigma, (ptrdiff_t)m,
       (ptrdiff_t)deg, ce ? (double)ce->sigma : 0.0,
-      cb ? (double)cb->sigma : 0.0, ca ? (double)ca->sigma : 0.0, IF(ok == 0, "FAIL", "OK"));
+      cb ? (double)cb->sigma : 0.0, ca ? (double)ca->sigma : 0.0,
+      IF(ok == 0, "FAIL", "OK"));
 
   return ok;
 }
@@ -436,33 +437,43 @@ void X(check_kbpoly_table)(void)
   }
 #endif
 
-  /* Each cell at its own degree; the format's degree can differ, since the
-   * generator takes the 113-bit one. The hold-out evaluates C from the hut
-   * table, whose rounding is relative to C(0), hence the slack of the other
-   * tests. */
+  /* Every sigma of the table and compiled m has a cell at the format's own
+   * degree (cells sorted by sigma, then h), and its hold-out maximum stays
+   * near its e. The hold-out evaluates C from the hut table, whose rounding
+   * is relative to C(0), hence the slack of the other tests. */
   for (r = 0; r < nrows; r++)
     for (i = 0; i < rows[r].ncells; i++)
     {
       const kb_poly_opt_cell *c = rows[r].cells + i, *ce, *cb, *ca;
-      const INT m = rows[r].m, deg = 2 * c->h;
+      const INT m = rows[r].m;
       const R b = KPI * (K(2.0) - K(1.0) / c->sigma), reach = (R)m + K(1.0);
-      const INT dlib = Y(kb_poly_degree)(b, reach, m);
+      const INT deg = Y(kb_poly_degree)(b, reach, m);
       const R i0e_pki = K(1.0) / Y(bessel_i0_exp_scaled)(reach * b);
       const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * c->sigma,
           K(1.0));
       const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
           / cmin;
-      R e;
+      R e = K(0.0);
       int ok;
 
+      if (i > 0 && rows[r].cells[i - 1].sigma == c->sigma)
+        continue;
+
       Y(kb_poly_table)(b, m, deg, &ce, &cb, &ca);
-      e = IF(ce == c, table_correct(c->sigma, m, deg, c, NULL), K(0.0));
-      ok = IF(ce == c && ((e > K(0.0) && e <= K(1.05) * c->e + slack)
-          || (e == K(-1.0) && c->e < K(1000.0) * E_EPSILON + slack)), 1, 0);
-      printf("table_cell[sigma=%.2f, m=%2td, h=%2td] deg %2td%s e %.4e "
-          "return %.4e slack %.1e -> %s\n", (double)c->sigma, (ptrdiff_t)m,
-          (ptrdiff_t)c->h, (ptrdiff_t)dlib, IF(dlib == deg, " ", "*"),
-          (double)c->e, (double)e, (double)slack, IF(ok == 0, "FAIL", "OK"));
+      ok = IF(ce != NULL && ce->sigma == c->sigma
+          && ce->h == KB_POLY_HALF(deg), 1, 0);
+
+      if (ok)
+      {
+        e = table_correct(c->sigma, m, deg, ce, NULL);
+        ok = IF((e > K(0.0) && e <= K(1.05) * ce->e + slack) || (e == K(-1.0)
+            && ce->e < K(1000.0) * E_EPSILON + slack), 1, 0);
+      }
+
+      printf("table_cell[sigma=%.2f, m=%2td, deg=%2td] e %.4e return %.4e "
+          "slack %.1e -> %s\n", (double)c->sigma, (ptrdiff_t)m,
+          (ptrdiff_t)deg, ce ? (double)ce->e : 0.0, (double)e,
+          (double)slack, IF(ok == 0, "FAIL", "OK"));
       CU_ASSERT(ok == 1);
     }
 
