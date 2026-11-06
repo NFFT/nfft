@@ -30,6 +30,7 @@
 #include "nfft3.h"
 #include "infft.h"
 #include "kbpoly_data.h"
+#include "kbpoly_opt_data.h"
 
 /* Chebyshev coefficients of the values in val, into dst, one column per cell.
  * dst[0] comes out already halved, so the series is sum_j dst[j] T_j. */
@@ -721,8 +722,6 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
 #define KB_POLY_CORR_CELL 400
 #define KB_POLY_CORR_ADD 40
 #define KB_POLY_CORR_ROUNDS 10
-#define KB_POLY_CORR_CAP (KB_POLY_CORR_NXI * (KB_POLY_CORR_NT / 2 + 1) \
-    + KB_POLY_CORR_CELL + KB_POLY_CORR_ADD * KB_POLY_CORR_ROUNDS)
 #define KB_POLY_CORR_NIT 24
 #define KB_POLY_CORR_STALL 4
 #define KB_POLY_CORR_DELTA EK(0.01)
@@ -1066,14 +1065,67 @@ static void corrected(R *table, const R *orig, const E *dv,
       table[k * w + c] = orig[k * w + c] + IF(c > 0, res[k * w + c], K(0.0));
 }
 
+/* sigma_cell == sigma, to the rounding of b in R. */
+static int same_sigma(const R a, const R c)
+{
+  return FABS(a - c) <= (K(1E-9) + K(32.0) * EPSILON) * c;
+}
+
+INT Y(kb_poly_table)(const R b, const INT m, const INT deg,
+    const kb_poly_opt_cell **exact, const kb_poly_opt_cell **below,
+    const kb_poly_opt_cell **above)
+{
+  const R sigma = KPI / (K2PI - b);
+  const INT h = KB_POLY_HALF(deg);
+  const kb_poly_opt_cell *lo = NULL, *hi = NULL;
+  INT r, i;
+
+  for (r = 0; r < (INT)KB_POLY_OPT_NROWS; r++)
+    for (i = 0; kb_poly_opt_rows[r].m == m && i < kb_poly_opt_rows[r].ncells;
+        i++)
+    {
+      const kb_poly_opt_cell *c = kb_poly_opt_rows[r].cells + i;
+
+      if (c->sigma <= sigma || same_sigma(sigma, c->sigma))
+        lo = IF(lo == NULL || c->sigma > lo->sigma, c, lo);
+      else
+        hi = IF(hi == NULL || c->sigma < hi->sigma, c, hi);
+    }
+
+  *below = IF(lo != NULL && lo->h <= h, lo, NULL);
+  *above = IF(hi != NULL && hi->h <= h, hi, NULL);
+  *exact = IF(*below != NULL && (*below)->h == h
+      && same_sigma(sigma, (*below)->sigma), *below, NULL);
+
+  return IF(*exact != NULL, 1, 0) + IF(*below != NULL, 1, 0)
+      + IF(*above != NULL, 1, 0);
+}
+
+INT Y(kb_poly_table_rows)(const kb_poly_opt_row **rows)
+{
+  *rows = kb_poly_opt_rows;
+
+  return (INT)KB_POLY_OPT_NROWS;
+}
+
+/* Frequencies and offsets per column and half degree as gen/kbpolygen/optima.py
+ * samples them; Gauss-Legendre with h + 24 nodes resolves psi_hat to the
+ * 113-bit window errors. */
 R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
-    const INT deg, const int minimax)
+    const INT deg, const int minimax, const kb_poly_opt_cell *cell,
+    const kb_poly_opt_cell *above)
 {
   const INT w = KB_POLY_COLS(m), h = KB_POLY_HALF(deg), nk = 2 * h + 1;
   const INT nc = m + 1, nu = nc * nk, nr = nu - 1, n = nk * w;
-  const INT nxi = KB_POLY_CORR_NXI, ntt = KB_POLY_CORR_NT / 2 + 1;
-  const INT ng = h + 12, npt = nxi * ntt, nh = KB_POLY_HUT_MAX;
-  const INT cap = KB_POLY_CORR_CAP;
+  const INT nxi = IF(m <= 9, KB_POLY_CORR_NXI, 3 * (m + 1));
+  const INT noff = IF(2 * h > KB_POLY_CORR_NT, 2 * h, KB_POLY_CORR_NT);
+  const INT ntt = noff / 2 + 1;
+  const INT ng = h + 24, npt = nxi * ntt, nh = KB_POLY_HUT_MAX;
+  const INT cap = npt + KB_POLY_CORR_CELL
+      + KB_POLY_CORR_ADD * KB_POLY_CORR_ROUNDS;
+  const kb_poly_opt_cell *start = IF(minimax, cell, NULL);
+  const int exact = start != NULL && start->h == h
+      && same_sigma(KPI / (K2PI - b), start->sigma);
   const E ximax = (EK(2.0) * E_PI - (E)b) / (EK(2.0) * E_PI); /* 1/(2 sigma) */
   E *A = (E*) Y(malloc)((size_t)(cap * (6 + 3 * nr) + 2 * npt * nr + 5 * nr
       + 7 * npt + 2 * nu + 3 * nxi + 2 * ng + 4 * nxi * nc + 2 * nxi * ntt
@@ -1089,9 +1141,9 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   E *lo = eg + 2 * nxi * ng, *hi = lo + ntt * nc, *lg = hi + ntt * nc;
   E *hg = lg + ng * nc, *fh = hg + ng * nc, *fc = fh + nh, *ts = fc + nh;
   E *Tg = ts + ntt;
-  R *mem = (R*) Y(malloc)((size_t)(4 * n + nk * nk) * sizeof(R));
+  R *mem = (R*) Y(malloc)((size_t)(5 * n + nk * nk) * sizeof(R));
   R *cheb = mem, *res = cheb + n, *tp = res + n, *best = tp + nk * nk;
-  R *orig = best + n;
+  R *orig = best + n, *base = orig + n;
   kb_design d;
   E best_obj = EK(0.0), obj, plain, mx, rms;
   INT i, q, k, j, p, it, nt, stall = 0;
@@ -1107,14 +1159,22 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   d.gc = d.B + cap * nr;
   d.bc = d.gc + 2 * cap;
   d.el = el;
-  d.coef = orig;
 
   memcpy(orig, coef, (size_t)n * sizeof(R));
+
+  /* The cell's rows 0 .. 2 h' over zero rows up to 2 h. */
+  if (start != NULL)
+    for (i = 0; i < n; i++)
+      base[i] = IF(i < (2 * start->h + 1) * w, start->coef[i], K(0.0));
+  else
+    memcpy(base, coef, (size_t)n * sizeof(R));
+
+  d.coef = base;
 
   gauleg(tg, wg, ng);
 
   for (q = 0; q < ntt; q++)
-    ts[q] = IF(q == 0, EK(0.0), ((E)q - EK(0.5)) / (E)KB_POLY_CORR_NT);
+    ts[q] = IF(q == 0, EK(0.0), ((E)q - EK(0.5)) / (E)noff);
 
   /* Frequencies clustered towards the band ends, where the error peaks,
    * with their quadrature weights. */
@@ -1127,152 +1187,169 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
         * (E_SIN(th) + EK(0.02));
   }
 
-  /* The scale constraint over the initial design eliminates the unknown with
-   * the largest |Bsum|. The band sum of T_0 of the outermost column changes
-   * sign with sigma and m. */
-  phases(ej, et, eg, xi, nxi, ts, 0, tg, ng, m);
-
-  for (j = 0; j < nu; j++)
-    Bsum[j] = EK(0.0);
-
-  for (i = 0; i < nxi; i++)
+  if (exact)
+    memcpy(best, base, (size_t)n * sizeof(R));
+  else
   {
-    psi_hat_basis(Bf, ej + 4 * i * nc, eg + 2 * i * ng, nc, nk, tg, wg, ng,
-        Tg);
+    /* The scale constraint over the initial design eliminates the unknown with
+     * the largest |Bsum|. The band sum of T_0 of the outermost column changes
+     * sign with sigma and m. */
+    phases(ej, et, eg, xi, nxi, ts, 0, tg, ng, m);
 
     for (j = 0; j < nu; j++)
-      Bsum[j] += (E)ntt * Bf[j];
-  }
+      Bsum[j] = EK(0.0);
 
-  d.piv = 0;
-
-  for (j = 1; j < nu; j++)
-    d.piv = IF(E_FABS(Bsum[j]) > E_FABS(Bsum[d.piv]), j, d.piv);
-
-  for (j = 0; j < nr; j++)
-    el[j] = -Bsum[j + IF(j >= d.piv, 1, 0)] / Bsum[d.piv];
-
-  for (i = 0; i < nxi; i++)
-    for (q = 0; q < ntt; q++)
-      design_add(&d, xi[i], ts[q], xw[i], m, h, tg, wg, ng);
-
-  /* Columns scaled to unit norm for the LS. */
-  for (j = 0; j < nr; j++)
-  {
-    E ss = EK(0.0);
-
-    for (p = 0; p < npt; p++)
-      ss += d.G[2 * (p * nr + j)] * d.G[2 * (p * nr + j)]
-          + d.G[2 * (p * nr + j) + 1] * d.G[2 * (p * nr + j) + 1];
-
-    scale[j] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
-    dtot[j] = EK(0.0);
-    dbest[j] = EK(0.0);
-  }
-
-  /* Weighted LS passes with the current denominators. The first is the RMS
-   * optimum and the start of the minimax driver; RMS keeps the best pass. */
-  for (it = 0; it <= KB_POLY_CORR_NIT; it++)
-  {
-    mx = design_ratio(&d, dtot, gcn, bcn);
-
-    if (mx < EK(0.0))
-      break;
-
-    if (it > 0)
+    for (i = 0; i < nxi; i++)
     {
-      E ss = EK(0.0), sw = EK(0.0);
+      psi_hat_basis(Bf, ej + 4 * i * nc, eg + 2 * i * ng, nc, nk, tg, wg, ng,
+          Tg);
 
-      if (minimax)
-        break;
-
-      for (p = 0; p < npt; p++)
-      {
-        ss += d.w[p] * (gcn[2 * p] * gcn[2 * p]
-            + gcn[2 * p + 1] * gcn[2 * p + 1]) / (bcn[p] * bcn[p]);
-        sw += d.w[p];
-      }
-
-      obj = E_SQRT(ss / sw);
-
-      if (it == 1 || obj < best_obj)
-      {
-        best_obj = obj;
-        stall = 0;
-        memcpy(dbest, dtot, (size_t)nr * sizeof(E));
-      }
-      else
-        stall++;
-
-      if (it == KB_POLY_CORR_NIT || stall == KB_POLY_CORR_STALL)
-        break;
+      for (j = 0; j < nu; j++)
+        Bsum[j] += (E)ntt * Bf[j];
     }
 
-    /* Rows scaled by sqrt(w) / den, so the residual is the relative error. */
-    for (p = 0; p < npt; p++)
-    {
-      const E wa = E_SQRT(d.w[p]) / bcn[p];
+    d.piv = 0;
 
-      for (j = 0; j < nr; j++)
-      {
-        Aw[j * 2 * npt + 2 * p] = wa * scale[j] * d.G[2 * (p * nr + j)];
-        Aw[j * 2 * npt + 2 * p + 1] = wa * scale[j]
-            * d.G[2 * (p * nr + j) + 1];
-      }
-
-      yw[2 * p] = -wa * gcn[2 * p];
-      yw[2 * p + 1] = -wa * gcn[2 * p + 1];
-    }
-
-    Y(kb_poly_ls)(Aw, yw, g, 2 * npt, nr);
+    for (j = 1; j < nu; j++)
+      d.piv = IF(E_FABS(Bsum[j]) > E_FABS(Bsum[d.piv]), j, d.piv);
 
     for (j = 0; j < nr; j++)
-      dtot[j] += g[j] * scale[j];
-  }
+      el[j] = -Bsum[j + IF(j >= d.piv, 1, 0)] / Bsum[d.piv];
 
-  /* Exchange rounds: the fine-grid maxima join the design until the
-   * fine-grid maximum is within DELTA_X of the design's; below the floor the
-   * fine grid sees rounding noise, so two rounds at most. */
-  if (minimax)
-  {
-    const INT nw = driver_work(cap, nr), nf = worst_work(m, ng);
-    E *ws = (E*) Y(malloc)((size_t)(nw + 3 * cap + nf
-        + 2 * KB_POLY_CORR_ADD) * sizeof(E));
-    E *y = ws + nw, *fw = y + 3 * cap, *wx = fw + nf;
-    E *wt = wx + KB_POLY_CORR_ADD, lo = EK(0.0), fbest = EK(-1.0), fine;
-    INT r, nloc = 0;
+    for (i = 0; i < nxi; i++)
+      for (q = 0; q < ntt; q++)
+        design_add(&d, xi[i], ts[q], xw[i], m, h, tg, wg, ng);
 
-    for (p = 0; p < cap; p++)
+    /* Columns scaled to unit norm for the LS. */
+    for (j = 0; j < nr; j++)
     {
-      y[3 * p] = EK(1.0);
-      y[3 * p + 1] = y[3 * p + 2] = EK(0.0);
+      E ss = EK(0.0);
+
+      for (p = 0; p < npt; p++)
+        ss += d.G[2 * (p * nr + j)] * d.G[2 * (p * nr + j)]
+            + d.G[2 * (p * nr + j) + 1] * d.G[2 * (p * nr + j) + 1];
+
+      scale[j] = IF(ss > EK(0.0), EK(1.0) / E_SQRT(ss), EK(1.0));
+      dtot[j] = EK(0.0);
+      dbest[j] = EK(0.0);
     }
 
-    for (r = 0; r < KB_POLY_CORR_ROUNDS; r++)
+    /* Weighted LS passes with the current denominators. The first is the RMS
+     * optimum and the start of the minimax driver; RMS keeps the best pass. */
+    for (it = 0; it <= KB_POLY_CORR_NIT; it++)
     {
-      mx = driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
-      corrected(best, orig, dtot, &d, nk, w, deg, cheb, res, tp);
-      fine = worst_points(best, m, h, ximax, tg, wg, ng, fw, wx, wt, &nloc);
+      mx = design_ratio(&d, dtot, gcn, bcn);
 
-      if (r == 0 || (fine >= EK(0.0) && (fbest < EK(0.0) || fine < fbest)))
-      {
-        fbest = fine;
-        memcpy(dbest, dtot, (size_t)nr * sizeof(E));
-      }
-
-      if (mx < EK(0.0) || fine < EK(0.0)
-          || fine <= (EK(1.0) + KB_POLY_CORR_DELTA_X) * mx
-          || (r >= 1 && mx < KB_POLY_CORR_FLOOR * E_EPSILON))
+      if (mx < EK(0.0))
         break;
 
-      for (p = 0; p < nloc; p++)
-        design_add(&d, wx[p], wt[p], EK(1.0), m, h, tg, wg, ng);
+      if (it > 0)
+      {
+        E ss = EK(0.0), sw = EK(0.0);
+
+        if (minimax)
+          break;
+
+        for (p = 0; p < npt; p++)
+        {
+          ss += d.w[p] * (gcn[2 * p] * gcn[2 * p]
+              + gcn[2 * p + 1] * gcn[2 * p + 1]) / (bcn[p] * bcn[p]);
+          sw += d.w[p];
+        }
+
+        obj = E_SQRT(ss / sw);
+
+        if (it == 1 || obj < best_obj)
+        {
+          best_obj = obj;
+          stall = 0;
+          memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+        }
+        else
+          stall++;
+
+        if (it == KB_POLY_CORR_NIT || stall == KB_POLY_CORR_STALL)
+          break;
+      }
+
+      /* Rows scaled by sqrt(w) / den, so the residual is the relative error. */
+      for (p = 0; p < npt; p++)
+      {
+        const E wa = E_SQRT(d.w[p]) / bcn[p];
+
+        for (j = 0; j < nr; j++)
+        {
+          Aw[j * 2 * npt + 2 * p] = wa * scale[j] * d.G[2 * (p * nr + j)];
+          Aw[j * 2 * npt + 2 * p + 1] = wa * scale[j]
+              * d.G[2 * (p * nr + j) + 1];
+        }
+
+        yw[2 * p] = -wa * gcn[2 * p];
+        yw[2 * p + 1] = -wa * gcn[2 * p + 1];
+      }
+
+      Y(kb_poly_ls)(Aw, yw, g, 2 * npt, nr);
+
+      for (j = 0; j < nr; j++)
+        dtot[j] += g[j] * scale[j];
     }
 
-    Y(free)(ws);
-  }
+    /* Exchange rounds: the fine-grid maxima join the design until the
+     * fine-grid maximum is within DELTA_X of the design's; below the floor the
+     * fine grid sees rounding noise, so two rounds at most. */
+    if (minimax)
+    {
+      const INT nw = driver_work(cap, nr), nf = worst_work(m, ng);
+      E *ws = (E*) Y(malloc)((size_t)(nw + 3 * cap + nf
+          + 2 * KB_POLY_CORR_ADD) * sizeof(E));
+      E *y = ws + nw, *fw = y + 3 * cap, *wx = fw + nf;
+      E *wt = wx + KB_POLY_CORR_ADD, lo = EK(0.0), fbest = EK(-1.0), fine;
+      INT r, nloc = 0;
 
-  corrected(best, orig, dbest, &d, nk, w, deg, cheb, res, tp);
+      /* A cell's exchange points keep their place in the band; the optimum
+       * at the larger sigma above is nearly a lower bound. */
+      if (start != NULL)
+      {
+        for (p = 0; p < start->npts; p++)
+          design_add(&d, ximax * (E)start->pts[2 * p] / EK(65535.0),
+              (E)start->pts[2 * p + 1] / EK(65535.0), EK(1.0), m, h, tg, wg,
+              ng);
+
+        lo = IF(above != NULL, (E)above->e / EK(1.05), EK(0.0));
+      }
+
+      for (p = 0; p < cap; p++)
+      {
+        y[3 * p] = EK(1.0);
+        y[3 * p + 1] = y[3 * p + 2] = EK(0.0);
+      }
+
+      for (r = 0; r < KB_POLY_CORR_ROUNDS; r++)
+      {
+        mx = driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
+        corrected(best, base, dtot, &d, nk, w, deg, cheb, res, tp);
+        fine = worst_points(best, m, h, ximax, tg, wg, ng, fw, wx, wt, &nloc);
+
+        if (r == 0 || (fine >= EK(0.0) && (fbest < EK(0.0) || fine < fbest)))
+        {
+          fbest = fine;
+          memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+        }
+
+        if (mx < EK(0.0) || fine < EK(0.0)
+            || fine <= (EK(1.0) + KB_POLY_CORR_DELTA_X) * mx
+            || (r >= 1 && mx < KB_POLY_CORR_FLOOR * E_EPSILON))
+          break;
+
+        for (p = 0; p < nloc; p++)
+          design_add(&d, wx[p], wt[p], EK(1.0), m, h, tg, wg, ng);
+      }
+
+      Y(free)(ws);
+    }
+
+    corrected(best, base, dbest, &d, nk, w, deg, cheb, res, tp);
+  }
 
   /* The deconvolution table of the best pass (layout at KB_POLY_HUT_MAX),
    * trailing terms below the rounding of R dropped. */
@@ -1315,7 +1392,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
         / EK(2.0);
 
   for (q = 0; q < ntt; q++)
-    ts[q] = ((E)q + EK(0.25)) / (E)KB_POLY_CORR_NT;
+    ts[q] = ((E)q + EK(0.25)) / (E)noff;
 
   phases(ej, et, eg, xi, nxi, ts, ntt, tg, ng, m);
   mx = grid_max(best, hut, m, h, xi, xw, nxi, ntt, ts, tg, wg, ng, ej, et,
@@ -1370,9 +1447,16 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,
       Y(kb_poly_fit)(coef, b[t], b[d + t], b[3 * d + t], reach, m, deg);
       hut[0] = K(0.0);
 
-      if ((opt & (OPT_WINDOW | OPT_WINDOW_RMS))
-          && Y(kb_poly_correct_ok)(b[t], m))
-        Y(kb_poly_correct)(coef, hut, b[t], m, deg, (opt & OPT_WINDOW) != 0);
+      if ((opt & OPT_WINDOW) && Y(kb_poly_correct_ok)(b[t], m))
+      {
+        const kb_poly_opt_cell *exact, *below, *above;
+
+        Y(kb_poly_table)(b[t], m, deg, &exact, &below, &above);
+        Y(kb_poly_correct)(coef, hut, b[t], m, deg, 1,
+            IF(exact != NULL, exact, below), above);
+      }
+      else if ((opt & OPT_WINDOW_RMS) && Y(kb_poly_correct_ok)(b[t], m))
+        Y(kb_poly_correct)(coef, hut, b[t], m, deg, 0, NULL, NULL);
     }
     else
       memcpy(tab + 1 + t * stride, tab + 1 + s * stride,

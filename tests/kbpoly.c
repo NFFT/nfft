@@ -235,7 +235,7 @@ void X(check_kaiser_bessel_poly_opt)(void)
       functional(plain, hut, m, deg, b, lt, pki, i0e_pki, &j0, &r0, &p0);
 
       if (admitted)
-        Y(kb_poly_correct)(coef, hut, b, m, deg, minimax);
+        Y(kb_poly_correct)(coef, hut, b, m, deg, minimax, NULL, NULL);
 
       functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j1, &r1, &p1);
       o0 = IF(minimax, j0, r0);
@@ -296,7 +296,7 @@ void X(check_kbpoly_exchange)(void)
     Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
     hut[0] = K(0.0);
     functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j0, &r, &p);
-    e = Y(kb_poly_correct)(coef, hut, b, m, deg, 1);
+    e = Y(kb_poly_correct)(coef, hut, b, m, deg, 1, NULL, NULL);
     functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j1, &r, &p);
 
     if (c == 0)
@@ -316,6 +316,140 @@ void X(check_kbpoly_exchange)(void)
 #else
   CU_ASSERT(1);
 #endif
+}
+
+#if MANT_DIG >= 53
+/* The shipped cell for m at sigma, NULL if not compiled. */
+static const kb_poly_opt_cell *table_cell(const INT m, const R sigma)
+{
+  const kb_poly_opt_row *rows;
+  const INT nrows = Y(kb_poly_table_rows)(&rows);
+  INT r, i;
+
+  for (r = 0; r < nrows; r++)
+    for (i = 0; i < rows[r].ncells; i++)
+      if (rows[r].m == m && rows[r].cells[i].sigma == sigma)
+        return rows[r].cells + i;
+
+  return NULL;
+}
+#endif
+
+/* Hold-out maximum of the minimax correction at sigma, m, deg from cell. */
+static R table_correct(const R sigma, const INT m, const INT deg,
+    const kb_poly_opt_cell *cell, const kb_poly_opt_cell *above)
+{
+  const R b = KPI * (K(2.0) - K(1.0) / sigma), reach = (R)m + K(1.0);
+  const R lt = Y(bessel_i0_logtail)(reach * b), pki = EXP(-reach * b - lt);
+  const INT n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  R *coef = (R*) Y(malloc)((size_t)(n + KB_POLY_HUT_LEN) * sizeof(R));
+  R e;
+
+  Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
+  e = Y(kb_poly_correct)(coef, coef + n, b, m, deg, 1, cell, above);
+  Y(free)(coef);
+
+  return e;
+}
+
+static int table_lookup(const R sigma, const INT m, const INT deg,
+    const kb_poly_opt_cell *exact, const kb_poly_opt_cell *below,
+    const kb_poly_opt_cell *above)
+{
+  const kb_poly_opt_cell *ce, *cb, *ca;
+  int ok;
+
+  Y(kb_poly_table)(KPI * (K(2.0) - K(1.0) / sigma), m, deg, &ce, &cb, &ca);
+  ok = IF(ce == exact && cb == below && ca == above, 1, 0);
+  printf("table_lookup[sigma=%.7f, m=%td, deg=%td] exact %.2f below %.2f "
+      "above %.2f -> %s\n", (double)sigma, (ptrdiff_t)m, (ptrdiff_t)deg,
+      ce ? (double)ce->sigma : 0.0, cb ? (double)cb->sigma : 0.0,
+      ca ? (double)ca->sigma : 0.0, IF(ok == 0, "FAIL", "OK"));
+
+  return ok;
+}
+
+/* The shipped optima: lookup, the exact hit in a plan's table, the start
+ * from the cell below, and every compiled cell against its own e. */
+void X(check_kbpoly_table)(void)
+{
+  const kb_poly_opt_row *rows;
+  const INT nrows = Y(kb_poly_table_rows)(&rows);
+  INT r, i;
+
+  printf("kbpoly_table\n------------\n");
+
+#if MANT_DIG >= 53
+  {
+    const kb_poly_opt_cell *c175 = table_cell(4, K(1.75));
+    const kb_poly_opt_cell *c2 = table_cell(4, K(2.0));
+    const kb_poly_opt_cell *c25 = table_cell(4, K(2.5));
+    const INT deg = 2 * c2->h, m = 4, n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+    const R b = KPI * K(1.5), reach = K(5.0);
+    const R lg = Y(bessel_i0_logtail)(reach * b);
+    const R bw[4] = {b, lg, K(1.0) / Y(bessel_i0_exp_scaled)(reach * b),
+        EXP(-reach * b - lg)};
+    R *tab = Y(kb_poly_init)(bw, 1, m, reach, OPT_WINDOW), e0, e1;
+    int ok = IF((INT)tab[0] == deg, 1, 0);
+
+    for (i = 0; ok && i < n; i++)
+      ok = IF(tab[1 + i] == c2->coef[i], ok, 0);
+
+    printf("table_exact[sigma=2, m=4] plan table equal to the cell -> %s\n",
+        IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+    Y(free)(tab);
+
+    CU_ASSERT(table_lookup(K(2.0), m, deg, c2, c2, c25));
+    CU_ASSERT(table_lookup(K(2.0) * (K(1.0) - K(1E-6)), m, deg, NULL, c175,
+        c2));
+    CU_ASSERT(table_lookup(K(2.0) * (K(1.0) + K(1E-6)), m, deg, NULL, c2,
+        c25));
+    CU_ASSERT(table_lookup(K(2.1), m, deg, NULL, c2, c25));
+    CU_ASSERT(table_lookup(K(2.1), m, deg + 2, NULL, c2, c25));
+    CU_ASSERT(table_lookup(K(2.1), m, deg - 2, NULL, NULL, NULL));
+
+    e0 = table_correct(K(2.1), m, deg, NULL, NULL);
+    e1 = table_correct(K(2.1), m, deg, c2, c25);
+    ok = IF(e1 > K(0.0) && e0 > K(0.0) && e1 <= K(1.02) * e0, 1, 0);
+    printf("table_start[sigma=2.1, m=4] scratch %.4e cell %.4e (%.3fx) -> "
+        "%s\n", (double)e0, (double)e1, (double)(e1 / e0),
+        IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
+#endif
+
+  /* Each cell at its own degree; the format's degree can differ, since the
+   * generator takes the 113-bit one. The hold-out evaluates C from the hut
+   * table, whose rounding is relative to C(0), hence the slack of the other
+   * tests. */
+  for (r = 0; r < nrows; r++)
+    for (i = 0; i < rows[r].ncells; i++)
+    {
+      const kb_poly_opt_cell *c = rows[r].cells + i, *ce, *cb, *ca;
+      const INT m = rows[r].m, deg = 2 * c->h;
+      const R b = KPI * (K(2.0) - K(1.0) / c->sigma), reach = (R)m + K(1.0);
+      const INT dlib = Y(kb_poly_degree)(b, reach, m);
+      const R i0e_pki = K(1.0) / Y(bessel_i0_exp_scaled)(reach * b);
+      const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * c->sigma,
+          K(1.0));
+      const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
+          / cmin;
+      R e;
+      int ok;
+
+      Y(kb_poly_table)(b, m, deg, &ce, &cb, &ca);
+      e = IF(ce == c, table_correct(c->sigma, m, deg, c, NULL), K(0.0));
+      ok = IF(ce == c && ((e > K(0.0) && e <= K(1.05) * c->e + slack)
+          || (e == K(-1.0) && c->e < K(1000.0) * E_EPSILON + slack)), 1, 0);
+      printf("table_cell[sigma=%.2f, m=%2td, h=%2td] deg %2td%s e %.4e "
+          "return %.4e slack %.1e -> %s\n", (double)c->sigma, (ptrdiff_t)m,
+          (ptrdiff_t)c->h, (ptrdiff_t)dlib, IF(dlib == deg, " ", "*"),
+          (double)c->e, (double)e, (double)slack, IF(ok == 0, "FAIL", "OK"));
+      CU_ASSERT(ok == 1);
+    }
+
+  printf("\n");
 }
 
 /* Worst |f_j - exp(-2 pi i k x_j)| over the nodes and the band-edge
@@ -604,6 +738,11 @@ void X(check_kbpoly_exchange)(void)
   CU_ASSERT(1);
 }
 
+void X(check_kbpoly_table)(void)
+{
+  CU_ASSERT(1);
+}
+
 #endif
 
 /* |a_i + w| <= tau + z for a = (1, -1, 0.5): x = (w, z), min z = 1 - tau. */
@@ -796,7 +935,7 @@ static R kbpoly_driver_case(const R sigma, const INT m, const INT deg)
   R e;
 
   Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
-  e = Y(kb_poly_correct)(coef, coef + n, b, m, deg, 1);
+  e = Y(kb_poly_correct)(coef, coef + n, b, m, deg, 1, NULL, NULL);
   Y(free)(coef);
   return e;
 }

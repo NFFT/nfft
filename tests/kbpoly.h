@@ -27,5 +27,6 @@ void X(check_socp3)(void);
 void X(check_kbpoly_qr)(void);
 void X(check_kbpoly_driver)(void);
 void X(check_kbpoly_exchange)(void);
+void X(check_kbpoly_table)(void);
 
 #endif

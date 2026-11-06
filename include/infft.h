@@ -1866,13 +1866,51 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m);
  * type E. */
 int Y(kb_poly_correct_ok)(const R b, const INT m);
 
+/* One shipped optimum: the table of a window at sigma_cell for m, half
+ * degree h, in the layout of Y(kb_poly_init) (KB_POLY_ROWS(2 h) x
+ * KB_POLY_COLS(m), row-major), its fine-grid error e, and npts exchange
+ * points as (xi / ximax, t) scaled to [0, 65535]. */
+typedef struct
+{
+  R sigma, e;
+  INT m, h, npts;
+  const R *coef;
+  const unsigned short *pts;
+} kb_poly_opt_cell;
+
+/* Table rows per m, compiled up to KB_POLY_OPT_MMAX of the format. */
+typedef struct
+{
+  INT m, ncells;
+  const kb_poly_opt_cell *cells;
+} kb_poly_opt_row;
+
+/* Cells for b (sigma = pi / (2 pi - b)), m and deg: *exact the cell with
+ * sigma_cell == sigma within 1e-9 relative (32 eps of R where that is
+ * larger) and h == KB_POLY_HALF(deg), else NULL; *below the cell with the
+ * largest sigma_cell <= sigma, *above the one with the smallest sigma_cell
+ * > sigma, each NULL where there is none or its h > KB_POLY_HALF(deg).
+ * Returns the number of cells found (0 to 3). A cell is never used for a
+ * sigma below its own. */
+INT Y(kb_poly_table)(const R b, const INT m, const INT deg,
+    const kb_poly_opt_cell **exact, const kb_poly_opt_cell **below,
+    const kb_poly_opt_cell **above);
+
+/* The compiled rows: *rows = kb_poly_opt_rows, returns KB_POLY_OPT_NROWS. */
+INT Y(kb_poly_table_rows)(const kb_poly_opt_row **rows);
+
 /* Optimizes coef (KB_POLY_ROWS(deg) x KB_POLY_COLS(m)) in place for the
  * worst-case (minimax) or RMS transform error and writes its deconvolution
  * to hut (KB_POLY_HUT_LEN); where that does not validate, coef is restored
- * and hut[0] = 0. Returns the hold-out maximum of the accepted table, -1 when
+ * and hut[0] = 0. cell = NULL: from scratch. cell exact for b and deg: its
+ * table, no solve. Else cell is the one below: the solve starts from its
+ * table padded with zero rows to deg and adds its points to the design,
+ * with the lower bound above->e / 1.05 when above != NULL. RMS ignores cell
+ * and above. Returns the hold-out maximum of the accepted table, -1 when
  * the plain table was kept. */
 R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
-    const INT deg, const int minimax);
+    const INT deg, const int minimax, const kb_poly_opt_cell *cell,
+    const kb_poly_opt_cell *above);
 
 /* Householder QR with column pivoting of A (rows x cols, column-major, in
  * place). perm: cols. Returns k = number of columns with |R_jj| >
