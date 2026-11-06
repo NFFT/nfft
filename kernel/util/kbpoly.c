@@ -698,24 +698,45 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
  * t and the deconvolution C(xi); its relative error at frequency xi is
  * E(xi, t) = (D(xi, t) - C(xi)) / C(xi), D the tap sum with the phases
  * e^(-2 pi i xi (tap position)). With C the window's own transform psi_hat,
- * D and C are linear in the coefficients and the worst case of |E| over the
- * band and the offsets is quasiconvex in them (Keiner, Potts: Optimized
- * piecewise polynomial window functions for the NFFT, 2026). Weighted least
- * squares in correction form on a design of points: a pass fits a change d
- * to the table, min sum w |G (c + d)|^2 / psi_hat(c)^2, G = D - C, under
- * sum_i B_i d = 0 over the initial design, B = psi_hat, which fixes the
- * scale; the first pass with the band's quadrature weights is the RMS
- * optimum. RMS repeats the pass with the new denominators and keeps the
- * best one; minimax starts there and solves the discrete minimax of the
- * ratio by Dinkelbach steps and bisection on second-order cone subproblems.
- * The offsets are the limit t -> 0, where a window with jumps peaks, and
- * the midpoints of [0, 1/2]: E(xi, 1 - t) is the conjugate of E(xi, t). The
- * residual is a difference of quantities near one, so the fit resolves it
- * only while the error is well above eps_E, which Y(kb_poly_correct_ok)
- * guards coarsely and the hold-out exactly. Unknowns are Chebyshev coefficients T_k(2s) of
- * the m + 1 stencil columns; column 0, outside the stencil, keeps its
- * interpolant. The design capacity holds the initial design, the points of
- * a table cell and the exchange rounds. */
+ * D and C are linear in the coefficients c. On a design of points the
+ * problem is min over c of max_i |g_i c| / (b_i c), g = D - C, b = psi_hat;
+ * the ratio is scale free, so sum_i b_i c over the initial design is fixed.
+ * The level set |g_i c| <= tau b_i c is an intersection of second-order
+ * cones: the problem is quasiconvex, its optimum the smallest tau with a
+ * nonempty level set (Keiner, Potts: Optimized piecewise polynomial window
+ * functions for the NFFT, 2026).
+ *
+ * Start: the interpolant plus one least-squares pass with the band's
+ * quadrature weights, the RMS optimum. RMS mode repeats the pass with the
+ * new denominators and keeps the best one. A table cell that is not an exact
+ * hit replaces the start in the stencil columns and adds its exchange
+ * points; the optimum of the cell above at the same degree, over 1.05, is
+ * the first lower bound. An exact hit copies the cell and skips the design.
+ *
+ * Driver: bracket [lo, hi], hi the true ratio of the best window, lo the
+ * largest level proven infeasible or left undecided. The model at the
+ * current window scales the rows by 1 / (b_i c) and keeps the columns of a
+ * pivoted QR with |R_kk| > TRUNC |R_00|; Y(socp3_solve) minimizes the slack
+ * z of one cone per point at level tau. A Dinkelbach step solves at tau = hi and
+ * accepts the window if its true ratio is below tau. After a step that
+ * gains less than GAIN, bisection at sqrt(lo hi) (hi / 4 while lo = 0)
+ * decides only the sign of z. Stop at hi <= (1 + DELTA) lo or after SOLVES
+ * solves.
+ *
+ * Exchange: after the driver the ADD largest local maxima of |E| on a fine
+ * grid join the design, lo carried over, until the fine maximum is within
+ * DELTA_X of hi, after ROUNDS rounds, or after two rounds below FLOOR eps_E,
+ * where the fine grid sees rounding noise. The round with the smallest fine
+ * maximum wins.
+ *
+ * Unknowns are the coefficients of T_k(2s), k <= 2h, of the m + 1 stencil
+ * columns, so an odd deg gets row 2h too; column 0, outside the stencil,
+ * keeps its interpolant. Offsets are the limit t -> 0, where a window with
+ * jumps peaks, and the midpoints of [0, 1/2]: E(xi, 1 - t) is the conjugate
+ * of E(xi, t). The residual is a difference of quantities near one, so the
+ * fit resolves it only well above eps_E; Y(kb_poly_correct_ok) guards that
+ * coarsely, the hold-out exactly. The design capacity holds the initial
+ * design, the points of a table cell and the exchange rounds. */
 #define KB_POLY_CORR_TRUNC (EK(500.0) * E_EPSILON)
 #define KB_POLY_CORR_NXI 24
 #define KB_POLY_CORR_NT 16

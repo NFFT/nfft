@@ -216,7 +216,7 @@ uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate
 `OPT_WINDOW` correction solved ahead of time for a fixed sigma set. Table in
 `kernel/util/kbpoly_opt_data.h`, produced by `gen/kbpolygen/optima.py` in
 200-bit arithmetic of `python-flint==0.9.0`; the committed header is the
-`--mmax 11` part (about 2 h 15 min with `-j 3`):
+`--mmax 11` part (about 3 h with `-j 3`):
 
 ```bash
 uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 3

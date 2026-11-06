@@ -126,6 +126,14 @@ static const INT kb_n[] = {132, 150, 180, 210, 240, 300, 360, 480};
   #define KB_M_MAX 8
 #endif
 
+/* The 113-bit table ends at m 11; larger m solve from scratch in software
+ * arithmetic. */
+#if MANT_DIG > 64
+  #define KB_OPT_M_MAX 11
+#else
+  #define KB_OPT_M_MAX KB_M_MAX
+#endif
+
 static INT kb_m_next(const INT m)
 {
   return IF(m < 12, m + 1, m + 4);
@@ -614,6 +622,9 @@ static void MOD##_poly_trafo(void) \
       R ep, ea, uk, bound; \
       int ok; \
 \
+      if (opt == 1 && m > KB_OPT_M_MAX) \
+        continue; \
+\
       MOD(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags | of, \
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT); \
       MOD(init_guru)(&pa, 1, N, (int)M, n, (int)m, flags, \
@@ -682,6 +693,9 @@ void X(check_kaiser_bessel_poly_trafo)(void)
       int N[1] = {KB_N}, n[1] = {(int)kb_n[s]};
       NFFT(plan) pp, pa;
       R ep, ea;
+
+      if (opt == 1 && m > KB_OPT_M_MAX)
+        continue;
 
       NFFT(init_guru)(&pp, 1, N, (int)M, n, (int)m, flags | of,
           FFTW_ESTIMATE | FFTW_DESTROY_INPUT);

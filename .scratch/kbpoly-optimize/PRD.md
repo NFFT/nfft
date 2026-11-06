@@ -178,3 +178,24 @@ that work stay in scope: evaluating `PHI_HUT` to one ulp in `R` in every
 format (issue 09; in float that is worth 1.17x at the band edge and 1.3x to
 1.5x RMS at the floor, in double and long double nothing shows), and the note that `kbgain2.c` is the harness to use for floor measurements,
 since a `cexp` of a large argument in the reference is itself a floor.
+
+## Addendum (2026-11-06): fractional minimax and shipped optima
+
+The Lawson loop of goal G3 (issue 05) is replaced. It froze the denominator
+`psi_hat` at the current window and so solved a different problem: gap to
+the optimum median 4 percent, worst 95 percent. `OPT_WINDOW` now solves the
+ratio problem `min max |D - C| / C` with `C = psi_hat` linear in the
+coefficients by a dense second-order cone solver, safeguarded Dinkelbach
+steps, bisection and an exchange step, in `E` with constants scaled by
+`E_EPSILON` (issues 10, 11). Through Appendix A of the plan the result is
+within 0.989x to 1.017x of the published optima in double.
+
+Shipped optima (issue 12): the optimum depends on `(sigma, m, h)` only, so
+`gen/kbpolygen/optima.py` solves the cells of the sigma set
+`{1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4}` in 200-bit arithmetic for `m <= 11`
+(104 cells) into `kernel/util/kbpoly_opt_data.h`. A plan copies a cell on
+an exact `(sigma, degree)` hit (0.4 ms) and solves from scratch otherwise
+(median 75 ms, max 277 ms in double). `OPT_WINDOW_RMS` is unchanged and
+never uses the table. Decisions: ADR-0005. Open: near-floor tolerance (13),
+113-bit cells `m >= 12` (14), hut table rounding at the band edge (15), cell
+start and plan-time cost (16).

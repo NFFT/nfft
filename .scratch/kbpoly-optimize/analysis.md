@@ -1,6 +1,8 @@
 # Optimizing the polynomial Kaiser-Bessel window against the transform error
 
-Status: analysis, no implementation. Prototype scripts in this directory
+Status: implemented on feature/kbpoly-optimize; section 19 holds the
+current state, `docs/adr/0005-fractional-minimax-window-correction.md` the
+decisions. Prototype scripts in this directory
 (`kbopt.py`, `kbopt2.py`, `kbopt3.py`, `kbopt4.py`; run with
 `uv run --with numpy --with scipy python kbopt.py [sigma m]`), raw output in
 `results/`.
@@ -992,8 +994,10 @@ admits every `m` the double table does; the hold-out does the real
 screening there, at 5 to 30 ms per rejected axis.
 
 **What the manuscript adds beyond this.** Its exchange method and cone
-solver certify the optimum; the IRLS here reaches the same values to three
-digits where both were run, with the manuscript as the certificate. Its
+solver certify the optimum. The IRLS here does not reach it in general:
+measured against the optimum, its gap is median 4 percent and worst 95
+percent over the test cases, and at sigma 1.5, library m 5, deg 8 it stops at
+6.7e-8 against 1.57e-8 (section 19). Its
 continuous variant (continuity at cell boundaries, `phi(1) = 0`) costs at
 most 35 percent and is not implemented. Its degree study (gain saturates at
 `p = m_man + 4 .. m_man + 5`) matches: at `(2, 3)` degrees 8, 10 and 12 all
@@ -1074,3 +1078,94 @@ mode gains 1.7x to 310x over the plain window in double
 (`results/checkall_double_flags.txt`). A node-adaptive flag is not
 implemented: the nodes are unknown at `init`, where the window is built,
 and section 17 limits its use to axes with at most three distinct offsets.
+
+## 19. Fractional minimax and shipped optima
+
+Sections 16 and 18 describe the Lawson loop. It is replaced on this branch
+by a solver of the ratio problem and a table of solved windows; decisions in
+ADR-0005, open items in issues 13 to 16.
+
+**Why the loop went.** It froze the denominator `b_i c` at the current
+window and reweighted a least-squares fit. The frozen minimax is a different
+problem: on the final point set of sigma 1.5, library m 5, deg 8 its optimum
+is 2.66e-9, the window that attains it has the true ratio 6.7e-8, and the
+true optimum is 1.57e-8. Gap of the loop to the optimum over the test cases:
+median 4 percent, worst 95 percent. Lawson converges on the frozen problem,
+so the inner solver was not the cause. Tried and rejected: Gauss-Newton on
+the ratio, Dinkelbach alone from a far start (2x to 190x off at sigma
+1.0625), a generalized eigenproblem for a weighted L2 ratio (sign-changing
+spectra), Newton on `tau`, preconditioner truncation at `1e-8`,
+interpolation of optimal coefficients in sigma (1.2x to 8x worse than either
+end), a rounding-aware objective (1.1x at best).
+
+**Algorithm.** The level set `|g_i c| <= tau b_i c` is an intersection of
+cones `Q^3`. `Y(socp3_solve)` (`kernel/util/socp3.c`) is a dense primal-dual
+interior-point solver for it. The model at the current window scales rows
+by `1 / (b_i c)` and preconditions with a pivoted QR truncated at
+`500 eps`. The driver keeps a bracket `[lo, hi]`: Dinkelbach steps at
+`tau = hi` while a step gains 1.3x, then bisection at `sqrt(lo hi)` that
+decides only the sign; stop at `hi <= 1.01 lo` or 30 solves. The exchange
+step adds the 40 largest local maxima of `|E|` on a `401 x 65` fine grid
+per round, up to 10 rounds, until the fine maximum is within 2 percent of
+`hi`. The hold-out accepts the corrected table at 0.9 of plain or less.
+
+**Format scaling.** The correction runs in `E`, every constant dimensionless
+or a multiple of `E_EPSILON`; the guard `Y(kb_poly_correct_ok)` is keyed to
+`R`. The residual carries an absolute noise of about `10 eps`, so a level is
+resolved to 1 percent only above about `1000 eps`, while the transform
+realizes errors down to `4 to 8 eps`. The two decades between are given up
+off the table in the `E = R` builds (double 2e-13 to 2e-15, 64-bit 2e-16 to
+2e-18, 113-bit 2e-32 to 2e-34); float with `E = double` covers its band
+(issue 13).
+
+**Shipped optima.** The optimum depends on `(sigma, m, h)` only.
+`gen/kbpolygen/optima.py` solves each cell of
+`sigma in {1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4}` in 200-bit ball arithmetic,
+one cell per library degree of each format, with an exchange of 80 points
+per round, up to 40 rounds, to `e <= 1.005 lo`. The committed header is the
+`--mmax 11` part: 104 cells, 10527 s wall at `-j 3`. One cell (sigma 3,
+m 11, h 8) failed the gap in that run, because the exchange stopped on a
+window with `psi_hat <= 0` off the design; the generator repair and a
+regeneration follow. The 113-bit cells `m = 12 .. 21` are not generated
+(issue 14). `Y(kb_poly_init)` copies a cell on an exact `(sigma, h)` hit and
+solves from scratch otherwise. The nearest-below cell start was 0.87x to
+2.6x of the from-scratch time at equal quality (616 design points triple
+the IPM cost per iteration; the bound `e_above / 1.05` is weak), so it is
+not used (issue 16).
+
+**Measured, double.** The 24 rows of the plan's Appendix A (published
+optima): 0.989x to 1.017x, after two fixes found by them: an odd `deg` lost
+row `2h` of the correction, and the hold-out at 0.8 of plain rejected the
+reference optimum at sigma 1.5, library m 5, deg 8 (0.836x of plain). From
+scratch against the shipped `e` at the cells: within 2 percent up to m 6;
+beyond, the hut table's rounding at the band edge dominates (sigma 2, m 6:
+4.97x with the table, 1.39x with the exact `psi_hat`; issue 15), and sigma
+1.25, m 8 reaches 1.63x.
+
+**Plan time** (`kbinit.c`, `kbfrac.c`, double, d = 1, N = 4096, m 3 to 6,
+median of 7, 10-core host): exact hit 0.34 to 0.40 ms over plain init; from
+scratch median 74.7 ms, max 277 ms, against a plan estimate of 60 ms and
+500 ms. The IPM takes 75 to 80 percent; round 0 spends 9 to 11 solves.
+
+**Test suite.**
+
+- Float (`E = double`): `make check` passes, 51 test cases, 2196 asserts.
+  Of the 112 `opt` rows 12 are admitted by the guard (sigma 1.1 at m 2 and
+  3, sigma 1.25 to 2 at m 2), all pass the hold-out; the worst gain is
+  4.46x in the worst case (sigma 1.5, m 2) and 1.68x in RMS (same cell).
+  The other 100 rows keep the plain table.
+- Double: `make check` passes, 51 test cases, 2541 asserts; per mode 42
+  `opt` rows optimized, 1 kept by the hold-out (sigma 1.1, m 9), 61
+  guarded.
+- 113-bit long double (aarch64, software binary128): with the trafo test's
+  `OPT_WINDOW` cases capped at m 11 (the end of the 113-bit table),
+  `make check` still ran past 30 min in the `opt` test, which solves every
+  admitted cell from scratch up to m 21; it was stopped at sigma 1.1, m 12
+  with no failure (trafo, sigma, driver, exchange, table passed). A scratch
+  run of driver, exchange, table, socp3, qr and `opt` up to m 9: 0
+  failures, 251 asserts, 55 min; per mode 63 `opt` rows optimized, 1 kept.
+  Minimax rows against double where double is above 1e-12 (35 rows): median
+  1.000x, worst 1.021x (sigma 1.1, m 6: 2.558e-7 against 2.504e-7), the
+  only row above 1.01x; the 2 percent exchange gate allows this.
+- 80-bit long double (x86-64, CI `build-linux` clang `--enable-long-double`):
+  not yet run; the branch is not pushed.
