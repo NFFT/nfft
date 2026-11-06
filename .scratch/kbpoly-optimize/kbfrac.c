@@ -337,11 +337,11 @@ int main(int argc, char **argv)
 
   if (argc == 2 && strcmp(argv[1], "rows") == 0)
     run_rows();
-  else if (argc == 5 && strcmp(argv[1], "cell") == 0)
+  else if (argc == 5 && strcmp(argv[1], "cell") == 0 && atoi(argv[4]) >= 1)
     run_cell(atof(argv[2]), (INT)atoi(argv[3]), atoi(argv[4]));
   else
   {
-    fprintf(stderr, "usage: kbfrac rows | kbfrac cell sigma m reps\n");
+    fprintf(stderr, "usage: kbfrac rows | kbfrac cell sigma m reps (reps >= 1)\n");
     return 1;
   }
 

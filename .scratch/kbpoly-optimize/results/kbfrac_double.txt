@@ -1,5 +1,5 @@
 # kbfrac rows (double, build-double at 09373f17): Appendix A rows as given (odd deg not rounded), from scratch.
-# Columns as below. host: generator on 3 cores; load 3.4 (08:48).
+# Columns as below. host: 10 cores, generator on 3 of them; load 3.4 (08:48).
  sigma pm deg      ref e        hut  hut/e      exact   ex/e     return        ms
  1.125  2   8  1.987e-02  1.987e-02  1.000  1.987e-02  1.000  1.974e-02       8.9
  1.125  3   9  1.260e-03  1.263e-03  1.002  1.263e-03  1.002  1.246e-03      33.7
@@ -30,7 +30,7 @@
 # kbfrac rows (double, build-double at f3c114ee): Appendix A rows, from scratch (cell = NULL).
 # hut: functional of tests/kbpoly.c on 401 x 64, C from the hut table. exact: D and C in long double
 # from the stored coefficients, C the window's own spectrum. return: Y(kb_poly_correct), -1 = plain kept.
-# host: generator on 3 cores in the background;  08:39:21 up 1 day,  1:00,  0 user,  load average: 4.13, 3.51, 2.53
+# host: 10 cores, generator on 3 of them;  08:39:21 up 1 day,  1:00,  0 user,  load average: 4.13, 3.51, 2.53
  sigma pm deg      ref e        hut  hut/e      exact   ex/e     return        ms
  1.125  2   8  1.987e-02  1.987e-02  1.000  1.987e-02  1.000  1.974e-02       8.8
  1.125  3   9  1.260e-03  1.304e-03  1.035  1.304e-03  1.035  1.257e-03      42.1
@@ -94,10 +94,7 @@
 
 # Extra: from scratch (cell = NULL) at the shipped cells, n = sigma 4096, library degree, against the
 # shipped table e. kbfrac cell sigma m reps; ok = Y(kb_poly_correct_ok) (production only corrects ok = 1).
-sigma=1.50000 m=3 deg=8 ok=1 scratch: median 23.59 min 23.42 max 24.19 ms, return 6.487e-07 hut 6.525e-07 exact 6.525e-07 | table e 6.476e-07 scratch/e 1.008
-sigma=1.50000 m=4 deg=10 ok=1 scratch: median 63.25 min 62.77 max 64.29 ms, return 1.177e-08 hut 1.194e-08 exact 1.194e-08 | table e 1.182e-08 scratch/e 1.010
-sigma=1.50000 m=5 deg=10 ok=1 scratch: median 110.06 min 108.96 max 117.28 ms, return 2.189e-10 hut 2.218e-10 exact 2.218e-10 | table e 2.201e-10 scratch/e 1.008
-sigma=1.50000 m=6 deg=12 ok=1 scratch: median 292.83 min 292.53 max 295.08 ms, return 3.991e-12 hut 3.994e-12 exact 3.938e-12 | table e 3.915e-12 scratch/e 1.020
+# m 3..6: dropped here, they repeat the scratch-at-cells rows of kbinit_fracmm.txt section B.
 sigma=1.25000 m=7 deg=12 ok=1 scratch: median 296.27 min 289.02 max 308.23 ms, return 2.591e-11 hut 2.526e-11 exact 1.761e-11 | table e 1.748e-11 scratch/e 1.445
 sigma=1.25000 m=8 deg=12 ok=1 scratch: median 923.04 min 911.26 max 927.71 ms, return 2.419e-11 hut 2.591e-11 exact 1.329e-12 | table e 8.166e-13 scratch/e 31.736
 sigma=1.25000 m=9 deg=14 ok=0 scratch: median 1514.96 min 1487.01 max 1538.77 ms, return -1.000e+00 hut 1.057e-11 exact 9.634e-12 | table e 2.265e-14 scratch/e 466.647
