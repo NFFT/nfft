@@ -194,8 +194,8 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 
 /* Flags for init routines. */
 #define PRE_PHI_HUT                (1U<<0)
-/* Always on for a Gaussian plan without a precomputed psi; other windows
- * ignore it. */
+/* Ignored. A Gaussian plan without a precomputed psi always fills the window
+ * by the fast Gaussian gridding recurrence. */
 #define FG_PSI                     (1U<<1)
 #define PRE_LIN_PSI                (1U<<2)
 /* Gaussian only, else ignored: stores 2 recurrence seeds per node and axis,
