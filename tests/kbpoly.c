@@ -265,6 +265,59 @@ void X(check_kaiser_bessel_poly_opt)(void)
   printf("\n");
 }
 
+/* The exchange step: the worst case off the design stays near the
+ * returned hold-out maximum, and a correction near the rounding floor ends
+ * with a finite result and an admissible table. */
+void X(check_kbpoly_exchange)(void)
+{
+#if MANT_DIG >= 53
+  const R sig[] = {K(1.25), K(2.0)};
+  const INT ms[] = {4, 6};
+  int c;
+
+  printf("kbpoly_exchange\n---------------\n");
+
+  for (c = 0; c < 2; c++)
+  {
+    const R sigma = sig[c], b = KPI * (K(2.0) - K(1.0) / sigma);
+    const INT m = ms[c];
+    const R reach = (R)m + K(1.0);
+    const R lt = Y(bessel_i0_logtail)(reach * b), pki = EXP(-reach * b - lt);
+    const R i0e_pki = K(1.0) / Y(bessel_i0_exp_scaled)(reach * b);
+    const INT deg = Y(kb_poly_degree)(b, reach, m);
+    const INT n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+    const R cmin = Y(kb_phi_hut)(b, i0e_pki, reach, K(2.0) * sigma, K(1.0));
+    const R slack = K(4.0) * (R)(2 * m + 2) * Y(float_property)(NFFT_EPSILON)
+        / cmin;
+    R *coef = (R*) Y(malloc)((size_t)(n + KB_POLY_HUT_LEN) * sizeof(R));
+    R *hut = coef + n, e, j0, j1, r, p;
+    int ok;
+
+    Y(kb_poly_fit)(coef, b, lt, pki, reach, m, deg);
+    hut[0] = K(0.0);
+    functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j0, &r, &p);
+    e = Y(kb_poly_correct)(coef, hut, b, m, deg, 1);
+    functional(coef, hut, m, deg, b, lt, pki, i0e_pki, &j1, &r, &p);
+
+    if (c == 0)
+      ok = IF(e > K(0.0) && j1 <= K(1.05) * e, 1, 0);
+    else
+      ok = IF(ABS(e) < K(1.0) && (hut[0] == K(0.0)
+          || j1 <= K(1.02) * j0 + slack), 1, 0);
+
+    printf("exchange[sigma=%.2f, m=%td] return %.4e J_inf %.4e -> %s\n",
+        (double)sigma, (ptrdiff_t)m, (double)e, (double)j1,
+        IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+    Y(free)(coef);
+  }
+
+  printf("\n");
+#else
+  CU_ASSERT(1);
+#endif
+}
+
 /* Worst |f_j - exp(-2 pi i k x_j)| over the nodes and the band-edge
  * frequencies, f_hat = e_k. The nodes are multiples of 2^-16, so k x_j is
  * exact and the reference phase reduces exactly. */
@@ -546,6 +599,11 @@ void X(check_kaiser_bessel_poly_sigma)(void)
   CU_ASSERT(1);
 }
 
+void X(check_kbpoly_exchange)(void)
+{
+  CU_ASSERT(1);
+}
+
 #endif
 
 /* |a_i + w| <= tau + z for a = (1, -1, 0.5): x = (w, z), min z = 1 - tau. */
@@ -754,7 +812,7 @@ void X(check_kbpoly_driver)(void)
   e = kbpoly_driver_case(K(2.0), 3, 10);
   printf("driver_reference: %.4e (%.3fx)\n", (double)e,
       (double)(e / K(2.183E-8)));
-  CU_ASSERT(e >= K(0.95) * K(2.183E-8) && e <= K(1.15) * K(2.183E-8));
+  CU_ASSERT(e >= K(0.95) * K(2.183E-8) && e <= K(1.03) * K(2.183E-8));
   printf("\n");
 #else
   CU_ASSERT(1);

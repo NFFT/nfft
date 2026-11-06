@@ -730,6 +730,131 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
 #define KB_POLY_CORR_SOLVES 30
 #define KB_POLY_CORR_MAXIT 60
 #define KB_POLY_CORR_TOL (KB_POLY_CORR_DELTA / EK(100.0))
+#define KB_POLY_CORR_FXI 401
+#define KB_POLY_CORR_FT 64
+#define KB_POLY_CORR_DELTA_X EK(0.02)
+#define KB_POLY_CORR_FLOOR EK(500.0)
+
+/* E in the workspace of worst_points. */
+static INT worst_work(const INT m, const INT ng)
+{
+  const INT nf = KB_POLY_CORR_FXI, nt = KB_POLY_CORR_FT + 1, nc = m + 1;
+
+  return nf * (3 + 4 * nc + 4 * nt + 2 * ng) + nt * (1 + 2 * nc) + 2 * nc;
+}
+
+/* |E| of coef, C = psi_hat, on FXI frequencies uniform on [0, ximax] and the
+ * offsets 0 (the limit) and (q + 0.5) / FT. The ADD largest local maxima
+ * (>= 4 neighbours, t mirrored at the ends), each refined on an 11 x 11
+ * patch of +-1 grid step (xi clipped, t mod 1), go to xi, t by decreasing
+ * |E|, *nloc of them. Returns the fine-grid maximum before refinement, -1
+ * if a denominator is <= 0. ws: worst_work(m, ng). */
+static E worst_points(const R *coef, const INT m, const INT h, const E ximax,
+    const E *tg, const E *wg, const INT ng, E *ws, E *xi, E *t, INT *nloc)
+{
+  const INT nf = KB_POLY_CORR_FXI, nt = KB_POLY_CORR_FT + 1, nc = m + 1;
+  const E dx = ximax / (E)(nf - 1), dt = EK(1.0) / (E)KB_POLY_CORR_FT;
+  E *fx = ws, *one = fx + nf, *den = one + nf, *ej = den + nf;
+  E *et = ej + 4 * nf * nc, *rr = et + 2 * nf * nt, *eg = rr + 2 * nf * nt;
+  E *ft = eg + 2 * nf * ng, *lo = ft + nt, *hi = lo + nt * nc;
+  E *lg = hi + nt * nc, *hg = lg + nc;
+  E ev[KB_POLY_CORR_ADD], rms, mx;
+  INT i, q, a, k, n = 0;
+
+  for (i = 0; i < nf; i++)
+  {
+    fx[i] = dx * (E)i;
+    one[i] = EK(1.0);
+  }
+
+  for (q = 0; q < nt; q++)
+    ft[q] = IF(q == 0, EK(0.0), ((E)q - EK(0.5)) * dt);
+
+  phases(ej, et, eg, fx, nf, ft, nt, tg, ng, m);
+  mx = grid_max(coef, 0, m, h, fx, one, nf, nt, ft, tg, wg, ng, ej, et, eg,
+      den, rr, lo, hi, lg, hg, &rms);
+
+  if (mx < EK(0.0))
+    return EK(-1.0);
+
+  for (i = 0; i < nf * nt; i++)
+    rr[i] = E_SQRT(rr[2 * i] * rr[2 * i] + rr[2 * i + 1] * rr[2 * i + 1]);
+
+  for (i = 0; i < nf; i++)
+    for (q = 0; q < nt; q++)
+    {
+      const E v = rr[i * nt + q];
+      const INT qd = IF(q == 0, 1, q - 1), qu = IF(q == nt - 1, q - 1, q + 1);
+
+      if ((i > 0 && rr[(i - 1) * nt + q] > v)
+          || (i < nf - 1 && rr[(i + 1) * nt + q] > v)
+          || rr[i * nt + qd] > v || rr[i * nt + qu] > v
+          || (n == KB_POLY_CORR_ADD && v <= ev[n - 1]))
+        continue;
+
+      for (a = IF(n < KB_POLY_CORR_ADD, n, n - 1); a > 0 && ev[a - 1] < v;
+          a--)
+      {
+        ev[a] = ev[a - 1];
+        xi[a] = xi[a - 1];
+        t[a] = t[a - 1];
+      }
+
+      ev[a] = v;
+      xi[a] = fx[i];
+      t[a] = ft[q];
+      n += IF(n < KB_POLY_CORR_ADD, 1, 0);
+    }
+
+  for (a = 0; a < n; a++)
+  {
+    for (k = 0; k < 11; k++)
+    {
+      const E x = xi[a] + (E)(k - 5) * dx / EK(5.0);
+      const E s = t[a] + (E)(k - 5) * dt / EK(5.0);
+
+      fx[k] = IF(x < EK(0.0), EK(0.0), IF(x > ximax, ximax, x));
+      ft[k] = IF(s < EK(0.0), s + EK(1.0), IF(s >= EK(1.0), s - EK(1.0), s));
+    }
+
+    phases(ej, et, eg, fx, 11, ft, 11, tg, ng, m);
+
+    if (grid_max(coef, 0, m, h, fx, one, 11, 11, ft, tg, wg, ng, ej, et, eg,
+        den, rr, lo, hi, lg, hg, &rms) > ev[a])
+      for (k = 0; k < 11 * 11; k++)
+      {
+        const E v = E_SQRT(rr[2 * k] * rr[2 * k]
+            + rr[2 * k + 1] * rr[2 * k + 1]);
+
+        if (v > ev[a])
+        {
+          ev[a] = v;
+          xi[a] = fx[k / 11];
+          t[a] = ft[k % 11];
+        }
+      }
+  }
+
+  for (a = 1; a < n; a++)
+  {
+    const E v = ev[a], x = xi[a], s = t[a];
+
+    for (k = a; k > 0 && ev[k - 1] < v; k--)
+    {
+      ev[k] = ev[k - 1];
+      xi[k] = xi[k - 1];
+      t[k] = t[k - 1];
+    }
+
+    ev[k] = v;
+    xi[k] = x;
+    t[k] = s;
+  }
+
+  *nloc = n;
+
+  return mx;
+}
 
 /* Preconditioner at the window with G c = gcn, B c = bcn: rows over bcn_i,
  * stacked re/im (As: 2 npt x nr, column-major), pivoted QR, T = P R_k^{-1}
@@ -914,6 +1039,33 @@ static E driver(kb_design *d, E *dtot, E *lo_io, E *y, E *ws,
   return hi;
 }
 
+/* table = orig + the correction dv of the stencil columns; cheb, res
+ * (nk w) and tp (nk nk) are scratch. */
+static void corrected(R *table, const R *orig, const E *dv,
+    const kb_design *d, const INT nk, const INT w, const INT deg, R *cheb,
+    R *res, R *tp)
+{
+  INT k, c, j;
+
+  for (k = 0; k < nk; k++)
+    for (c = 0; c < w; c++)
+      cheb[k * w + c] = K(0.0);
+
+  for (j = 0; j < d->nr; j++)
+  {
+    const INT u = j + IF(j >= d->piv, 1, 0);
+
+    cheb[(u % nk) * w + 1 + u / nk] = (R)dv[j];
+    cheb[(d->piv % nk) * w + 1 + d->piv / nk] += (R)(d->el[j] * dv[j]);
+  }
+
+  cheb_to_monomial(res, cheb, tp, w, deg);
+
+  for (k = 0; k < nk; k++)
+    for (c = 0; c < w; c++)
+      table[k * w + c] = orig[k * w + c] + IF(c > 0, res[k * w + c], K(0.0));
+}
+
 R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax)
 {
@@ -942,7 +1094,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
   R *orig = best + n;
   kb_design d;
   E best_obj = EK(0.0), obj, plain, mx, rms;
-  INT i, q, c, k, j, p, it, nt, stall = 0;
+  INT i, q, k, j, p, it, nt, stall = 0;
 
   d.npt = 0;
   d.cap = cap;
@@ -1078,11 +1230,17 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       dtot[j] += g[j] * scale[j];
   }
 
+  /* Exchange rounds: the fine-grid maxima join the design until the
+   * fine-grid maximum is within DELTA_X of the design's; below the floor the
+   * fine grid sees rounding noise, so two rounds at most. */
   if (minimax)
   {
-    E *ws = (E*) Y(malloc)((size_t)(driver_work(cap, nr) + 3 * cap)
-        * sizeof(E));
-    E *y = ws + driver_work(cap, nr), lo = EK(0.0);
+    const INT nw = driver_work(cap, nr), nf = worst_work(m, ng);
+    E *ws = (E*) Y(malloc)((size_t)(nw + 3 * cap + nf
+        + 2 * KB_POLY_CORR_ADD) * sizeof(E));
+    E *y = ws + nw, *fw = y + 3 * cap, *wx = fw + nf;
+    E *wt = wx + KB_POLY_CORR_ADD, lo = EK(0.0), fbest = EK(-1.0), fine;
+    INT r, nloc = 0;
 
     for (p = 0; p < cap; p++)
     {
@@ -1090,29 +1248,31 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       y[3 * p + 1] = y[3 * p + 2] = EK(0.0);
     }
 
-    driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
-    memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+    for (r = 0; r < KB_POLY_CORR_ROUNDS; r++)
+    {
+      mx = driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
+      corrected(best, orig, dtot, &d, nk, w, deg, cheb, res, tp);
+      fine = worst_points(best, m, h, ximax, tg, wg, ng, fw, wx, wt, &nloc);
+
+      if (r == 0 || (fine >= EK(0.0) && (fbest < EK(0.0) || fine < fbest)))
+      {
+        fbest = fine;
+        memcpy(dbest, dtot, (size_t)nr * sizeof(E));
+      }
+
+      if (mx < EK(0.0) || fine < EK(0.0)
+          || fine <= (EK(1.0) + KB_POLY_CORR_DELTA_X) * mx
+          || (r >= 1 && mx < KB_POLY_CORR_FLOOR * E_EPSILON))
+        break;
+
+      for (p = 0; p < nloc; p++)
+        design_add(&d, wx[p], wt[p], EK(1.0), m, h, tg, wg, ng);
+    }
+
     Y(free)(ws);
   }
 
-  /* best = orig + the correction of the best pass. */
-  for (k = 0; k < nk; k++)
-    for (c = 0; c < w; c++)
-      cheb[k * w + c] = K(0.0);
-
-  for (j = 0; j < nr; j++)
-  {
-    const INT u = j + IF(j >= d.piv, 1, 0);
-
-    cheb[(u % nk) * w + 1 + u / nk] = (R)dbest[j];
-    cheb[(d.piv % nk) * w + 1 + d.piv / nk] += (R)(el[j] * dbest[j]);
-  }
-
-  cheb_to_monomial(res, cheb, tp, w, deg);
-
-  for (k = 0; k < nk; k++)
-    for (c = 0; c < w; c++)
-      best[k * w + c] = orig[k * w + c] + IF(c > 0, res[k * w + c], K(0.0));
+  corrected(best, orig, dbest, &d, nk, w, deg, cheb, res, tp);
 
   /* The deconvolution table of the best pass (layout at KB_POLY_HUT_MAX),
    * trailing terms below the rounding of R dropped. */

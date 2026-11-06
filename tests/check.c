@@ -57,6 +57,7 @@ int main(void)
   CU_add_test(util, "kaiser_bessel_poly_trafo", X(check_kaiser_bessel_poly_trafo));
   CU_add_test(util, "kaiser_bessel_poly_sigma", X(check_kaiser_bessel_poly_sigma));
   CU_add_test(util, "kbpoly_driver", X(check_kbpoly_driver));
+  CU_add_test(util, "kbpoly_exchange", X(check_kbpoly_exchange));
   CU_add_test(util, "kaiser_bessel_poly_opt", X(check_kaiser_bessel_poly_opt));
   CU_add_test(util, "socp3", X(check_socp3));
   CU_add_test(util, "kbpoly_qr", X(check_kbpoly_qr));
