@@ -5,20 +5,21 @@
 """Emit kernel/util/kbpoly_opt_data.h, the optimized polynomial windows.
 
     uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 \\
-        python -m gen.kbpolygen.optima -j 10
+        python -m gen.kbpolygen.optima --mmax 11 -j 3
 
 Per cell (sigma, m, h) the table of Y(kb_poly_init) at degree 2h with the
 correction of Y(kb_poly_correct) for OPT_WINDOW, solved to 0.1% instead of
 1%, in 200-bit ball arithmetic (python-flint). The algorithm is the one in
-kernel/util/kbpoly.c: the design of 24 x 9 points, one weighted least-squares
-pass from the interpolant, safeguarded Dinkelbach steps and bisection on
-second-order cone subproblems (socp3.c), exchange rounds on a 401 x 65 fine
-grid. mpmath is needed only by generate.py, which gives the cell list.
+kernel/util/kbpoly.c: the design of 24 x 9 points (denser for h > 8 or m >
+9), one weighted least-squares pass from the interpolant, safeguarded
+Dinkelbach steps and bisection on second-order cone subproblems (socp3.c),
+exchange rounds on a 401 x 65 fine grid, at most 40 rounds of 80 points. -j
+defaults to 3: an m = 11 worker needs 1.3 GB. mpmath is needed only by
+generate.py, which gives the cell list.
 """
 
 import argparse
 import math
-import os
 import sys
 import time
 from multiprocessing import Pool
@@ -845,7 +846,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    ap.add_argument("-j", type=int, default=os.cpu_count())
+    ap.add_argument("-j", type=int, default=3)
     ap.add_argument("--cell", nargs=3, metavar=("SIGMA", "M", "H"))
     ap.add_argument("--mmax", type=int)
     ap.add_argument("--out", default=OUT)
