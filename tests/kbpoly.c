@@ -170,39 +170,6 @@ static R edge_err(NFFT(plan) *p)
   return worst;
 }
 
-/* X(check) rejects sigma off [1.1, 4], where the degree table ends. */
-void X(check_kaiser_bessel_poly_sigma)(void)
-{
-  const unsigned flags = PRE_PHI_HUT | MALLOC_X | MALLOC_F | MALLOC_F_HAT
-      | FFTW_INIT | FFT_OUT_OF_PLACE;
-  const int ns[] = {124, 132, 480, 540};
-  unsigned int i;
-
-  printf("KAISER-BESSEL POLYNOMIAL SIGMA\n-----------------------------\n");
-
-  for (i = 0; i < sizeof(ns) / sizeof(ns[0]); i++)
-  {
-    int N[1] = {KB_N}, n[1] = {ns[i]};
-    const int in = ns[i] >= 132 && ns[i] <= 480;
-    NFFT(plan) p;
-    const char *msg;
-    int ok;
-
-    NFFT(init_guru)(&p, 1, N, 8, n, 4, flags,
-        FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
-    p.x[0] = p.x[1] = p.x[2] = p.x[3] = K(0.0);
-    p.x[4] = p.x[5] = p.x[6] = p.x[7] = K(0.25);
-    msg = NFFT(check)(&p);
-    ok = IF(in, msg == 0, msg != 0);
-    printf("check[sigma=%5.3f] %s -> %s\n", (double)ns[i] / KB_N,
-        msg ? msg : "accepted", ok ? "OK" : "FAIL");
-    CU_ASSERT(ok);
-    NFFT(finalize)(&p);
-  }
-
-  printf("\n");
-}
-
 /* Overwrites a 1-d PRE_PSI table with the closed-form window, the reference
  * the polynomial is held to. n is the grid the module anchors on, u the
  * anchor of each run as in the module's uo(): floor(n x) - m. */
@@ -395,10 +362,48 @@ void X(check_kaiser_bessel_poly_trafo)(void)
   CU_ASSERT(1);
 }
 
-void X(check_kaiser_bessel_poly_sigma)(void)
+#endif
+
+/* X(check) rejects sigma off [1.1, 4], where the generated degree tables of
+ * the Kaiser-Bessel and sinc-power windows end. */
+#ifdef WINDOW_SIGMA_OK
+void X(check_window_sigma)(void)
 {
-  printf("KAISER-BESSEL POLYNOMIAL SIGMA\n-----------------------------\n"
-      "skipped: window is not Kaiser-Bessel\n\n");
+  const unsigned flags = PRE_PHI_HUT | MALLOC_X | MALLOC_F | MALLOC_F_HAT
+      | FFTW_INIT | FFT_OUT_OF_PLACE;
+  const int ns[] = {124, 132, 480, 540};
+  unsigned int i;
+
+  printf("WINDOW SIGMA\n------------\n");
+
+  for (i = 0; i < sizeof(ns) / sizeof(ns[0]); i++)
+  {
+    int N[1] = {120}, n[1] = {ns[i]};
+    const int in = ns[i] >= 132 && ns[i] <= 480;
+    NFFT(plan) p;
+    const char *msg;
+    int ok;
+
+    NFFT(init_guru)(&p, 1, N, 8, n, 4, flags,
+        FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
+    p.x[0] = p.x[1] = p.x[2] = p.x[3] = K(0.0);
+    p.x[4] = p.x[5] = p.x[6] = p.x[7] = K(0.25);
+    msg = NFFT(check)(&p);
+    ok = IF(in, msg == 0, msg != 0);
+    printf("check[sigma=%5.3f] %s -> %s\n", (double)ns[i] / 120,
+        msg ? msg : "accepted", ok ? "OK" : "FAIL");
+    CU_ASSERT(ok);
+    NFFT(finalize)(&p);
+  }
+
+  printf("\n");
+}
+
+#else
+
+void X(check_window_sigma)(void)
+{
+  printf("WINDOW SIGMA\n------------\nskipped: window has no sigma range\n\n");
   CU_ASSERT(1);
 }
 

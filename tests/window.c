@@ -574,7 +574,7 @@ void X(check_sincpow_poly_run)(void)
       const R w = (K(2.0) * sigmas[si] - K(1.0)) / (K(2.0) * (R)m * sigmas[si]);
       R *tab = Y(sincpow_poly_init)(&w, 1, m);
       const INT deg = (INT)tab[0];
-      const R bound = K(32.0) * EPSILON * w;
+      const R bound = K(4.0) * EPSILON * w;
       R run[2 * 11 + 2], err = K(0.0);
       INT l;
 

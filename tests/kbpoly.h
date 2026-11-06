@@ -21,6 +21,6 @@
 
 void X(check_kaiser_bessel_poly)(void);
 void X(check_kaiser_bessel_poly_trafo)(void);
-void X(check_kaiser_bessel_poly_sigma)(void);
+void X(check_window_sigma)(void);
 
 #endif
