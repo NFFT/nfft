@@ -346,10 +346,12 @@ static void D_adjoint(X(plan) *ths)
 }
 
 /* Window values psi[l] = phi(x_t - (u + l) / n_t), l < 2m+2, of node j along
- * dimension t, with u the grid start reduced to [0, n_t) in *u. fg holds
- * exp(-1/b) and its square per dimension, buf room for 2m+3 values. */
-static inline const R *window(const X(plan) *ths, const INT j, const INT t,
-  const R *fg, R *buf, INT *u)
+ * dimension t, with u the grid start reduced to [0, n_t) in *u. The
+ * precomputed tables hold node j in slot k, its place in the sorted order.
+ * fg holds exp(-1/b) and its square per dimension, buf room for 2m+3
+ * values. */
+static inline const R *window(const X(plan) *ths, const INT j, const INT k,
+  const INT t, const R *fg, R *buf, INT *u)
 {
   const INT d = ths->d, n = ths->n[t], m = ths->m, w = 2 * m + 2;
   const R x = ths->x[j * d + t];
@@ -359,13 +361,13 @@ static inline const R *window(const X(plan) *ths, const INT j, const INT t,
   *u = s < 0 ? s + n : s;
 
   if (ths->flags & PRE_PSI)
-    return ths->psi + (j * d + t) * w;
+    return ths->psi + (k * d + t) * w;
 
   if (ths->flags & PRE_FG_PSI)
   {
-    const R seed = ths->psi[2 * (j * d + t)];
+    const R seed = ths->psi[2 * (k * d + t)];
 
-    FG_RUN(buf, m, FABS(seed), ths->psi[2 * (j * d + t) + 1], fg[2 * t],
+    FG_RUN(buf, m, FABS(seed), ths->psi[2 * (k * d + t) + 1], fg[2 * t],
       fg[2 * t + 1]);
     return FG_RUN_START(buf, seed);
   }
@@ -421,28 +423,6 @@ static inline R gather_dot(const R *restrict row, const R *restrict psi,
   return s;
 }
 
-/* v[l] += a row[(u + l) mod n] */
-static inline void gather_axpy(R *restrict v, const R *restrict row, const R a,
-  const INT u, const INT n, const INT w)
-{
-  INT l;
-
-  if (u + w <= n)
-  {
-    for (l = 0; l < w; l++)
-      v[l] += a * row[u + l];
-  }
-  else
-  {
-    const INT k = n - u;
-
-    for (l = 0; l < k; l++)
-      v[l] += a * row[u + l];
-    for (; l < w; l++)
-      v[l] += a * row[l - k];
-  }
-}
-
 /* row[i] += a v[(i - u) mod n] for the indices i = (u + l) mod n, l < w, in
  * [lo, hi] */
 static inline void scatter(R *restrict row, const R *restrict v, const R a,
@@ -477,33 +457,20 @@ static inline void scatter(R *restrict row, const R *restrict v, const R a,
     row[i] += a * v[i + n - u];
 }
 
-static inline R dot(const R *restrict a, const R *restrict b, const INT w)
-{
-  R s = K(0.0);
-  INT l;
-
-  for (l = 0; l < w; l++)
-    s += a[l] * b[l];
-  return s;
-}
-
 /* f_j = sum_l g_l phi(x_j - l / n) */
 static inline R node_trafo(const X(plan) *ths, const R *g, const INT gs,
-  const INT j, const R *fg)
+  const INT j, const INT k, const R *fg)
 {
   const INT d = ths->d, w = 2 * ths->m + 2, nl = ths->n[d - 1];
-  R buf[d * (w + 1)], v[w];
+  R buf[d * (w + 1)], s = K(0.0);
   const R *psi[d];
-  INT u[d], t, l, a, b;
+  INT u[d], t, a, b;
 
   for (t = 0; t < d; t++)
-    psi[t] = window(ths, j, t, fg, buf + t * (w + 1), &u[t]);
+    psi[t] = window(ths, j, k, t, fg, buf + t * (w + 1), &u[t]);
 
   if (d == 1)
     return gather_dot(g, psi[0], u[0], nl, w);
-
-  for (l = 0; l < w; l++)
-    v[l] = K(0.0);
 
   if (d == 2)
   {
@@ -513,7 +480,7 @@ static inline R node_trafo(const X(plan) *ths, const R *g, const INT gs,
     {
       const INT i0 = u[0] + a < n0 ? u[0] + a : u[0] + a - n0;
 
-      gather_axpy(v, g + i0 * gs, psi[0][a], u[1], nl, w);
+      s += psi[0][a] * gather_dot(g + i0 * gs, psi[1], u[1], nl, w);
     }
   }
   else if (d == 3)
@@ -524,27 +491,30 @@ static inline R node_trafo(const X(plan) *ths, const R *g, const INT gs,
     {
       const INT i0 = u[0] + a < n0 ? u[0] + a : u[0] + a - n0;
       const R *g0 = g + i0 * n1 * gs;
+      R s1 = K(0.0);
 
       for (b = 0; b < w; b++)
       {
         const INT i1 = u[1] + b < n1 ? u[1] + b : u[1] + b - n1;
 
-        gather_axpy(v, g0 + i1 * gs, psi[0][a] * psi[1][b], u[2], nl, w);
+        s1 += psi[1][b] * gather_dot(g0 + i1 * gs, psi[2], u[2], nl, w);
       }
+      s += psi[0][a] * s1;
     }
   }
   else
   {
+    const INT nb = ths->n[d - 2];
     INT c[d];
 
-    for (t = 0; t < d - 1; t++)
+    for (t = 0; t < d - 2; t++)
       c[t] = 0;
     do
     {
       INT off = 0;
-      R p = K(1.0);
+      R p = K(1.0), s1 = K(0.0);
 
-      for (t = 0; t < d - 1; t++)
+      for (t = 0; t < d - 2; t++)
       {
         const INT i = u[t] + c[t] < ths->n[t] ? u[t] + c[t]
           : u[t] + c[t] - ths->n[t];
@@ -552,20 +522,30 @@ static inline R node_trafo(const X(plan) *ths, const R *g, const INT gs,
         off = off * ths->n[t] + i;
         p *= psi[t][c[t]];
       }
-      gather_axpy(v, g + off * gs, p, u[d - 1], nl, w);
+      off *= nb;
 
-      for (t = d - 2; t >= 0 && ++c[t] == w; t--)
+      for (b = 0; b < w; b++)
+      {
+        const INT i1 = u[d - 2] + b < nb ? u[d - 2] + b : u[d - 2] + b - nb;
+
+        s1 += psi[d - 2][b] * gather_dot(g + (off + i1) * gs, psi[d - 1],
+          u[d - 1], nl, w);
+      }
+      s += p * s1;
+
+      for (t = d - 3; t >= 0 && ++c[t] == w; t--)
         c[t] = 0;
     } while (t >= 0);
   }
 
-  return dot(v, psi[d - 1], w);
+  return s;
 }
 
 /* g_l += f_j phi(x_j - l / n) for the grid points with first index in
  * [lo, hi] */
 static inline void node_adjoint(const X(plan) *ths, R *g, const INT gs,
-  const INT j, const R *fg, const INT lo, const INT hi, const int atomic)
+  const INT j, const INT k, const R *fg, const INT lo, const INT hi,
+  const int atomic)
 {
   const INT d = ths->d, w = 2 * ths->m + 2, nl = ths->n[d - 1];
   R buf[d * (w + 1)], v[w];
@@ -573,7 +553,7 @@ static inline void node_adjoint(const X(plan) *ths, R *g, const INT gs,
   INT u[d], t, l, a, b;
 
   for (t = 0; t < d; t++)
-    psi[t] = window(ths, j, t, fg, buf + t * (w + 1), &u[t]);
+    psi[t] = window(ths, j, k, t, fg, buf + t * (w + 1), &u[t]);
 
   for (l = 0; l < w; l++)
     v[l] = ths->f[j] * psi[d - 1][l];
@@ -614,9 +594,10 @@ static inline void node_adjoint(const X(plan) *ths, R *g, const INT gs,
   }
   else
   {
+    const INT nb = ths->n[d - 2];
     INT c[d];
 
-    for (t = 0; t < d - 1; t++)
+    for (t = 0; t < d - 2; t++)
       c[t] = 0;
     do
     {
@@ -628,7 +609,7 @@ static inline void node_adjoint(const X(plan) *ths, R *g, const INT gs,
         INT off = 0;
         R p = K(1.0);
 
-        for (t = 0; t < d - 1; t++)
+        for (t = 0; t < d - 2; t++)
         {
           const INT i = u[t] + c[t] < ths->n[t] ? u[t] + c[t]
             : u[t] + c[t] - ths->n[t];
@@ -636,10 +617,19 @@ static inline void node_adjoint(const X(plan) *ths, R *g, const INT gs,
           off = off * ths->n[t] + i;
           p *= psi[t][c[t]];
         }
-        scatter(g + off * gs, v, p, u[d - 1], nl, w, 0, nl - 1, atomic);
+        off *= nb;
+
+        for (b = 0; b < w; b++)
+        {
+          const INT i1 = u[d - 2] + b < nb ? u[d - 2] + b
+            : u[d - 2] + b - nb;
+
+          scatter(g + (off + i1) * gs, v, p * psi[d - 2][b], u[d - 1], nl, w,
+            0, nl - 1, atomic);
+        }
       }
 
-      for (t = d - 2; t >= 0 && ++c[t] == w; t--)
+      for (t = d - 3; t >= 0 && ++c[t] == w; t--)
         c[t] = 0;
     } while (t >= 0);
   }
@@ -739,8 +729,8 @@ static void B_trafo(X(plan) *ths)
     for (k = 0; k < M; k++)
     {
       const INT j = node(ths, k);
-      const R *psi = ths->psi + j * lprod;
-      const INT *ix = ths->psi_index_g + j * lprod;
+      const R *psi = ths->psi + k * lprod;
+      const INT *ix = ths->psi_index_g + k * lprod;
       R s = K(0.0);
       INT l;
 
@@ -761,7 +751,7 @@ static void B_trafo(X(plan) *ths)
   {
     const INT j = node(ths, k);
 
-    ths->f[j] = node_trafo(ths, g, gs, j, fg);
+    ths->f[j] = node_trafo(ths, g, gs, j, k, fg);
   }
 }
 
@@ -817,11 +807,11 @@ static void block_init(const X(plan) *ths, INT *lo, INT *hi, INT *key)
 #endif
 
 /* g_l += f_j psi_{j,l} over the precomputed products and grid indices */
-static inline void full_psi_adjoint(X(plan) *ths, const INT j, const INT lprod,
-  const INT s0, const INT lo, const INT hi, const int atomic)
+static inline void full_psi_adjoint(X(plan) *ths, const INT j, const INT k,
+  const INT lprod, const INT s0, const INT lo, const INT hi, const int atomic)
 {
-  const R *psi = ths->psi + j * lprod;
-  const INT *ix = ths->psi_index_g + j * lprod;
+  const R *psi = ths->psi + k * lprod;
+  const INT *ix = ths->psi_index_g + k * lprod;
   const R fj = ths->f[j];
   R *g = ths->g;
   INT l;
@@ -884,9 +874,9 @@ static void B_adjoint(X(plan) *ths)
           const INT j = ths->index_x[2 * k + 1];
 
           if (full)
-            full_psi_adjoint(ths, j, lprod, s0, lo, hi, 0);
+            full_psi_adjoint(ths, j, k, lprod, s0, lo, hi, 0);
           else
-            node_adjoint(ths, g, gs, j, fg, lo, hi, 0);
+            node_adjoint(ths, g, gs, j, k, fg, lo, hi, 0);
         }
       }
     }
@@ -902,9 +892,9 @@ static void B_adjoint(X(plan) *ths)
       const INT j = node(ths, k);
 
       if (full)
-        full_psi_adjoint(ths, j, lprod, s0, 0, n0 - 1, 1);
+        full_psi_adjoint(ths, j, k, lprod, s0, 0, n0 - 1, 1);
       else
-        node_adjoint(ths, g, gs, j, fg, 0, n0 - 1, 1);
+        node_adjoint(ths, g, gs, j, k, fg, 0, n0 - 1, 1);
     }
   }
 #else
@@ -916,9 +906,9 @@ static void B_adjoint(X(plan) *ths)
       const INT j = node(ths, k);
 
       if (full)
-        full_psi_adjoint(ths, j, lprod, s0, 0, n0 - 1, 0);
+        full_psi_adjoint(ths, j, k, lprod, s0, 0, n0 - 1, 0);
       else
-        node_adjoint(ths, g, gs, j, fg, 0, n0 - 1, 0);
+        node_adjoint(ths, g, gs, j, k, fg, 0, n0 - 1, 0);
     }
   }
 #endif
@@ -1013,23 +1003,23 @@ void X(precompute_lin_psi)(X(plan) *ths)
 void X(precompute_fg_psi)(X(plan) *ths)
 {
   const INT d = ths->d;
-  INT t, j;
+  INT t, k;
 
   sort_precompute(ths);
 
   for (t = 0; t < d; t++)
   {
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(j)
+    #pragma omp parallel for default(shared) private(k)
 #endif
-    for (j = 0; j < ths->M_total; j++)
+    for (k = 0; k < ths->M_total; k++)
     {
-      const R x = ths->x[j * d + t];
+      const R x = ths->x[node(ths, k) * d + t];
       const R dx = NX_SUB(ths->n[t], x, FLOOR((R)ths->n[t] * x + K(0.5)));
       const R seed = PHI(ths->n[t], dx / (R)ths->n[t], t);
 
-      ths->psi[2 * (j * d + t)] = dx < K(0.0) ? -seed : seed;
-      ths->psi[2 * (j * d + t) + 1] = EXP(K(2.0) * dx / ths->b[t]);
+      ths->psi[2 * (k * d + t)] = dx < K(0.0) ? -seed : seed;
+      ths->psi[2 * (k * d + t) + 1] = EXP(K(2.0) * dx / ths->b[t]);
     }
   }
 }
@@ -1037,40 +1027,41 @@ void X(precompute_fg_psi)(X(plan) *ths)
 void X(precompute_psi)(X(plan) *ths)
 {
   const INT d = ths->d, w = 2 * ths->m + 2;
-  INT t, j;
+  INT t, k;
 
   sort_precompute(ths);
 
   for (t = 0; t < d; t++)
   {
 #ifdef _OPENMP
-    #pragma omp parallel for default(shared) private(j)
+    #pragma omp parallel for default(shared) private(k)
 #endif
-    for (j = 0; j < ths->M_total; j++)
+    for (k = 0; k < ths->M_total; k++)
     {
-      const R x = ths->x[j * d + t];
+      const R x = ths->x[node(ths, k) * d + t];
 
-      PHI_RUN(ths->psi + (j * d + t) * w, ths->n[t], x,
+      PHI_RUN(ths->psi + (k * d + t) * w, ths->n[t], x,
         grid_start(x, ths->n[t], ths->m), t);
     }
   }
 }
 
-/* For each node the (2m+2)^d products of window values and their offsets in
+/* For each node, in slot order, the (2m+2)^d products of window values and their offsets in
  * g, in the order of the tensor loops of node_trafo. */
 void X(precompute_full_psi)(X(plan) *ths)
 {
   const INT d = ths->d, w = 2 * ths->m + 2, lprod = full_psi_len(ths),
     gs = row_stride(ths);
-  INT j;
+  INT k;
 
   sort_precompute(ths);
 
 #ifdef _OPENMP
-  #pragma omp parallel for default(shared) private(j)
+  #pragma omp parallel for default(shared) private(k)
 #endif
-  for (j = 0; j < ths->M_total; j++)
+  for (k = 0; k < ths->M_total; k++)
   {
+    const INT j = node(ths, k);
     R buf[d * w];
     INT u[d], c[d], t, l;
 
@@ -1097,14 +1088,14 @@ void X(precompute_full_psi)(X(plan) *ths)
         off = t < d - 1 ? off * ths->n[t] + i : off * gs + i;
         p *= buf[t * w + c[t]];
       }
-      ths->psi[j * lprod + l] = p;
-      ths->psi_index_g[j * lprod + l] = off;
+      ths->psi[k * lprod + l] = p;
+      ths->psi_index_g[k * lprod + l] = off;
 
       for (t = d - 1; t >= 0 && ++c[t] == w; t--)
         c[t] = 0;
     }
 
-    ths->psi_index_f[j] = lprod;
+    ths->psi_index_f[k] = lprod;
   }
 }
 
