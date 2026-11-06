@@ -87,7 +87,7 @@ of `Y(kb_poly_init)` with the `OPT_WINDOW` correction of
 113-bit degree table:
 
 ```bash
-uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 5
+uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 3
 ```
 
 It runs the algorithm of `kbpoly.c` (design,
@@ -103,9 +103,12 @@ design points as `(round(65535 xi / ximax), round(65535 t))`. The script
 re-evaluates `e` from the emitted 36 digits and stops if it moved by more
 than 0.1%. `--cell SIGMA M H` solves one cell and writes nothing, `--mmax M`
 writes a partial header with every `KB_POLY_OPT_MMAX` capped at `M`.
-The committed header is such a partial header, `--mmax 11` (88 cells, 56
-minutes with `-j 5`, about 0.7 GB per worker): it covers float, double and
-80-bit long double, but not the 113-bit cells `m = 12 .. 21`, which take
-hours per cell. The exchange stops after 10 rounds; the log gives per cell
-the lower bound `lo` of the last design problem next to `e`. The log of the committed run is
-`.scratch/kbpoly-optimize/results/optima_log.txt`.
+The committed header is such a partial header, `--mmax 11` (88 cells, 2 h 15
+min with `-j 3`; `-j 5` runs out of memory on 8 GB): it covers float, double
+and 80-bit long double. The 113-bit cells `m = 12 .. 21` are not in it: an
+`m = 11` worker already needs 1.3 GB, and one `m = 21` cell takes hours. The
+exchange adds 80 points per round, at most 40 rounds. The log gives per cell
+`sigma m h e nit seconds lo rounds`, `lo` the lower bound of the last design
+problem. The exchange stops at `e <= 1.005 lo`; a cell with `e > 1.005 lo`
+is marked FAIL, left out of the header, and the run exits nonzero. The log
+of the committed run is `.scratch/kbpoly-optimize/results/optima_log.txt`.

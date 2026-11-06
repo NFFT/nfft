@@ -34,7 +34,7 @@ PREC_QR = 2 * PREC + 50  # Gram matrix of the rank-revealing factorization
 SIGMAS = (1.1, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0)
 NXI, NT = 24, 16  # design: frequencies, offsets 0 and NT / 2 midpoints
 FXI, FT = 401, 64  # fine grid
-ADD, ROUNDS, NPTS = 40, 10, 400
+ADD, ROUNDS, NPTS = 80, 40, 400
 DELTA, DELTA_X, GAIN = 0.001, 0.005, 1.3
 TOL_DINK, TOL_BISECT = 1e-4, DELTA / 100
 SOLVES, MAXIT = 30, 60
@@ -336,6 +336,7 @@ def socp(h, G, q, y, early, tol, maxit=MAXIT):
             axis=1,
         )
         Gtm = amat(MID(Gt.reshape(3 * M, n)))
+        del Gt
         GtmT = Gtm.transpose()
         Mn = GtmT * Gtm
         dmax = max(Mn[i, i] for i in range(n))
@@ -660,9 +661,12 @@ def solve_cell(sigma, m, h, verbose=False):
             )
         if fine is None:
             break
-        if fbest is None or fine < fbest:
-            fbest, dbest, best = fine, dtot, pts
-        if mx is None or fine <= (1 + DELTA_X) * mx or (r >= 1 and mx < floor):
+        # The refined maximum: e of the header and the gap e / lo.
+        top = pts[0][0]
+        if fbest is None or top < fbest:
+            fbest, dbest, best = top, dtot, pts
+        # Against lo, not hi: failed() tests the same e / lo.
+        if mx is None or top <= (1 + DELTA_X) * lo or (r >= 1 and mx < floor):
             break
         ds.add(
             np.array([p[1] for p in pts], dtype=object),
@@ -686,6 +690,7 @@ def solve_cell(sigma, m, h, verbose=False):
         "pts": points(ds.xi, ds.t, ep, cell.ximax),
         "nit": stats["nit"],
         "lo": float(lo),
+        "rounds": r + 1,
         "seconds": time.time() - t0,
     }
 
@@ -753,7 +758,7 @@ def header(results):
     for res in sorted(results, key=lambda r: (r["m"], r["sigma"])):
         rows.setdefault(res["m"], []).append(res)
     # A partial header (--mmax) caps every MMAX at its largest m.
-    top = max(rows)
+    top = max(rows, default=0)
     mmax = {
         p: min(top, math.floor(generate.br_ls(p) / bval(1.1)) - 1)
         for p in (24, 53, 64, 113)
@@ -823,8 +828,17 @@ def run(job):
     return res
 
 
+def failed(res):
+    """The exchange left a gap e / lo - 1 above DELTA_X."""
+    return float(res["e"]) > (1 + DELTA_X) * res["lo"]
+
+
 def logline(res):
-    return f"{res['sigma']:<5} {res['m']:2d} {res['h']:2d} {float(res['e']):.4e} {res['nit']:5d} {res['seconds']:8.1f} {res['lo']:.4e}"
+    return (
+        f"{res['sigma']:<5} {res['m']:2d} {res['h']:2d} {float(res['e']):.4e} "
+        f"{res['nit']:5d} {res['seconds']:8.1f} {res['lo']:.4e} {res['rounds']:2d}"
+        + (" FAIL" if failed(res) else "")
+    )
 
 
 def main(argv=None):
@@ -850,9 +864,12 @@ def main(argv=None):
         for res in pool.imap_unordered(run, cells(args.mmax)):
             print(logline(res), flush=True)
             results.append(res)
+    good = [r for r in results if not failed(r)]
     with open(args.out, "w") as f:
-        f.write(header(results))
-    sys.stderr.write(f"{len(results)} cells to {args.out}\n")
+        f.write(header(good))
+    sys.stderr.write(f"{len(good)} cells to {args.out}\n")
+    if len(good) < len(results):
+        raise SystemExit(f"{len(results) - len(good)} cells above the exchange gap")
 
 
 if __name__ == "__main__":

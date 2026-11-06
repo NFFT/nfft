@@ -216,10 +216,10 @@ uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate
 `OPT_WINDOW` correction solved ahead of time for a fixed sigma set. Table in
 `kernel/util/kbpoly_opt_data.h`, produced by `gen/kbpolygen/optima.py` in
 200-bit arithmetic of `python-flint==0.9.0`; the committed header is the
-`--mmax 11` part (about one hour with `-j 5`):
+`--mmax 11` part (about 2 h 15 min with `-j 3`):
 
 ```bash
-uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 5
+uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 3
 ```
 
 The generators' own notes are in `gen/besselgen/README.md`,
@@ -243,7 +243,7 @@ reuses the minimax fitter in `gen/besselgen/remez.py`.
 | Regenerate Bessel I0 coefficients | `uv run --with mpmath==1.3.0 python -m gen.besselgen.generate` (§5) |
 | Regenerate log sinc coefficients | `uv run --with mpmath==1.3.0 python -m gen.sincgen.generate` (§5) |
 | Regenerate polynomial KB degree table | `uv run --with mpmath==1.3.0 --with numpy python -m gen.kbpolygen.generate` (§5) |
-| Regenerate optimized KB window table | `uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 5` (§5) |
+| Regenerate optimized KB window table | `uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 3` (§5) |
 | Regenerate window reference values | `uv run --with mpmath==1.3.0 python -m tests.windowref.generate` (§3) |
 
 CI mirrors these steps in `.github/workflows/build-linux.yml`, `bench-linux.yml`,
