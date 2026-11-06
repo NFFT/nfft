@@ -733,6 +733,7 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
 #define KB_POLY_CORR_FT 64
 #define KB_POLY_CORR_DELTA_X EK(0.02)
 #define KB_POLY_CORR_FLOOR EK(500.0)
+#define KB_POLY_CORR_ACCEPT EK(0.9)
 
 /* E in the workspace of worst_points. */
 static INT worst_work(const INT m, const INT ng)
@@ -1041,8 +1042,7 @@ static E driver(kb_design *d, E *dtot, E *lo_io, E *y, E *ws,
 /* table = orig + the correction dv of the stencil columns; cheb, res
  * (nk w) and tp (nk nk) are scratch. */
 static void corrected(R *table, const R *orig, const E *dv,
-    const kb_design *d, const INT nk, const INT w, const INT deg, R *cheb,
-    R *res, R *tp)
+    const kb_design *d, const INT nk, const INT w, R *cheb, R *res, R *tp)
 {
   INT k, c, j;
 
@@ -1058,7 +1058,7 @@ static void corrected(R *table, const R *orig, const E *dv,
     cheb[(d->piv % nk) * w + 1 + d->piv / nk] += (R)(d->el[j] * dv[j]);
   }
 
-  cheb_to_monomial(res, cheb, tp, w, deg);
+  cheb_to_monomial(res, cheb, tp, w, nk - 1);
 
   for (k = 0; k < nk; k++)
     for (c = 0; c < w; c++)
@@ -1340,7 +1340,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       for (r = 0; r < KB_POLY_CORR_ROUNDS; r++)
       {
         mx = driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
-        corrected(best, base, dtot, &d, nk, w, deg, cheb, res, tp);
+        corrected(best, base, dtot, &d, nk, w, cheb, res, tp);
         fine = worst_points(best, m, h, ximax, tg, wg, ng, fw, wx, wt, &nloc);
 
         if (r == 0 || (fine >= EK(0.0) && (fbest < EK(0.0) || fine < fbest)))
@@ -1361,7 +1361,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       Y(free)(ws);
     }
 
-    corrected(best, base, dbest, &d, nk, w, deg, cheb, res, tp);
+    corrected(best, base, dbest, &d, nk, w, cheb, res, tp);
   }
 
   /* The deconvolution table of the best pass (layout at KB_POLY_HUT_MAX),
@@ -1399,7 +1399,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
    * where the deconvolution amplifies most, offsets a quarter cell off the
    * design ones, C from the table as the transform evaluates it. A fit of
    * rounding noise does not carry over, so the optimized table replaces
-   * the plain one only if it is a fifth better here. */
+   * the plain one only at KB_POLY_CORR_ACCEPT of its objective or less. */
   for (i = 0; i < nxi; i++)
     xi[i] = ximax * (EK(1.0) - E_COS(E_PI * ((E)i + EK(1.0)) / (E)nxi))
         / EK(2.0);
@@ -1415,7 +1415,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       eg, den, rr, lo, hi, lg, hg, &rms);
   plain = IF(minimax, plain, rms);
 
-  if (mx >= EK(0.0) && obj <= EK(0.8) * plain)
+  if (mx >= EK(0.0) && obj <= KB_POLY_CORR_ACCEPT * plain)
     memcpy(coef, best, (size_t)n * sizeof(R));
   else
   {
@@ -1464,9 +1464,9 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach,
       {
         const kb_poly_opt_cell *exact, *below, *above;
 
+        /* Off-grid from scratch: the cell start is slower at equal quality. */
         Y(kb_poly_table)(b[t], m, deg, &exact, &below, &above);
-        Y(kb_poly_correct)(coef, hut, b[t], m, deg, 1,
-            IF(exact != NULL, exact, below), above);
+        Y(kb_poly_correct)(coef, hut, b[t], m, deg, 1, exact, NULL);
       }
       else if ((opt & OPT_WINDOW_RMS) && Y(kb_poly_correct_ok)(b[t], m))
         Y(kb_poly_correct)(coef, hut, b[t], m, deg, 0, NULL, NULL);

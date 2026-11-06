@@ -363,8 +363,8 @@ static int table_lookup(const char *name, const R sigma, const INT m,
   ok = IF(ce == exact && cb == below && ca == above, 1, 0);
   printf("%s[sigma=%.7f, m=%td, deg=%td] exact %.2f below %.2f "
       "above %.2f -> %s\n", name, (double)sigma, (ptrdiff_t)m,
-      (ptrdiff_t)deg, ce ? (double)ce->sigma : 0.0, cb ? (double)cb->sigma : 0.0,
-      ca ? (double)ca->sigma : 0.0, IF(ok == 0, "FAIL", "OK"));
+      (ptrdiff_t)deg, ce ? (double)ce->sigma : 0.0,
+      cb ? (double)cb->sigma : 0.0, ca ? (double)ca->sigma : 0.0, IF(ok == 0, "FAIL", "OK"));
 
   return ok;
 }
@@ -378,6 +378,18 @@ void X(check_kbpoly_table)(void)
   INT r, i;
 
   printf("kbpoly_table\n------------\n");
+
+  /* An odd degree is realized as the even one above. */
+  {
+    const R e9 = table_correct(K(1.25), 2, 9, NULL, NULL);
+    const R e10 = table_correct(K(1.25), 2, 10, NULL, NULL);
+    const int ok = IF(e9 > K(0.0) && e10 > K(0.0) && e9 <= K(1.03) * e10
+        && e10 <= K(1.03) * e9, 1, 0);
+
+    printf("table_odd[sigma=1.25, m=2] deg 9 %.4e deg 10 %.4e -> %s\n",
+        (double)e9, (double)e10, IF(ok == 0, "FAIL", "OK"));
+    CU_ASSERT(ok == 1);
+  }
 
 #if MANT_DIG >= 53
   {
