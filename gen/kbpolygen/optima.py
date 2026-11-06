@@ -176,8 +176,10 @@ class Cell:
         """|E(xi, t)| = |D - C| / C with C = psi_hat by quadrature."""
         Dr, Di = self.dmat(mono, xi, t)
         C = mm(self.dmat(mono, xi, self.tg)[0], self.wg)
-        if not all(C > 0):
-            return None
+        bad = sorted((float(c), k) for k, c in enumerate(C) if not c > 0)
+        if bad:
+            # psi_hat <= 0 off the design: these xi go into the design.
+            return [(None, xi[k], arb(0)) for _, k in bad[:ADD]]
         Er, Ei = (Dr - C[:, None]) / C[:, None], Di / C[:, None]
         return SQRT(Er * Er + Ei * Ei)
 
@@ -189,8 +191,8 @@ class Cell:
         fx = np.array([dx * i for i in range(FXI)], dtype=object)
         ft = np.array([arb(0)] + [(q - arb(1) / 2) * dt for q in range(1, FT + 1)])
         Ea = self.errors(mono, fx, ft)
-        if Ea is None:
-            return None, []
+        if isinstance(Ea, list):
+            return None, Ea
         ev = FLT(Ea)
         nt = FT + 1
         up = np.vstack([ev[1:], np.full((1, nt), -1.0)])
@@ -208,8 +210,8 @@ class Cell:
             pt = [p + 1 if p < 0 else (p - 1 if p >= 1 else p) for p in pt]
             px, pt = np.array(px, dtype=object), np.array(pt, dtype=object)
             Ep = self.errors(mono, px, pt)
-            if Ep is None:
-                return None, []
+            if isinstance(Ep, list):
+                return None, Ep
             fp = FLT(Ep)
             a, c = np.unravel_index(np.argmax(fp), fp.shape)
             if fp[a, c] > float(best[0]):
@@ -664,14 +666,17 @@ def solve_cell(sigma, m, h, verbose=False):
                 flush=True,
             )
         if fine is None:
-            break
-        # The refined maximum: e of the header and the gap e / lo.
-        top = pts[0][0]
-        if fbest is None or top < fbest:
-            fbest, dbest, best = top, dtot, pts
-        # Against lo, not hi: failed() tests the same e / lo.
-        if mx is None or top <= (1 + DELTA_X) * lo or (r >= 1 and mx < floor):
-            break
+            # psi_hat <= 0 off the design: add those xi and solve again.
+            if mx is None or not pts:
+                break
+        else:
+            # The refined maximum: e of the header and the gap e / lo.
+            top = pts[0][0]
+            if fbest is None or top < fbest:
+                fbest, dbest, best = top, dtot, pts
+            # Against lo, not hi: failed() tests the same e / lo.
+            if mx is None or top <= (1 + DELTA_X) * lo or (r >= 1 and mx < floor):
+                break
         ds.add(
             np.array([p[1] for p in pts], dtype=object),
             np.array([p[2] for p in pts], dtype=object),
@@ -679,6 +684,9 @@ def solve_cell(sigma, m, h, verbose=False):
         y = np.vstack(
             [y, np.array([[arb(1), arb(0), arb(0)] for _ in pts], dtype=object)]
         )
+        if fine is None:
+            # Restart from a window with psi_hat > 0 on the new points.
+            dtot = dbest if ds.ratio(dbest)[0] is not None else zeros(nr)
 
     if fbest is None:
         raise SystemExit(f"cell {sigma} {m} {h}: psi_hat <= 0 off the design")

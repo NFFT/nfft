@@ -6,6 +6,7 @@
 
 import re
 
+import numpy as np
 import pytest
 from flint import arb
 
@@ -61,3 +62,15 @@ def test_cells_cover_library_degrees():
     cells = optima.cells(11)
     assert (3.0, 5, 6) in cells and (3.0, 2, 3) in cells and (2.0, 9, 7) in cells
     assert cells == sorted(set(cells), key=lambda c: (-c[1], c[0], c[2]))
+
+
+def test_errors_lists_bad_xi():
+    # psi_hat <= 0 off the design: errors() returns those xi for the design.
+    cell = optima.Cell(2.0, 1, 3)
+    mono = cell.mono(cell.interpolant())
+    xi = np.array([cell.ximax * k / 4 for k in range(5)], dtype=object)
+    t = np.array([arb(0), arb(1) / 4], dtype=object)
+    assert not isinstance(cell.errors(mono, xi, t), list)
+    bad = cell.errors(-mono, xi, t)
+    assert isinstance(bad, list) and len(bad) == len(xi)
+    assert all(e is None and s == 0 for e, _, s in bad)
