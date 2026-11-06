@@ -29,12 +29,13 @@
 #include "window.h"
 #include "kbpoly.h"
 #include "nfft.h"
+#include "rnfft.h"
 #include "nfct.h"
 #include "nfst.h"
 
 int main(void)
 {
-  CU_pSuite util, nfft, nfct, nfst;
+  CU_pSuite util, nfft, rnfft, nfct, nfst;
   CU_initialize_registry();
   /*CU_set_output_filename("nfft");*/
 #ifdef _OPENMP
@@ -120,6 +121,19 @@ int main(void)
   CU_add_test(nfft, "nfft_4d_online", X(check_4d_online));
   CU_add_test(nfft, "nfft_adjoint_4d_online", X(check_adjoint_4d_online));
 #endif
+#undef X
+#define X(name) RNFFT(name)
+  rnfft = CU_add_suite("rnfft", 0, 0);
+  CU_add_test(rnfft, "rnfft_online", X(check_online));
+  CU_add_test(rnfft, "rnfft_adjoint_online", X(check_adjoint_online));
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(rnfft, "rnfft_4d_online", X(check_online_4d));
+  CU_add_test(rnfft, "rnfft_adjoint_4d_online", X(check_adjoint_online_4d));
+#endif
+  CU_add_test(rnfft, "rnfft_direct_hermitian", X(check_direct_hermitian));
+  CU_add_test(rnfft, "rnfft_adjoint_direct_hermitian", X(check_adjoint_direct_hermitian));
+  CU_add_test(rnfft, "rnfft_inner_product", X(check_inner_product));
+  CU_add_test(rnfft, "rnfft_solver_c2r", X(check_solver_c2r));
 #ifdef HAVE_NFCT
 #undef X
 #define X(name) NFCT(name)
