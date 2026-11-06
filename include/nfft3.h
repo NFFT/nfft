@@ -59,6 +59,16 @@ typedef ptrdiff_t NFFT_INT;
   void (*mv_trafo)(void*); /**< Transform. */\
   void (*mv_adjoint)(void*); /**< Adjoint transform. */
 
+/* Members inherited by plans with complex Fourier coefficients and real
+ * samples. */
+#define MACRO_MV_PLAN_C2R(R,C) \
+  NFFT_INT N_total; /**< Total number of Fourier coefficients. */\
+  NFFT_INT M_total; /**< Total number of samples. */\
+  C *f_hat; /**< Fourier coefficients. */\
+  R *f; /**< Samples. */\
+  void (*mv_trafo)(void*); /**< Transform. */\
+  void (*mv_adjoint)(void*); /**< Adjoint transform. */
+
 /* nfft */
 
 /* Name mangling macros. */
@@ -104,6 +114,11 @@ typedef struct \
 { \
   MACRO_MV_PLAN(R) \
 } X(mv_plan_double); \
+\
+typedef struct \
+{ \
+  MACRO_MV_PLAN_C2R(R,C) \
+} X(mv_plan_c2r); \
 \
 /** data structure for an NFFT (nonequispaced fast Fourier transform) plan with R precision */ \
 typedef struct\
@@ -207,6 +222,93 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
 #define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
+
+/* rnfft */
+
+/* Name mangling macros. */
+#define RNFFT_MANGLE_DOUBLE(name) NFFT_CONCAT(rnfft_, name)
+#define RNFFT_MANGLE_FLOAT(name) NFFT_CONCAT(rnfftf_, name)
+#define RNFFT_MANGLE_LONG_DOUBLE(name) NFFT_CONCAT(rnfftl_, name)
+
+/* Macro to define prototypes for all RNFFT API functions.
+ * We expand this macro for each supported precision.
+ *   X: RNFFT name-mangling macro
+ *   Y: FFTW name-mangling macro
+ *   R: Real float type
+ *   C: Complex float type
+ */
+#define RNFFT_DEFINE_API(X,Y,R,C) \
+/** data structure for an RNFFT (NFFT of real-valued functions) plan with R \
+ *  precision. f_hat holds the coefficients k with \
+ *  0 <= k_{d-1} <= N_{d-1}/2, and -N_t/2 <= k_t < N_t/2 for t < d-1, in \
+ *  row-major order, N_total of them; f holds M_total real samples. */ \
+typedef struct\
+{\
+  MACRO_MV_PLAN_C2R(R,C)\
+\
+  NFFT_INT d; /**< Dimension (rank). */\
+  NFFT_INT *N; /**< Multi-bandwidth, even in each dimension. */\
+  R *sigma; /**< Oversampling factor. */\
+  NFFT_INT *n; /**< Length of FFTW transforms. */\
+  NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
+  NFFT_INT m; /**< Cut-off parameter for window function. */\
+  R *b; /**< Shape parameter for window function. */\
+  NFFT_INT K; /**< Number of equispaced samples of window function. Used for \
+             flag PRE_LIN_PSI. */\
+\
+  unsigned flags; /**< Flags for precomputation, (de)allocation, and FFTW \
+                       usage. */\
+  unsigned fftw_flags; /**< Flags for the FFTW. */\
+\
+  R *x; /**< Nodes in time/spatial domain, size is d M_total R ## s. */\
+\
+  double MEASURE_TIME_t[3]; /**< Measured time for each step if MEASURE_TIME \
+    is set. */\
+\
+  /* internal use only */\
+  Y(plan) my_fftw_plan1; /**< FFTW c2r plan, g_hat to g. */\
+  Y(plan) my_fftw_plan2; /**< FFTW r2c plan, g to g_hat. */\
+\
+  R **c_phi_inv; /**< Precomputed data for the diagonal matrix D. */\
+  R *psi; /**< Precomputed data for the sparse matrix B. */\
+  NFFT_INT *psi_index_g; /**< Indices in g for PRE_FULL_PSI. */\
+  NFFT_INT *psi_index_f; /**< Entries per node for PRE_FULL_PSI. */\
+\
+  C *g_hat; /**< Oversampled coefficients, n_{d-1}/2 + 1 in the last \
+                 dimension. */\
+  R *g; /**< Oversampled real samples. Without FFT_OUT_OF_PLACE it shares \
+             the memory of g_hat, its rows padded to 2 (n_{d-1}/2 + 1). */\
+\
+  R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis. */\
+\
+  NFFT_INT *index_x; /**< Index array for nodes x used when flag \
+                          NFFT_SORT_NODES is set. */\
+} X(plan); \
+\
+NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths);\
+NFFT_EXTERN void X(adjoint_direct)(const X(plan) *ths);\
+NFFT_EXTERN void X(trafo)(X(plan) *ths);\
+NFFT_EXTERN void X(adjoint)(X(plan) *ths);\
+NFFT_EXTERN void X(init_1d)(X(plan) *ths, int N1, int M);\
+NFFT_EXTERN void X(init_2d)(X(plan) *ths, int N1, int N2, int M);\
+NFFT_EXTERN void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
+NFFT_EXTERN void X(init)(X(plan) *ths, int d, int *N, int M);\
+NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
+  int m, unsigned flags, unsigned fftw_flags);\
+NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
+  int m, int K, unsigned flags, unsigned fftw_flags); \
+NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
+NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
+NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
+NFFT_EXTERN const char* X(check)(X(plan) *ths);\
+NFFT_EXTERN void X(finalize)(X(plan) *ths);
+
+/* rnfft api */
+RNFFT_DEFINE_API(RNFFT_MANGLE_FLOAT,FFTW_MANGLE_FLOAT,float,fftwf_complex)
+RNFFT_DEFINE_API(RNFFT_MANGLE_DOUBLE,FFTW_MANGLE_DOUBLE,double,fftw_complex)
+RNFFT_DEFINE_API(RNFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftwl_complex)
 
 /* nfct */
 
@@ -813,7 +915,37 @@ NFFT_EXTERN void X(init_advanced_double)(X(plan_double)* ths, Y(mv_plan_double) 
 NFFT_EXTERN void X(init_double)(X(plan_double)* ths, Y(mv_plan_double) *mv);\
 NFFT_EXTERN void X(before_loop_double)(X(plan_double)* ths);\
 NFFT_EXTERN void X(loop_one_step_double)(X(plan_double) *ths);\
-NFFT_EXTERN void X(finalize_double)(X(plan_double) *ths);
+NFFT_EXTERN void X(finalize_double)(X(plan_double) *ths);\
+\
+/** data structure for an inverse RNFFT plan with R precision: complex \
+ *  coefficients, real samples */ \
+typedef struct\
+{\
+  Y(mv_plan_c2r) *mv; /**< matrix vector multiplication   */\
+  unsigned flags; /**< iteration type */\
+  R *w; /**< weighting factors */\
+  R *w_hat; /**< damping factors */\
+  R *y; /**< right hand side, samples */\
+  C *f_hat_iter; /**< iterative solution */\
+  R *r_iter; /**< iterated residual vector */\
+  C *z_hat_iter; /**< residual of normal equation of first kind */\
+  C *p_hat_iter; /**< search direction */\
+  R *v_iter; /**< residual vector update */\
+  R alpha_iter; /**< step size for search direction */\
+  R beta_iter; /**< step size for search correction */\
+  R dot_r_iter; /**< weighted dotproduct of r_iter */\
+  R dot_r_iter_old; /**< previous dot_r_iter */\
+  R dot_z_hat_iter; /**< weighted dotproduct of z_hat_iter */\
+  R dot_z_hat_iter_old; /**< previous dot_z_hat_iter */\
+  R dot_p_hat_iter; /**< weighted dotproduct of p_hat_iter */\
+  R dot_v_iter; /**< weighted dotproduct of v_iter */\
+} X(plan_c2r);\
+\
+NFFT_EXTERN void X(init_advanced_c2r)(X(plan_c2r)* ths, Y(mv_plan_c2r) *mv, unsigned flags);\
+NFFT_EXTERN void X(init_c2r)(X(plan_c2r)* ths, Y(mv_plan_c2r) *mv);\
+NFFT_EXTERN void X(before_loop_c2r)(X(plan_c2r)* ths);\
+NFFT_EXTERN void X(loop_one_step_c2r)(X(plan_c2r) *ths);\
+NFFT_EXTERN void X(finalize_c2r)(X(plan_c2r) *ths);
 
 /* solver api */
 SOLVER_DEFINE_API(SOLVER_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)

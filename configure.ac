@@ -686,6 +686,7 @@ AC_CONFIG_FILES(Makefile \
                 kernel/mri/Makefile \
                 kernel/nfct/Makefile \
                 kernel/nfft/Makefile \
+                kernel/rnfft/Makefile \
                 kernel/nfsft/Makefile \
                 kernel/nfsoft/Makefile \
                 kernel/nfst/Makefile \

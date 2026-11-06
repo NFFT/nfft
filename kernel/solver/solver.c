@@ -734,3 +734,355 @@ void X(finalize_double)(X(plan_double) *ths)
   Y(free)(ths->r_iter);
   Y(free)(ths->y);
 } /** void solver_finalize */
+
+void X(init_advanced_c2r)(X(plan_c2r)* ths, Y(mv_plan_c2r) *mv,
+    unsigned flags)
+{
+  ths->mv = mv;
+  ths->flags = flags;
+
+  ths->y          = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+  ths->r_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+  ths->f_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
+  ths->p_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
+
+  if(ths->flags & LANDWEBER)
+    ths->z_hat_iter = ths->p_hat_iter;
+
+  if(ths->flags & STEEPEST_DESCENT)
+    {
+      ths->z_hat_iter = ths->p_hat_iter;
+      ths->v_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+    }
+
+  if(ths->flags & CGNR)
+    {
+      ths->z_hat_iter = (C*)Y(malloc)((size_t)(ths->mv->N_total) * sizeof(C));
+      ths->v_iter     = (R*)Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+    }
+
+  if(ths->flags & CGNE)
+    ths->z_hat_iter = ths->p_hat_iter;
+
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->w = (R*) Y(malloc)((size_t)(ths->mv->M_total) * sizeof(R));
+
+  if(ths->flags & PRECOMPUTE_DAMP)
+    ths->w_hat = (R*) Y(malloc)((size_t)(ths->mv->N_total) * sizeof(R));
+}
+
+void X(init_c2r)(X(plan_c2r)* ths, Y(mv_plan_c2r) *mv)
+{
+  X(init_advanced_c2r)(ths, mv, CGNR);
+}
+
+void X(before_loop_c2r)(X(plan_c2r)* ths)
+{
+  Y(cp_complex)(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
+
+  RSWAP(ths->r_iter, ths->mv->f);
+  ths->mv->mv_trafo(ths->mv);
+  RSWAP(ths->r_iter, ths->mv->f);
+
+  Y(upd_axpy_double)(ths->r_iter, K(-1.0), ths->y, ths->mv->M_total);
+
+  if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
+    {
+      if(ths->flags & PRECOMPUTE_WEIGHT)
+	ths->dot_r_iter = Y(dot_w_double)(ths->r_iter, ths->w,
+					     ths->mv->M_total);
+      else
+	ths->dot_r_iter = Y(dot_double)(ths->r_iter, ths->mv->M_total);
+    }
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(cp_w_double)(ths->mv->f, ths->w, ths->r_iter, ths->mv->M_total);
+  else
+    Y(cp_double)(ths->mv->f, ths->r_iter, ths->mv->M_total);
+
+  CSWAP(ths->z_hat_iter, ths->mv->f_hat);
+  ths->mv->mv_adjoint(ths->mv);
+  CSWAP(ths->z_hat_iter, ths->mv->f_hat);
+
+  if((!(ths->flags & LANDWEBER)) || (ths->flags & NORMS_FOR_LANDWEBER))
+    {
+      if(ths->flags & PRECOMPUTE_DAMP)
+	ths->dot_z_hat_iter = Y(dot_w_complex)(ths->z_hat_iter, ths->w_hat,
+						 ths->mv->N_total);
+      else
+	ths->dot_z_hat_iter = Y(dot_complex)(ths->z_hat_iter,
+					       ths->mv->N_total);
+    }
+
+  if(ths->flags & CGNE)
+    ths->dot_p_hat_iter = ths->dot_z_hat_iter;
+
+  if(ths->flags & CGNR)
+    Y(cp_complex)(ths->p_hat_iter, ths->z_hat_iter, ths->mv->N_total);
+} /* void solver_before_loop */
+
+/** void solver_loop_one_step_landweber */
+static void solver_loop_one_step_landweber_c2r(X(plan_c2r)* ths)
+{
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(upd_xpawy_complex)(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
+			   ths->z_hat_iter, ths->mv->N_total);
+  else
+    Y(upd_xpay_complex)(ths->f_hat_iter, ths->alpha_iter, ths->z_hat_iter,
+			  ths->mv->N_total);
+
+  /*-----------------*/
+  Y(cp_complex)(ths->mv->f_hat, ths->f_hat_iter, ths->mv->N_total);
+
+  RSWAP(ths->r_iter, ths->mv->f);
+  ths->mv->mv_trafo(ths->mv);
+  RSWAP(ths->r_iter, ths->mv->f);
+
+  Y(upd_axpy_double)(ths->r_iter, K(-1.0), ths->y, ths->mv->M_total);
+
+  if(ths->flags & NORMS_FOR_LANDWEBER)
+    {
+      if(ths->flags & PRECOMPUTE_WEIGHT)
+	ths->dot_r_iter = Y(dot_w_double)(ths->r_iter,ths->w,
+					     ths->mv->M_total);
+      else
+	ths->dot_r_iter = Y(dot_double)(ths->r_iter, ths->mv->M_total);
+    }
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(cp_w_double)(ths->mv->f, ths->w, ths->r_iter, ths->mv->M_total);
+  else
+    Y(cp_double)(ths->mv->f, ths->r_iter, ths->mv->M_total);
+
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+  ths->mv->mv_adjoint(ths->mv);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+
+  if(ths->flags & NORMS_FOR_LANDWEBER)
+    {
+      if(ths->flags & PRECOMPUTE_DAMP)
+	ths->dot_z_hat_iter = Y(dot_w_complex)(ths->z_hat_iter, ths->w_hat,
+						 ths->mv->N_total);
+      else
+	ths->dot_z_hat_iter = Y(dot_complex)(ths->z_hat_iter,
+					       ths->mv->N_total);
+    }
+} /* void solver_loop_one_step_landweber */
+
+/** void solver_loop_one_step_steepest_descent */
+static void solver_loop_one_step_steepest_descent_c2r(X(plan_c2r) *ths)
+{
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(cp_w_complex)(ths->mv->f_hat, ths->w_hat, ths->z_hat_iter,
+		      ths->mv->N_total);
+  else
+    Y(cp_complex)(ths->mv->f_hat, ths->z_hat_iter, ths->mv->N_total);
+
+  RSWAP(ths->v_iter, ths->mv->f);
+  ths->mv->mv_trafo(ths->mv);
+  RSWAP(ths->v_iter, ths->mv->f);
+
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->dot_v_iter = Y(dot_w_double)(ths->v_iter,ths->w,ths->mv->M_total);
+  else
+    ths->dot_v_iter = Y(dot_double)(ths->v_iter, ths->mv->M_total);
+
+  /*-----------------*/
+  ths->alpha_iter = ths->dot_z_hat_iter / ths->dot_v_iter;
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(upd_xpawy_complex)(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
+			   ths->z_hat_iter, ths->mv->N_total);
+  else
+    Y(upd_xpay_complex)(ths->f_hat_iter, ths->alpha_iter, ths->z_hat_iter,
+			  ths->mv->N_total);
+
+  /*-----------------*/
+  Y(upd_xpay_double)(ths->r_iter, -ths->alpha_iter, ths->v_iter,
+			ths->mv->M_total);
+
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->dot_r_iter = Y(dot_w_double)(ths->r_iter,ths->w,ths->mv->M_total);
+  else
+    ths->dot_r_iter = Y(dot_double)(ths->r_iter, ths->mv->M_total);
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(cp_w_double)(ths->mv->f, ths->w, ths->r_iter, ths->mv->M_total);
+  else
+    Y(cp_double)(ths->mv->f, ths->r_iter, ths->mv->M_total);
+
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+  ths->mv->mv_adjoint(ths->mv);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+
+  if(ths->flags & PRECOMPUTE_DAMP)
+    ths->dot_z_hat_iter = Y(dot_w_complex)(ths->z_hat_iter, ths->w_hat,
+					     ths->mv->N_total);
+  else
+    ths->dot_z_hat_iter = Y(dot_complex)(ths->z_hat_iter, ths->mv->N_total);
+} /* void solver_loop_one_step_steepest_descent */
+
+/** void solver_loop_one_step_cgnr */
+static void solver_loop_one_step_cgnr_c2r(X(plan_c2r) *ths)
+{
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(cp_w_complex)(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,
+		      ths->mv->N_total);
+  else
+    Y(cp_complex)(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);
+
+  RSWAP(ths->v_iter, ths->mv->f);
+  ths->mv->mv_trafo(ths->mv);
+  RSWAP(ths->v_iter, ths->mv->f);
+
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->dot_v_iter = Y(dot_w_double)(ths->v_iter,ths->w,ths->mv->M_total);
+  else
+    ths->dot_v_iter = Y(dot_double)(ths->v_iter, ths->mv->M_total);
+
+  /*-----------------*/
+  ths->alpha_iter = ths->dot_z_hat_iter / ths->dot_v_iter;
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(upd_xpawy_complex)(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
+			   ths->p_hat_iter, ths->mv->N_total);
+  else
+    Y(upd_xpay_complex)(ths->f_hat_iter, ths->alpha_iter, ths->p_hat_iter,
+			  ths->mv->N_total);
+
+  /*-----------------*/
+  Y(upd_xpay_double)(ths->r_iter, -ths->alpha_iter, ths->v_iter,
+			ths->mv->M_total);
+
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->dot_r_iter = Y(dot_w_double)(ths->r_iter,ths->w,ths->mv->M_total);
+  else
+    ths->dot_r_iter = Y(dot_double)(ths->r_iter, ths->mv->M_total);
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(cp_w_double)(ths->mv->f, ths->w, ths->r_iter, ths->mv->M_total);
+  else
+    Y(cp_double)(ths->mv->f, ths->r_iter, ths->mv->M_total);
+
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+  ths->mv->mv_adjoint(ths->mv);
+  CSWAP(ths->z_hat_iter,ths->mv->f_hat);
+
+  ths->dot_z_hat_iter_old = ths->dot_z_hat_iter;
+  if(ths->flags & PRECOMPUTE_DAMP)
+    ths->dot_z_hat_iter = Y(dot_w_complex)(ths->z_hat_iter, ths->w_hat,
+					     ths->mv->N_total);
+  else
+    ths->dot_z_hat_iter = Y(dot_complex)(ths->z_hat_iter, ths->mv->N_total);
+
+  /*-----------------*/
+  ths->beta_iter = ths->dot_z_hat_iter / ths->dot_z_hat_iter_old;
+
+  /*-----------------*/
+  Y(upd_axpy_complex)(ths->p_hat_iter, ths->beta_iter, ths->z_hat_iter,
+			ths->mv->N_total);
+} /* void solver_loop_one_step_cgnr */
+
+/** void solver_loop_one_step_cgne */
+static void solver_loop_one_step_cgne_c2r(X(plan_c2r) *ths)
+{
+  ths->alpha_iter = ths->dot_r_iter / ths->dot_p_hat_iter;
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(upd_xpawy_complex)(ths->f_hat_iter, ths->alpha_iter, ths->w_hat,
+			   ths->p_hat_iter, ths->mv->N_total);
+  else
+    Y(upd_xpay_complex)(ths->f_hat_iter, ths->alpha_iter, ths->p_hat_iter,
+                          ths->mv->N_total);
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(cp_w_complex)(ths->mv->f_hat, ths->w_hat, ths->p_hat_iter,
+		      ths->mv->N_total);
+  else
+    Y(cp_complex)(ths->mv->f_hat, ths->p_hat_iter, ths->mv->N_total);
+
+  ths->mv->mv_trafo(ths->mv);
+
+  Y(upd_xpay_double)(ths->r_iter, -ths->alpha_iter, ths->mv->f,
+			ths->mv->M_total);
+
+  ths->dot_r_iter_old = ths->dot_r_iter;
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    ths->dot_r_iter = Y(dot_w_double)(ths->r_iter,ths->w,ths->mv->M_total);
+  else
+    ths->dot_r_iter = Y(dot_double)(ths->r_iter, ths->mv->M_total);
+
+  /*-----------------*/
+  ths->beta_iter = ths->dot_r_iter / ths->dot_r_iter_old;
+
+  /*-----------------*/
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(cp_w_double)(ths->mv->f, ths->w, ths->r_iter, ths->mv->M_total);
+  else
+    Y(cp_double)(ths->mv->f, ths->r_iter, ths->mv->M_total);
+
+  ths->mv->mv_adjoint(ths->mv);
+
+  Y(upd_axpy_complex)(ths->p_hat_iter, ths->beta_iter, ths->mv->f_hat,
+			ths->mv->N_total);
+
+  if(ths->flags & PRECOMPUTE_DAMP)
+    ths->dot_p_hat_iter = Y(dot_w_complex)(ths->p_hat_iter, ths->w_hat,
+					     ths->mv->N_total);
+  else
+    ths->dot_p_hat_iter = Y(dot_complex)(ths->p_hat_iter, ths->mv->N_total);
+} /* void solver_loop_one_step_cgne */
+
+/** void solver_loop_one_step */
+void X(loop_one_step_c2r)(X(plan_c2r) *ths)
+{
+  if(ths->flags & LANDWEBER)
+    solver_loop_one_step_landweber_c2r(ths);
+
+  if(ths->flags & STEEPEST_DESCENT)
+    solver_loop_one_step_steepest_descent_c2r(ths);
+
+  if(ths->flags & CGNR)
+    solver_loop_one_step_cgnr_c2r(ths);
+
+  if(ths->flags & CGNE)
+    solver_loop_one_step_cgne_c2r(ths);
+} /* void solver_loop_one_step */
+
+/** void solver_finalize */
+void X(finalize_c2r)(X(plan_c2r) *ths)
+{
+  if(ths->flags & PRECOMPUTE_WEIGHT)
+    Y(free)(ths->w);
+
+  if(ths->flags & PRECOMPUTE_DAMP)
+    Y(free)(ths->w_hat);
+
+  if(ths->flags & CGNR)
+    {
+      Y(free)(ths->v_iter);
+      Y(free)(ths->z_hat_iter);
+    }
+
+  if(ths->flags & STEEPEST_DESCENT)
+    Y(free)(ths->v_iter);
+
+  Y(free)(ths->p_hat_iter);
+  Y(free)(ths->f_hat_iter);
+
+  Y(free)(ths->r_iter);
+  Y(free)(ths->y);
+} /** void solver_finalize */
+
+
+/****************************************************************************/
+/****************************************************************************/
+/****************************************************************************/

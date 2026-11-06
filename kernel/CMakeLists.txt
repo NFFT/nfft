@@ -6,6 +6,7 @@ set(NFFT_KERNEL_SOURCES
   util/sinc.c util/sort.c util/thread.c util/time.c util/vector1.c
   util/vector2.c util/vector3.c util/version.c util/window.c
   nfft/nfft.c
+  rnfft/rnfft.c
   nfct/nfct.c
   nfst/nfst.c
   solver/solver.c)
