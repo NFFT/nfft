@@ -217,27 +217,23 @@ typedef ptrdiff_t INT;
   #define GAUSS_E(ax) (ths->b[ths->d + (ax)])
   #define GAUSS_Q(ax) (ths->b[2 * ths->d + (ax)])
   #define GAUSS_PEAK(ax) (ths->b[3 * ths->d + (ax)])
-  /* Run by the FG_RUN recurrence from the nearest grid point, index m or
-   * m+1: uo() puts the node in [m, m+1) only up to the rounding of x*n.
-   * Both sides step m times and step m+1 fills the far end. The side is a
-   * masked index, not a select: gcc turns a select into a branch that
-   * mispredicts once per node. */
+  /* Run by the FG_RUN recurrence from grid point u+m, run index m, at
+   * d = n x - u - m in [0, 1) up to the rounding of x*n. Right side m+1
+   * steps, left side m. For d > 1/2 the first right step grows, which costs
+   * up to an ulp. A nearest grid point anchor avoids that, but its
+   * node-dependent store offset is up to 24% slower in 1D. */
   #define PHI_RUN(dst,n,x,u,ax) \
     do { \
       const INT PHI_RUN_m = ths->m; \
       const R PHI_RUN_b = ths->b[ax]; \
-      const R PHI_RUN_t = NX_SUB(n, x, u); \
-      const R PHI_RUN_c = FLOOR(PHI_RUN_t + K(0.5)); \
-      const R PHI_RUN_d = PHI_RUN_t - PHI_RUN_c; \
-      const INT PHI_RUN_lo = (INT)PHI_RUN_c - PHI_RUN_m; \
-      R *PHI_RUN_p = (dst) + PHI_RUN_m + PHI_RUN_lo; \
+      const R PHI_RUN_d = NX_SUB(n, x, (u) + PHI_RUN_m); \
+      R *PHI_RUN_p = (dst) + PHI_RUN_m; \
       const R PHI_RUN_v0 = EXP(-PHI_RUN_d * PHI_RUN_d / PHI_RUN_b) \
           * GAUSS_PEAK(ax); \
       const R PHI_RUN_s = EXP(K(2.0) * PHI_RUN_d / PHI_RUN_b); \
       const R PHI_RUN_e = GAUSS_E(ax), PHI_RUN_q = GAUSS_Q(ax); \
       R PHI_RUN_vr = PHI_RUN_v0, PHI_RUN_rr = PHI_RUN_s * PHI_RUN_e; \
       R PHI_RUN_vl = PHI_RUN_v0, PHI_RUN_rl = PHI_RUN_e / PHI_RUN_s; \
-      R PHI_RUN_far[2]; \
       INT PHI_RUN_k; \
       PHI_RUN_p[0] = PHI_RUN_v0; \
       for (PHI_RUN_k = 1; PHI_RUN_k <= PHI_RUN_m; PHI_RUN_k++) \
@@ -249,9 +245,7 @@ typedef ptrdiff_t INT;
         PHI_RUN_rr *= PHI_RUN_q; \
         PHI_RUN_rl *= PHI_RUN_q; \
       } \
-      PHI_RUN_far[0] = PHI_RUN_vr * PHI_RUN_rr; \
-      PHI_RUN_far[1] = PHI_RUN_vl * PHI_RUN_rl; \
-      (dst)[(2 * PHI_RUN_m + 1) & (PHI_RUN_lo - 1)] = PHI_RUN_far[PHI_RUN_lo]; \
+      PHI_RUN_p[PHI_RUN_m + 1] = PHI_RUN_vr * PHI_RUN_rr; \
     } while (0)
   /* b balances the two error terms (frequency and time/space) of a Gaussian
    * truncated at half-width WINDOW_STENCIL_REACH. */
@@ -453,14 +447,11 @@ typedef ptrdiff_t INT;
   #endif
 #endif
 
-/* Non-Gaussian windows compile out the FG_PSI blocks of nfft, nfct and nfst
- * and clear FG_PSI and PRE_FG_PSI at init: the recurrence seeds are Gaussian. */
+/* Other windows clear PRE_FG_PSI at init: the recurrence seeds are Gaussian. */
 #if defined(GAUSSIAN)
-  #define WINDOW_FG_PATH(flags) (!((flags) & PRE_LIN_PSI))
   #define WINDOW_FLAGS(flags) (flags)
 #else
-  #define WINDOW_FG_PATH(flags) 0
-  #define WINDOW_FLAGS(flags) ((flags) & ~(FG_PSI | PRE_FG_PSI))
+  #define WINDOW_FLAGS(flags) ((flags) & ~PRE_FG_PSI)
 #endif
 
 /* Generic run fill: dst[0 .. 2m+1] = phi(x - (u + l)/n). Windows that gain from
@@ -475,7 +466,7 @@ typedef ptrdiff_t INT;
     } while (0)
 #endif
 
-/* Gaussian run fill for the FG_PSI paths: buf[0 .. 2m+2] holds the window at
+/* Gaussian run fill for the PRE_FG_PSI paths: buf[0 .. 2m+2] holds the window at
  * the 2m+3 grid points -(m+1) .. m+1 away from the anchor, whose value seed
  * lands in buf[m+1]. s is exp(2 d / b) for the anchor's offset d, e is
  * exp(-1/b) and q is e * e. Stepping outward keeps each step on a value no
