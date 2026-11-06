@@ -20,6 +20,8 @@ generate.py, which gives the cell list.
 
 import argparse
 import math
+import os
+import re
 import sys
 import time
 from multiprocessing import Pool
@@ -27,6 +29,7 @@ from multiprocessing import Pool
 import flint
 import numpy as np
 from flint import arb, arb_mat
+from mpmath import mp
 
 from gen.kbpolygen import generate
 
@@ -756,7 +759,7 @@ def cell_text(res, i):
 def header(results):
     """The header text of the results, sorted by (m, sigma)."""
     rows = {}
-    for res in sorted(results, key=lambda r: (r["m"], r["sigma"])):
+    for res in sorted(results, key=lambda r: (r["m"], r["sigma"], r["h"])):
         rows.setdefault(res["m"], []).append(res)
     # A partial header (--mmax) caps every MMAX at its largest m.
     top = max(rows, default=0)
@@ -805,13 +808,88 @@ def bval(sigma):
     return math.pi * (2 - 1 / sigma)
 
 
+ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
+MANTS = (24, 53, 64, 113)
+
+
+def _blocks(path):
+    """Text of the MANT_DIG blocks of a header; #else is 53."""
+    with open(os.path.join(ROOT, path)) as f:
+        text = f.read()
+    parts = re.split(r"#(?:el)?if MANT_DIG == (\d+)|#else", text)
+    return {int(n) if n else 53: b for n, b in zip(parts[1::2], parts[2::2])}
+
+
+def _nums(body, name):
+    m = re.search(name + r"\[\d+\] = \{([^}]*)\}", body)
+    return [int(v) for v in m.group(1).replace(",", " ").split()]
+
+
+def _libtab():
+    """Per format: TAB_MMAX, BR_OPT text, h0, off, brk, DEG_MAX."""
+    with open(os.path.join(ROOT, "include", "infft.h")) as f:
+        infft = f.read()
+    deg = {
+        int(a): int(b)
+        for a, b in re.findall(
+            r"MANT_DIG == (\d+)\s+#define KB_POLY_DEG_MAX (\d+)", infft
+        )
+    }
+    out = {}
+    for p, body in _blocks(os.path.join("kernel", "util", "kbpoly_data.h")).items():
+        out[p] = (
+            int(re.search(r"KB_POLY_TAB_MMAX (\d+)", body).group(1)),
+            re.search(r"KB_POLY_BR_OPT K\(([\d.]+)\)", body).group(1),
+            _nums(body, "kb_poly_tab_h0"),
+            _nums(body, "kb_poly_tab_off"),
+            _nums(body, "kb_poly_tab_brk"),
+            deg[p],
+        )
+    return out
+
+
+LIBTAB = _libtab()
+
+
+def library_half(sigma, m, mant):
+    """h of Y(kb_poly_degree) (kbpoly.c) in the format of MANT_DIG mant,
+    each operation rounded to mant bits."""
+    mmax, bropt, h0, off, brk, degmax = LIBTAB[mant]
+    with mp.workprec(mant):
+        pi, s = +mp.pi, mp.mpf(sigma)
+        b = pi * (2 - 1 / s)
+        sr = pi / (2 * pi - b)
+        mt = int(mp.ceil(mp.mpf(bropt) / b)) - 1
+        mt = max(min(m, mt, mmax), 1)
+        h = h0[mt] + sum(
+            1 for k in range(off[mt], off[mt + 1]) if sr >= mp.mpf("1e-4") * brk[k]
+        )
+    return (degmax + 1) // 2 if 2 * h > degmax else h
+
+
+def opt_mmax(mmax=None):
+    """KB_POLY_OPT_MMAX per format."""
+    return {
+        p: min(
+            math.floor(generate.br_ls(p) / bval(1.1)) - 1,
+            21 if mmax is None else mmax,
+        )
+        for p in MANTS
+    }
+
+
 def cells(mmax=None):
-    """(sigma, m) of the table, largest m first."""
-    out = []
+    """(sigma, m, h) of the table, largest m first: per (sigma, m) one cell
+    per distinct library h over the formats whose MMAX admits m."""
+    top = opt_mmax(mmax)
+    out = set()
     for s in SIGMAS:
-        top = math.floor(generate.br_ls(113) / bval(s)) - 1
-        out += [(s, m) for m in range(1, top + 1) if mmax is None or m <= mmax]
-    return sorted(out, key=lambda c: (-c[1], c[0]))
+        last = math.floor(generate.br_ls(113) / bval(s)) - 1
+        for m in range(1, last + 1):
+            if mmax is not None and m > mmax:
+                continue
+            out |= {(s, m, library_half(s, m, p)) for p in MANTS if m <= top[p]}
+    return sorted(out, key=lambda c: (-c[1], c[0], c[2]))
 
 
 def _init():
@@ -820,8 +898,7 @@ def _init():
 
 
 def run(job):
-    sigma, m = job
-    h = generate.halves(sigma, m)[113]
+    sigma, m, h = job
     res = solve_cell(sigma, m, h)
     check(res)
     # arb does not pickle: send the digits to the parent.

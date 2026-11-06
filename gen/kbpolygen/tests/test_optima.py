@@ -39,3 +39,25 @@ def test_header_roundtrip():
     pairs = list(zip(flat[::2], flat[1::2]))
     assert len(flat) % 2 == 0 and pairs == sorted(set(pairs)) == res["pts"]
     assert all(0 <= v <= 65535 for v in flat)
+
+
+@pytest.mark.parametrize(
+    "mant, sigma, m, h",
+    [
+        (53, 3.0, 5, 6),
+        (53, 4.0, 5, 6),
+        (53, 2.0, 9, 7),
+        (24, 3.0, 2, 3),
+        (113, 4.0, 10, 9),
+        (113, 2.0, 8, 7),
+    ],
+)
+def test_library_half(mant, sigma, m, h):
+    # Y(kb_poly_degree) per format; the 113-bit h of (2, 8) is halves()[113].
+    assert optima.library_half(sigma, m, mant) == h
+
+
+def test_cells_cover_library_degrees():
+    cells = optima.cells(11)
+    assert (3.0, 5, 6) in cells and (3.0, 2, 3) in cells and (2.0, 9, 7) in cells
+    assert cells == sorted(set(cells), key=lambda c: (-c[1], c[0], c[2]))

@@ -83,8 +83,9 @@ builds against the double table.
 `optima.py` produces `kernel/util/kbpoly_opt_data.h`, the polynomial window
 of `Y(kb_poly_init)` with the `OPT_WINDOW` correction of
 `Y(kb_poly_correct)` already applied, for sigma in {1.1, 1.25, 1.5, 1.75,
-2, 2.5, 3, 4}, `m` from 1 to the `KB_POLY_BR_LS_113` guard and `h` of the
-113-bit degree table:
+2, 2.5, 3, 4}, `m` from 1 to the `KB_POLY_BR_LS_113` guard and the
+degree `h` of `Y(kb_poly_degree)` in each format that admits `m` (one cell
+per distinct `h`, read from `kbpoly_data.h` and `KB_POLY_DEG_MAX`):
 
 ```bash
 uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 3
@@ -103,7 +104,7 @@ design points as `(round(65535 xi / ximax), round(65535 t))`. The script
 re-evaluates `e` from the emitted 36 digits and stops if it moved by more
 than 0.1%. `--cell SIGMA M H` solves one cell and writes nothing, `--mmax M`
 writes a partial header with every `KB_POLY_OPT_MMAX` capped at `M`.
-The committed header is such a partial header, `--mmax 11` (88 cells, 2 h 15
+The committed header is such a partial header, `--mmax 11` (104 cells, 2 h 15
 min with `-j 3`; `-j 5` runs out of memory on 8 GB): it covers float, double
 and 80-bit long double. The 113-bit cells `m = 12 .. 21` are not in it: an
 `m = 11` worker already needs 1.3 GB, and one `m = 21` cell takes hours. The
