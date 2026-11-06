@@ -77,3 +77,35 @@ plan with `m > m_opt` gets the degree of `m_opt`, up to 4 more than it needs.
 
 Double goes last, as the `#else`, so a format the table does not know about
 builds against the double table.
+
+# Optimized window table
+
+`optima.py` produces `kernel/util/kbpoly_opt_data.h`, the polynomial window
+of `Y(kb_poly_init)` with the `OPT_WINDOW` correction of
+`Y(kb_poly_correct)` already applied, for sigma in {1.1, 1.25, 1.5, 1.75,
+2, 2.5, 3, 4}, `m` from 1 to the `KB_POLY_BR_LS_113` guard and `h` of the
+113-bit degree table:
+
+```bash
+uv run --with python-flint==0.9.0 --with numpy --with mpmath==1.3.0 python -m gen.kbpolygen.optima --mmax 11 -j 5
+```
+
+It runs the algorithm of `kbpoly.c` (design,
+first least-squares pass, Dinkelbach steps and bisection on cone
+subproblems, exchange on the 401 x 65 fine grid) in 200-bit ball arithmetic
+of `python-flint==0.9.0`, which is deterministic for a pinned version, and
+solves to 0.1% instead of 1%. The initial design is that of `kbpoly.c` for
+`h <= 8` and `m <= 9`; above, it has `2 h` offsets and, for `m > 9`,
+`3 (m + 1)` frequencies, since the 17 x 24 design of `kbpoly.c` is too
+coarse for the 113-bit cells. Per cell the header holds the monomial table,
+`e`, the fine-grid maximum of `|E|` with local refinement, and up to 400
+design points as `(round(65535 xi / ximax), round(65535 t))`. The script
+re-evaluates `e` from the emitted 36 digits and stops if it moved by more
+than 0.1%. `--cell SIGMA M H` solves one cell and writes nothing, `--mmax M`
+writes a partial header with every `KB_POLY_OPT_MMAX` capped at `M`.
+The committed header is such a partial header, `--mmax 11` (88 cells, 56
+minutes with `-j 5`, about 0.7 GB per worker): it covers float, double and
+80-bit long double, but not the 113-bit cells `m = 12 .. 21`, which take
+hours per cell. The exchange stops after 10 rounds; the log gives per cell
+the lower bound `lo` of the last design problem next to `e`. The log of the committed run is
+`.scratch/kbpoly-optimize/results/optima_log.txt`.
