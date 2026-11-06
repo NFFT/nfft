@@ -226,10 +226,10 @@ void X(adjoint_direct)(const X(plan) *ths)
   }
 }
 
-/* 1 / phi_hat(k) along leading dimension t, -N_t/2 <= k <= N_t/2 */
+/* 1 / phi_hat(k) along leading dimension t, -N_t/2 <= k < N_t/2 */
 static inline R phi_inv(const X(plan) *ths, const INT t, const INT k)
 {
-  if ((ths->flags & PRE_PHI_HUT) && k < ths->N[t] / 2)
+  if (ths->flags & PRE_PHI_HUT)
     return ths->c_phi_inv[t][k + ths->N[t] / 2];
   return K(1.0) / PHI_HUT(ths->n[t], k, t);
 }
@@ -661,7 +661,7 @@ static void sort_nodes(const X(plan) *ths, INT *scratch)
   Y(sort_node_indices_radix_lsdf)(M, ths->index_x, scratch, MAX(rhigh, 0));
 }
 
-/* Sort at precompute time, with scratch of its own. */
+/* Sort at precompute time. */
 static void sort_precompute(const X(plan) *ths)
 {
   INT *scratch;
@@ -674,8 +674,7 @@ static void sort_precompute(const X(plan) *ths)
   Y(free)(scratch);
 }
 
-/* Sort at transform time, if no precomputation did. The plan allocated
- * index_x with room for the scratch then. */
+/* Sort at transform time, if no precomputation did. */
 static void sort_transform(const X(plan) *ths)
 {
   if ((ths->flags & NFFT_SORT_NODES) && !(ths->flags & PRE_NODE_PSI))
@@ -845,6 +844,8 @@ static void B_adjoint(X(plan) *ths)
     full = ths->flags & PRE_FULL_PSI,
     lprod = full ? full_psi_len(ths) : 0,
     s0 = ths->d == 1 ? 1 : ths->n_total / ths->n[0] / ths->n[ths->d - 1] * gs;
+  /* s0 is the stride of dimension 0 in g, in reals with padded rows, so
+   * ix / s0 is the row i0 of a PRE_FULL_PSI offset ix. */
   R *g = ths->g;
   R fg[2 * ths->d];
 
@@ -1000,6 +1001,8 @@ void X(precompute_lin_psi)(X(plan) *ths)
   }
 }
 
+/* psi[2(kd+t)] = phi(dx/n) with the sign of dx, which FG_RUN_START reads;
+ * psi[2(kd+t)+1] = exp(2dx/b). */
 void X(precompute_fg_psi)(X(plan) *ths)
 {
   const INT d = ths->d;
@@ -1046,8 +1049,8 @@ void X(precompute_psi)(X(plan) *ths)
   }
 }
 
-/* For each node, in slot order, the (2m+2)^d products of window values and their offsets in
- * g, in the order of the tensor loops of node_trafo. */
+/* For each node, in slot order, the (2m+2)^d products of window values and
+ * their offsets in g, in the order of the tensor loops of node_trafo. */
 void X(precompute_full_psi)(X(plan) *ths)
 {
   const INT d = ths->d, w = 2 * ths->m + 2, lprod = full_psi_len(ths),
@@ -1200,7 +1203,8 @@ static void init_help(X(plan) *ths)
 #endif
   }
 
-  /* room for the sort scratch when the transforms sort */
+  /* 2M for keys and node indices, plus 2M sort scratch when the transforms
+   * sort */
   if (ths->flags & NFFT_SORT_NODES)
     ths->index_x = (INT*)Y(malloc)(sizeof(INT) * ((ths->flags & PRE_NODE_PSI)
       ? 2U : 4U) * (size_t)ths->M_total);
