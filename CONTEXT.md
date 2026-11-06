@@ -71,7 +71,7 @@ _Avoid_: the parity guard (ambiguous), config check.
 **ctest suite**:
 The CMake counterpart of the Autotools `make check`: the CUnit binaries `checkall`
 (serial) and `checkall_threads` (OpenMP) registered with `add_test` and run via
-`ctest`. Covers exactly the **util / nfft / nfct / nfst** suites — the same set the
+`ctest`. Covers exactly the **util / nfft / rnfft / nfct / nfst** suites — the same set the
 Autotools suite builds. In CI it runs in every matrix cell (full window × precision ×
 openmp × compiler parity), like `make check`. Distinct from an **interface test**:
 the term covers the CUnit core only, never the opt-in MATLAB/Octave runners.

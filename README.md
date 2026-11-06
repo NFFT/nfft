@@ -13,6 +13,7 @@ transforms:
 
 2. Generalisations
     - to arbitrary nodes in time *and* frequency domain *(NNFFT)*
+    - to real-valued functions, with real samples and half the spectrum *(RNFFT)*
     - to real-valued data, i.e. (co)sine transforms, *(NFCT, NFST)*
     - to the sphere S^2 *(NFSFT)*
     - to the rotation group *(NFSOFT)*

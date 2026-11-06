@@ -13,6 +13,8 @@ public headers and for when to use each):
 
 - **NFFT** — nonequispaced FFT (forward + adjoint), the core module (`kernel/nfft`)
 - **NNFFT** — nonequispaced in both time *and* frequency (`kernel/nnfft`)
+- **RNFFT** — NFFT of real-valued functions: real samples, half spectrum,
+  its own plan type (`kernel/rnfft`); the c2r solver plan inverts it
 - **NFCT / NFST** — real-valued (co)sine transforms (`kernel/nfct`, `kernel/nfst`)
 - **NFSFT** — transform on the sphere S² (`kernel/nfsft`)
 - **NFSOFT** — transform on the rotation group SO(3) (`kernel/nfsoft`)
