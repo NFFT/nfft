@@ -792,43 +792,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
     return; \
   } \
  \
-  if (ths->flags & FG_PSI) \
-  { \
-    for (t = 0; t < ths->d; t++) \
-    { \
-      fg_e[t] = EXP(K(-1.0) / ths->b[t]); \
-      fg_q[t] = fg_e[t] * fg_e[t]; \
-    } \
- \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
-    { \
-      MACRO_init_uo_l_lj_t; \
- \
-      for (t = 0; t < ths->d; t++) \
-      { \
-        const INT fg_c = u[t] + ths->m; \
-        FG_RUN(fg_psi[t] + 1, ths->m, \
-            (PHI((2 * NN(ths->n[t])), \
-                 NX_SUB((2 * NN(ths->n[t])), ths->x[j*ths->d+t], fg_c) \
-                 / ((R)(2 * NN(ths->n[t]))), (t))), \
-            EXP(K(2.0) \
-                * NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], fg_c) \
-                / ths->b[t]), \
-            fg_e[t], fg_q[t]); \
-      } \
-  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_FG_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      } \
-    } \
-    return; \
-  } \
- \
   if (ths->flags & PRE_LIN_PSI) \
   { \
     for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
@@ -1264,7 +1227,7 @@ void X(init_guru)(X(plan) *ths, int d, int *N, int M_total, int *n, int m,
 
   ths->m = (INT)m;
 
-  ths->flags = flags;
+  ths->flags = WINDOW_FLAGS(flags);
   ths->fftw_flags = fftw_flags;
 
   init_help(ths);
@@ -1326,8 +1289,8 @@ const char* X(check)(X(plan) *ths)
     if (ths->sigma[j] <= 1)
       return "Oversampling factor too small";
 
-#ifdef WINDOW_IS_KAISER_BESSEL
-    if (!KB_POLY_SIGMA_OK(ths->sigma[j]))
+#ifdef WINDOW_SIGMA_OK
+    if (!WINDOW_SIGMA_OK(ths->sigma[j]))
       return "Oversampling factor outside [1.1, 4]";
 #endif
 

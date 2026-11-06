@@ -55,11 +55,12 @@ int main(void)
   CU_add_test(util, "kaiser_bessel_run", X(check_kaiser_bessel_run));
   CU_add_test(util, "kaiser_bessel_poly", X(check_kaiser_bessel_poly));
   CU_add_test(util, "kaiser_bessel_poly_trafo", X(check_kaiser_bessel_poly_trafo));
-  CU_add_test(util, "kaiser_bessel_poly_sigma", X(check_kaiser_bessel_poly_sigma));
+  CU_add_test(util, "window_sigma", X(check_window_sigma));
   CU_add_test(util, "kaiser_bessel_phi", X(check_kaiser_bessel_phi));
   CU_add_test(util, "log_sinc", X(check_log_sinc));
   CU_add_test(util, "log_sinc_exp", X(check_log_sinc_exp));
-  CU_add_test(util, "bspline_run", X(check_bspline_run));
+  CU_add_test(util, "bspline_poly_run", X(check_bspline_poly_run));
+  CU_add_test(util, "sincpow_poly_run", X(check_sincpow_poly_run));
   CU_add_test(util, "bspline_phi_hut_reference", X(check_bspline_phi_hut_reference));
   CU_add_test(util, "bspline_phi_reference", X(check_bspline_phi_reference));
   CU_add_test(util, "sincpow_phi_reference", X(check_sincpow_phi_reference));
