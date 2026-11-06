@@ -197,5 +197,6 @@ after the generator repair of 67177ec1) into `kernel/util/kbpoly_opt_data.h`. A
 plan copies a cell on an exact `(sigma, degree)` hit (0.4 ms) and solves from
 scratch otherwise (double, sigma 1.25 to 2.1, m 3 to 6: median 75 ms,
 max 277 ms). `OPT_WINDOW_RMS` is unchanged and never uses the table.
-Decisions: ADR-0005. Open: near-floor tolerance (13), 113-bit cells `m >= 12` (14), hut
-table rounding at the band edge (15), cell start and plan-time cost (16).
+Decisions: ADR-0005. Open: near-floor tolerance (13), 113-bit cells
+`m >= 12` (14), hut table rounding at the band edge (15), cell start and
+plan-time cost (16).

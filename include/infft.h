@@ -1906,9 +1906,9 @@ INT Y(kb_poly_table_rows)(const kb_poly_opt_row **rows);
  * table, no solve. Else cell is the one below: the solve starts from its
  * table padded with zero rows to deg, column 0 from coef, and adds its
  * points to the design, with the lower bound above->e / 1.05 when above
- * has the half degree of deg. RMS ignores cell
- * and above. Returns the hold-out maximum of the accepted table, -1 when
- * the plain table was kept. */
+ * has the half degree of deg. RMS ignores cell and above. Returns the
+ * hold-out maximum of the accepted table, -1 when the plain table was
+ * kept. */
 R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
     const INT deg, const int minimax, const kb_poly_opt_cell *cell,
     const kb_poly_opt_cell *above);

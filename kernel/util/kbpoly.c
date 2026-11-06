@@ -507,7 +507,7 @@ static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
             hg),
         (E)Y(kb_poly_phi_hut)(hut, K(0.0), K(0.0), K(0.0), K(1.0), (R)xi[i]));
 
-    if (!(den[i] > EK(0.0)))
+    if (!Y(e_finite)(den[i]) || !(den[i] > EK(0.0)))
       return EK(-1.0);
 
     for (q = 0; q < ntt; q++)
@@ -530,7 +530,7 @@ static E grid_max(const R *coef, const R *hut, const INT m, const INT h,
       rr[2 * row + 1] = im / den[i];
       e = E_SQRT(re * re + im * im) / den[i];
 
-      if (!(e <= EK(1E30)))
+      if (!Y(e_finite)(e) || !(e <= EK(1E30)))
         return EK(-1.0);
 
       mx = IF(e > mx, e, mx);
@@ -601,7 +601,7 @@ static void design_add(kb_design *d, const E xi, const E t, const E w,
   E *Tg = T + nk, *Bf = Tg + nk, *Gf = Bf + nu, *lo = Gf + 2 * nu;
   E *hi = lo + nc, *lg = hi + nc, *hg = lg + nc;
   E *gp = d->G + 2 * p * nr, *bp = d->B + p * nr;
-  E C, re, im;
+  E psi, re, im;
   INT c, k, j;
 
   A(p < d->cap);
@@ -638,8 +638,8 @@ static void design_add(kb_design *d, const E xi, const E t, const E w,
   }
 
   taps(lo, hi, d->coef, m, h, t);
-  C = psi_hat(d->coef, m, h, ej, eg, tg, wg, ng, lg, hg);
-  re = -C;
+  psi = psi_hat(d->coef, m, h, ej, eg, tg, wg, ng, lg, hg);
+  re = -psi;
   im = EK(0.0);
 
   for (c = 0; c < nc; c++)
@@ -654,7 +654,7 @@ static void design_add(kb_design *d, const E xi, const E t, const E w,
 
   d->gc[2 * p] = re;
   d->gc[2 * p + 1] = im;
-  d->bc[p] = C;
+  d->bc[p] = psi;
   d->npt++;
 
   Y(free)(ws);
@@ -684,10 +684,14 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
     gcn[2 * p + 1] = im;
     bcn[p] = den;
 
-    if (!(den > EK(0.0)))
+    if (!Y(e_finite)(den) || !(den > EK(0.0)))
       return EK(-1.0);
 
     r = E_SQRT(re * re + im * im) / den;
+
+    if (!Y(e_finite)(r))
+      return EK(-1.0);
+
     mx = IF(r > mx, r, mx);
   }
 
@@ -725,9 +729,9 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
  *
  * Exchange: after the driver the ADD largest local maxima of |E| on a fine
  * grid join the design, lo carried over, until the fine maximum is within
- * DELTA_X of hi, after ROUNDS rounds, or from round 1 on once hi is below
- * FLOOR eps_E, where the fine grid sees rounding noise. The round with the
- * smallest fine maximum wins.
+ * DELTA_X of hi, after ROUNDS rounds, or from round 1 on once the driver's
+ * returned ratio is below FLOOR eps_E, where the fine grid sees rounding
+ * noise. The round with the smallest fine maximum wins.
  *
  * Unknowns are the coefficients of T_k(2s), k <= 2h, of the m + 1 stencil
  * columns, so an odd deg gets row 2h too; column 0, outside the stencil,
@@ -1335,12 +1339,12 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
       E *ws = (E*) Y(malloc)((size_t)(nw + 3 * cap + nf
           + 2 * KB_POLY_CORR_ADD) * sizeof(E));
       E *y = ws + nw, *fw = y + 3 * cap, *wx = fw + nf;
-      E *wt = wx + KB_POLY_CORR_ADD, lo = EK(0.0), fbest = EK(-1.0), fine;
+      E *wt = wx + KB_POLY_CORR_ADD, lob = EK(0.0), fbest = EK(-1.0), fine;
       INT r, nloc = 0;
 
       /* A cell's exchange points keep their place in the band; the optimum
        * at the larger sigma above, at the same degree, is nearly a lower
-       * bound. The driver never lowers lo again. */
+       * bound. The driver never lowers lob again. */
       if (start != NULL)
       {
         for (p = 0; p < start->npts && p < KB_POLY_CORR_CELL; p++)
@@ -1348,7 +1352,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
               (E)start->pts[2 * p + 1] / EK(65535.0), EK(1.0), m, h, tg, wg,
               ng);
 
-        lo = IF(above != NULL && above->h == h, (E)above->e / EK(1.05),
+        lob = IF(above != NULL && above->h == h, (E)above->e / EK(1.05),
             EK(0.0));
       }
 
@@ -1360,7 +1364,7 @@ R Y(kb_poly_correct)(R *coef, R *hut, const R b, const INT m,
 
       for (r = 0; r < KB_POLY_CORR_ROUNDS; r++)
       {
-        mx = driver(&d, dtot, &lo, y, ws, KB_POLY_CORR_MAXIT);
+        mx = driver(&d, dtot, &lob, y, ws, KB_POLY_CORR_MAXIT);
         corrected(best, base, dtot, &d, nk, w, cheb, res, tp);
         fine = worst_points(best, m, h, ximax, tg, wg, ng, fw, wx, wt, &nloc);
 

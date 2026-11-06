@@ -1,4 +1,6 @@
 # Step 2 (double, build-double at 5b395d80), d = 1, N = 4096, m library.
+# compiler: CC = gcc (13.3.0), CFLAGS = -O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math
+# -march=native (build-double Makefile).
 # host: 10 cores, idle apart from one single-cell generator rerun (1 core); 11:40:11 up 1 day,  4:01,  0 user,  load average: 2.07, 1.95, 2.51
 # A. kbinit d N sigma m 7: nfft_init_guru with and without OPT_WINDOW, median and min of 7.
 # OPT_WINDOW uses the table only on exact hits (sigma 1.25, 1.5, 2); off-grid sigma (1.3, 1.6,
@@ -80,6 +82,8 @@ d=1 N=4096 sigma=2.1 m=6 OPT_WINDOW - plain: 81.60 ms
 # ms; off-grid also the cell-start path (below and above from Y(kb_poly_table)), not used by
 # Y(kb_poly_init) since 09373f17. At the cells: scratch only, against the shipped e.
 # From scratch over the 24 sigma: median of medians 74.7 ms, max 277 ms; off-grid 12: 73.4 ms, 194 ms.
+# Verdict: the brief's cell-start bound (at most half the from-scratch time) fails, ratios 0.88x
+# to 2.62x; accepted by the exact-only ruling.
 sigma=1.29980 m=3 deg=8 ok=1 scratch: median 33.56 min 31.07 max 33.99 ms, return 5.513e-06 hut 5.501e-06 exact 5.501e-06 | start below 1.250 above 1.500: median 52.95 min 51.92 max 55.11 ms (1.58x), return 5.516e-06 hut 5.504e-06
 sigma=1.29980 m=4 deg=8 ok=1 scratch: median 47.93 min 45.82 max 48.49 ms, return 1.611e-07 hut 1.625e-07 exact 1.625e-07 | start below 1.250 above 0.000: median 76.47 min 76.25 max 77.45 ms (1.60x), return 1.619e-07 hut 1.636e-07
 sigma=1.29980 m=5 deg=10 ok=1 scratch: median 98.93 min 96.97 max 102.58 ms, return 4.885e-09 hut 4.911e-09 exact 4.911e-09 | start below 1.250 above 1.500: median 147.55 min 146.85 max 153.21 ms (1.49x), return 4.894e-09 hut 4.925e-09

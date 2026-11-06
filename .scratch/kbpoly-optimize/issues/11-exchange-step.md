@@ -10,8 +10,8 @@ Part of: PRD addendum (2026-11-06). Depends on: issue 10. Background:
 After the driver, add the 40 largest local maxima of `|E|` on a `401 x 65`
 fine grid (each refined on an `11 x 11` patch) to the design and run the
 driver again, `lo` carried over, until the fine maximum is within 2 percent
-of `hi`, after 10 rounds, or from round 1 on once `hi < 500 eps_E`. Keep the
-round with the smallest fine maximum.
+of `hi`, after 10 rounds, or from round 1 on once the driver's returned
+ratio is below `500 eps_E`. Keep the round with the smallest fine maximum.
 
 ## Result
 
@@ -19,3 +19,11 @@ round with the smallest fine maximum.
 without the exchange). `kbpoly_exchange`: sigma 1.25, m 4, fine `J_inf`
 1.014x of the returned maximum. Double minimax `opt` rows within 1.02x of
 the Lawson rows or better, one floor row at 1.033x (150 eps).
+
+## Note on `lo`
+
+`lo` is a heuristic bound: a failed bisection step raises it also when the
+solver returned maxit, stalled or numerical. The generator's 0.5 percent
+gate is a certificate only when every raise came from an infeasible verdict
+or the dual check. At 200 bits with tol 1e-5 the other case is rare. The
+library's hold-out guards acceptance independently.

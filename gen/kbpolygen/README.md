@@ -104,10 +104,11 @@ design points as `(round(65535 xi / ximax), round(65535 t))`. The script
 re-evaluates `e` from the emitted 36 digits and stops if it moved by more
 than 0.1%. `--cell SIGMA M H` solves one cell and writes nothing, `--mmax M`
 writes a partial header with every `KB_POLY_OPT_MMAX` capped at `M`.
-The committed header is such a partial header, `--mmax 11` (104 cells, about 3 h
-with `-j 3`; `-j 5` runs out of memory on 8 GB): it covers float, double
-and 80-bit long double. The 113-bit cells `m = 12 .. 21` are not in it: an
-`m = 11` worker already needs 1.3 GB, and one `m = 21` cell takes hours. The
+The committed header is such a partial header, `--mmax 11` (104 cells, about
+3 h with `-j 3`): it covers float, double and 80-bit long double. Memory
+limits the jobs: a `-j 10` run exhausted the 7.8 GB host, `-j 5` ran out of
+memory with `m = 11` workers above 1.3 GB, `-j 3` works. The 113-bit cells
+`m = 12 .. 21` are not in it: one `m = 21` cell takes hours. The
 exchange adds 80 points per round, at most 40 rounds. The log gives per cell
 `sigma m h e nit seconds lo rounds`, `lo` the lower bound of the last design
 problem. The exchange stops at `e <= 1.005 lo`; a cell with `e > 1.005 lo`

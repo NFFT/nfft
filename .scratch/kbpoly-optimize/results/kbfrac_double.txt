@@ -1,4 +1,6 @@
 # kbfrac rows (double, build-double at 09373f17): Appendix A rows as given (odd deg not rounded), from scratch.
+# compiler: CC = gcc (13.3.0), CFLAGS = -O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math
+# -march=native (build-double Makefile).
 # Columns as below. host: 10 cores, generator on 3 of them; load 3.4 (08:48).
  sigma pm deg      ref e        hut  hut/e      exact   ex/e     return        ms
  1.125  2   8  1.987e-02  1.987e-02  1.000  1.987e-02  1.000  1.974e-02       8.9
@@ -94,7 +96,7 @@
 
 # Extra: from scratch (cell = NULL) at the shipped cells, n = sigma 4096, library degree, against the
 # shipped table e. kbfrac cell sigma m reps; ok = Y(kb_poly_correct_ok) (production only corrects ok = 1).
-# m 3..6: dropped here, they repeat the scratch-at-cells rows of kbinit_fracmm.txt section B.
+# m 3..6: dropped here, they repeat the scratch-at-cells rows of kbinit_fracmm.txt section B (5b395d80).
 sigma=1.25000 m=7 deg=12 ok=1 scratch: median 296.27 min 289.02 max 308.23 ms, return 2.591e-11 hut 2.526e-11 exact 1.761e-11 | table e 1.748e-11 scratch/e 1.445
 sigma=1.25000 m=8 deg=12 ok=1 scratch: median 923.04 min 911.26 max 927.71 ms, return 2.419e-11 hut 2.591e-11 exact 1.329e-12 | table e 8.166e-13 scratch/e 31.736
 sigma=1.25000 m=9 deg=14 ok=0 scratch: median 1514.96 min 1487.01 max 1538.77 ms, return -1.000e+00 hut 1.057e-11 exact 9.634e-12 | table e 2.265e-14 scratch/e 466.647

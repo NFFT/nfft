@@ -20,8 +20,9 @@ optimum: median 4 percent, worst 95 percent.
 The optimum depends on `(sigma, m, h)` only, not on `N`, `d`, the nodes or the
 format. From scratch it costs, in double, a median of 74.7 ms and at most
 277 ms on the `kbfrac` cell set (sigma 1.25 to 2.1, m 3 to 6) and 430 to
-473 ms on the Appendix A rows at sigma 1.125; in software binary128 5 to
-7 min per cell at the largest `m`.
+473 ms on the Appendix A rows at sigma 1.125. In software binary128 the
+trafo test did not finish its m 16 plan from scratch in 24 min, and one
+m 21 generator cell needs hours.
 
 ## Decision
 

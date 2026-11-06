@@ -741,7 +741,12 @@ def check(res):
     mono = np.array([arb(fmt(v)) for v in res["coef"]], dtype=object).reshape(
         cell.nk, cell.w
     )
-    _, best = cell.worst(mono)
+    fine, best = cell.worst(mono)
+    if fine is None:
+        raise SystemExit(
+            f"sigma={res['sigma']} m={res['m']}: psi_hat <= 0 on the fine grid"
+            " from the emitted digits"
+        )
     moved = abs(float(best[0][0] / res["e"]) - 1)
     if moved > 1e-3:
         raise SystemExit(

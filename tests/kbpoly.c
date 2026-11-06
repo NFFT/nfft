@@ -405,13 +405,24 @@ void X(check_kbpoly_table)(void)
     const kb_poly_opt_cell *c175 = table_cell(4, K(1.75));
     const kb_poly_opt_cell *c2 = table_cell(4, K(2.0));
     const kb_poly_opt_cell *c25 = table_cell(4, K(2.5));
-    const INT deg = 2 * c2->h, m = 4, n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+    const INT m = 4;
     const R b = KPI * K(1.5), reach = K(5.0);
     const R lg = Y(bessel_i0_logtail)(reach * b);
     const R bw[4] = {b, lg, K(1.0) / Y(bessel_i0_exp_scaled)(reach * b),
         EXP(-reach * b - lg)};
-    R *tab = Y(kb_poly_init)(bw, 1, m, reach, OPT_WINDOW), e0, e1;
-    int ok = IF((INT)tab[0] == deg, 1, 0);
+    INT deg, n;
+    R *tab, e0, e1;
+    int ok;
+
+    CU_ASSERT(c125 != NULL && c175 != NULL && c2 != NULL && c25 != NULL);
+
+    if (c125 == NULL || c175 == NULL || c2 == NULL || c25 == NULL)
+      return;
+
+    deg = 2 * c2->h;
+    n = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+    tab = Y(kb_poly_init)(bw, 1, m, reach, OPT_WINDOW);
+    ok = IF((INT)tab[0] == deg, 1, 0);
 
     for (i = 0; ok && i < n; i++)
       ok = IF(tab[1 + i] == c2->coef[i], ok, 0);
@@ -448,6 +459,8 @@ void X(check_kbpoly_table)(void)
    * degree (cells sorted by sigma, then h), and its hold-out maximum stays
    * near its e. The hold-out evaluates C from the hut table, whose rounding
    * is relative to C(0), hence the slack of the other tests. */
+  CU_ASSERT(nrows > 0);
+
   for (r = 0; r < nrows; r++)
     for (i = 0; i < rows[r].ncells; i++)
     {
