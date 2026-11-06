@@ -191,11 +191,11 @@ steps, bisection and an exchange step, in `E` with constants scaled by
 within 0.989x to 1.017x of the published optima in double.
 
 Shipped optima (issue 12): the optimum depends on `(sigma, m, h)` only, so
-`gen/kbpolygen/optima.py` solves the cells of the sigma set
-`{1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4}` in 200-bit arithmetic for `m <= 11`
-(104 cells) into `kernel/util/kbpoly_opt_data.h`. A plan copies a cell on
-an exact `(sigma, degree)` hit (0.4 ms) and solves from scratch otherwise
-(median 75 ms, max 277 ms in double). `OPT_WINDOW_RMS` is unchanged and
-never uses the table. Decisions: ADR-0005. Open: near-floor tolerance (13),
-113-bit cells `m >= 12` (14), hut table rounding at the band edge (15), cell
-start and plan-time cost (16).
+`gen/kbpolygen/optima.py` solves the cells of the sigma set `{1.1, 1.25, 1.5,
+1.75, 2, 2.5, 3, 4}` in 200-bit arithmetic for `m <= 11` (104 cells, regenerated
+after the generator repair of 67177ec1) into `kernel/util/kbpoly_opt_data.h`. A
+plan copies a cell on an exact `(sigma, degree)` hit (0.4 ms) and solves from
+scratch otherwise (double, sigma 1.25 to 2.1, m 3 to 6: median 75 ms,
+max 277 ms). `OPT_WINDOW_RMS` is unchanged and never uses the table.
+Decisions: ADR-0005. Open: near-floor tolerance (13), 113-bit cells `m >= 12` (14), hut
+table rounding at the band edge (15), cell start and plan-time cost (16).

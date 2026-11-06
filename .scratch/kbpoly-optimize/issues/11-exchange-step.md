@@ -10,7 +10,7 @@ Part of: PRD addendum (2026-11-06). Depends on: issue 10. Background:
 After the driver, add the 40 largest local maxima of `|E|` on a `401 x 65`
 fine grid (each refined on an `11 x 11` patch) to the design and run the
 driver again, `lo` carried over, until the fine maximum is within 2 percent
-of `hi`, after 10 rounds, or after two rounds below `500 eps_E`. Keep the
+of `hi`, after 10 rounds, or from round 1 on once `hi < 500 eps_E`. Keep the
 round with the smallest fine maximum.
 
 ## Result

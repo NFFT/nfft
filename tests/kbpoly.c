@@ -126,8 +126,7 @@ static const INT kb_n[] = {132, 150, 180, 210, 240, 300, 360, 480};
   #define KB_M_MAX 8
 #endif
 
-/* The 113-bit table ends at m 11; larger m solve from scratch in software
- * arithmetic. */
+/* The 113-bit table ends at m 11; larger m solve from scratch. */
 #if MANT_DIG > 64
   #define KB_OPT_M_MAX 11
 #else
@@ -216,7 +215,7 @@ void X(check_kaiser_bessel_poly_opt)(void)
   printf("KAISER-BESSEL POLYNOMIAL OPT\n----------------------------\n");
 
   for (s = 0; s < KB_NSIGMA; s++)
-    for (m = 2; m <= KB_M_MAX; m = kb_m_next(m))
+    for (m = 2; m <= KB_OPT_M_MAX; m = kb_m_next(m))
     for (minimax = 1; minimax >= 0; minimax--)
     {
       const R sigma = (R)kb_n[s] / (R)KB_N;

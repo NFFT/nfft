@@ -17,14 +17,15 @@ time, against the plan's target of 0.5x). Causes:
   sigma, so `lo` sits 4x to 5x below `hi` and round 0 runs a full bisection.
 - The start saves only 1 to 2 exchange rounds.
 
-Quality off the table: sigma 1.25, m 8 reached only 1.63x of the cell's `e`
-with the exact `psi_hat` (8.17e-13 against 1.33e-12).
+Quality from scratch: at sigma 1.25, m 8 the from-scratch result is
+1.33e-12 against the cell's `e` 8.17e-13 (1.63x, with the exact
+`psi_hat`).
 
-From scratch in double (host 10 cores, median of 7): `kbinit` OPT_WINDOW
-minus plain init, median 73.8 ms (29 to 188 ms); `kbfrac` cell set median
-74.7 ms, max 277 ms, against the plan's 60 ms median and 500 ms max. The IPM
-takes 75 to 80 percent of the time; round 0 spends 9 to 11 solves (2
-Dinkelbach steps plus a bisection from `hi / 4`).
+From scratch in double (host 10 cores, median of 7): `kbinit` OPT_WINDOW minus
+plain init, median 73.8 ms (29 to 188 ms); `kbfrac` cell set (sigma 1.25 to 2.1,
+m 3 to 6) median 74.7 ms, max 277 ms, against the plan's 60 ms median and 500 ms
+max. The IPM takes 75 to 80 percent of the time; round 0 spends 9 to 11 solves
+(2 Dinkelbach steps plus a bisection from `hi / 4`).
 
 ## Options
 

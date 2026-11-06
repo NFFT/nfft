@@ -989,15 +989,18 @@ cells. At `(2, 3)` and `(1.25, 4)` the edge moves 1.2x and the RMS 1.8x and
 floor, the hold-out keeps the plain table. The float suite passes with 22
 admitted cells, all better in its functional; without the hold-out it had
 two cells at error of order one (`(3, 5)`, `(4, 5)`) and one 5x worse
-(`(1.75, 5)`). The margin `KB_POLY_BR_LS` is keyed to `E`, so in float it
-admits every `m` the double table does; the hold-out does the real
-screening there, at 5 to 30 ms per rejected axis.
+(`(1.75, 5)`). The margin `KB_POLY_BR_LS` was keyed to `E` then, so in
+float it admitted every `m` the double table does and the hold-out did the
+real screening, at 5 to 30 ms per rejected axis. It is now keyed to `R`
+(section 19): the float build admits 12 of the 112 `opt` rows.
 
 **What the manuscript adds beyond this.** Its exchange method and cone
 solver certify the optimum. The IRLS here does not reach it in general:
-measured against the optimum, its gap is median 4 percent and worst 95
-percent over the test cases, and at sigma 1.5, library m 5, deg 8 it stops at
-6.7e-8 against 1.57e-8 (section 19). Its
+its gap to the optimum is median 4 percent and worst 95 percent over the
+test cases. It solves a problem with the denominator frozen at the current
+window; at sigma 1.5, library m 5, deg 8 the window that solves that
+problem has the true ratio 6.7e-8 against the optimum 1.57e-8, and keeping
+the best pass hides it (section 19). Its
 continuous variant (continuity at cell boundaries, `phi(1) = 0`) costs at
 most 35 percent and is not implemented. Its degree study (gain saturates at
 `p = m_man + 4 .. m_man + 5`) matches: at `(2, 3)` degrees 8, 10 and 12 all
@@ -1085,7 +1088,7 @@ Sections 16 and 18 describe the Lawson loop. It is replaced on this branch
 by a solver of the ratio problem and a table of solved windows; decisions in
 ADR-0005, open items in issues 13 to 16.
 
-**Why the loop went.** It froze the denominator `b_i c` at the current
+**Why the loop is replaced.** It froze the denominator `b_i c` at the current
 window and reweighted a least-squares fit. The frozen minimax is a different
 problem: on the final point set of sigma 1.5, library m 5, deg 8 its optimum
 is 2.66e-9, the window that attains it has the true ratio 6.7e-8, and the
@@ -1123,10 +1126,12 @@ off the table in the `E = R` builds (double 2e-13 to 2e-15, 64-bit 2e-16 to
 `sigma in {1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4}` in 200-bit ball arithmetic,
 one cell per library degree of each format, with an exchange of 80 points
 per round, up to 40 rounds, to `e <= 1.005 lo`. The committed header is the
-`--mmax 11` part: 104 cells, 10527 s wall at `-j 3`. One cell (sigma 3,
-m 11, h 8) failed the gap in that run, because the exchange stopped on a
-window with `psi_hat <= 0` off the design; the generator repair and a
-regeneration follow. The 113-bit cells `m = 12 .. 21` are not generated
+`--mmax 11` part, 104 cells. In the first full run (10527 s wall at
+`-j 3`) one cell, sigma 3, m 11, h 8, failed the gap: the exchange stopped
+on a window with `psi_hat <= 0` off the design. The generator was repaired
+in 67177ec1 (those frequencies join the design, the exchange restarts from
+the best window), and the header was regenerated with all 104 cells. The
+113-bit cells `m = 12 .. 21` are not generated
 (issue 14). `Y(kb_poly_init)` copies a cell on an exact `(sigma, h)` hit and
 solves from scratch otherwise. The nearest-below cell start was 0.87x to
 2.6x of the from-scratch time at equal quality (616 design points triple
@@ -1142,10 +1147,12 @@ beyond, the hut table's rounding at the band edge dominates (sigma 2, m 6:
 4.97x with the table, 1.39x with the exact `psi_hat`; issue 15), and sigma
 1.25, m 8 reaches 1.63x.
 
-**Plan time** (`kbinit.c`, `kbfrac.c`, double, d = 1, N = 4096, m 3 to 6,
-median of 7, 10-core host): exact hit 0.34 to 0.40 ms over plain init; from
-scratch median 74.7 ms, max 277 ms, against a plan estimate of 60 ms and
-500 ms. The IPM takes 75 to 80 percent; round 0 spends 9 to 11 solves.
+**Plan time** (`kbinit.c`, `kbfrac.c`, double, d = 1, N = 4096, m 3 to 6, median
+of 7, 10-core host): exact hit 0.34 to 0.40 ms over plain init. From scratch on
+the `kbfrac` cell set (sigma 1.25 to 2.1, m 3 to 6): median 74.7 ms, max 277 ms,
+against a plan estimate of 60 ms and 500 ms; the Appendix A rows at sigma 1.125
+take 430 to 473 ms. The IPM takes 75 to 80 percent; round 0 spends 9 to 11
+solves.
 
 **Test suite.**
 
@@ -1157,15 +1164,16 @@ scratch median 74.7 ms, max 277 ms, against a plan estimate of 60 ms and
 - Double: `make check` passes, 51 test cases, 2541 asserts; per mode 42
   `opt` rows optimized, 1 kept by the hold-out (sigma 1.1, m 9), 61
   guarded.
-- 113-bit long double (aarch64, software binary128): with the trafo test's
-  `OPT_WINDOW` cases capped at m 11 (the end of the 113-bit table),
-  `make check` still ran past 30 min in the `opt` test, which solves every
-  admitted cell from scratch up to m 21; it was stopped at sigma 1.1, m 12
-  with no failure (trafo, sigma, driver, exchange, table passed). A scratch
-  run of driver, exchange, table, socp3, qr and `opt` up to m 9: 0
-  failures, 251 asserts, 55 min; per mode 63 `opt` rows optimized, 1 kept.
-  Minimax rows against double where double is above 1e-12 (35 rows): median
-  1.000x, worst 1.021x (sigma 1.1, m 6: 2.558e-7 against 2.504e-7), the
-  only row above 1.01x; the 2 percent exchange gate allows this.
+- 113-bit long double (aarch64, software binary128): the trafo test's
+  `OPT_WINDOW` cases and the `opt` test stop at m 11, the end of the
+  113-bit table. `make check` still runs past 30 min: the `opt` test solves
+  each admitted cell from scratch, and it was stopped at sigma 1.25, m 9
+  with no failure (trafo, sigma, driver, exchange, table passed; 36 `opt`
+  rows OK). A scratch run of driver, exchange, table, socp3, qr and `opt`
+  up to m 9: 0 failures, 251 asserts, 55 min; per mode 63 `opt` rows
+  optimized, 1 kept. Minimax rows against double where double is above
+  1e-12 (35 rows): median 1.000x, worst 1.021x (sigma 1.1, m 6: 2.558e-7
+  against 2.504e-7), the only row above 1.01x; the 2 percent exchange gate
+  allows this.
 - 80-bit long double (x86-64, CI `build-linux` clang `--enable-long-double`):
   not yet run; the branch is not pushed.

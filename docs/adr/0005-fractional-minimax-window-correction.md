@@ -18,8 +18,10 @@ a true ratio of 6.7e-8, and the true optimum is 1.57e-8. Gap of the loop to the
 optimum: median 4 percent, worst 95 percent.
 
 The optimum depends on `(sigma, m, h)` only, not on `N`, `d`, the nodes or the
-format. From scratch it costs 30 to 280 ms in double and 5 to 7 min per cell in
-software binary128 at the largest `m`.
+format. From scratch it costs, in double, a median of 74.7 ms and at most
+277 ms on the `kbfrac` cell set (sigma 1.25 to 2.1, m 3 to 6) and 430 to
+473 ms on the Appendix A rows at sigma 1.125; in software binary128 5 to
+7 min per cell at the largest `m`.
 
 ## Decision
 
@@ -29,9 +31,11 @@ software binary128 at the largest `m`.
   brackets the optimum, and an exchange step adds the fine-grid maxima to the
   design.
 - **Constants are multiples of `E_EPSILON` or dimensionless.** No literal below
-  `1e-4` in the correction path or `socp3.c`. `E` is never assumed wider than
-  `R`: the double and long double builds run with `E = R` and are the test
-  matrix; the float build has `E = double`.
+  `1e-4` in the solver path of the correction or in `socp3.c`; the one exception
+  is the `1e-9` relative tolerance of the exact-hit match `same_sigma`, which
+  compares sigma values, not errors. `E` is never assumed wider than `R`: the
+  double and long double builds run with `E = R` and are the test matrix; the
+  float build has `E = double`.
 - **The guard is keyed to `R`.** `Y(kb_poly_correct_ok)` reads
   `KB_POLY_BR_LS_<MANT_DIG>`, so the float build optimizes only cells whose
   plain error is 100x above the float floor.
@@ -64,8 +68,8 @@ software binary128 at the largest `m`.
   and libm.
 - Gauss-Newton on the ratio: linear convergence, denominators change by order
   one along weak directions.
-- Dinkelbach alone from a far start: rows whose denominator cannot move pin the
-  subproblem; 2x to 190x off at sigma 1.0625.
+- Dinkelbach alone from a far start: the steps stall far above the optimum,
+  2x to 190x off at sigma 1.0625.
 - Weighted L2 ratio by a generalized eigenproblem: windows with sign-changing
   spectra.
 - Newton on `tau` from the dual slope: the same degeneracy as Dinkelbach.
@@ -82,8 +86,9 @@ software binary128 at the largest `m`.
 
 - Appendix A of the plan, 24 rows in double: 0.989x to 1.017x of the published
   optimum.
-- An exact hit costs 0.34 to 0.40 ms per axis in double. From scratch: median
-  74.7 ms, max 277 ms (`sigma >= 1.125`, `m <= 6`).
+- An exact hit costs 0.34 to 0.40 ms per axis in double. From scratch: see
+  Context; the median is 24 percent over the plan's 60 ms estimate
+  (issue 16).
 - The header is about 0.9 MB of source. It is regenerated, never hand-edited;
   the `--mmax 11 -j 3` run takes about 3 h on 3 cores.
 - The 113-bit cells `m >= 12` are missing (issue 14); 113-bit plans there solve

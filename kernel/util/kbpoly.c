@@ -717,17 +717,17 @@ static E design_ratio(const kb_design *d, const E *dtot, E *gcn, E *bcn)
  * largest level proven infeasible or left undecided. The model at the
  * current window scales the rows by 1 / (b_i c) and keeps the columns of a
  * pivoted QR with |R_kk| > TRUNC |R_00|; Y(socp3_solve) minimizes the slack
- * z of one cone per point at level tau. A Dinkelbach step solves at tau = hi and
- * accepts the window if its true ratio is below tau. After a step that
- * gains less than GAIN, bisection at sqrt(lo hi) (hi / 4 while lo = 0)
- * decides only the sign of z. Stop at hi <= (1 + DELTA) lo or after SOLVES
- * solves.
+ * z of one cone per point at level tau. A Dinkelbach step solves at
+ * tau = hi and accepts the window if its true ratio is below tau. After a
+ * step that gains less than GAIN, bisection at sqrt(lo hi) (hi / 4 while
+ * lo = 0) decides only the sign of z. Stop at hi <= (1 + DELTA) lo or after
+ * SOLVES solves.
  *
  * Exchange: after the driver the ADD largest local maxima of |E| on a fine
  * grid join the design, lo carried over, until the fine maximum is within
- * DELTA_X of hi, after ROUNDS rounds, or after two rounds below FLOOR eps_E,
- * where the fine grid sees rounding noise. The round with the smallest fine
- * maximum wins.
+ * DELTA_X of hi, after ROUNDS rounds, or from round 1 on once hi is below
+ * FLOOR eps_E, where the fine grid sees rounding noise. The round with the
+ * smallest fine maximum wins.
  *
  * Unknowns are the coefficients of T_k(2s), k <= 2h, of the m + 1 stencil
  * columns, so an odd deg gets row 2h too; column 0, outside the stencil,

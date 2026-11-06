@@ -20,9 +20,13 @@ Part of: PRD addendum (2026-11-06). Depends on: issues 10, 11. Background:
 
 ## Result
 
-- 104 cells for `m <= 11` (`--mmax 11 -j 3`, 10527 s). The 113-bit cells
+- 104 cells for `m <= 11` (`--mmax 11 -j 3`, 10527 s). In that run the cell
+  sigma 3, m 11, h 8 failed the exchange gap (a window with `psi_hat <= 0`
+  off the design ended the exchange); 67177ec1 repaired the generator and
+  the header was regenerated with all 104 cells. The 113-bit cells
   `m >= 12` are issue 14.
-- Exact hit 0.34 to 0.40 ms per axis in double. From scratch: median
-  74.7 ms, max 277 ms (issue 16).
+- Exact hit 0.34 to 0.40 ms per axis in double. From scratch, `kbfrac`
+  cell set (sigma 1.25 to 2.1, m 3 to 6): median 74.7 ms, max 277 ms; the
+  Appendix A rows at sigma 1.125: 430 to 473 ms (issue 16).
 - `kbpoly_table` asserts an exact hit at each format's own degree for every
   `(sigma, m <= KB_POLY_OPT_MMAX)`: double 72, float 24, 113-bit 88 cells.
