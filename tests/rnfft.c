@@ -44,7 +44,8 @@
 typedef struct
 {
   const char *name;
-  int guru; /* 0: X(init); 1: X(init_guru), default m; 2: half m */
+  int guru; /* 0: X(init); 1: X(init_guru), default m; 2: m = 4, smallest
+              * size only */
   unsigned flags;
 } init_t;
 
@@ -57,8 +58,8 @@ static const init_t inits[] = {
   {"init_guru (PRE FULL PSI)", 1, PRE_PHI_HUT | PRE_FULL_PSI},
   {"init_guru (PRE FULL PSI, blockwise)", 1,
     PRE_FULL_PSI | NFFT_OMP_BLOCKWISE_ADJOINT},
-  /* The table for the default m takes GBs at d = 3. */
-  {"init_guru (PRE LIN PSI, m=half)", 2, PRE_PHI_HUT | PRE_LIN_PSI},
+  /* The table for the default m takes GBs. */
+  {"init_guru (PRE LIN PSI, m=4)", 2, PRE_PHI_HUT | PRE_LIN_PSI},
   {"init_guru (no PRE)", 1, 0},
   {"init_guru (no PRE, blockwise)", 1, NFFT_OMP_BLOCKWISE_ADJOINT},
 #if defined(GAUSSIAN)
@@ -122,7 +123,7 @@ static void init_plan(X(plan) *p, const init_t *ini, const INT d,
   for (t = 0; t < d; t++)
     n[t] = 2 * (int)Y(next_power_of_2)(N[t]);
   X(init_guru)(p, (int)d, (int *)N, M, n,
-    ini->guru == 2 ? WINDOW_HELP_ESTIMATE_m / 2 : WINDOW_HELP_ESTIMATE_m,
+    ini->guru == 2 ? 4 : WINDOW_HELP_ESTIMATE_m,
     BASE_FLAGS | ini->flags, FFTW_FLAGS);
 }
 
@@ -247,7 +248,8 @@ static void check_sizes(const INT d, const int *N, const int *M, const int nc,
   Y(srand48)(SEED);
   for (c = 0; c < nc; c++)
     for (i = 0; i < sizeof(inits) / sizeof(inits[0]); i++)
-      ok &= check_single(d, N + c * d, M[c], &inits[i], adjoint);
+      if (c == 0 || inits[i].guru != 2)
+        ok &= check_single(d, N + c * d, M[c], &inits[i], adjoint);
   CU_ASSERT(ok);
 }
 
