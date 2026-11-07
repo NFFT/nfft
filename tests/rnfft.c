@@ -174,8 +174,8 @@ static int check_single(const INT d, const int *N, const int M,
 
   reason = X(check)(&p);
   for (t = 0; !reason && t < d; t++)
-    if (p.m >= p.N[t])
-      reason = "Cut-off m not below N";
+    if (p.N[t] <= p.m || p.n[t] <= 2 * p.m + 2)
+      reason = "Too small for the fast transform";
   if (reason)
   {
     printf(" -> OK   (%s)\n", reason);
