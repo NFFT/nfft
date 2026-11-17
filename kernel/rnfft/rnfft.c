@@ -1165,6 +1165,8 @@ static void init_help(X(plan) *ths)
     ths->psi_index_f = (INT*)Y(malloc)((size_t)ths->M_total * sizeof(INT));
     ths->psi_index_g = (INT*)Y(malloc)((size_t)(ths->M_total * lprod)
       * sizeof(INT));
+    /* in range before precompute_full_psi fills it */
+    memset(ths->psi_index_g, 0, (size_t)(ths->M_total * lprod) * sizeof(INT));
   }
 
   if (ths->flags & FFTW_INIT)
@@ -1192,8 +1194,10 @@ static void init_help(X(plan) *ths)
       for (t = 0; t < d; t++)
         _n[t] = (int)ths->n[t];
 
+      /* FFTW has no multi-dimensional c2r that preserves its input and
+       * returns NULL for FFTW_PRESERVE_INPUT, so drop it. */
       ths->my_fftw_plan1 = FFTW(plan_dft_c2r)((int)d, _n, ths->g_hat, ths->g,
-        ths->fftw_flags);
+        ths->fftw_flags & ~FFTW_PRESERVE_INPUT);
       ths->my_fftw_plan2 = FFTW(plan_dft_r2c)((int)d, _n, ths->g, ths->g_hat,
         ths->fftw_flags);
       Y(free)(_n);
@@ -1201,13 +1205,26 @@ static void init_help(X(plan) *ths)
 #if defined(_OPENMP) && defined(HAVE_FFTW_THREADS)
 }
 #endif
+    /* NULL e.g. for FFTW_WISDOM_ONLY without wisdom */
+    CK(ths->my_fftw_plan1 != NULL && ths->my_fftw_plan2 != NULL);
   }
 
   /* 2M for keys and node indices, plus 2M sort scratch when the transforms
    * sort */
   if (ths->flags & NFFT_SORT_NODES)
+  {
+    INT j;
+
     ths->index_x = (INT*)Y(malloc)(sizeof(INT) * ((ths->flags & PRE_NODE_PSI)
       ? 2U : 4U) * (size_t)ths->M_total);
+    /* With PRE_NODE_PSI only the precomputation sorts. Until it runs, the
+     * identity order with equal keys keeps every node index in range. */
+    for (j = 0; j < ths->M_total; j++)
+    {
+      ths->index_x[2 * j] = 0;
+      ths->index_x[2 * j + 1] = j;
+    }
+  }
   else
     ths->index_x = NULL;
 
