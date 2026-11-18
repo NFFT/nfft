@@ -14,6 +14,18 @@ List of files and purpose
   glacier_cv.m      cross validation test for the glacier reconstruction
   vol87.dat         data set, see http://www.math.nps.navy.mil/~rfranke/README
   
+Compiling
+
+  simple_test.c and glacier.c include nfft3mp.h, which selects the floating-
+  point precision from a preprocessor macro. The build system defines it. To
+  compile such a program yourself, define the macro that matches the installed
+  library, e.g. for double precision
+
+    gcc -DNFFT_PRECISION_DOUBLE simple_test.c -lnfft3 -lfftw3 -lm
+
+  or use NFFT_PRECISION_SINGLE with -lnfft3f -lfftw3f, or
+  NFFT_PRECISION_LONG_DOUBLE with -lnfft3l -lfftw3l.
+
 References
 
   Kunis, S. and Potts, D. Stability Results for Scattered Data Interpolation

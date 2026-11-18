@@ -224,7 +224,7 @@ cp ".libs/libnfft3$THREADSSUFFIX-$SOVERSION.def" "$DLLDIR/libnfft3$THREADSSUFFIX
 cp "$NFFTDIR"/include/nfft3.h "$DLLDIR"/nfft3.h
 cp "$NFFTDIR"/include/nfft3mp.h "$DLLDIR"/nfft3mp.h
 cp "$FFTWDIR"/api/fftw3.h "$DLLDIR"/fftw3.h
-cp examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
+cp "$NFFTDIR"/examples/nfft/simple_test.c "$DLLDIR"/simple_test.c
 echo 'This archive contains the NFFT' $NFFTVERSION 'library and the associated header files.
 The NFFT library was compiled with double precision support for' $ARCH'-bit Windows
 using GCC' $GCCVERSION $ARCHNAME'-w64-mingw32 with -march='$GCCARCH 'and FFTW' $FFTWVERSION'.
@@ -234,7 +234,12 @@ In order to link the .dll file from Visual C++, you should run
 
 As a small example, you can compile the NFFT simple test with the following command
 
-	gcc -O3 simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-'$SOVERSION'.dll
+	gcc -O3 -DNFFT_PRECISION_DOUBLE simple_test.c -o simple_test.exe -I. -L. libnfft3'$THREADSSUFFIX'-'$SOVERSION'.dll
+
+The header nfft3mp.h used by simple_test.c selects the floating-point precision
+from one of the macros NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or
+NFFT_PRECISION_LONG_DOUBLE. This DLL contains double precision only, so define
+NFFT_PRECISION_DOUBLE, as in the command above.
 '"$BINARIES_ARCH_README""$READMECONTENT""$FFTWREADME" > "$DLLDIR"/readme-windows.txt
 unix2dos "$DLLDIR"/readme-windows.txt
 cp "$NFFTDIR"/COPYING "$DLLDIR"/COPYING

@@ -10,6 +10,18 @@ radon - Fast discrete NFFT-based Radon transform
   transform.
 
 
+  Compiling:
+
+  radon.c and inverse_radon.c include nfft3mp.h, which selects the floating-
+  point precision from a preprocessor macro. The build system defines it. To
+  compile such a program yourself, define the macro that matches the installed
+  library, e.g. for double precision
+
+    gcc -DNFFT_PRECISION_DOUBLE radon.c -lnfft3 -lfftw3 -lm
+
+  or use NFFT_PRECISION_SINGLE with -lnfft3f -lfftw3f, or
+  NFFT_PRECISION_LONG_DOUBLE with -lnfft3l -lfftw3l.
+
   References:
 
   [1] M. Fenn. Fast Fourier Transform at Nonequispaced Nodes and Applications,

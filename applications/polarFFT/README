@@ -11,6 +11,19 @@ polarFFT
   Use the Matlab script file fft_test.m for a demonstration.
 
 
+  Compiling:
+
+  polar_fft_test.c, mpolar_fft_test.c and linogram_fft_test.c include
+  nfft3mp.h, which selects the floating-point precision from a preprocessor
+  macro. The build system defines it. To compile such a program yourself,
+  define the macro that matches the installed library, e.g. for double
+  precision
+
+    gcc -DNFFT_PRECISION_DOUBLE polar_fft_test.c -lnfft3 -lfftw3 -lm
+
+  or use NFFT_PRECISION_SINGLE with -lnfft3f -lfftw3f, or
+  NFFT_PRECISION_LONG_DOUBLE with -lnfft3l -lfftw3l.
+
   Reference:
 
  [1]  M. Fenn, S. Kunis, and D. Potts. On the computation of the polar FFT.
