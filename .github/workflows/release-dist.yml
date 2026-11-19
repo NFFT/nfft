@@ -1,7 +1,9 @@
 name: Release Dist
 
-# Builds and attests the distribution archive. Releases are immutable once
-# published, so the Release workflow attaches the archive before it publishes.
+# Builds, tests and attests the distribution archive. Releases are immutable
+# once published, so the Release workflow attaches the archive before it
+# publishes. Run it manually to check the archive without a release; manual
+# runs skip the attestation by default.
 on:
   workflow_call:
     inputs:
@@ -14,12 +16,34 @@ on:
         required: false
         type: string
         default: ""
+      attest:
+        description: "Attest the archive"
+        required: false
+        type: boolean
+        default: true
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit to build the archive from, default: the selected branch"
+        required: false
+        type: string
+        default: ""
+      version-type:
+        description: "Version suffix, e.g. -rc1, empty for the final release"
+        required: false
+        type: string
+        default: ""
+      attest:
+        description: "Attest the archive"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-dist-${{ inputs.ref }}
+  group: release-dist-${{ inputs.ref || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -31,7 +55,7 @@ jobs:
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       with:
-        ref: ${{ inputs.ref }}
+        ref: ${{ inputs.ref || github.sha }}
         persist-credentials: false
 
     - name: Set version type
@@ -49,8 +73,28 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libfftw3-dev libcunit1-dev doxygen doxygen-latex graphviz
 
+    # The archive ships the libtool of the machine that bootstraps it. Ubuntu's
+    # libtool 2.4.7 drops -Xpreprocessor when linking, which breaks Apple clang
+    # with OPENMP_CFLAGS="-Xpreprocessor -fopenmp -lomp". Bootstrap with
+    # Homebrew's autotools, as the macOS CI does. The runner image has Homebrew
+    # installed, but not on the PATH.
+    - name: Install autotools from Homebrew
+      env:
+        HOMEBREW_NO_ANALYTICS: "1"
+        HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      run: |
+        brew=/home/linuxbrew/.linuxbrew/bin/brew
+        "$brew" install autoconf automake libtool
+        echo "$("$brew" --prefix)/bin" >> "$GITHUB_PATH"
+
     - name: Bootstrap
-      run: ./bootstrap.sh
+      run: |
+        # autoreconf runs $LIBTOOLIZE, so it must not fall back to Ubuntu's.
+        LIBTOOLIZE=$(command -v glibtoolize || command -v libtoolize)
+        export LIBTOOLIZE
+        echo "Using $LIBTOOLIZE, $(command -v autoreconf)"
+        "$LIBTOOLIZE" --version | head -1
+        ./bootstrap.sh
 
     - name: Configure
       run: ./configure --enable-all
@@ -64,9 +108,48 @@ jobs:
         path: nfft-*.tar.gz
         if-no-files-found: error
 
+  # Build from the archive on macOS.
+  macos-from-archive:
+    needs: dist
+    runs-on: macos-26
+    name: "macos-from-archive"
+    permissions:
+      contents: read
+    env:
+      CC: clang
+      CPPFLAGS: "-I/opt/homebrew/opt/libomp/include -I/opt/homebrew/include"
+      LDFLAGS: "-L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/lib"
+      OPENMP_CFLAGS: "-Xpreprocessor -fopenmp -lomp"
+    steps:
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: dist
+
+    - name: Install dependencies
+      run: brew install fftw libomp cunit
+
+    - name: Unpack
+      run: |
+        tar -xzf nfft-*.tar.gz
+        rm nfft-*.tar.gz
+        mv nfft-*/ src
+
+    - name: Configure
+      working-directory: src
+      run: ./configure --enable-all --enable-openmp --enable-tests
+
+    - name: Build
+      working-directory: src
+      run: make -j"$(sysctl -n hw.ncpu)"
+
+    - name: Test
+      working-directory: src
+      run: make check
+
   # Signs the archive digest. Runs no build code.
   attest:
-    needs: dist
+    needs: [ dist, macos-from-archive ]
+    if: inputs.attest
     runs-on: ubuntu-latest
     name: "attest"
     permissions:
