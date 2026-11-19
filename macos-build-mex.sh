@@ -133,7 +133,7 @@ HOMEDIR="$NFFTDIR"/macos-build-mex
 mkdir -p "$HOMEDIR"
 cd "$HOMEDIR"
 GCCVERSION=`$GCC -dumpversion`
-FFTWVERSION=`fftw-wisdom | grep fftw- | gsed 's/(fftw-//' | gsed 's/ fftw_wisdom.*//'`
+FFTWVERSION=`"$FFTWDIR"/bin/fftw-wisdom | grep fftw- | gsed 's/(fftw-//' | gsed 's/ fftw_wisdom.*//'`
 OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n', version); exit;" | grep OCTAVE_VERSION | gsed 's/OCTAVE_VERSION=//'`
 
 # Build NFFT

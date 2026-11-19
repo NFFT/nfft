@@ -103,5 +103,4 @@ libkernel_threads_la_LIBADD = util/libutil_threads.la nfft/libnfft_threads.la $(
   $(LIB_NNFFT) $(LIB_NSFFT) $(LIB_MRI) $(LIB_FPT_THREADS) $(LIB_NFSFT_THREADS) $(LIB_NFSOFT_THREADS) \
   solver/libsolver.la
 libkernel_threads_la_CFLAGS = $(OPENMP_CFLAGS)
-libkernel_threads_la_LDLAGS = $(OPENMP_CFLAGS)
 endif
