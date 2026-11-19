@@ -16,6 +16,11 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+/* Precision-independent wrappers around nfft3.h. Define exactly one of
+ * NFFT_PRECISION_SINGLE, NFFT_PRECISION_DOUBLE or NFFT_PRECISION_LONG_DOUBLE
+ * before including this header.
+ */
+
 #ifndef __NFFT3MP_H__
 #define __NFFT3MP_H__
 

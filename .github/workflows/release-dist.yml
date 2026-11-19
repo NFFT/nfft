@@ -43,9 +43,6 @@ jobs:
         sed -i "s/^m4_define(\[nfft_version_type\], \[.*\])$/m4_define([nfft_version_type], [$VERSION_TYPE])/" configure.ac
         grep -qxF "m4_define([nfft_version_type], [$VERSION_TYPE])" configure.ac
 
-    - name: Disable initramfs update
-      run: sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
-
     - name: Disable man-db update
       run: sudo rm -f /var/lib/man-db/auto-update
 

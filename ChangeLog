@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Sync vendored m4 macros for compiler option tuning. (#282) @jenskeiner
 * Sum the log sinc table as four chains instead of one Horner pass. (#280) @jenskeiner
 * Fill the fast-Gaussian run with fixed trip counts to avoid breaking auto-vectorization. (#269) @jenskeiner
-* Drop autoconf .c.in templating (#277) @jenskeiner
+* Drop autoconf .c.in templating. Examples and applications that include `nfft3mp.h` no longer define the precision themselves; define `NFFT_PRECISION_SINGLE`, `NFFT_PRECISION_DOUBLE` or `NFFT_PRECISION_LONG_DOUBLE` when compiling them outside the build system. (#277) @jenskeiner
 * Blocked phase recurrence for the NFCT/NFST direct transforms, serial and OpenMP. (#275) @jenskeiner
 * Blocked phase recurrence for the nfft direct transforms in all dimensions, serial and OpenMP. (#273) @jenskeiner
 * Evaluate B-splines in the Chebyshev basis. (#265) @jenskeiner
