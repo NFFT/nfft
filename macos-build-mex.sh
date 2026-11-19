@@ -173,7 +173,7 @@ rm -f -r "$NFFTBUILDDIR"
 mkdir "$NFFTBUILDDIR"
 cd "$NFFTBUILDDIR"
 
-CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-applications
+CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-applications
 make
 make check
 
@@ -244,7 +244,7 @@ if [ -n "$MATLABDIR" ]; then
   MATLABSTRING="and Matlab $MATLABVERSION "
   cd "$NFFTBUILDDIR"
   make clean
-  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
+  CC=$GCC CPPFLAGS=-I"$FFTWDIR"/include LDFLAGS=-L"$FFTWDIR"/lib "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --disable-applications
   make
   make check
   for LIB in nfft nfsft nfsoft nnfft fastsum nfct nfst fpt

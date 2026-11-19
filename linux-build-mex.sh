@@ -218,7 +218,7 @@ cd "$NFFTBUILDDIR"
 
 LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
 CPPFLAGS="-I$FFTWDIR/api"
-CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-gcc-arch="$GCCARCH" --disable-static --enable-shared $(if [ -n "$OCTAVEDIR" ]; then echo "--with-octave=$OCTAVEDIR"; fi)
+CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-gcc-arch="$GCCARCH" --disable-static --enable-shared $(if [ -n "$OCTAVEDIR" ]; then echo "--with-octave=$OCTAVEDIR"; fi)
 make
 make check
 
@@ -266,7 +266,7 @@ if [ -n "$MATLABDIR" ]; then
   MATLABVERSION=`"$MATLABDIR"/bin/matlab -nodisplay -r "fprintf('MATLAB_VERSION=%s\n', version); exit;" | grep MATLAB_VERSION | sed 's/.*(//' | sed 's/)//'`
   cd "$NFFTBUILDDIR"
   make clean
-  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared --enable-exhaustive-unit-tests
+  CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-matlab="$MATLABDIR" --with-gcc-arch="$GCCARCH" --disable-static --enable-shared --enable-exhaustive-unit-tests
   make
   if [ $OMPYN = 1 ]; then
     cd matlab

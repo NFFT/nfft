@@ -208,7 +208,7 @@ cd "$NFFTBUILDDIR"
 
 
 # Compile with Octave
-"$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-exhaustive-unit-tests
+"$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-octave="$OCTAVEDIR" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-examples --enable-exhaustive-unit-tests
 make
 make check
 
@@ -282,7 +282,7 @@ if [ -n "$MATLABDIR" ]; then
     MATLABVERSION="`grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
   cd "$NFFTBUILDDIR"
-  "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
+  "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
   make
   if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
     make check
@@ -331,7 +331,7 @@ rm -f "$HOMEDIR/$MEXDIR".zip
 
 # Build applications
 cd "$NFFTBUILDDIR"
-CPPFLAGS="--static" LDFLAGS="--static" "$NFFTDIR/configure" --enable-all $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR-static"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-gcc-arch=$GCCARCH --enable-static --disable-shared --enable-exhaustive-unit-tests
+CPPFLAGS="--static" LDFLAGS="--static" "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR-static"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-gcc-arch=$GCCARCH --enable-static --disable-shared --enable-exhaustive-unit-tests
 make all check
 
 APPSDIR=nfft-"$NFFTVERSION"-applications-w$ARCH$OMPSUFFIX

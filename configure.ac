@@ -31,11 +31,12 @@ AC_CONFIG_SRCDIR([include/nfft3.h])
 
 # Version number for libtool shared libraries. Libtool wants a string
 # of the form CURRENT:REVISION:AGE.
-# NFFT 3.6.0 is 4:4:0 (implementation changes only, no API changes)
+# NFFT 3.7.0 is 4:5:0 (implementation changes only, no API changes)
+# NFFT 3.6.0 was 4:4:0 (implementation changes only, no API changes)
 # NFFT 3.5.3 was 4:3:0 (added nfft_set_num_threads)
 # NFFT 3.5.2 was 4:2:0
 # NFFT 3.5.2 was 4:1:0
-SHARED_VERSION_INFO="4:4:0"
+SHARED_VERSION_INFO="4:5:0"
 
 # Copyright notice.
 AC_COPYRIGHT([2003, 2025, Jens Keiner, Stefan Kunis, Daniel Potts])

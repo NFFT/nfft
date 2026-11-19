@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Build the CUnit test suite only when enabled with `--enable-tests` (CMake: `-DNFFT_ENABLE_TESTS=ON`). Without it, `make check` builds and runs no tests.
 * Mark the adjoint NFFT compute kernels' buffers `restrict`. (#302) @jenskeiner
 * Adjust B-spline order to match actual reach. (#309) @jenskeiner
 * Increase effective width of Kaiser-Bessel window to match stencil size. (#300) @jenskeiner
