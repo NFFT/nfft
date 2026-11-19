@@ -92,6 +92,12 @@ endif
 
 EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
 
+# CMake build, see docs/adr/0001-adopt-cmake-alongside-autotools.md.
+EXTRA_DIST += CMakeLists.txt cmake.config.h.in cmake \
+	applications/CMakeLists.txt benchmarks/CMakeLists.txt examples/CMakeLists.txt \
+	julia/CMakeLists.txt kernel/CMakeLists.txt matlab/CMakeLists.txt \
+	matlab/matlab-backend.cmake tests/CMakeLists.txt
+
 if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
 	cp -f nfft3.pc nfft3@PREC_SUFFIX@.pc
@@ -136,4 +142,4 @@ endif
 # Flags to be passed to aclocal.
 ACLOCAL_AMFLAGS = -I m4
 
-AM_DISTCHECK_CONFIGURE_FLAGS = --enable-all
+AM_DISTCHECK_CONFIGURE_FLAGS = --enable-all --enable-tests
