@@ -21,7 +21,7 @@
  * centre. Each cell is analytic: both branches of the window are even in the
  * radical and ra^2 is a polynomial in the offset, so the fit converges
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
- * its error, which would cap the fit. Y(kb_poly_run) and Y(kb_poly_phi) in
+ * its error, which would cap the fit. Y(cell_poly_run) and Y(cell_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
  * m + 1 mirrored columns. */
 
@@ -112,7 +112,7 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
 void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     const R reach, const INT m, const INT deg)
 {
-  const INT w = KB_POLY_COLS(m), n = KB_POLY_ROWS(deg), dg = n - 1;
+  const INT w = CELL_POLY_COLS(m), n = CELL_POLY_ROWS(deg), dg = n - 1;
   /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
   R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
   R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
@@ -142,7 +142,8 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
     {
       R v, mirror;
 
-      KB_POLY_HORNER(1, &v, &mirror, coef + l, w, KB_POLY_HALF(dg), node[k]);
+      CELL_POLY_HORNER(1, &v, &mirror, coef + l, w, CELL_POLY_HALF(dg),
+          node[k]);
       res[k * w + l] = val[k * w + l] - v;
     }
 
@@ -182,7 +183,7 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
     deg = IF(dt > deg, dt, deg);
   }
 
-  stride = KB_POLY_ROWS(deg) * KB_POLY_COLS(m);
+  stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
   tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
   tab[0] = (R)deg;
 
