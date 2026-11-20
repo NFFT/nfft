@@ -1453,24 +1453,24 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 15.398537660455618
+      "value": 15.403715730212708
     },
     "bound-digits": {
       "value": 14.400241596756153
     },
     "max-error": {
-      "value": 3.994499209457596e-16
+      "value": 3.9471558074202805e-16
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 15.388862266796194
+      "value": 15.428951769251613
     },
     "bound-digits": {
       "value": 14.400241596756153
     },
     "max-error": {
-      "value": 4.084489022681942e-16
+      "value": 3.724330646617988e-16
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
