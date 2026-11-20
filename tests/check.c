@@ -86,6 +86,8 @@ int main(void)
   CU_add_test(nfft, "nfft_adjoint_2d_fast_file", X(check_adjoint_2d_fast_file));
   CU_add_test(nfft, "nfft_2d_online", X(check_2d_online));
   CU_add_test(nfft, "nfft_adjoint_2d_online", X(check_adjoint_2d_online));
+  CU_add_test(nfft, "nfft_real_online", X(check_real_online));
+  CU_add_test(nfft, "nfft_adjoint_real_online", X(check_adjoint_real_online));
 
   CU_add_test(nfft, "nfft_3d_direct_file", X(check_3d_direct_file));
   CU_add_test(nfft, "nfft_3d_fast_file", X(check_3d_fast_file));
