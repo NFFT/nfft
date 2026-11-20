@@ -1486,13 +1486,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FG_PSI": {
     "accuracy-digits": {
-      "value": 15.557569327937
+      "value": 15.503964343113065
     },
     "bound-digits": {
       "value": 12.211811209909557
     },
     "max-error": {
-      "value": 2.7696868691345636e-16
+      "value": 3.1335429870854207e-16
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_FULL_PSI": {
@@ -1519,13 +1519,13 @@
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_PRE_PSI_m_half": {
     "accuracy-digits": {
-      "value": 8.163886005026765
+      "value": 8.163886005738055
     },
     "bound-digits": {
       "value": 5.84472155864763
     },
     "max-error": {
-      "value": 6.856681791614509e-09
+      "value": 6.8566817803845815e-09
     }
   },
   "nfft/omp/file/fast/adjoint/2d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
@@ -2157,35 +2157,35 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FG_PSI": {
     "accuracy-digits": {
-      "value": 13.491070899942338
+      "value": 13.493211986021503
     },
     "bound-digits": {
       "value": 12.203104319955813
     },
     "max-error": {
-      "value": 3.227967102896382e-14
+      "value": 3.212092282761552e-14
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_FULL_PSI": {
     "accuracy-digits": {
-      "value": 13.552981145094599
+      "value": 13.565529096958377
     },
     "bound-digits": {
       "value": 12.203104319955813
     },
     "max-error": {
-      "value": 2.7991028401137225e-14
+      "value": 2.719386285947698e-14
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI": {
     "accuracy-digits": {
-      "value": 13.571072121327456
+      "value": 13.564130520351592
     },
     "bound-digits": {
       "value": 12.203104319955813
     },
     "max-error": {
-      "value": 2.68489853963379e-14
+      "value": 2.7281577548392566e-14
     }
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_PRE_PSI_m_half": {
@@ -2201,13 +2201,13 @@
   },
   "nfft/omp/online/fast/adjoint/4d/init_guru_no_PRE_PHI_HUT_no_PRE_PSI": {
     "accuracy-digits": {
-      "value": 13.552981145094599
+      "value": 13.565529096958377
     },
     "bound-digits": {
       "value": 12.203104319955813
     },
     "max-error": {
-      "value": 2.7991028401137225e-14
+      "value": 2.719386285947698e-14
     }
   },
   "nfft/omp/online/fast/forward/1d/init": {
