@@ -76,6 +76,7 @@ jobs:
           cmake --build build-consumer -j
           # libnfft3 from the staging prefix; libfftw3 is already on the MINGW64 PATH.
           PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3.exe
+          PATH="$(pwd)/_install/bin:$PATH" ./build-consumer/use_nfft3_nocomplex.exe
 
   windows-ok:  # Single required status check: all jobs above must succeed.
     name: windows-ok
