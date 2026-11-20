@@ -23,12 +23,13 @@
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(cell_poly_run) and Y(cell_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
- * m + 1 mirrored columns. Y(bspline_poly_init) builds the B-spline table
- * the same way. */
+ * m + 1 mirrored columns. Y(bspline_poly_init) and Y(sincpow_poly_init)
+ * build the B-spline and sinc-power tables the same way. */
 
 #include "nfft3.h"
 #include "infft.h"
 #include "kbpoly_data.h"
+#include "sincpowpoly_data.h"
 
 /* Chebyshev coefficients of the values in val, into dst, one column per cell.
  * dst[0] comes out already halved, so the series is sum_j dst[j] T_j. */
@@ -253,6 +254,65 @@ R *Y(bspline_poly_init)(const INT m)
 
   tab[0] = (R)deg;
   fit(tab + 1, m, deg, bs_sample, &c);
+
+  return tab;
+}
+
+struct sp_ctx { R w, m; };
+
+static R sp_sample(const void *ctx, const R x)
+{
+  const struct sp_ctx *c = (const struct sp_ctx*) ctx;
+
+  return Y(sincpow_phi)(c->w, c->m, KPI * c->w * x);
+}
+
+INT Y(sincpow_poly_degree)(const R w, const INT m)
+{
+  const R sigma = K(1.0) / (K(2.0) - K(2.0) * (R)m * w);
+  /* The degree does not rise with m past the last row. */
+  INT mt = IF(m < SP_POLY_TAB_MMAX, m, SP_POLY_TAB_MMAX), deg, k;
+
+  mt = IF(mt > 1, mt, 1);
+  deg = sp_poly_tab_deg0[mt];
+
+  /* Thresholds are rounded down. */
+  for (k = sp_poly_tab_off[mt]; k < sp_poly_tab_off[mt + 1]; k++)
+    deg += IF(sigma >= K(1E-4) * (R)sp_poly_tab_brk[k], 1, 0);
+
+  return deg;
+}
+
+/* The window is entire, so the fit converges geometrically. A fit in working
+ * precision carries 2 to 4 eps of sampling noise and cannot certify a cut, so
+ * the degree comes from the exact tails in the generated table. */
+R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m)
+{
+  INT deg = 0, stride, t;
+  R *tab;
+
+  for (t = 0; t < d; t++)
+  {
+    const INT dt = Y(sincpow_poly_degree)(w[t], m);
+
+    deg = IF(dt > deg, dt, deg);
+  }
+
+  stride = CELL_POLY_ROWS(deg) * CELL_POLY_COLS(m);
+  tab = (R*) Y(malloc)((size_t)(1 + stride * d) * sizeof(R));
+  tab[0] = (R)deg;
+
+  for (t = 0; t < d; t++)
+  {
+    const INT s = first_alike(w, t);
+    const struct sp_ctx c = {w[t], (R)m};
+
+    if (s == t)
+      fit(tab + 1 + t * stride, m, deg, sp_sample, &c);
+    else
+      memcpy(tab + 1 + t * stride, tab + 1 + s * stride,
+          (size_t)stride * sizeof(R));
+  }
 
   return tab;
 }
