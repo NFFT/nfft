@@ -6,13 +6,14 @@
 # The Matlab path should not contain spaces!
 # 
 # Example call:
-# ./nfft-build-dll.sh --fftw=3.3.10 --octave=6.4.0 --matlab=/c/path/to/matlab
+# ./nfft-build-dll.sh --fftw=3.3.11 --octave=11.1.0 --matlab=/c/path/to/matlab
 # 
 # WARNING: This script downloads and compiles FFTW and downloads GCC, Julia and Octave (requires ~ 3GB).
 # 
 # Optional flags: --arch=64 (default) or 32 (swich wheater to build 64 or 32 bit binaries)
 # To build for 32 bit you should use MinGW-w64 Win32 Shell.
 # --gcc-arch (Flag for gcc --march=)
+# --without-threads (also build the library without OpenMP)
 
 # Any subsequent commands which fail will cause the shell script to exit immediately
 set -ex
@@ -23,7 +24,7 @@ set -ex
 
 
 # default values (to be overwritten if respective parameters are set)
-FFTWVERSION=3.3.10
+FFTWVERSION=3.3.11
 OCTAVEVERSION=11.1.0
 MATLABVERSION=""
 ARCH=64
@@ -37,7 +38,7 @@ SOVERSION=4
 OMP_ONLY=
 
 # read the options
-TEMP=`getopt -o o:m:f:a:g:v:s: --long octave:,matlab:,fftw:,arch:,gcc-arch:,matlab-version:,without-threads: -n 'nfft-build-dll.sh' -- "$@"`
+TEMP=`getopt -o o:m:f:a:g:v:s --long octave:,matlab:,fftw:,arch:,gcc-arch:,matlab-version:,without-threads -n 'nfft-build-dll.sh' -- "$@"`
 eval set -- "$TEMP"
 
 # extract options and their arguments into variables.
@@ -74,7 +75,7 @@ while true ; do
                 *) MATLABVERSION="$2"; shift 2 ;;
             esac ;;
         -s|--without-threads)
-            OMP_ONLY=0; shift 2 ;;
+            OMP_ONLY=0; shift ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -97,7 +98,7 @@ else
 fi
 
 # Install required packages
-pacman -S --needed autoconf perl libtool automake mingw-w64-$ARCHNAME-gcc make mingw-w64-$ARCHNAME-cunit tar zip unzip wget dos2unix rsync p7zip
+pacman -S --needed --noconfirm autoconf perl libtool automake mingw-w64-$ARCHNAME-gcc make mingw-w64-$ARCHNAME-cunit tar zip unzip wget dos2unix rsync p7zip
 
 NFFTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOMEDIR="$(pwd)"/windows-build-dll-$ARCHNAME
@@ -106,16 +107,30 @@ cd "$HOMEDIR"
 FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
 GCCVERSION=$(gcc -dumpversion)
 
+# SHA-256 of the FFTW release archives. Add a line when using another version.
+fftw_sha256() {
+  case "$1" in
+    3.3.10) echo 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467 ;;
+    3.3.11) echo 5630c24cdeb33b131612f7eb4b1a9934234754f9f388ff8617458d0be6f239a1 ;;
+  esac
+}
+FFTWSHA256=$(fftw_sha256 "$FFTWVERSION")
+if [ -z "$FFTWSHA256" ]; then
+  echo "No checksum known for FFTW $FFTWVERSION, add it to fftw_sha256." >&2
+  exit 1
+fi
+FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --enable-avx2 --with-incoming-stack-boundary=2 --disable-fortran"
+
 # Build FFTW
 if [ ! -f "$FFTWDIR/build-success" ]; then
   rm -rf "$FFTWDIR"
-  wget "http://fftw.org/fftw-$FFTWVERSION.tar.gz"
+  wget "https://www.fftw.org/fftw-$FFTWVERSION.tar.gz"
+  echo "$FFTWSHA256  fftw-$FFTWVERSION.tar.gz" | sha256sum -c -
   tar -zxf "fftw-$FFTWVERSION.tar.gz"
   rm "fftw-$FFTWVERSION.tar.gz"
   cd "$FFTWDIR"
 
   mkdir build build-static build-threads build-threads-static
-  FFTWFLAGS="--with-pic --with-our-malloc16 --enable-sse2 --enable-avx --enable-avx2 --with-incoming-stack-boundary=2 --disable-fortran"
 
   cd build-threads
   ../configure $FFTWFLAGS --with-windows-f77-mangling --enable-shared --enable-threads --with-combined-threads
@@ -282,7 +297,7 @@ if [ -n "$MATLABDIR" ]; then
     MATLABVERSION="`grep MATLAB_VERSION matlab_version.txt | sed 's/.*(//' | sed 's/)//'`"
   fi
   cd "$NFFTBUILDDIR"
-  "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" "$MATLABARCHFLAG" --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
+  "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-fftw3-libdir="$FFTWBUILDDIR"/.libs --with-fftw3-includedir="$FFTWDIR"/api --with-matlab="$MATLABDIR" ${MATLABARCHFLAG:+"$MATLABARCHFLAG"} --with-gcc-arch=$GCCARCH --disable-static --enable-shared --disable-applications --disable-examples --enable-exhaustive-unit-tests
   make
   if [ -f "$MATLABDIR"/bin/matlab.exe ]; then
     make check

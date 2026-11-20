@@ -31,7 +31,7 @@ set -ex
 exec > >(tee linux-build-mex.log)
 exec 2>&1
 
-FFTWVERSION=3.3.10
+FFTWVERSION=3.3.11
 GCCVERSION=13.4.0
 GCCARCH=haswell
 BINARIES_ARCH_README='
@@ -66,6 +66,11 @@ while true ; do
                 "")  shift 2 ;;
                 *) MATLABDIR=$2; shift 2 ;;
             esac ;;
+        -f|--fftw)
+            case "$2" in
+                "")  shift 2 ;;
+                *) FFTWVERSION=$2; shift 2 ;;
+            esac ;;
         --) shift ; break ;;
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -76,7 +81,22 @@ HOMEDIR=$(pwd)/linux-build-mex
 mkdir -p "$HOMEDIR"
 cd "$HOMEDIR"
 #GCCVERSION=$(gcc -dumpfullversion)
-OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n', version); exit;" | grep OCTAVE_VERSION | sed 's/OCTAVE_VERSION=//'`
+if [ -n "$OCTAVEDIR" ]; then
+  OCTAVEVERSION=`"$OCTAVEDIR"/bin/octave-cli --eval "fprintf('OCTAVE_VERSION=%s\n', version); exit;" | grep OCTAVE_VERSION | sed 's/OCTAVE_VERSION=//'`
+fi
+
+# SHA-256 of the FFTW release archives. Add a line when using another version.
+fftw_sha256() {
+  case "$1" in
+    3.3.10) echo 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467 ;;
+    3.3.11) echo 5630c24cdeb33b131612f7eb4b1a9934234754f9f388ff8617458d0be6f239a1 ;;
+  esac
+}
+FFTWSHA256=$(fftw_sha256 "$FFTWVERSION")
+if [ -z "$FFTWSHA256" ]; then
+  echo "No checksum known for FFTW $FFTWVERSION, add it to fftw_sha256." >&2
+  exit 1
+fi
 
 
 MPFRBUILDDIR=$HOMEDIR/mpfr-$MPFRVERSION
@@ -85,7 +105,7 @@ MPFRINSTALLDIR=$HOMEDIR/mpfr-$MPFRVERSION-install
 if [ ! -f "$MPFRINSTALLDIR/build-success" ]; then
   rm -rf "$MPFRBUILDDIR"
   rm -rf "$MPFRINSTALLDIR"
-  curl "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVERSION.tar.gz" --output "mpfr-$MPFRVERSION.tar.gz"
+  curl -fL "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFRVERSION.tar.gz" --output "mpfr-$MPFRVERSION.tar.gz"
   tar -zxf "mpfr-$MPFRVERSION.tar.gz"
   rm "mpfr-$MPFRVERSION.tar.gz"
   cd $MPFRBUILDDIR
@@ -102,7 +122,7 @@ MPCINSTALLDIR=$HOMEDIR/mpc-$MPCVERSION-install
 if [ ! -f "$MPCINSTALLDIR/build-success" ]; then
   rm -rf "$MPCBUILDDIR"
   rm -rf "$MPCINSTALLDIR"
-  curl "https://ftp.gnu.org/gnu/mpc/mpc-$MPCVERSION.tar.gz" --output "mpc-$MPCVERSION.tar.gz"
+  curl -fL "https://ftp.gnu.org/gnu/mpc/mpc-$MPCVERSION.tar.gz" --output "mpc-$MPCVERSION.tar.gz"
   tar -zxf "mpc-$MPCVERSION.tar.gz"
   rm "mpc-$MPCVERSION.tar.gz"
   cd $MPCBUILDDIR
@@ -119,9 +139,9 @@ GMPINSTALLDIR=$HOMEDIR/gmp-$GMPVERSION-install
 if [ ! -f "$GMPINSTALLDIR/build-success" ]; then
   rm -rf "$GMPBUILDDIR"
   rm -rf "$GMPINSTALLDIR"
-  curl "https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.gz" --output "gmp-$GMPVERSION.tar.xz"
-  tar -zxf "gmp-$GMPVERSION.tar.xz"
-  rm "gmp-$GMPVERSION.tar.xz"
+  curl -fL "https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.gz" --output "gmp-$GMPVERSION.tar.gz"
+  tar -zxf "gmp-$GMPVERSION.tar.gz"
+  rm "gmp-$GMPVERSION.tar.gz"
   cd $GMPBUILDDIR
   ./configure --prefix="$GMPINSTALLDIR" --with-mpfr="$MPFRINSTALLDIR"
   make -j4
@@ -138,7 +158,7 @@ GCCINSTALLDIR="$HOMEDIR/gcc-$GCCVERSION-install"
 if [ ! -f "$GCCINSTALLDIR/build-success" ]; then
   rm -rf "$GCCBUILDDIR"
   rm -rf "$GCCINSTALLDIR"
-  curl "https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.gz" --output "gcc-$GCCVERSION.tar.gz"
+  curl -fL "https://ftp.gnu.org/gnu/gcc/gcc-$GCCVERSION/gcc-$GCCVERSION.tar.gz" --output "gcc-$GCCVERSION.tar.gz"
   tar -zxf "gcc-$GCCVERSION.tar.gz"
   rm "gcc-$GCCVERSION.tar.gz"
   cd $GCCBUILDDIR
@@ -154,7 +174,8 @@ FFTWDIR=$HOMEDIR/fftw-$FFTWVERSION
 # Build FFTW
 if [ ! -f "$FFTWDIR/build-success" ]; then
   rm -rf "$FFTWDIR"
-  curl "http://fftw.org/fftw-$FFTWVERSION.tar.gz" --output "fftw-$FFTWVERSION.tar.gz"
+  curl -fL "https://www.fftw.org/fftw-$FFTWVERSION.tar.gz" --output "fftw-$FFTWVERSION.tar.gz"
+  echo "$FFTWSHA256  fftw-$FFTWVERSION.tar.gz" | sha256sum -c -
   tar -zxf "fftw-$FFTWVERSION.tar.gz"
   rm "fftw-$FFTWVERSION.tar.gz"
   cd "$FFTWDIR"
@@ -173,7 +194,7 @@ if [ ! -f $JULIA_BIN ]; then
   rm -f -r julia
   mkdir julia
   cd julia
-  curl "$JULIA_URL" --output "$JULIA_ARCHIVE"
+  curl -fL "$JULIA_URL" --output "$JULIA_ARCHIVE"
   tar xzf $JULIA_ARCHIVE
 fi
 
@@ -216,8 +237,9 @@ rm -f -r "$NFFTBUILDDIR"
 mkdir "$NFFTBUILDDIR"
 cd "$NFFTBUILDDIR"
 
-LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
-CPPFLAGS="-I$FFTWDIR/api"
+# Exported so that configure, also the second one for Matlab, uses the FFTW built above.
+export LDFLAGS="-L$FFTWDIR/build/threads/.libs -L$FFTWDIR/build/.libs"
+export CPPFLAGS="-I$FFTWDIR/api"
 CC="$GCCINSTALLDIR/bin/gcc-$GCCVERSION" "$NFFTDIR/configure" --enable-all --enable-tests $OMPFLAG --with-gcc-arch="$GCCARCH" --disable-static --enable-shared $(if [ -n "$OCTAVEDIR" ]; then echo "--with-octave=$OCTAVEDIR"; fi)
 make
 make check
