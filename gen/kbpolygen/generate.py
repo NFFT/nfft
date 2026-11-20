@@ -90,7 +90,7 @@ def degrees(sigma, m):
         return b / mp.pi
 
     env = [mp.mpf(0)] * NC
-    # The 2m + 4 cells with |nu| < m + 2; KB_POLY_COLS(m) keeps the m + 2
+    # The 2m + 4 cells with |nu| < m + 2; CELL_POLY_COLS(m) keeps the m + 2
     # of them with nu >= 0, the window being even.
     for a in range(-(m + 2), m + 2):
         v = [phi(a + t) for t in _X]
