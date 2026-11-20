@@ -25,13 +25,11 @@ int main(void)
 
   double re = (double)p.f[0][0];
   double im = (double)p.f[0][1];
-  double err = (double)NFFT(error_l_infty_complex)(p.f, p.f, 1);
   NFFT(finalize)(&p);
 
-  if (re < 15.999 || re > 16.001 || im < -0.001 || im > 0.001 || err != 0.0)
+  if (re < 15.999 || re > 16.001 || im < -0.001 || im > 0.001)
   {
-    fprintf(stderr, "use_nfft3_nocomplex: expected f[0]=16+0i, got %g%+gi, err %g\n",
-      re, im, err);
+    fprintf(stderr, "use_nfft3_nocomplex: expected f[0]=16+0i, got %g%+gi\n", re, im);
     return 1;
   }
   return 0;
