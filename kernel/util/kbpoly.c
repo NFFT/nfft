@@ -23,7 +23,8 @@
  * geometrically. The fit samples Y(kb_phi); a plain sinh(b ra)/ra has 20 times
  * its error, which would cap the fit. Y(cell_poly_run) and Y(cell_poly_phi) in
  * infft.h evaluate the tables, a run of 2m + 2 taps by Horner in s^2 over
- * m + 1 mirrored columns. */
+ * m + 1 mirrored columns. Y(bspline_poly_init) builds the B-spline table
+ * the same way. */
 
 #include "nfft3.h"
 #include "infft.h"
@@ -109,14 +110,14 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   return IF(deg > KB_POLY_DEG_MAX, KB_POLY_DEG_MAX, deg);
 }
 
-void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
-    const R reach, const INT m, const INT deg)
+typedef R (*sampler)(const void *ctx, R x);
+
+/* Samples phi at deg + 1 Chebyshev nodes per cell into val and fits cheb,
+ * both n by w; fit reuses val, node and cm for its refinement step. */
+static void cheb_fit(R *cheb, R *node, R *cm, R *val, const INT m,
+    const INT deg, sampler phi, const void *ctx)
 {
-  const INT w = CELL_POLY_COLS(m), n = CELL_POLY_ROWS(deg), dg = n - 1;
-  /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
-  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
-  R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
-  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n;
+  const INT w = CELL_POLY_COLS(m), n = deg + 1;
   INT j, k, l;
 
   for (k = 0; k < n; k++)
@@ -128,10 +129,22 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
 
   for (k = 0; k < n; k++)
     for (l = 0; l < w; l++)
-      val[k * w + l] = Y(kb_phi)(b, lg_tail, peak_inv, reach,
-          ((R)(m + 1 - l) + K(0.5)) + node[k]);
+      val[k * w + l] = phi(ctx, ((R)(m + 1 - l) + K(0.5)) + node[k]);
 
-  cheb_of(cheb, val, cm, w, dg);
+  cheb_of(cheb, val, cm, w, deg);
+}
+
+static void fit(R *coef, const INT m, const INT deg, sampler phi,
+    const void *ctx)
+{
+  const INT w = CELL_POLY_COLS(m), n = CELL_POLY_ROWS(deg), dg = n - 1;
+  /* val, cheb, res are n by w; cm and tp are n by n; node is n. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * n * w + 2 * n * n + n) * sizeof(R));
+  R *val = mem, *cheb = val + n * w, *res = cheb + n * w;
+  R *cm = res + n * w, *tp = cm + n * n, *node = tp + n * n;
+  INT j, k, l;
+
+  cheb_fit(cheb, node, cm, val, m, dg, phi, ctx);
   cheb_to_monomial(coef, cheb, tp, w, dg);
 
   /* One refinement step absorbs the rounding of the fit and of the monomial
@@ -155,6 +168,23 @@ void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
       coef[j * w + l] += res[j * w + l];
 
   Y(free)(mem);
+}
+
+struct kb_ctx { R b, lg_tail, peak_inv, reach; };
+
+static R kb_sample(const void *ctx, const R x)
+{
+  const struct kb_ctx *c = (const struct kb_ctx*) ctx;
+
+  return Y(kb_phi)(c->b, c->lg_tail, c->peak_inv, c->reach, x);
+}
+
+void Y(kb_poly_fit)(R *coef, const R b, const R lg_tail, const R peak_inv,
+    const R reach, const INT m, const INT deg)
+{
+  const struct kb_ctx c = {b, lg_tail, peak_inv, reach};
+
+  fit(coef, m, deg, kb_sample, &c);
 }
 
 /* The first axis with the same b as axis t, t itself if none. The other
@@ -198,6 +228,48 @@ R *Y(kb_poly_init)(const R *b, const INT d, const INT m, const R reach)
       memcpy(tab + 1 + t * stride, tab + 1 + s * stride,
           (size_t)stride * sizeof(R));
   }
+
+  return tab;
+}
+
+struct bs_ctx { INT k; };
+
+static R bs_sample(const void *ctx, const R x)
+{
+  const INT k = ((const struct bs_ctx*) ctx)->k;
+
+  return Y(bsplines)(k, x + (R)k / K(2.0));
+}
+
+/* The pieces have degree k-1, so k Chebyshev nodes fit them exactly. The
+ * sampled coefficients carry about 2 eps of noise, too much to read an eps/2
+ * cut from, so the series is cut at the fixed BS_POLY_DEG_MAX. */
+R *Y(bspline_poly_init)(const INT m)
+{
+  const INT k = 2 * m + 2, w = CELL_POLY_COLS(m), n = k, dg = k - 1;
+  const INT deg = IF(k < BS_POLY_DEG_MAX, k, BS_POLY_DEG_MAX);
+  const struct bs_ctx c = {k};
+  /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
+  R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
+      + (n + 1) * (n + 1) + n) * sizeof(R));
+  R *val = mem, *cheb = val + n * w, *coef = cheb + (n + 1) * w;
+  R *cm = coef + (n + 1) * w, *tp = cm + n * n, *node = tp + (n + 1) * (n + 1);
+  R *tab;
+  INT l;
+
+  cheb_fit(cheb, node, cm, val, m, dg, bs_sample, &c);
+
+  /* k - 1 is odd, so an uncut series is raised to k, whose row is zero. */
+  for (l = 0; l < w; l++)
+    cheb[n * w + l] = K(0.0);
+
+  cheb_to_monomial(coef, cheb, tp, w, deg);
+
+  tab = (R*) Y(malloc)((size_t)(1 + CELL_POLY_ROWS(deg) * w) * sizeof(R));
+  tab[0] = (R)deg;
+  memcpy(tab + 1, coef, (size_t)(CELL_POLY_ROWS(deg) * w) * sizeof(R));
+
+  Y(free)(mem);
 
   return tab;
 }
