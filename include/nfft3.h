@@ -533,16 +533,16 @@ typedef struct\
   R *w;\
 } X(inh_3d_plan);\
 \
-void X(inh_2d1d_trafo)(X(inh_2d1d_plan) *ths); \
-void X(inh_2d1d_adjoint)(X(inh_2d1d_plan) *ths); \
-void X(inh_2d1d_init_guru)(X(inh_2d1d_plan) *ths, int *N, int M, int *n, \
+NFFT_EXTERN void X(inh_2d1d_trafo)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void X(inh_2d1d_adjoint)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void X(inh_2d1d_init_guru)(X(inh_2d1d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-void X(inh_2d1d_finalize)(X(inh_2d1d_plan) *ths); \
-void X(inh_3d_trafo)(X(inh_3d_plan) *ths); \
-void X(inh_3d_adjoint)(X(inh_3d_plan) *ths); \
-void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
+NFFT_EXTERN void X(inh_2d1d_finalize)(X(inh_2d1d_plan) *ths); \
+NFFT_EXTERN void X(inh_3d_trafo)(X(inh_3d_plan) *ths); \
+NFFT_EXTERN void X(inh_3d_adjoint)(X(inh_3d_plan) *ths); \
+NFFT_EXTERN void X(inh_3d_init_guru)(X(inh_3d_plan) *ths, int *N, int M, int *n, \
   int m, R sigma, unsigned nfft_flags, unsigned fftw_flags); \
-void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
+NFFT_EXTERN void X(inh_3d_finalize)(X(inh_3d_plan) *ths);
 
   /* mri api */
 MRI_DEFINE_API(MRI_MANGLE_FLOAT,NFFT_MANGLE_FLOAT,float,fftwf_complex)
@@ -840,18 +840,18 @@ SOLVER_DEFINE_API(SOLVER_MANGLE_LONG_DOUBLE,NFFT_MANGLE_LONG_DOUBLE,long double,
  */
 #define NFFT_DEFINE_COMMON_API(Y) \
 /* thread.c */ \
-NFFT_INT Y(get_num_threads)(void); \
-void Y(set_num_threads)(NFFT_INT nthreads); \
-NFFT_INT Y(has_threads_enabled)(void); \
+NFFT_EXTERN NFFT_INT Y(get_num_threads)(void); \
+NFFT_EXTERN void Y(set_num_threads)(NFFT_INT nthreads); \
+NFFT_EXTERN NFFT_INT Y(has_threads_enabled)(void); \
 /** Return library version. */ \
-void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
+NFFT_EXTERN void Y(get_version)(unsigned *major, unsigned *minor, unsigned *patch); \
 /** \
  * Return name of window function. \
  * \
  * The window function to be used is configured at compile time. \
  */ \
-const char *Y(get_window_name)(); \
-NFFT_INT Y(get_default_window_cut_off)();
+NFFT_EXTERN const char *Y(get_window_name)(); \
+NFFT_EXTERN NFFT_INT Y(get_default_window_cut_off)();
 
 NFFT_DEFINE_COMMON_API(NFFT_MANGLE_FLOAT)
 NFFT_DEFINE_COMMON_API(NFFT_MANGLE_DOUBLE)
@@ -867,37 +867,37 @@ NFFT_DEFINE_COMMON_API(NFFT_MANGLE_LONG_DOUBLE)
  */
 #define NFFT_DEFINE_UTIL_API(Y,R,C) \
 /* rand.c */ \
-R Y(drand48)(void); \
-void Y(srand48)(long int seed); \
+NFFT_EXTERN R Y(drand48)(void); \
+NFFT_EXTERN void Y(srand48)(long int seed); \
 /** Inits a vector of random complex numbers in \f$[0,1]\times[0,1]{\rm i}\f$. */ \
-void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
+NFFT_EXTERN void Y(vrand_unit_complex)(C *x, const NFFT_INT n); \
 /** Inits a vector of random double numbers in \f$[-1/2,1/2]\f$. */ \
-void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
-void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
+NFFT_EXTERN void Y(vrand_shifted_unit_double)(R *x, const NFFT_INT n); \
+NFFT_EXTERN void Y(vrand_real)(R *x, const NFFT_INT n, const R a, const R b); \
 /* print.c */ \
 /** Print real vector to standard output. */ \
-void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
+NFFT_EXTERN void Y(vpr_double)(R *x, const NFFT_INT n, const char *text); \
 /** Print complex vector to standard output. */ \
-void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
+NFFT_EXTERN void Y(vpr_complex)(C *x, const NFFT_INT n, const char *text); \
 /* time.c */ \
-double Y(clock_gettime_seconds)(void); \
+NFFT_EXTERN double Y(clock_gettime_seconds)(void); \
 /* error.c */ \
-R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
-R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
+NFFT_EXTERN R Y(error_l_infty_complex)(const C *x, const C *y, const NFFT_INT n); \
+NFFT_EXTERN R Y(error_l_infty_1_complex)(const C *x, const C *y, const NFFT_INT n, \
   const C *z, const NFFT_INT m); \
-R Y(error_l_2_complex)(const C *x, const C *y, const NFFT_INT n); \
+NFFT_EXTERN R Y(error_l_2_complex)(const C *x, const C *y, const NFFT_INT n); \
 /* int.c */ \
-NFFT_INT Y(exp2i)(const NFFT_INT a); \
-NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
+NFFT_EXTERN NFFT_INT Y(exp2i)(const NFFT_INT a); \
+NFFT_EXTERN NFFT_INT Y(next_power_of_2)(const NFFT_INT N); \
 /* vector1.c */ \
 /** Computes the inner/dot product \f$x^H x\f$. */ \
-R Y(dot_complex)(C *x, NFFT_INT n); \
+NFFT_EXTERN R Y(dot_complex)(C *x, NFFT_INT n); \
 /* vector3.c */ \
 /** Updates \f$x \leftarrow a x + y\f$. */ \
-void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
+NFFT_EXTERN void Y(upd_axpy_complex)(C *x, R a, C *y, NFFT_INT n); \
 /** Swaps each half over N[d]/2. */ \
-void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
-void Y(fftshift_complex_int)(C *x, int d, int* N);
+NFFT_EXTERN void Y(fftshift_complex)(C *x, NFFT_INT d, NFFT_INT* N); \
+NFFT_EXTERN void Y(fftshift_complex_int)(C *x, int d, int* N);
 
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_FLOAT,float,fftwf_complex)
 NFFT_DEFINE_UTIL_API(NFFT_MANGLE_DOUBLE,double,fftw_complex)
