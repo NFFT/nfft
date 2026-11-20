@@ -241,35 +241,18 @@ static R bs_sample(const void *ctx, const R x)
   return Y(bsplines)(k, x + (R)k / K(2.0));
 }
 
-/* The pieces have degree k-1, so k Chebyshev nodes fit them exactly. The
- * sampled coefficients carry about 2 eps of noise, too much to read an eps/2
- * cut from, so the series is cut at the fixed BS_POLY_DEG_MAX. */
+/* The pieces have degree k-1; the series past BS_POLY_DEG_MAX is below eps/2
+ * of the peak (infft.h). Without the refinement in fit(), the rounding of the
+ * Chebyshev coefficients adds up to 17 eps over the taps. */
 R *Y(bspline_poly_init)(const INT m)
 {
-  const INT k = 2 * m + 2, w = CELL_POLY_COLS(m), n = k, dg = k - 1;
+  const INT k = 2 * m + 2, w = CELL_POLY_COLS(m);
   const INT deg = IF(k < BS_POLY_DEG_MAX, k, BS_POLY_DEG_MAX);
   const struct bs_ctx c = {k};
-  /* val is n by w; cheb and coef n+1 by w; cm n by n; tp n+1 by n+1. */
-  R *mem = (R*) Y(malloc)((size_t)(3 * (n + 1) * w + n * n
-      + (n + 1) * (n + 1) + n) * sizeof(R));
-  R *val = mem, *cheb = val + n * w, *coef = cheb + (n + 1) * w;
-  R *cm = coef + (n + 1) * w, *tp = cm + n * n, *node = tp + (n + 1) * (n + 1);
-  R *tab;
-  INT l;
+  R *tab = (R*) Y(malloc)((size_t)(1 + CELL_POLY_ROWS(deg) * w) * sizeof(R));
 
-  cheb_fit(cheb, node, cm, val, m, dg, bs_sample, &c);
-
-  /* k - 1 is odd, so an uncut series is raised to k, whose row is zero. */
-  for (l = 0; l < w; l++)
-    cheb[n * w + l] = K(0.0);
-
-  cheb_to_monomial(coef, cheb, tp, w, deg);
-
-  tab = (R*) Y(malloc)((size_t)(1 + CELL_POLY_ROWS(deg) * w) * sizeof(R));
   tab[0] = (R)deg;
-  memcpy(tab + 1, coef, (size_t)(CELL_POLY_ROWS(deg) * w) * sizeof(R));
-
-  Y(free)(mem);
+  fit(tab + 1, m, deg, bs_sample, &c);
 
   return tab;
 }
