@@ -19,12 +19,7 @@
 /* Benchmarks for the fast NFFT with the standard PRE_PSI precomputation
  * scheme. Precomputation and transform are measured by separate benchmarks.
  * The _otf transforms run without PRE_PSI and evaluate the window per node,
- * on one geometry per B kernel: 1d, 2d and 3d, and the generic path at 4d.
- *
- * Every round builds its own plan behind a spacer of varying size, so buffer
- * placement varies across the rounds of one run and lands inside the reported
- * spread. Placement moves these transforms by up to 17%, far more than the
- * noise within one placement. */
+ * on one geometry per B kernel: 1d, 2d and 3d, and the generic path at 4d. */
 
 #include <benchmark/benchmark.h>
 #include "config.h"
@@ -88,18 +83,6 @@ struct PlanSlot {
 
 static PlanSlot slot;
 static bool fftw_threads_started = false;
-
-/* Rebuilding a plan of the same geometry hands back the same addresses, so the
- * spacer must stay alive across the round. The size sequence is fixed, so both
- * sides of a comparison walk the same placements. */
-static void *layout_spacer = NULL;
-static unsigned long spacer_state = 1UL;
-
-static void shift_layout(void) {
-    free(layout_spacer);
-    spacer_state = spacer_state * 1103515245UL + 12345UL;
-    layout_spacer = malloc(64 + (size_t)((spacer_state >> 13) & 0x3fff) * 64);
-}
 
 static void release_plan(void) {
     if (slot.valid) {
@@ -240,7 +223,6 @@ static void prefault_psi(NFFT(plan)* plan) {
 /* Times nfft_precompute_one_psi on a plan built here, so init and allocation
  * stay out of the measurement. */
 static void run_precompute(benchmark::State& state, int d) {
-    shift_layout();
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d), /*fresh=*/true);
     prefault_psi(plan);
 
@@ -253,7 +235,6 @@ static void run_precompute(benchmark::State& state, int d) {
 }
 
 static void run_trafo(benchmark::State& state, int d, bool otf = false) {
-    shift_layout();
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d, otf),
         /*fresh=*/true);
     ensure_psi(plan);
@@ -269,7 +250,6 @@ static void run_trafo(benchmark::State& state, int d, bool otf = false) {
 }
 
 static void run_adjoint(benchmark::State& state, int d, bool otf = false) {
-    shift_layout();
     NFFT(plan)* plan = acquire_plan(geometry_from(state, d, otf),
         /*fresh=*/true);
     ensure_psi(plan);

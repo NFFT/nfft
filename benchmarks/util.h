@@ -23,6 +23,10 @@
 
 #include <cstdlib>
 
+#ifdef __linux__
+#include <sys/mman.h>
+#endif
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -48,38 +52,26 @@ static inline void nfft_bench_cap_threads(void)
 #endif
 }
 
-// Aligns every plan allocation to (hopefully) a cache line and rounds its size up to one.
+// Gives every plan array its own 2 MiB huge pages.
 //
-// nfft_malloc is fftw_malloc, which promises 16 bytes: enough for the SIMD
-// codelets, but it leaves the plan's small heap arrays wherever the allocator
-// puts them. Change the size of any early allocation and x, f and c_phi_inv all
-// shift, which moves a cache-resident benchmark by several percent for reasons
-// that have nothing to do with the code under test. Rounding the size up is
-// what absorbs the change; aligning alone does not.
+// The cache sets an array maps to depend on its physical address. With 4 KiB
+// pages that address is random per process, and a plan rebuilt in the same
+// process gets the same pages back, so all rounds of one run share a single
+// placement. Runs then differ by up to 18% in discrete steps while the spread
+// within a run stays near 0.1%. Inside a huge page the physical offset equals
+// the virtual one, so the placement is the same in every run.
 //
-// Costs a little memory and measures a slightly better aligned configuration
-// than a caller who uses nfft_malloc directly gets.
-//
-// A cache line is not enough for the larger arrays. An array of a megabyte or
-// more comes from mmap, whose placement moves with the state of the allocator,
-// so the cache sets the array lands on change when an unrelated allocation
-// changes size. That decides how much of the array stays resident and moves a
-// benchmark at the cache boundary by more than ten percent. Each array is
-// therefore aligned to its own size, rounded down to a power of two and capped
-// at the large page size, which fixes where in the cache it sits.
-#define NFFT_BENCH_ALIGNMENT 64
-#define NFFT_BENCH_MAX_ALIGNMENT ((size_t)2 * 1024 * 1024)
+// Costs up to 2 MiB per array and fewer TLB misses than a caller with 4 KiB
+// pages gets. Without transparent huge pages the alignment alone still fixes
+// the virtual placement.
+#define NFFT_BENCH_ALIGNMENT ((size_t)2 * 1024 * 1024)
 
 static inline void *nfft_bench_aligned_malloc(size_t n)
 {
-    size_t a = NFFT_BENCH_ALIGNMENT;
+    const size_t a = NFFT_BENCH_ALIGNMENT;
     void *p = NULL;
 
-    if (n == 0)
-        n = 1;
-    while (a < NFFT_BENCH_MAX_ALIGNMENT && a * 2 <= n)
-        a *= 2;
-    n = (n + (a - 1)) & ~(a - 1);
+    n = n == 0 ? a : (n + (a - 1)) & ~(a - 1);
 
 #ifdef _WIN32
     p = _aligned_malloc(n, a);
@@ -89,6 +81,9 @@ static inline void *nfft_bench_aligned_malloc(size_t n)
 #endif
     if (p == NULL)
         std::abort();
+#ifdef __linux__
+    madvise(p, n, MADV_HUGEPAGE);
+#endif
 
     return p;
 }
