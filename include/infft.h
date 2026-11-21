@@ -2074,14 +2074,11 @@ static inline R Y(bspline_phi_hut)(R m, R n, R k)
   return EXP(K(2.0) * m * Y(log_sinc)(k * KPI / n));
 }
 
-/* Sinc-power width w = (sigma - a)/(m sigma), after J. Keiner, "The sinc-power
- * window of the NFFT does not always converge". The a = 1/2 of Potts is
- * alias-free but its error diverges in m for sigma < 1.2839. The error
- * converges for every sigma > 1 if and only if a <= 0.307281. 19/64 is the
- * largest multiple of 1/64 below that bound, and its rate is at most 0.02 per
- * unit m worse than that of the suggested a = 0.3. As a dyadic fraction it
- * keeps w exact when sigma and m are powers of two, which the window references
- * in tests/window.c need. */
+/* Sinc-power width w = (sigma - a)/(m sigma). The alias-free a = 1/2 has an
+ * error that diverges in m for sigma < 1.2839. The error converges for every
+ * sigma > 1 if and only if a <= 0.307281. 19/64 lies below that bound, and as
+ * a dyadic fraction it keeps w exact when sigma and m are powers of two, which
+ * the window references in tests/window.c need. */
 #define SINCPOW_A K(0.296875)
 
 /* w sinc(a)^(2m). The exponent is even, so the sign of sinc past its first zero
