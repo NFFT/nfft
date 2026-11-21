@@ -52,57 +52,73 @@ static inline void nfft_bench_cap_threads(void)
 #endif
 }
 
-// Gives every plan array its own 2 MiB huge pages.
+// Gives every plan array its own 2 MiB huge pages, at a start offset that
+// differs per array.
 //
 // The cache sets an array maps to depend on its physical address. With 4 KiB
 // pages that address is random per process, and a plan rebuilt in the same
 // process gets the same pages back, so all rounds of one run share a single
 // placement. Runs then differ by up to 18% in discrete steps while the spread
 // within a run stays near 0.1%. Inside a huge page the physical offset equals
-// the virtual one, so the placement is the same in every run.
+// the virtual one, so the placement is the same in every run. The bench-linux
+// workflow turns transparent huge pages on; the runner ships with them off.
 //
-// Costs up to 2 MiB per array and fewer TLB misses than a caller with 4 KiB
-// pages gets. Without transparent huge pages the alignment alone still fixes
-// the virtual placement.
-#define NFFT_BENCH_ALIGNMENT ((size_t)2 * 1024 * 1024)
+// Arrays that all start at offset 0 of a huge page compete for the same cache
+// sets. The k-th allocation after nfft_bench_align_allocations() therefore
+// starts 17k + 1 KiB into its pages, which spreads the arrays of one plan over
+// the L1 and L2 sets.
+//
+// Costs up to 2.3 MiB per array and fewer TLB misses than a caller with 4 KiB
+// pages gets.
+#define NFFT_BENCH_PAGE ((size_t)2 * 1024 * 1024)
+#define NFFT_BENCH_OFFSET_STEP ((size_t)17 * 1024)
+#define NFFT_BENCH_OFFSETS 16
+
+static unsigned nfft_bench_alloc_count = 0;
 
 static inline void *nfft_bench_aligned_malloc(size_t n)
 {
-    const size_t a = NFFT_BENCH_ALIGNMENT;
-    void *p = NULL;
-
-    n = n == 0 ? a : (n + (a - 1)) & ~(a - 1);
+    const size_t off = 1024 + (nfft_bench_alloc_count++ % NFFT_BENCH_OFFSETS)
+        * NFFT_BENCH_OFFSET_STEP;
+    const size_t len = (off + n + (NFFT_BENCH_PAGE - 1)) & ~(NFFT_BENCH_PAGE - 1);
+    void *base = NULL;
 
 #ifdef _WIN32
-    p = _aligned_malloc(n, a);
+    base = _aligned_malloc(len, NFFT_BENCH_PAGE);
 #else
-    if (posix_memalign(&p, a, n) != 0)
-        p = NULL;
+    if (posix_memalign(&base, NFFT_BENCH_PAGE, len) != 0)
+        base = NULL;
 #endif
-    if (p == NULL)
+    if (base == NULL)
         std::abort();
 #ifdef __linux__
-    madvise(p, n, MADV_HUGEPAGE);
+    madvise(base, len, MADV_HUGEPAGE);
 #endif
 
+    void *p = (char *)base + off;
+    ((void **)p)[-1] = base;
     return p;
 }
 
 static inline void nfft_bench_aligned_free(void *p)
 {
+    if (p == NULL)
+        return;
 #ifdef _WIN32
-    _aligned_free(p);
+    _aligned_free(((void **)p)[-1]);
 #else
-    std::free(p);
+    std::free(((void **)p)[-1]);
 #endif
 }
 
 // Both hooks go in together: nfft_free falls back to fftw_free when only one is
-// set, which would not match the allocation.
+// set, which would not match the allocation. Called before each benchmark, so
+// the offsets restart and each plan gets the same layout in every run.
 static inline void nfft_bench_align_allocations(void)
 {
     NFFT(malloc_hook) = nfft_bench_aligned_malloc;
     NFFT(free_hook) = nfft_bench_aligned_free;
+    nfft_bench_alloc_count = 0;
 }
 
 #endif // NFFT_BENCHMARKS_UTIL_H
