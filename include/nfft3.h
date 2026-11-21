@@ -117,12 +117,9 @@ typedef struct\
   NFFT_INT *n; /**< Length of FFTW transforms. This is equal to sigma*N. The default
                is to use a power of two that satifies  \f$2\le\sigma<4\f$. */\
   NFFT_INT n_total; /**< Combined total length of FFTW transforms. */\
-  NFFT_INT m; /**< Cut-off parameter for window function. Default values for the
-              different window functions are
-              -  6 (KAISER_BESSEL),
-              -  9 (SINC_POWER),
-              - 11 (B_SPLINE),
-              - 12 (GAUSSIAN) */\
+  NFFT_INT m; /**< Cut-off parameter for window function. The default depends
+              on window and precision; nfft_get_default_window_cut_off()
+              returns it. */\
   R *b; /**< Shape parameter for window function */\
   NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
              PRE_LIN_PSI. */\

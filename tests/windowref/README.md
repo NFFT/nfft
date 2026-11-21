@@ -38,9 +38,10 @@ exact in every precision, so no part of the measured error is the rounding of
 the offset.
 
 The sinc-power tables run at `m = 8` rather than the default cutoff, because
-there `w = (2 sigma - 1)/(2 m sigma)` is `3/32` and exactly representable. At
-`m = 11` it is `3/44`, and the rounding of the constant would be charged to the
-window. The B-spline tables have no such constant and run at the default 11.
+there `w = (sigma - a)/(m sigma)`, `a = 19/64`, is `109/1024` and exactly
+representable. At `m = 11` it is not, and the rounding of the constant would be
+charged to the window. The B-spline tables have no such constant and run at
+the default 11.
 
 The remaining rounding the tests do carry is `KPI` and, for
 `sincpow_phi_hut`, the stored `1/w`. Both are noted at the tests that carry

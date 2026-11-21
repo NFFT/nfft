@@ -307,27 +307,17 @@ static R err_trafo(X(plan) *p)
   #endif
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
 #elif defined(SINC_POWER)
-  #if MANT_DIG == 113
-    // TODO: Set good value for IEEE 754 quadruple precision, 128 bits.
-    a = K(0.3);
-    b = K(50.0);
-  #elif MANT_DIG == 64
-    // Intel double extended, 80 bits.
-    a = K(0.3);
-    b = K(50.0);
-  #elif MANT_DIG == 53
+  /* The model decays slower than the error. The constants are fitted to the
+   * sinc-power window with a = 19/64 at sigma in [2, 3.3]: err is at most
+   * 6.2E-4 times the bound at m = 5 and at most 53 eps (double) and 16 eps
+   * (float) at m = 11. */
+  a = K(4.0E-3);
+  #if MANT_DIG == 53
     // IEEE 754 double precision, 64 bits.
-    a = K(1.0);
-    b = K(2000.0);
-  #elif MANT_DIG == 24
-    // IEEE 754 single precision, 32 bits.
-    a = K(0.4);
-    b = K(2000.0);
+    b = K(200.0);
   #else
-    // Unknown floating-point type.
-    // Assume IEEE 754 double precision, 64 bits.
-    a = K(1.0);
-    b = K(2000.0);
+    // Single, extended and quadruple precision.
+    b = K(50.0);
   #endif
     err = (K(1.0)/(m-K(1.0))) * ((K(2.0)/(POW(s,K(2.0)*m))) + POW(s/(K(2.0)*s-K(1.0)),K(2.0)*m));
 #elif defined(KAISER_BESSEL)
