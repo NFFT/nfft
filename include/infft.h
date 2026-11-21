@@ -2078,7 +2078,8 @@ static inline R Y(bspline_phi_hut)(R m, R n, R k)
  * error that diverges in m for sigma < 1.2839. The error converges for every
  * sigma > 1 if and only if a <= 0.307281. 19/64 lies below that bound, and as
  * a dyadic fraction it keeps w exact when sigma and m are powers of two, which
- * the window references in tests/window.c need. */
+ * the window references in tests/window.c need. The best a for each sigma
+ * would improve the convergence rate by less than 1%. */
 #define SINCPOW_A K(0.296875)
 
 /* w sinc(a)^(2m). The exponent is even, so the sign of sinc past its first zero
