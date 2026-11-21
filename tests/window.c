@@ -560,7 +560,7 @@ void X(check_sincpow_poly_run)(void)
 {
 #if defined(SINC_POWER)
   static const int ms[] = {1, 2, 4, 8, 11};
-  static const R sigmas[] = {K(1.5), K(2.0), K(4.0)};
+  static const R sigmas[] = {K(1.03125), K(1.5), K(2.0), K(4.0)};
   static const R fracs[] = {K(0.0), K(0.25), K(0.5), K(0.999)};
   unsigned int i, si, f;
 

@@ -103,7 +103,7 @@ INT Y(kb_poly_degree)(const R b, const R reach, const INT m)
   mt = IF(mt > 1, mt, 1);
   deg = kb_poly_tab_deg0[mt];
 
-  /* Thresholds are rounded down. A sigma off [1.1, 4] gets the degree at the
+  /* Thresholds are rounded down. A sigma off [1.03125, 4] gets the degree at the
    * nearer end. */
   for (k = kb_poly_tab_off[mt]; k < kb_poly_tab_off[mt + 1]; k++)
     deg += IF(sigma >= K(1E-4) * (R)kb_poly_tab_brk[k], 1, 0);

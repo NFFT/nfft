@@ -47,12 +47,12 @@ static R pick_target(const R b, const R reach)
   return IF(tol > lowest, tol, lowest);
 }
 
-/* sigma = n / N with N = 120 and n even. */
-#define KB_N 120
-static const INT kb_n[] = {132, 150, 180, 210, 240, 300, 360, 480};
+/* sigma = n / N with N = 128 and n even, from 1.03125 to 4. */
+#define KB_N 128
+static const INT kb_n[] = {132, 140, 160, 192, 224, 256, 320, 384, 512};
 #define KB_NSIGMA (sizeof(kb_n) / sizeof(kb_n[0]))
 
-/* Up to where the transform reaches the precision floor at sigma 1.1. */
+/* Up to where the transform reaches the precision floor at sigma 1.03125. */
 #if MANT_DIG >= 113
   #define KB_M_MAX 40
 #elif MANT_DIG >= 64
@@ -363,22 +363,22 @@ void X(check_kaiser_bessel_poly_trafo)(void)
 
 #endif
 
-/* X(check) rejects sigma off [1.1, 4], where the generated degree tables of
+/* X(check) rejects sigma off [1.03125, 4], where the generated degree tables of
  * the Kaiser-Bessel and sinc-power windows end. */
 #ifdef WINDOW_SIGMA_OK
 void X(check_window_sigma)(void)
 {
   const unsigned flags = PRE_PHI_HUT | MALLOC_X | MALLOC_F | MALLOC_F_HAT
       | FFTW_INIT | FFT_OUT_OF_PLACE;
-  const int ns[] = {124, 132, 480, 540};
+  const int ns[] = {130, 132, 512, 514};
   unsigned int i;
 
   printf("WINDOW SIGMA\n------------\n");
 
   for (i = 0; i < sizeof(ns) / sizeof(ns[0]); i++)
   {
-    int N[1] = {120}, n[1] = {ns[i]};
-    const int in = ns[i] >= 132 && ns[i] <= 480;
+    int N[1] = {128}, n[1] = {ns[i]};
+    const int in = ns[i] >= 132 && ns[i] <= 512;
     NFFT(plan) p;
     const char *msg;
     int ok;
@@ -389,7 +389,7 @@ void X(check_window_sigma)(void)
     p.x[4] = p.x[5] = p.x[6] = p.x[7] = K(0.25);
     msg = NFFT(check)(&p);
     ok = IF(in, msg == 0, msg != 0);
-    printf("check[sigma=%5.3f] %s -> %s\n", (double)ns[i] / 120,
+    printf("check[sigma=%7.5f] %s -> %s\n", (double)ns[i] / 128,
         msg ? msg : "accepted", ok ? "OK" : "FAIL");
     CU_ASSERT(ok);
     NFFT(finalize)(&p);

@@ -30,7 +30,7 @@ The plan raises an odd `d` by one (`CELL_POLY_ROWS` in `include/infft.h`).
 
 ## Layout
 
-Per format and `m`: the degree at sigma 1.1 and the sigma thresholds, in
+Per format and `m`: the degree at sigma 1.03125 and the sigma thresholds, in
 units of 1e-4, from each of which the degree is one higher. The generator
 stops if the degree ever falls or jumps in sigma. Thresholds are rounded
 down, so a lookup never gives less than the exact degree.

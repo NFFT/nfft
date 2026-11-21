@@ -27,7 +27,8 @@ the lowest `d` with
 
 - `0.05 pi e^(-b R)` keeps the transform within 5% of its own worst-case error
   `E = c / I0(2 pi R sqrt(1 - 1/sigma))`. Certified and sampled values put `c`
-  in [1.10, 2.81] over sigma 1.1 .. 4; the rule takes `c = 1`.
+  in [1.10, 2.81] over sigma 1.1 .. 4, and measured transform errors in
+  [1.07, 2.17] over sigma 1.03125 .. 1.11; the rule takes `c = 1`.
 - `eps` keeps the polynomial below the transform's rounding noise where `E` is
   smaller still.
 
@@ -41,7 +42,7 @@ one at random.
 
 ## Layout
 
-Per format and `m`: the degree at sigma 1.1 and the sigma thresholds, in
+Per format and `m`: the degree at sigma 1.03125 and the sigma thresholds, in
 units of 1e-4, from each of which the degree is one higher. The generator
 stops if the degree ever falls or jumps in sigma. Thresholds are rounded
 down, so a lookup never gives less than the exact degree.

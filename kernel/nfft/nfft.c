@@ -5685,7 +5685,7 @@ const char* X(check)(X(plan) *ths)
 
 #ifdef WINDOW_SIGMA_OK
     if (!WINDOW_SIGMA_OK(ths->sigma[j]))
-      return "Oversampling factor outside [1.1, 4]";
+      return "Oversampling factor outside [1.03125, 4]";
 #endif
     
     /* Automatically calls trafo_direct if 

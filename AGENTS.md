@@ -226,7 +226,7 @@ uv run --with mpmath==1.3.0 python -m gen.sincgen.generate
 ```
 
 **Polynomial Kaiser-Bessel degree** (`kernel/util/kbpoly.c`), the degree of
-the per-plan polynomial window per sigma in [1.1, 4], m and format. Table in
+the per-plan polynomial window per sigma in [1.03125, 4], m and format. Table in
 `kernel/util/kbpoly_data.h`, produced by `gen/kbpolygen` from exact
 Chebyshev tails:
 
