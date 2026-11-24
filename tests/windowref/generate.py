@@ -31,11 +31,11 @@ FRAC = Fraction(5, 16)
 K_STEP = 8
 
 # The B-spline tables run at the cutoff nfft_init picks. The sinc-power tables
-# run at 8 instead, where w = (sigma - a)/(m sigma) is 109/1024 and so exactly
-# representable; at 11 it is not, and its rounding would be charged to the
-# window rather than to the constant.
+# run at 7 instead, where w = (sigma - a)/((m + 1) sigma) is 109/1024 and so
+# exactly representable; at 11 it is not, and its rounding would be charged to
+# the window rather than to the constant.
 M_BSPLINE = 11
-M_SINCPOW = 8
+M_SINCPOW = 7
 # SINCPOW_A in include/infft.h.
 SINCPOW_A = Fraction(19, 64)
 
@@ -113,32 +113,34 @@ def bspline_phi(out):
 
 
 def sincpow_phi(out):
-    """phi over one run: w (sin a / a)^(2m), a = pi w (nx0 - l)."""
+    """phi over one run: w (sin a / a)^(2p), a = pi w (nx0 - l), p = m + 1."""
     m, n = M_SINCPOW, N_GRID
-    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (m * Fraction(N_GRID, N_FREQ))
+    p = m + 1
+    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (p * Fraction(N_GRID, N_FREQ))
     nx0 = Fraction(m) + FRAC
     vals = []
 
     for l in range(2 * m + 2):
         a = mp.pi * mpf(w) * mpf(nx0 - l)
-        vals.append(mpf(w) * (mp.sin(a) / a) ** (2 * m))
+        vals.append(mpf(w) * (mp.sin(a) / a) ** (2 * p))
 
-    emit("sincpow_phi_ref_512_8", vals,
+    emit("sincpow_phi_ref_512_%d" % m, vals,
          "/* Sinc-power phi over one full run for n = %d, m = %d, sigma = 2,\n"
          " * with the node %s of a cell past a grid point, at %d digits.\n"
          " * Regenerate with tests/windowref. */" % (n, m, FRAC, DIGITS), out)
-    out.append("#define SINCPOW_PHI_PEAK_512_8 K(%s)" % cnum(max(vals)))
+    out.append("#define SINCPOW_PHI_PEAK_512_%d K(%s)" % (m, cnum(max(vals))))
     out.append("")
 
 
 def sincpow_phi_hut(out):
-    """phi_hut(k) = B_{2m}(k/(w n) + m)."""
+    """phi_hut(k) = B_{2p}(k/(w n) + p), p = m + 1."""
     m, n = M_SINCPOW, N_GRID
-    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (m * Fraction(N_GRID, N_FREQ))
+    p = m + 1
+    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (p * Fraction(N_GRID, N_FREQ))
     ks = range(0, N_FREQ // 2 + 1, K_STEP)
-    vals = [mpf(bspline(2 * m, Fraction(k, 1) / (w * n) + m)) for k in ks]
+    vals = [mpf(bspline(2 * p, Fraction(k, 1) / (w * n) + p)) for k in ks]
 
-    emit("sincpow_phi_hut_ref_512_256_8", vals,
+    emit("sincpow_phi_hut_ref_512_256_%d" % m, vals,
          "/* Sinc-power phi_hut for n = %d, N = %d, m = %d, sigma = 2,\n"
          " * k = 0, %d, .. %d, exactly. Regenerate with tests/windowref. */"
          % (n, N_FREQ, m, K_STEP, N_FREQ // 2), out)

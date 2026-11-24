@@ -306,9 +306,10 @@ static R err_trafo(X(plan) *p)
     err = K(3000.0) * K(4.0) * POW(K(1.0)/(K(2.0)*s-K(1.0)),K(2.0)*m);
 #elif defined(SINC_POWER)
   /* The model decays slower than the error. The constants are fitted to the
-   * sinc-power window with a = 19/64 at sigma in [2, 3.3]: err is at most
-   * 6.2E-4 times the bound at m = 5 and at most 53 eps (double) and 16 eps
-   * (float) at m = 11. */
+   * sinc-power window with a = 19/64 and exponent 2m at sigma in [2, 3.3]:
+   * err is at most 6.2E-4 times the bound at m = 5 and at most 53 eps (double)
+   * and 16 eps (float) at m = 11. The exponent 2m + 2 now used only lowers
+   * err. */
   a = K(4.0E-3);
   #if MANT_DIG == 53
     // IEEE 754 double precision, 64 bits.

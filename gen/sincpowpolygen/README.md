@@ -16,9 +16,9 @@ uv run --with mpmath==1.3.0 --with pytest python -m pytest gen/sincpowpolygen/te
 
 ## The rule
 
-The window is `phi(nu) = w sinc(pi w nu)^(2m)`, `w = (sigma - a)/(m sigma)`,
-`a = 19/64` (`SINCPOW_A` in `include/infft.h`), with peak `w`. The plan fits
-one polynomial per unit cell of `|nu|`, the `m + 2` cells
+The window is `phi(nu) = w sinc(pi w nu)^(2p)`, `w = (sigma - a)/(p sigma)`,
+`p = m + 1`, `a = 19/64` (`SINCPOW_A` in `include/infft.h`), with peak `w`.
+The plan fits one polynomial per unit cell of `|nu|`, the `m + 2` cells
 `[m + 1 - c, m + 2 - c)`. The table holds the lowest `d` with
 
     2 sum_{j>d} max_cells |c_j| <= eps * w

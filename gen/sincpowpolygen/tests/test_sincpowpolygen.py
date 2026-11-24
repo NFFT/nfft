@@ -11,12 +11,12 @@ def setup_module(_module):
 
 
 def test_degrees_at_known_points():
-    assert generate.degrees(2.0, 4) == {24: 7, 64: 18, 113: 28, 53: 15}
+    assert generate.degrees(2.0, 4) == {24: 7, 64: 17, 113: 28, 53: 15}
     assert generate.degrees(2.0, 32) == {24: 5, 64: 13, 113: 22, 53: 11}
 
 
 def test_row_steps():
     _, (d0, steps) = generate.row_steps(2)
-    assert d0 == {24: 8, 64: 18, 113: 29, 53: 16}
-    assert steps[24] == [13579]
-    assert steps[64] == [12010, 26479]
+    assert d0 == {24: 7, 64: 17, 113: 28, 53: 15}
+    assert steps[24] == [20510]
+    assert steps[64] == [11921, 22058]
