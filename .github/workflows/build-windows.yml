@@ -11,8 +11,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: build-windows
-  cancel-in-progress: false
+  # Per branch: a new PR run supersedes the older one on its branch and never
+  # touches other branches. A group holds only one pending run, so a group
+  # shared across branches cancels queued runs of other branches.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   changes:
