@@ -65,11 +65,12 @@ def _init():
 def degrees(sigma, m):
     """{MANT_DIG: degree} at one sigma."""
     sigma = mp.mpf(sigma)
-    w = (sigma - SINCPOW_A) / (m * sigma)
+    reach = m + 1  # half the exponent
+    w = (sigma - SINCPOW_A) / (reach * sigma)
 
     def phi(nu):
         a = mp.pi * w * nu
-        return w * (mp.sin(a) / a) ** (2 * m) if a != 0 else w
+        return w * (mp.sin(a) / a) ** (2 * reach) if a != 0 else w
 
     env = [mp.mpf(0)] * NC
     # The m + 2 cells [m + 1 - c, m + 2 - c) of |nu|, CELL_POLY_COLS(m).

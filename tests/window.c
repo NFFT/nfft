@@ -570,7 +570,7 @@ void X(check_sincpow_poly_run)(void)
     for (si = 0; si < SIZE(sigmas); si++)
     {
       const INT m = (INT)ms[i];
-      const R w = (sigmas[si] - SINCPOW_A) / ((R)m * sigmas[si]);
+      const R w = (sigmas[si] - SINCPOW_A) / ((R)(m + 1) * sigmas[si]);
       R *tab = Y(sincpow_poly_init)(&w, 1, m);
       const INT deg = (INT)tab[0];
       const R bound = K(4.0) * EPSILON * w;
@@ -582,7 +582,7 @@ void X(check_sincpow_poly_run)(void)
         Y(cell_poly_run)(run, tab + 1, m, deg, (R)m + fracs[f]);
 
         for (l = 0; l < 2 * m + 2; l++)
-          err = FMAX(err, FABS(run[l] - Y(sincpow_phi)(w, (R)m,
+          err = FMAX(err, FABS(run[l] - Y(sincpow_phi)(w, (R)(m + 1),
               KPI * w * ((R)m + fracs[f] - (R)l))));
       }
 
@@ -749,12 +749,11 @@ void X(check_bspline_phi_reference)(void)
   Y(free)(tab);
 }
 
-/* Sinc-power phi over one full run for n = 512, m = 8, sigma = 2,
+/* Sinc-power phi over one full run for n = 512, m = 7, sigma = 2,
  * with the node 5/16 of a cell past a grid point, at 45 digits.
  * Regenerate with tests/windowref. */
-static const R sincpow_phi_ref_512_8[] =
+static const R sincpow_phi_ref_512_7[] =
 {
-  K(5.09025365156719614610601717495639298494636160e-16),
   K(5.33331263430620968963265298668077452276748376e-11),
   K(5.86517830870534792004283411612878091116228640e-8),
   K(7.68772982226433437814170191446866553237283885e-6),
@@ -771,33 +770,32 @@ static const R sincpow_phi_ref_512_8[] =
   K(1.48522702124282793312891692629047594726092280e-6),
   K(5.83866194900488692232540582576822382819129372e-9),
   K(1.54427105893112156816709096318923867082675126e-12),
-  K(3.39327426507145292828927946489545708611246900e-19),
 };
 
-#define SINCPOW_PHI_PEAK_512_8 K(1.03389015139474555172917268643122706262203673e-1)
+#define SINCPOW_PHI_PEAK_512_7 K(1.03389015139474555172917268643122706262203673e-1)
 
-/* m is 8 rather than the default cutoff so that w = (sigma - SINCPOW_A)/(m
- * sigma) is 109/1024 and exactly representable; at 11 it is not, and its
+/* m is 7 rather than the default cutoff so that w = (sigma - SINCPOW_A)/((m
+ * + 1) sigma) is 109/1024 and exactly representable; at 11 it is not, and its
  * rounding would be charged to the window. */
 void X(check_sincpow_phi_reference)(void)
 {
-  const INT m = 8;
+  const INT m = 7;
   const R sigma = K(2.0);
-  const R w = (sigma - SINCPOW_A) / ((R)m * sigma);
+  const R w = (sigma - SINCPOW_A) / ((R)(m + 1) * sigma);
   const R nx0 = (R)m + K(0.3125);
-  const R peak = SINCPOW_PHI_PEAK_512_8;
+  const R peak = SINCPOW_PHI_PEAK_512_7;
   const R b = tight_bound();
   R *tab = Y(sincpow_poly_init)(&w, 1, m);
-  R run[2 * 8 + 2];
+  R run[2 * 7 + 2];
   unsigned int l;
 
   printf("SINC-POWER PHI REFERENCE\n------------------------\n");
 
   Y(cell_poly_run)(run, tab + 1, m, (INT)tab[0], nx0);
 
-  for (l = 0; l < SIZE(sincpow_phi_ref_512_8); l++)
+  for (l = 0; l < SIZE(sincpow_phi_ref_512_7); l++)
   {
-    const R ref = sincpow_phi_ref_512_8[l];
+    const R ref = sincpow_phi_ref_512_7[l];
     const R err = ABS(run[l] - ref) / peak;
     const int ok = IF(FINITE(run[l]) && err < b, 1, 0);
 
@@ -810,9 +808,9 @@ void X(check_sincpow_phi_reference)(void)
   Y(free)(tab);
 }
 
-/* Sinc-power phi_hut for n = 512, N = 256, m = 8, sigma = 2,
+/* Sinc-power phi_hut for n = 512, N = 256, m = 7, sigma = 2,
  * k = 0, 8, .. 128, exactly. Regenerate with tests/windowref. */
-static const R sincpow_phi_hut_ref_512_256_8[] =
+static const R sincpow_phi_hut_ref_512_256_7[] =
 {
   K(3.42240261355340720420085499450578815658180738e-1),
   K(3.39587507694069754490436352595171395193146272e-1),
@@ -837,20 +835,20 @@ static const R sincpow_phi_hut_ref_512_256_8[] =
  * dividing per evaluation. */
 void X(check_sincpow_phi_hut_reference)(void)
 {
-  const INT m = 8, n = 512;
+  const INT m = 7, p = m + 1, n = 512;
   const R sigma = K(2.0);
-  const R w = (sigma - SINCPOW_A) / ((R)m * sigma);
+  const R w = (sigma - SINCPOW_A) / ((R)p * sigma);
   const R winv = K(1.0) / w;
   const R b = tight_bound();
   unsigned int j;
 
   printf("SINC-POWER PHI HUT REFERENCE\n----------------------------\n");
 
-  for (j = 0; j < SIZE(sincpow_phi_hut_ref_512_256_8); j++)
+  for (j = 0; j < SIZE(sincpow_phi_hut_ref_512_256_7); j++)
   {
     const INT k = (INT)(8 * j);
-    const R ref = sincpow_phi_hut_ref_512_256_8[j];
-    const R v = Y(bsplines)(2 * m, (R)k * winv / (R)n + (R)m);
+    const R ref = sincpow_phi_hut_ref_512_256_7[j];
+    const R v = Y(bsplines)(2 * p, (R)k * winv / (R)n + (R)p);
     const R err = ERR(v, ref);
     const int ok = IF(FINITE(v) && err < b, 1, 0);
 

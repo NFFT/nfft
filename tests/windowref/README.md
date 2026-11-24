@@ -19,8 +19,8 @@ All four run at `n = 512`, `N = 256`, so `sigma = 2`.
 |---|---|---|
 | `bspline_phi_hut_ref_512_256_11` | `(sin t/t)^(2m)/n`, `t = k pi/n` | mpmath, 60 digits |
 | `bspline_phi_ref_512_11` | `B_2m(t-l)/n` over one full run | exact rational |
-| `sincpow_phi_ref_512_8` | `w (sin a/a)^(2m)` over one full run | mpmath, 60 digits |
-| `sincpow_phi_hut_ref_512_256_8` | `B_2m(k/(w n) + m)` | exact rational |
+| `sincpow_phi_ref_512_7` | `w (sin a/a)^(2p)`, `p = m + 1`, over one full run | mpmath, 60 digits |
+| `sincpow_phi_hut_ref_512_256_7` | `B_2p(k/(w n) + p)` | exact rational |
 
 ## Two choices worth knowing
 
@@ -37,8 +37,8 @@ rationals it is exact and it shares nothing with the scheme under test.
 exact in every precision, so no part of the measured error is the rounding of
 the offset.
 
-The sinc-power tables run at `m = 8` rather than the default cutoff, because
-there `w = (sigma - a)/(m sigma)`, `a = 19/64`, is `109/1024` and exactly
+The sinc-power tables run at `m = 7` rather than the default cutoff, because
+there `w = (sigma - a)/((m + 1) sigma)`, `a = 19/64`, is `109/1024` and exactly
 representable. At `m = 11` it is not, and the rounding of the constant would be
 charged to the window. The B-spline tables have no such constant and run at
 the default 11.

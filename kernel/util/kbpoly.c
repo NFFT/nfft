@@ -258,18 +258,18 @@ R *Y(bspline_poly_init)(const INT m)
   return tab;
 }
 
-struct sp_ctx { R w, m; };
+struct sp_ctx { R w, p; };
 
 static R sp_sample(const void *ctx, const R x)
 {
   const struct sp_ctx *c = (const struct sp_ctx*) ctx;
 
-  return Y(sincpow_phi)(c->w, c->m, KPI * c->w * x);
+  return Y(sincpow_phi)(c->w, c->p, KPI * c->w * x);
 }
 
 INT Y(sincpow_poly_degree)(const R w, const INT m)
 {
-  const R sigma = SINCPOW_A / (K(1.0) - (R)m * w);
+  const R sigma = SINCPOW_A / (K(1.0) - (R)(m + 1) * w);
   /* The degree does not rise with m past the last row. */
   INT mt = IF(m < SP_POLY_TAB_MMAX, m, SP_POLY_TAB_MMAX), deg, k;
 
@@ -305,7 +305,7 @@ R *Y(sincpow_poly_init)(const R *w, const INT d, const INT m)
   for (t = 0; t < d; t++)
   {
     const INT s = first_alike(w, t);
-    const struct sp_ctx c = {w[t], (R)m};
+    const struct sp_ctx c = {w[t], (R)(m + 1)};
 
     if (s == t)
       fit(tab + 1 + t * stride, m, deg, sp_sample, &c);
