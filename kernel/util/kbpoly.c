@@ -269,7 +269,7 @@ static R sp_sample(const void *ctx, const R x)
 
 INT Y(sincpow_poly_degree)(const R w, const INT m)
 {
-  const R sigma = K(1.0) / (K(2.0) - K(2.0) * (R)m * w);
+  const R sigma = SINCPOW_A / (K(1.0) - (R)m * w);
   /* The degree does not rise with m past the last row. */
   INT mt = IF(m < SP_POLY_TAB_MMAX, m, SP_POLY_TAB_MMAX), deg, k;
 

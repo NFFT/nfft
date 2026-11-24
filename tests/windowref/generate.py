@@ -31,11 +31,13 @@ FRAC = Fraction(5, 16)
 K_STEP = 8
 
 # The B-spline tables run at the cutoff nfft_init picks. The sinc-power tables
-# run at 8 instead, where w = (2 sigma - 1)/(2 m sigma) is 3/32 and so exactly
-# representable; at 11 it is 3/44, and its rounding would be charged to the
+# run at 8 instead, where w = (sigma - a)/(m sigma) is 109/1024 and so exactly
+# representable; at 11 it is not, and its rounding would be charged to the
 # window rather than to the constant.
 M_BSPLINE = 11
 M_SINCPOW = 8
+# SINCPOW_A in include/infft.h.
+SINCPOW_A = Fraction(19, 64)
 
 
 def bspline(k, x):
@@ -113,7 +115,7 @@ def bspline_phi(out):
 def sincpow_phi(out):
     """phi over one run: w (sin a / a)^(2m), a = pi w (nx0 - l)."""
     m, n = M_SINCPOW, N_GRID
-    w = Fraction(2 * (N_GRID // N_FREQ) - 1, 2 * m * (N_GRID // N_FREQ))
+    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (m * Fraction(N_GRID, N_FREQ))
     nx0 = Fraction(m) + FRAC
     vals = []
 
@@ -132,7 +134,7 @@ def sincpow_phi(out):
 def sincpow_phi_hut(out):
     """phi_hut(k) = B_{2m}(k/(w n) + m)."""
     m, n = M_SINCPOW, N_GRID
-    w = Fraction(2 * (N_GRID // N_FREQ) - 1, 2 * m * (N_GRID // N_FREQ))
+    w = (Fraction(N_GRID, N_FREQ) - SINCPOW_A) / (m * Fraction(N_GRID, N_FREQ))
     ks = range(0, N_FREQ // 2 + 1, K_STEP)
     vals = [mpf(bspline(2 * m, Fraction(k, 1) / (w * n) + m)) for k in ks]
 

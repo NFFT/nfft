@@ -11,13 +11,12 @@ def setup_module(_module):
 
 
 def test_degrees_at_known_points():
-    assert generate.degrees(2.0, 4) == {24: 7, 64: 17, 113: 27, 53: 14}
-    assert generate.degrees(2.0, 32) == {24: 5, 64: 13, 113: 21, 53: 11}
+    assert generate.degrees(2.0, 4) == {24: 7, 64: 18, 113: 28, 53: 15}
+    assert generate.degrees(2.0, 32) == {24: 5, 64: 13, 113: 22, 53: 11}
 
 
-def test_row_takes_running_maximum():
-    # The exact float degree of m = 2 dips from 8 to 7 near sigma 1.5; the
-    # row stays at 8 there.
+def test_row_steps():
     _, (d0, steps) = generate.row_steps(2)
-    assert d0[24] == 7
-    assert steps[24] == [13891, 22871]
+    assert d0 == {24: 8, 64: 18, 113: 29, 53: 16}
+    assert steps[24] == [13579]
+    assert steps[64] == [12010, 26479]
