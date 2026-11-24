@@ -53,10 +53,6 @@ static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weig
                         FFTW_INIT,
                         FFTW_MEASURE);
 
-  /* precompute lin psi if set */
-  if(my_plan.flags & PRE_LIN_PSI)
-    NFFT(precompute_lin_psi)(&my_plan);
-
   /* set the flags for the infft*/
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;
@@ -105,13 +101,9 @@ static void reconstruct(char* filename,int N,int M,int Z,int iteration, int weig
       my_iplan.y[j] = real + _Complex_I*imag;
     }
 
-    /* precompute psi if set just one time because the knots equal each plane */
-    if(z==0 && my_plan.flags & PRE_PSI)
-      NFFT(precompute_psi)(&my_plan);
-
-    /* precompute full psi if set just one time because the knots equal each plane */
-    if(z==0 && my_plan.flags & PRE_FULL_PSI)
-      NFFT(precompute_full_psi)(&my_plan);
+    /* precompute psi just one time because the knots equal each plane */
+    if(z==0)
+      NFFT(precompute_one_psi)(&my_plan);
 
     /* init some guess */
     for(k=0;k<my_plan.N_total;k++)

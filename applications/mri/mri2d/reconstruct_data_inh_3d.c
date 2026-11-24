@@ -157,12 +157,7 @@ static void reconstruct(char* filename,int N,int M,int iteration , int weight)
   fclose(finh);
 
 
-  if(my_plan.plan.flags & PRE_PSI) {
-    NFFT(precompute_psi)(&my_plan.plan);
-  }
-  if(my_plan.plan.flags & PRE_FULL_PSI) {
-      NFFT(precompute_full_psi)(&my_plan.plan);
-  }
+  NFFT(precompute_one_psi)(&my_plan.plan);
 
   /* init some guess */
   for(j=0;j<my_plan.N_total;j++)
