@@ -18,7 +18,5 @@
 
 #include "infft.h"
 
-#if defined(KAISER_BESSEL)
 void nnfft_check_1d_online_edge(void);
 void nnfft_check_adjoint_1d_online_edge(void);
-#endif

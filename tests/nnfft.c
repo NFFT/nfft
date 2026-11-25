@@ -32,8 +32,6 @@
 
 #define SEED 1234567890L
 
-#if defined(KAISER_BESSEL)
-
 typedef struct testcase_s
 {
   int d;
@@ -58,9 +56,9 @@ static R err_trafo(nnfft_plan *p)
     N1[t] = p->N1[t];
   }
 
-  return Y(kb_err_trafo)(p->d, p->m, p->sigma, N, N1, 0)
-      + Y(kb_err_trafo)(p->direct_plan->d, p->direct_plan->m,
-            p->direct_plan->sigma, p->direct_plan->N, p->direct_plan->n, 0)
+  return Y(err_trafo)(p->d, p->m, p->sigma, N, N1)
+      + Y(err_trafo)(p->direct_plan->d, p->direct_plan->m,
+            p->direct_plan->sigma, p->direct_plan->N, p->direct_plan->n)
       + K(56.0) * Y(float_property)(NFFT_EPSILON);
 }
 
@@ -164,5 +162,3 @@ void nnfft_check_adjoint_1d_online_edge(void)
   printf("check_adjoint_1d_online_edge:\n");
   check_many(testcases_1d_online_edge, SIZE(testcases_1d_online_edge), 1);
 }
-
-#endif
