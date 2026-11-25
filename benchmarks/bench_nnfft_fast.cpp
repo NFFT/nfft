@@ -74,9 +74,9 @@ static bool same_geometry(const Geometry& a, const Geometry& b) {
 
 /* At most one plan is alive at any time: each acquire finalizes the previous. */
 
-/* Which benchmark last seeded f_hat and f. Neither transform modifies its own
- * input so repeated entries into one benchmark need no reseeding. Moving between the
- * two does. */
+/* Which benchmark last seeded f_hat and f. nnfft_adjoint scales its input f
+ * by c_phi_inv in place, so its timed iterations run on growing data. Every
+ * round builds a fresh plan and reseeds. */
 enum DataRole { DATA_NONE, DATA_TRAFO, DATA_ADJOINT };
 
 struct PlanSlot {
