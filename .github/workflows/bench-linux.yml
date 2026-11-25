@@ -152,7 +152,7 @@ jobs:
           FAST_ARGS="--benchmark_repetitions=25"
           # The NNFFT benchmarks exist only in double builds.
           for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct bench_nnfft_direct bench_nnfft_fast; do
-            [ -x ./build-cmake/benchmarks/$b ] || continue
+            case "$b" in bench_nnfft_*) [ -x ./build-cmake/benchmarks/$b ] || continue ;; esac
             case "$b" in *_fast) A="$ARGS $FAST_ARGS" ;; *) A="$ARGS" ;; esac
             ./build-cmake/benchmarks/$b $A
             if [ -x ./build-cmake/benchmarks/${b}_omp ]; then

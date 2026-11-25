@@ -49,6 +49,7 @@ bench_nfst_direct_omp_SOURCES = bench_nfst_direct.cpp util.h
 bench_nfst_direct_omp_CXXFLAGS = @nfft_benchmarks_CXXFLAGS@ $(OPENMP_CFLAGS) @CXXFLAGS@
 bench_nfst_direct_omp_LDFLAGS = @nfft_benchmarks_LDFLAGS@ @fftw3_LDFLAGS@ $(OPENMP_CFLAGS) @LDFLAGS@
 bench_nfst_direct_omp_LDADD = @nfft_benchmarks_LIBS@ $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
+endif
 if HAVE_NNFFT
 NNFFT_BENCHMARKS = bench_nnfft_direct bench_nnfft_fast
 bench_nnfft_direct_SOURCES = bench_nnfft_direct.cpp util.h
@@ -69,7 +70,6 @@ bench_nnfft_fast_omp_SOURCES = bench_nnfft_fast.cpp util.h
 bench_nnfft_fast_omp_CXXFLAGS = @nfft_benchmarks_CXXFLAGS@ $(OPENMP_CFLAGS) @CXXFLAGS@
 bench_nnfft_fast_omp_LDFLAGS = @nfft_benchmarks_LDFLAGS@ @fftw3_LDFLAGS@ $(OPENMP_CFLAGS) @LDFLAGS@
 bench_nnfft_fast_omp_LDADD = @nfft_benchmarks_LIBS@ $(top_builddir)/libnfft3@PREC_SUFFIX@_omp.la @fftw3_LIBS_omp@ @fftw3_LIBS@ $(OPENMP_LIBS)
-endif
 endif
 endif
 else
