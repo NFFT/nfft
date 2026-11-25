@@ -38,7 +38,7 @@
 int main(void)
 {
   CU_pSuite util, nfft, nfct, nfst;
-#if defined(HAVE_NNFFT) && defined(KAISER_BESSEL)
+#ifdef HAVE_NNFFT
   CU_pSuite nnfft;
 #endif
   CU_initialize_registry();
@@ -240,7 +240,7 @@ int main(void)
 #endif
 #endif
 #endif
-#if defined(HAVE_NNFFT) && defined(KAISER_BESSEL)
+#ifdef HAVE_NNFFT
   nnfft = CU_add_suite("nnfft", 0, 0);
   CU_add_test(nnfft, "nnfft_1d_online_edge", nnfft_check_1d_online_edge);
   CU_add_test(nnfft, "nnfft_adjoint_1d_online_edge", nnfft_check_adjoint_1d_online_edge);
