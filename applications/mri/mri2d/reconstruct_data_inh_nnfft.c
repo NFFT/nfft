@@ -168,11 +168,8 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
     }
 
   /* precompute psi */
-  if(my_plan.nnfft_flags & PRE_PSI) {
+  if(my_plan.nnfft_flags & PRE_PSI)
     NNFFT(precompute_psi)(&my_plan);
-    if(my_plan.nnfft_flags & PRE_FULL_PSI)
-      NNFFT(precompute_full_psi)(&my_plan);
-  }
 
   if(my_plan.nnfft_flags & PRE_PHI_HUT)
     NNFFT(precompute_phi_hut)(&my_plan);

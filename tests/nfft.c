@@ -168,7 +168,6 @@ static init_delegate_t init_2d;
 static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
-static init_delegate_t init_advanced_pre_full_psi;
 static init_delegate_t init_advanced_pre_lin_psi;
 static init_delegate_t init_advanced_no_pre;
 #if defined(GAUSSIAN)
@@ -707,7 +706,6 @@ static init_delegate_t init = {"init", init_, 0, 0, 0};
 static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 /* Default m gives errors around the round-off floor, so test a half that m to see the approximation error. */
 static init_delegate_t init_advanced_pre_psi_m_half = {"init_guru (PRE PSI, m=half)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m / 2, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_no_pre = {"init_guru (no PRE_PHI_HUT, no PRE_PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 //static init_delegate_t init_advanced_pre_lin_psi_00 = {"init_guru (PRE LIN PSI) 00", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 23)};
@@ -864,7 +862,6 @@ static const init_delegate_t* initializers_1d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
-  &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1012,7 +1009,6 @@ static const init_delegate_t* initializers_2d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
-  &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1146,7 +1142,6 @@ static const init_delegate_t* initializers_3d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
-  &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,
@@ -1261,7 +1256,6 @@ static const init_delegate_t* initializers_4d[] =
   &init,
   &init_advanced_pre_psi,
   &init_advanced_pre_psi_m_half,
-  &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
 //  &init_advanced_pre_lin_psi,
 //  &init_advanced_pre_lin_psi_00,

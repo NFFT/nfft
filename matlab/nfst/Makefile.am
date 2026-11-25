@@ -17,7 +17,7 @@ libnfst_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 dist_nfstmatlab_DATA = Contents.m FFTW_ESTIMATE.m FFTW_MEASURE.m \
-	FFT_OUT_OF_PLACE.m FG_PSI.m PRE_FG_PSI.m PRE_FULL_PSI.m PRE_LIN_PSI.m \
+	FFT_OUT_OF_PLACE.m FG_PSI.m PRE_FG_PSI.m PRE_LIN_PSI.m \
 	PRE_PHI_HUT.m PRE_PSI.m ndst_adjoint.m ndst_trafo.m nfst.m \
 	nfst_adjoint.m nfst_finalize.m nfst_get_f.m nfst_get_f_hat.m \
 	nfst_get_num_threads.m nfst_get_x.m nfst_init_1d.m nfst_init_2d.m \

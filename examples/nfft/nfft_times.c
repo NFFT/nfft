@@ -98,7 +98,7 @@ static void measure_time_nfft(int d, int N, unsigned test_ndft)
 
   NFFT(init_guru)(&p, d, NN, M, nn, 2,
   PRE_PHI_HUT |
-  PRE_FULL_PSI | MALLOC_F_HAT | MALLOC_X | MALLOC_F |
+  PRE_PSI | MALLOC_F_HAT | MALLOC_X | MALLOC_F |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
 

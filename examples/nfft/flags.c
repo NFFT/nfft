@@ -59,8 +59,7 @@ static void flags_cp(NFFT(plan) *dst, NFFT(plan) *src)
   dst->my_fftw_plan2 = src->my_fftw_plan2;
 }
 
-static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
-    unsigned test_pre_full_psi)
+static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft)
 {
   int r, NN[d], nn[d];
   double t_ndft, t;
@@ -74,7 +73,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   NFFT(plan) p_pre_lin_psi;
   NFFT(plan) p_pre_fg_psi;
   NFFT(plan) p_pre_psi;
-  NFFT(plan) p_pre_full_psi;
 
   printf("%d\t%d\t", d, N);
 
@@ -122,13 +120,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   flags_cp(&p_pre_psi, &p);
   NFFT(precompute_one_psi)(&p_pre_psi);
 
-  if (test_pre_full_psi)
-  {
-    NFFT(init_guru)(&p_pre_full_psi, d, NN, M, nn, m, PRE_FULL_PSI, 0);
-    flags_cp(&p_pre_full_psi, &p);
-    NFFT(precompute_one_psi)(&p_pre_full_psi);
-  }
-
   /* init pseudo random Fourier coefficients */
   NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
 
@@ -168,10 +159,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   else
     p_pre_fg_psi.MEASURE_TIME_t[2] = nan("");
   NFFT(trafo)(&p_pre_psi);
-  if (test_pre_full_psi)
-    NFFT(trafo)(&p_pre_full_psi);
-  else
-    p_pre_full_psi.MEASURE_TIME_t[2] = nan("");
 
   if (test_fftw == 0)
     p.MEASURE_TIME_t[1] = nan("");
@@ -182,17 +169,15 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     e = NFFT_MKNAN("");
 
   printf(
-      "%.2E\t%d\t%.2" NFFT__FES__ "\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\n",
+      "%.2E\t%d\t%.2" NFFT__FES__ "\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\n",
       t_ndft, m, e, p.MEASURE_TIME_t[0], p_pre_phi_hut.MEASURE_TIME_t[0],
       p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], p_fg_psi.MEASURE_TIME_t[2],
       p_pre_lin_psi.MEASURE_TIME_t[2], p_pre_fg_psi.MEASURE_TIME_t[2],
-      p_pre_psi.MEASURE_TIME_t[2], p_pre_full_psi.MEASURE_TIME_t[2]);
+      p_pre_psi.MEASURE_TIME_t[2]);
 
   fflush(stdout);
 
   /** finalise */
-  if (test_pre_full_psi)
-    NFFT(finalize)(&p_pre_full_psi);
   NFFT(finalize)(&p_pre_psi);
   if (test_fg)
     NFFT(finalize)(&p_pre_fg_psi);
@@ -283,7 +268,7 @@ int main(int argc, char **argv)
   fprintf(stderr, "Testing different precomputation schemes for the nfft.\n");
   fprintf(stderr, "Columns: d, N=M, t_ndft, e_nfft, t_D, t_pre_phi_hut, ");
   fprintf(stderr, "t_fftw, t_B, t_fg_psi, t_pre_lin_psi, t_pre_fg_psi, ");
-  fprintf(stderr, "t_pre_psi, t_pre_full_psi\n\n");
+  fprintf(stderr, "t_pre_psi\n\n");
 
   int arg2 = atoi(argv[2]);
   int arg3 = atoi(argv[3]);
@@ -301,7 +286,7 @@ int main(int argc, char **argv)
       int M = (int)(1U << (d * l));
       for (trial = 0; trial < arg4; trial++)
       {
-        time_accuracy(d, N, M, 2 * N, m, 0, 0);
+        time_accuracy(d, N, M, 2 * N, m, 0);
       }
     }
   }
@@ -315,7 +300,7 @@ int main(int argc, char **argv)
     {
       for (trial = 0; trial < arg4; trial++)
       {
-        time_accuracy(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, 1, 1);
+        time_accuracy(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, 1);
       }
     }
   }

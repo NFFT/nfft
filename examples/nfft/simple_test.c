@@ -91,7 +91,7 @@ static void simple_test_nfft_2d(void)
   t0 = NFFT(clock_gettime_seconds)();
   /** init a two dimensional plan */
   NFFT(init_guru)(&p, 2, N, M, n, 7,
-     PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
+     PRE_PHI_HUT| PRE_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
      FFTW_INIT| FFT_OUT_OF_PLACE,
      FFTW_ESTIMATE| FFTW_DESTROY_INPUT);
 

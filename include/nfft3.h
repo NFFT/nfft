@@ -145,8 +145,6 @@ typedef struct\
     is \f$N_0+\dots+N_{d-1}\f$ doubles*/\
   R *psi; /**< Precomputed data for the sparse matrix \f$B\f$, size depends
                     on precomputation scheme */\
-  NFFT_INT *psi_index_g; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
-  NFFT_INT *psi_index_f; /**< Indices in source/target vector for \ref PRE_FULL_PSI */\
 \
   C *g; /**< Oversampled vector of samples, size is \ref n_total double complex */\
   C *g_hat; /**< Zero-padded vector of Fourier coefficients, size is \ref n_total fftw_complex */\
@@ -178,7 +176,6 @@ NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, int K, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
@@ -199,7 +196,6 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
  * not PRE_PSI's 2m+2 window values. */
 #define PRE_FG_PSI                 (1U<<3)
 #define PRE_PSI                    (1U<<4)
-#define PRE_FULL_PSI               (1U<<5)
 #define MALLOC_X                   (1U<<6)
 #define MALLOC_F_HAT               (1U<<7)
 #define MALLOC_F                   (1U<<8)
@@ -207,7 +203,7 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FFTW_INIT                  (1U<<10)
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
-#define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
+#define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI)
 
 /* nfct */
 
@@ -254,9 +250,6 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  NFFT_INT size_psi; /**< only for thin B */\
-  NFFT_INT *psi_index_g; /**< only for thin B */\
-  NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -274,7 +267,6 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int
   int m, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
@@ -334,9 +326,6 @@ typedef struct\
 \
   R **c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  NFFT_INT size_psi; /**< only for thin B */\
-  NFFT_INT *psi_index_g; /**< only for thin B */\
-  NFFT_INT *psi_index_f; /**< only for thin B */\
 \
   R *g;\
   R *g_hat;\
@@ -344,8 +333,6 @@ typedef struct\
   R *g2; /**< output of fftw */\
 \
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
-\
-  R X(full_psi_eps);\
 } X(plan);\
 \
 NFFT_EXTERN void X(init_1d)(X(plan) *ths_plan, int N0, int M_total); \
@@ -356,7 +343,6 @@ NFFT_EXTERN void X(init_guru)(X(plan) *ths_plan, int d, int *N, int M_total, int
   int m, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
@@ -410,9 +396,6 @@ typedef struct\
   R *v; /**< nodes (in fourier domain) */\
   R *c_phi_inv; /**< precomputed data, matrix D */\
   R *psi; /**< precomputed data, matrix B */\
-  int size_psi; /**< only for thin B */\
-  int *psi_index_g; /**< only for thin B */\
-  int *psi_index_f; /**< only for thin B */\
   C *F;\
   R *spline_coeffs; /**< Polynomial Kaiser-Bessel window, one table per axis */\
 } X(plan);\
@@ -427,7 +410,6 @@ NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths_plan);
