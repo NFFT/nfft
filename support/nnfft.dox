@@ -101,18 +101,6 @@
  * \author Tobias Knopp
  */
 
-/*! \fn void nnfft_precompute_lin_psi(nnfft_plan *ths_plan)
- * Precomputation for a transform plan.
- *
- * \arg ths_plan The pointer to a nfft plan
- *
- * \author Tobias Knopp
- *
- * precomputes equally spaced values of the window function psi
- *
- * if PRE_LIN_PSI is set the application program has to call this routine
- */
-
 /*! \fn void nnfft_precompute_psi(nnfft_plan *ths_plan)
  * Precomputation for a transform plan.
  *

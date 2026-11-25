@@ -16,7 +16,6 @@ const lib_path = string( @__DIR__, "/libnfstjulia", ending )
 # NFST flags
 PRE_PHI_HUT = UInt32(1)<<0
 FG_PSI = UInt32(1)<<1
-PRE_LIN_PSI = UInt32(1)<<2 #
 PRE_FG_PSI = UInt32(1)<<3 #
 PRE_PSI = UInt32(1)<<4 #
 PRE_FULL_PSI = UInt32(1)<<5 #
@@ -27,7 +26,7 @@ FFT_OUT_OF_PLACE = UInt32(1)<<9
 FFTW_INIT = UInt32(1)<<10
 NFST_SORT_NODES = UInt32(1)<<11
 NFST_OMP_BLOCKWISE_ADJOINT = UInt32(1)<<12
-PRE_ONE_PSI = (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
+PRE_ONE_PSI = (PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 # FFTW flags
 FFTW_MEASURE = UInt32(0)

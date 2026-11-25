@@ -52,10 +52,9 @@ t_Bs=(mean(reshape(ds(:,9),trials,last-first+1)))';
 t_Bb=(mean(reshape(db(:,9),trials,last-first+1)))';
 
 t_fg_psi=(mean(reshape(dg(:,10),trials,last-first+1)))';
-t_pre_lin_psi=(mean(reshape(dg(:,11),trials,last-first+1)))';
-t_pre_fg_psi=(mean(reshape(dg(:,12),trials,last-first+1)))';
-t_pre_psi=(mean(reshape(dg(:,13),trials,last-first+1)))';
-t_pre_full_psi=(mean(reshape(dg(:,14),trials,last-first+1)))';
+t_pre_fg_psi=(mean(reshape(dg(:,11),trials,last-first+1)))';
+t_pre_psi=(mean(reshape(dg(:,12),trials,last-first+1)))';
+t_pre_full_psi=(mean(reshape(dg(:,13),trials,last-first+1)))';
 
 h=loglog(N,t_Dg,'k',...
          N,t_Dk,'k--',...

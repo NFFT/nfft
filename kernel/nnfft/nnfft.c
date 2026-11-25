@@ -123,10 +123,6 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
   g[ll_plain[ths->d]] += phi_prod[ths->d] * (*fj);                            \
 }
 
-#define MACRO_with_PRE_LIN_PSI (ths->psi[(ths->K+1)*t2+y_u[t2]]*              \
-                                (y_u[t2]+1-y[t2]) +                           \
-                                ths->psi[(ths->K+1)*t2+y_u[t2]+1]*            \
-                                (y[t2]-y_u[t2]))
 #define MACRO_with_PRE_PSI     ths->psi[(j*ths->d+t2)*(2*ths->m+2)+lj[t2]]
 /* The offset below loses the low bits of the product once it passes the
  * mantissa. NX_SUB (include/infft.h) forms it with one rounding:
@@ -147,19 +143,6 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
       lj[t] = 0;                                                              \
     } /* for(t) */                                                            \
   t++;                                                                        \
-}
-
-/* Same single-rounding option as above:
- *   y[t2] = fabs((NX_SUB(ths->n[t2], ths->v[j*ths->d+t2], l[t2])
- *       * ((double)ths->K))/(ths->m+1));
- * again with n[t2] in place of N1[t2]. */
-#define MACRO_update_with_PRE_PSI_LIN {                                       \
-  for(t2=t; t2<ths->d; t2++)                                                  \
-    {                                                                         \
-      y[t2] = fabs(((-ths->N1[t2]*ths->v[j*ths->d+t2]+(double)l[t2])          \
-          * ((double)ths->K))/(ths->m+1));                                    \
-      y_u[t2] = (int)y[t2];                                                   \
-    } /* for(t2) */                                                           \
 }
 
 #define MACRO_update_phi_prod_ll_plain(which_one) {                           \
@@ -197,8 +180,6 @@ static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                    \
   double phi_prod[ths->d+1];           /**< postfix product of PHI          */\
   double _Complex *f, *g;              /**< local copy                      */\
   double _Complex *fj;                 /**< local copy                      */\
-  double y[ths->d];                                                           \
-  int y_u[ths->d];                                                            \
                                                                               \
   f=ths->f_hat; g=ths->F;                                                     \
                                                                               \
@@ -235,26 +216,6 @@ static inline void nnfft_B_ ## which_one (nnfft_plan *ths)                    \
         } /* for(j) */                                                        \
       return;                                                                 \
     } /* if(PRE_PSI) */                                                       \
-                                                                              \
-  if(ths->nnfft_flags & PRE_LIN_PSI)                                          \
-    {                                                                         \
-      for(j=0, fj=f; j<ths->N_total; j++, fj++)                               \
-        {                                                                     \
-          MACRO_init_uo_l_lj_t;                                               \
-                                                                              \
-          for(l_L=0; l_L<lprod; l_L++)                                        \
-            {                                                                 \
-              MACRO_update_with_PRE_PSI_LIN;                                  \
-                                                                              \
-              MACRO_update_phi_prod_ll_plain(with_PRE_LIN_PSI);               \
-                                                                              \
-              MACRO_nnfft_B_compute_ ## which_one;                            \
-                                                                              \
-              MACRO_count_uo_l_lj_t;                                          \
-            } /* for(l_L) */                                                  \
-        } /* for(j) */                                                        \
-      return;                                                                 \
-    } /* if(PRE_LIN_PSI) */                                                   \
                                                                               \
   /* no precomputed psi at all */                                             \
   for(j=0, fj=f; j<ths->N_total; j++, fj++)                                   \
@@ -374,26 +335,6 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
 } /* nnfft_phi_hut */
 
 
-/** create a lookup table
- */
-void nnfft_precompute_lin_psi(nnfft_plan *ths)
-{
-  int t;                                /**< index over all dimensions        */
-  int j;                                /**< index over all nodes             */
-  double step;                          /**< step size in [0,(m+1)/n]         */
-
-  nfft_precompute_lin_psi(ths->direct_plan);
-
-  for (t=0; t<ths->d; t++)
-    {
-      step=((double)(ths->m+1))/(ths->K*ths->N1[t]);
-      for(j=0;j<=ths->K;j++)
-        {
-          ths->psi[(ths->K+1)*t + j] = PHI(ths->n[t],j*step,t);
-        } /* for(j) */
-    } /* for(t) */
-}
-
 void nnfft_precompute_psi(nnfft_plan *ths)
 {
   int t;                                /**< index over all dimensions        */
@@ -499,8 +440,6 @@ void nnfft_precompute_one_psi(nnfft_plan *ths)
     nnfft_precompute_psi(ths);
   if(ths->nnfft_flags & PRE_FULL_PSI)
     nnfft_precompute_full_psi(ths);
-  if(ths->nnfft_flags & PRE_LIN_PSI)
-    nnfft_precompute_lin_psi(ths);
   /** precompute phi_hut, the entries of the matrix D */
   if(ths->nnfft_flags & PRE_PHI_HUT)
 	  nnfft_precompute_phi_hut(ths);
@@ -557,12 +496,6 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
 //  if(ths->nnfft_flags & PRE_PHI_HUT)
 //	  nnfft_precompute_phi_hut(ths);
 
-  if(ths->nnfft_flags & PRE_LIN_PSI)
-  {
-    ths->K=(1U<< 10)*(ths->m+1);
-    ths->psi = (double*) nfft_malloc(sizeof(double)*(ths->K+1)*ths->d);
-  }
-
   if(ths->nnfft_flags & PRE_PSI){
     ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*(2*ths->m+2)*sizeof(double));
   }
@@ -611,9 +544,6 @@ void nnfft_init_guru(nnfft_plan *ths, int d, int N_total, int M_total, int *N, i
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
     nfft_flags = nfft_flags | PRE_FULL_PSI;
-
-  if(ths->nnfft_flags & PRE_LIN_PSI)
-    nfft_flags = nfft_flags | PRE_LIN_PSI;
 
   ths->N = (int*) nfft_malloc(ths->d*sizeof(int));
   ths->N1 = (int*) nfft_malloc(ths->d*sizeof(int));
@@ -688,9 +618,6 @@ void nnfft_finalize(nnfft_plan *ths)
     }
 
   if(ths->nnfft_flags & PRE_PSI)
-    nfft_free(ths->psi);
-
-  if(ths->nnfft_flags & PRE_LIN_PSI)
     nfft_free(ths->psi);
 
   if(ths->nnfft_flags & PRE_PHI_HUT)

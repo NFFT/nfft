@@ -115,7 +115,6 @@ static inline R X(base_reduced)(const INT k, const R x)
 /* uo() anchors the run at the grid point below the node, run index m,
  * which FG_RUN puts at buffer index m + 2 for a fill based at fg_psi[t] + 1 */
 #define MACRO_with_FG_PSI fg_psi[t][lj[t] + 2]
-#define MACRO_with_LIN_PSI fg_psi[t][lj[t]]
 #define MACRO_with_PRE_PSI ths->psi[(j * ths->d + t) * (2 * ths->m + 2) + lj[t]]
 #define MACRO_without_PRE_PSI psij_const[t * (2 * ths->m + 2) + lj[t]]
 
@@ -710,16 +709,11 @@ static inline void B_ ## which_one (X(plan) *ths) \
   R phi_prod[ths->d+1]; /* postfix product of PHI */ \
   R *f, *g; /* local copy */ \
   R *fj; /* local copy */ \
-  R y[ths->d]; \
   /* 2m+4, not the 2m+3 FG_RUN fills: an even row stride and an even offset \
    * to the used run keep the read base of the l_L loop aligned as it was \
    * before the run gained its extra point. */ \
   R fg_psi[ths->d][2*ths->m+4]; \
   R fg_e[ths->d], fg_q[ths->d]; \
-  INT l_fg,lj_fg; \
-  R ip_w; \
-  INT ip_u; \
-  INT ip_s = ths->K/(ths->m+2); \
   INT lg_offset[ths->d]; /* offset in g according to u */ \
   INT count_lg[ths->d]; /* count summands (2m+2) */ \
 \
@@ -793,38 +787,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
     return; \
   } \
  \
-  if (ths->flags & PRE_LIN_PSI) \
-  { \
-    for (j = 0, fj = f; j < ths->M_total; j++, fj++) \
-    { \
-      MACRO_init_uo_l_lj_t; \
-  \
-      for (t = 0; t < ths->d; t++) \
-      { \
-        y[t] = ((NX_SUB((2 * NN(ths->n[t])), ths->x[j * ths->d + t], u[t])) \
-                * ((R)ths->K))/(ths->m + 2); \
-        ip_u  = LRINT(FLOOR(y[t])); \
-        ip_w  = y[t]-ip_u; \
-        for (l_fg = u[t], lj_fg = 0; l_fg <= o[t]; l_fg++, lj_fg++) \
-        { \
-          fg_psi[t][lj_fg] = ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s)] \
-            * (1-ip_w) + ths->psi[(ths->K+1)*t + ABS(ip_u-lj_fg*ip_s+1)] \
-            * (ip_w); \
-        } \
-      } \
-  \
-      for (l_L = 0; l_L < lprod; l_L++) \
-      { \
-        MACRO_update_phi_prod_ll_plain(which_one, with_LIN_PSI); \
- \
-        MACRO_B_compute_ ## which_one; \
- \
-        MACRO_count_uo_l_lj_t; \
-      }  /* for(l_L) */  \
-    } /* for(j) */  \
-    return; \
-  } /* if(PRE_LIN_PSI) */ \
-  \
   /* no precomputed psi at all */ \
   for (j = 0, fj = &f[0]; j < ths->M_total; j++, fj += 1) \
   { \
@@ -946,28 +908,6 @@ static inline void precompute_phi_hut(X(plan) *ths)
   }
 } /* phi_hut */
 
-/** create a lookup table, but NOT for each node
- *  good idea K=2^xx
- *  TODO: estimate K, call from init
- *  assumes an EVEN window function
- */
-void X(precompute_lin_psi)(X(plan) *ths)
-{
-  INT t; /**< index over all dimensions */
-  INT j; /**< index over all nodes */
-  R step; /**< step size in [0,(m+2)/n] */
-
-  for (t = 0; t < ths->d; t++)
-  {
-    step = ((R)(ths->m+2)) / (((R)ths->K) * (2 * NN(ths->n[t])));
-
-    for (j = 0; j <= ths->K; j++)
-    {
-      ths->psi[(ths->K + 1) * t + j] = PHI((2 * NN(ths->n[t])), (j * step), t);
-    } /* for(j) */
-  } /* for(t) */
-}
-
 void X(precompute_fg_psi)(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
@@ -1079,8 +1019,6 @@ void X(precompute_one_psi)(X(plan) *ths)
     X(precompute_full_psi)(ths);
   if(ths->flags & PRE_FG_PSI)
     X(precompute_fg_psi)(ths);
-  if(ths->flags & PRE_LIN_PSI)
-    X(precompute_lin_psi)(ths);
 }
 
 static inline void init_help(X(plan) *ths)
@@ -1117,12 +1055,6 @@ static inline void init_help(X(plan) *ths)
 
   if (ths->flags & PRE_PHI_HUT)
     precompute_phi_hut(ths);
-
-  if(ths->flags & PRE_LIN_PSI)
-  {
-      ths->K = (1U<< 10) * (ths->m+2);
-      ths->psi = (R*) Y(malloc)((size_t)((ths->K + 1) * ths->d) * sizeof(R));
-  }
 
   if(ths->flags & PRE_FG_PSI)
     ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * 2) * sizeof(R));
@@ -1332,9 +1264,6 @@ void X(finalize)(X(plan) *ths)
     Y(free)(ths->psi);
 
   if(ths->flags & PRE_FG_PSI)
-    Y(free)(ths->psi);
-
-  if(ths->flags & PRE_LIN_PSI)
     Y(free)(ths->psi);
 
   if (ths->flags & PRE_PHI_HUT)

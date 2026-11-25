@@ -121,8 +121,6 @@ typedef struct\
               on window and precision; nfft_get_default_window_cut_off()
               returns it. */\
   R *b; /**< Shape parameter for window function */\
-  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
-             PRE_LIN_PSI. */\
 \
   unsigned flags; /**< Flags for precomputation, (de)allocation, and FFTW
                        usage, default setting is PRE_PHI_HUT | PRE_PSI
@@ -174,13 +172,10 @@ NFFT_EXTERN void X(init_3d)(X(plan) *ths, int N1, int N2, int N3, int M);\
 NFFT_EXTERN void X(init)(X(plan) *ths, int d, int *N, int M);\
 NFFT_EXTERN void X(init_guru)(X(plan) *ths, int d, int *N, int M, int *n, \
   int m, unsigned flags, unsigned fftw_flags);\
-NFFT_EXTERN void X(init_lin)(X(plan) *ths, int d, int *N, int M, int *n, \
-  int m, int K, unsigned flags, unsigned fftw_flags); \
 NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN const char* X(check)(X(plan) *ths);\
 NFFT_EXTERN void X(finalize)(X(plan) *ths);
 
@@ -194,7 +189,6 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 /* Ignored. A Gaussian plan without a precomputed psi always fills the window
  * by the fast Gaussian gridding recurrence. */
 #define FG_PSI                     (1U<<1)
-#define PRE_LIN_PSI                (1U<<2)
 /* Gaussian only, else ignored: stores 2 recurrence seeds per node and axis,
  * not PRE_PSI's 2m+2 window values. */
 #define PRE_FG_PSI                 (1U<<3)
@@ -207,7 +201,7 @@ NFFT_DEFINE_API(NFFT_MANGLE_LONG_DOUBLE,FFTW_MANGLE_LONG_DOUBLE,long double,fftw
 #define FFTW_INIT                  (1U<<10)
 #define NFFT_SORT_NODES            (1U<<11)
 #define NFFT_OMP_BLOCKWISE_ADJOINT (1U<<12)
-#define PRE_ONE_PSI (PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
+#define PRE_ONE_PSI (PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
 /* nfct */
 
@@ -238,8 +232,6 @@ typedef struct\
   NFFT_INT m; /**< cut-off parameter in time-domain */\
 \
   R *b; /**< shape parameters */\
-  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
-               PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
   unsigned fftw_flags; /**< flags for the fftw */\
@@ -276,7 +268,6 @@ NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
@@ -318,8 +309,6 @@ typedef struct\
   NFFT_INT m; /**< cut-off parameter in time-domain */\
 \
   R *b; /**< shape parameters */\
-  NFFT_INT K; /**< Number of equispaced samples of window function. Used for flag
-               PRE_LIN_PSI. */\
 \
   unsigned flags; /**< flags for precomputation, malloc */\
   unsigned fftw_flags; /**< flags for the fftw */\
@@ -358,7 +347,6 @@ NFFT_EXTERN void X(precompute_one_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(precompute_fg_psi)(X(plan) *ths); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths);\
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo_direct)(const X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
@@ -401,7 +389,6 @@ typedef struct\
   int *aN1; /**< sigma*a*N */\
   int m; /**< cut-off parameter in time-domain*/\
   R *b; /**< shape parameters */\
-  int K; /**< number of precomp. uniform psi */\
   int aN1_total; /**< aN1_total=aN1[0]* ... *aN1[d-1] */\
   Z(plan) *direct_plan; /**< plan for the nfft */\
   unsigned nnfft_flags; /**< flags for precomputation, malloc*/\
@@ -425,7 +412,6 @@ NFFT_EXTERN void X(trafo_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint_direct)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(trafo)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(adjoint)(X(plan) *ths_plan); \
-NFFT_EXTERN void X(precompute_lin_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_full_psi)(X(plan) *ths_plan); \
 NFFT_EXTERN void X(precompute_phi_hut)(X(plan) *ths_plan); \

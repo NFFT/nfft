@@ -81,11 +81,6 @@ void nfsoft_init_guru_advanced(nfsoft_plan *plan, int B, int M,
   nfft_init_guru(&plan->p_nfft, 3, N, M, n, nfft_cutoff, nfft_flags,
       FFTW_ESTIMATE | FFTW_DESTROY_INPUT);
 
-  if ((plan->p_nfft).flags & PRE_LIN_PSI)
-  {
-    nfft_precompute_lin_psi(&(plan->p_nfft));
-  }
-
   plan->N_total = B;
   plan->M_total = M;
   plan->flags = nfsoft_flags;

@@ -17,7 +17,7 @@ libnfct_la_CFLAGS = $(OPENMP_CFLAGS)
 endif
 
 dist_nfctmatlab_DATA = Contents.m FFTW_ESTIMATE.m FFTW_MEASURE.m \
-	FFT_OUT_OF_PLACE.m FG_PSI.m PRE_FG_PSI.m PRE_FULL_PSI.m PRE_LIN_PSI.m \
+	FFT_OUT_OF_PLACE.m FG_PSI.m PRE_FG_PSI.m PRE_FULL_PSI.m \
 	PRE_PHI_HUT.m PRE_PSI.m ndct_adjoint.m ndct_trafo.m nfct.m \
 	nfct_adjoint.m nfct_finalize.m nfct_get_f.m nfct_get_f_hat.m \
 	nfct_get_num_threads.m nfct_get_x.m nfct_init_1d.m nfct_init_2d.m \
