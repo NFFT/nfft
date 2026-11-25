@@ -503,3 +503,49 @@ CHECK_ONLINE(4, , initializers)
 CHECK_ONLINE(3, _edge, initializers_edge)
 CHECK_ONLINE(4, _edge, initializers_edge)
 #endif
+
+/* Live Y(malloc) blocks, counted through the allocator hooks. */
+static int live_blocks;
+
+static void *counting_malloc(size_t n)
+{
+  live_blocks++;
+  return malloc(n);
+}
+
+static void counting_free(void *q)
+{
+  live_blocks--;
+  free(q);
+}
+
+/* A new node set needs a new precompute on the same plan, so precompute must
+ * not allocate. */
+void nnfft_check_repeated_precompute(void)
+{
+  nnfft_plan p;
+  int N[1] = {32}, j, r;
+
+  printf("check_repeated_precompute:\n");
+  live_blocks = 0;
+  Y(malloc_hook) = counting_malloc;
+  Y(free_hook) = counting_free;
+
+  nnfft_init(&p, 1, 32, 32, N);
+  for (r = 0; r < 3; r++)
+  {
+    for (j = 0; j < 32; j++)
+    {
+      p.x[j] = Y(drand48)() - K(0.5);
+      p.v[j] = Y(drand48)() - K(0.5);
+    }
+    nnfft_precompute_one_psi(&p);
+  }
+  nnfft_finalize(&p);
+
+  Y(malloc_hook) = 0;
+  Y(free_hook) = 0;
+  printf("nnfft_repeated_precompute       3 precomputes, live blocks after finalize = %d -> %s\n",
+      live_blocks, IF(live_blocks == 0, "OK", "FAIL"));
+  CU_ASSERT(live_blocks == 0);
+}

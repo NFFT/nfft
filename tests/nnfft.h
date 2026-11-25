@@ -18,6 +18,7 @@
 
 #include "infft.h"
 
+void nnfft_check_repeated_precompute(void);
 void nnfft_check_1d_direct_file(void);
 void nnfft_check_adjoint_1d_direct_file(void);
 void nnfft_check_1d_fast_file(void);

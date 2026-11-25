@@ -242,6 +242,7 @@ int main(void)
 #endif
 #ifdef HAVE_NNFFT
   nnfft = CU_add_suite("nnfft", 0, 0);
+  CU_add_test(nnfft, "nnfft_repeated_precompute", nnfft_check_repeated_precompute);
   CU_add_test(nnfft, "nnfft_1d_direct_file", nnfft_check_1d_direct_file);
   CU_add_test(nnfft, "nnfft_1d_fast_file", nnfft_check_1d_fast_file);
   CU_add_test(nnfft, "nnfft_adjoint_1d_direct_file", nnfft_check_adjoint_1d_direct_file);
