@@ -18,5 +18,33 @@
 
 #include "infft.h"
 
+void nnfft_check_1d_direct_file(void);
+void nnfft_check_adjoint_1d_direct_file(void);
+void nnfft_check_1d_fast_file(void);
+void nnfft_check_adjoint_1d_fast_file(void);
+void nnfft_check_2d_direct_file(void);
+void nnfft_check_adjoint_2d_direct_file(void);
+void nnfft_check_2d_fast_file(void);
+void nnfft_check_adjoint_2d_fast_file(void);
+void nnfft_check_3d_direct_file(void);
+void nnfft_check_adjoint_3d_direct_file(void);
+void nnfft_check_3d_fast_file(void);
+void nnfft_check_adjoint_3d_fast_file(void);
+void nnfft_check_1d_online(void);
+void nnfft_check_adjoint_1d_online(void);
 void nnfft_check_1d_online_edge(void);
 void nnfft_check_adjoint_1d_online_edge(void);
+void nnfft_check_2d_online(void);
+void nnfft_check_adjoint_2d_online(void);
+void nnfft_check_2d_online_edge(void);
+void nnfft_check_adjoint_2d_online_edge(void);
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+void nnfft_check_3d_online(void);
+void nnfft_check_adjoint_3d_online(void);
+void nnfft_check_3d_online_edge(void);
+void nnfft_check_adjoint_3d_online_edge(void);
+void nnfft_check_4d_online(void);
+void nnfft_check_adjoint_4d_online(void);
+void nnfft_check_4d_online_edge(void);
+void nnfft_check_adjoint_4d_online_edge(void);
+#endif

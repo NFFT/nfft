@@ -242,8 +242,36 @@ int main(void)
 #endif
 #ifdef HAVE_NNFFT
   nnfft = CU_add_suite("nnfft", 0, 0);
+  CU_add_test(nnfft, "nnfft_1d_direct_file", nnfft_check_1d_direct_file);
+  CU_add_test(nnfft, "nnfft_1d_fast_file", nnfft_check_1d_fast_file);
+  CU_add_test(nnfft, "nnfft_adjoint_1d_direct_file", nnfft_check_adjoint_1d_direct_file);
+  CU_add_test(nnfft, "nnfft_adjoint_1d_fast_file", nnfft_check_adjoint_1d_fast_file);
+  CU_add_test(nnfft, "nnfft_2d_direct_file", nnfft_check_2d_direct_file);
+  CU_add_test(nnfft, "nnfft_2d_fast_file", nnfft_check_2d_fast_file);
+  CU_add_test(nnfft, "nnfft_adjoint_2d_direct_file", nnfft_check_adjoint_2d_direct_file);
+  CU_add_test(nnfft, "nnfft_adjoint_2d_fast_file", nnfft_check_adjoint_2d_fast_file);
+  CU_add_test(nnfft, "nnfft_3d_direct_file", nnfft_check_3d_direct_file);
+  CU_add_test(nnfft, "nnfft_3d_fast_file", nnfft_check_3d_fast_file);
+  CU_add_test(nnfft, "nnfft_adjoint_3d_direct_file", nnfft_check_adjoint_3d_direct_file);
+  CU_add_test(nnfft, "nnfft_adjoint_3d_fast_file", nnfft_check_adjoint_3d_fast_file);
+  CU_add_test(nnfft, "nnfft_1d_online", nnfft_check_1d_online);
+  CU_add_test(nnfft, "nnfft_adjoint_1d_online", nnfft_check_adjoint_1d_online);
   CU_add_test(nnfft, "nnfft_1d_online_edge", nnfft_check_1d_online_edge);
   CU_add_test(nnfft, "nnfft_adjoint_1d_online_edge", nnfft_check_adjoint_1d_online_edge);
+  CU_add_test(nnfft, "nnfft_2d_online", nnfft_check_2d_online);
+  CU_add_test(nnfft, "nnfft_adjoint_2d_online", nnfft_check_adjoint_2d_online);
+  CU_add_test(nnfft, "nnfft_2d_online_edge", nnfft_check_2d_online_edge);
+  CU_add_test(nnfft, "nnfft_adjoint_2d_online_edge", nnfft_check_adjoint_2d_online_edge);
+#ifdef NFFT_EXHAUSTIVE_UNIT_TESTS
+  CU_add_test(nnfft, "nnfft_3d_online", nnfft_check_3d_online);
+  CU_add_test(nnfft, "nnfft_adjoint_3d_online", nnfft_check_adjoint_3d_online);
+  CU_add_test(nnfft, "nnfft_3d_online_edge", nnfft_check_3d_online_edge);
+  CU_add_test(nnfft, "nnfft_adjoint_3d_online_edge", nnfft_check_adjoint_3d_online_edge);
+  CU_add_test(nnfft, "nnfft_4d_online", nnfft_check_4d_online);
+  CU_add_test(nnfft, "nnfft_adjoint_4d_online", nnfft_check_adjoint_4d_online);
+  CU_add_test(nnfft, "nnfft_4d_online_edge", nnfft_check_4d_online_edge);
+  CU_add_test(nnfft, "nnfft_adjoint_4d_online_edge", nnfft_check_adjoint_4d_online_edge);
+#endif
 #endif
   CU_automated_run_tests();
   //CU_basic_run_tests();

@@ -46,7 +46,8 @@ checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LI
 
 EXTRA_DIST = data/generated/nfft_testcases.h \
              data/generated/nfct_testcases.h \
-             data/generated/nfst_testcases.h
+             data/generated/nfst_testcases.h \
+             data/generated/nnfft_testcases.h
 
 if ENABLE_OPENMP
 checkall_threads_SOURCES = $(checkall_SOURCES)
