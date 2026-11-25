@@ -47,6 +47,9 @@
 
 #define MACRO_nndft_compute_transposed MACRO_nndft_compute_adjoint
 
+/* The phase v x N is reduced modulo 1 before COS/SIN, so the error does not
+ * grow with N. x_t N_t = wh[t] + wl[t] exactly; frac(v wh) + v wl is formed
+ * with single roundings, per axis and again for the sum. */
 #define MACRO_nndft(which_one)                                                \
 void nnfft_ ## which_one ## _direct (nnfft_plan *ths)                                    \
 {                                                                             \
@@ -57,6 +60,7 @@ void nnfft_ ## which_one ## _direct (nnfft_plan *ths)                           
   double _Complex *f_hat_k;            /**< actual Fourier coefficient      */\
   double _Complex *fj;                 /**< actual sample                   */\
   double omega;                        /**< sign times 2*pi*k*x             */\
+  double wh[ths->d], wl[ths->d];                                              \
                                                                               \
   f_hat=ths->f_hat; f=ths->f;                                                 \
                                                                               \
@@ -64,13 +68,22 @@ void nnfft_ ## which_one ## _direct (nnfft_plan *ths)                           
                                                                               \
   for(j=0, fj=f; j<ths->M_total; j++, fj++)                                   \
   {                                                                           \
+    for(t = 0; t<ths->d; t++)                                                 \
+    {                                                                         \
+      wh[t] = ths->x[j*ths->d+t] * ths->N[t];                                 \
+      wl[t] = FFMA(ths->x[j*ths->d+t], (double)ths->N[t], -wh[t]);            \
+    }                                                                         \
+                                                                              \
     for(l=0, f_hat_k=f_hat; l<ths->N_total; l++, f_hat_k++)                   \
     {                                                                         \
       omega=0.0;                                                              \
       for(t = 0; t<ths->d; t++)                                               \
-        omega+=ths->v[l*ths->d+t] * ths->x[j*ths->d+t] * ths->N[t];           \
+      {                                                                       \
+        const double vt = ths->v[l*ths->d+t];                                 \
+        omega += FFMA(vt, wl[t], FFMA(vt, wh[t], -RINT(vt * wh[t])));         \
+      }                                                                       \
                                                                               \
-      omega*= MACRO_nndft_sign_ ## which_one;                                 \
+      omega = (omega - RINT(omega)) * MACRO_nndft_sign_ ## which_one;         \
                                                                               \
       MACRO_nndft_compute_ ## which_one                                       \
                                                                               \
