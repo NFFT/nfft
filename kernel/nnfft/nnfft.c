@@ -362,8 +362,6 @@ void nnfft_precompute_phi_hut(nnfft_plan *ths)
   int t;                                /**< index over all dimensions        */
   double tmp;
 
-  ths->c_phi_inv= (double*)nfft_malloc(ths->M_total*sizeof(double));
-
   for(j=0; j<ths->M_total; j++)
     {
       tmp = 1.0;
@@ -567,6 +565,10 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
   if(ths->nnfft_flags & PRE_PSI){
     ths->psi = (double*)nfft_malloc(ths->N_total*ths->d*(2*ths->m+2)*sizeof(double));
   }
+
+  /* Filled by nnfft_precompute_phi_hut on every new node set. */
+  if(ths->nnfft_flags & PRE_PHI_HUT)
+    ths->c_phi_inv = (double*)nfft_malloc(ths->M_total*sizeof(double));
 
   if(ths->nnfft_flags & PRE_FULL_PSI)
   {
