@@ -41,6 +41,7 @@ typedef struct testcase_s
   int N1;  /* oversampled bandwidth, sigma = N1 / N */
   int NV;  /* number of frequency nodes v */
   int M;   /* number of spatial nodes x */
+  R v0;    /* first frequency node, on every axis */
 } testcase_t;
 
 /* NNFFT wraps an inner NFFT on the aN1 grid in a window convolution in v, so
@@ -63,9 +64,9 @@ static R err_trafo(nnfft_plan *p)
       + K(56.0) * Y(float_property)(NFFT_EPSILON);
 }
 
-/* A unit coefficient at a node just below v = 1/2, whose run reaches the far
- * end of the inner grid, or a unit sample at one node for the adjoint. With
- * l1 norm 1 the error is the sup norm the bound describes. */
+/* A unit coefficient at the first frequency node v0, at a band edge where its
+ * run reaches the end of the inner grid, or a unit sample at one node for the
+ * adjoint. With l1 norm 1 the error is the sup norm the bound describes. */
 static int check_single(const testcase_t *tc, const int adjoint)
 {
   nnfft_plan p;
@@ -83,9 +84,9 @@ static int check_single(const testcase_t *tc, const int adjoint)
   nnfft_init_guru(&p, tc->d, tc->NV, tc->M, N, N1, WINDOW_HELP_ESTIMATE_m,
       PRE_PHI_HUT | PRE_PSI | MALLOC_X | MALLOC_V | MALLOC_F | MALLOC_F_HAT);
 
-  printf("%-31s d = %-1d, N = %-5d, N1 = %-5d, NV = %-5d, M = %-5d, m = %2d",
+  printf("%-31s d = %-1d, N = %-5d, N1 = %-5d, NV = %-5d, M = %-5d, v0 = % .7f, m = %2d",
       adjoint ? "nnfft_adjoint_online_edge" : "nnfft_online_edge",
-      tc->d, tc->N, tc->N1, tc->NV, tc->M, p.m);
+      tc->d, tc->N, tc->N1, tc->NV, tc->M, (double)tc->v0, p.m);
 
   Y(srand48)(SEED);
   for (j = 0; j < tc->M * tc->d; j++)
@@ -93,7 +94,7 @@ static int check_single(const testcase_t *tc, const int adjoint)
   for (j = 0; j < tc->NV * tc->d; j++)
     p.v[j] = Y(drand48)() - K(0.5);
   for (t = 0; t < tc->d; t++)
-    p.v[t] = K(0.5) - K(1.0) / K(1048576.0);
+    p.v[t] = tc->v0;
 
   nnfft_precompute_one_psi(&p);
 
@@ -135,7 +136,8 @@ static int check_single(const testcase_t *tc, const int adjoint)
 
 static const testcase_t testcases_1d_online_edge[] =
 {
-  {1, 32, 64, 50, 50},
+  {1, 32, 64, 50, 50, K(0.5) - K(1.0) / K(1048576.0)},
+  {1, 32, 64, 50, 50, K(-0.5)},
 };
 
 static void check_many(const testcase_t *tcs, const size_t n, const int adjoint)
