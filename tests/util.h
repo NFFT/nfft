@@ -25,3 +25,6 @@ void X(check_next_power_of_2)(void);
  * ext = -1 (NFCT) and ext = +1 (NFST). */
 R Y(kb_err_trafo)(INT d, INT m, const R *sigma, const INT *N, const INT *n,
     int ext);
+
+/* Error bound of the fast NFFT for the configured window. */
+R Y(err_trafo)(INT d, INT m, const R *sigma, const INT *N, const INT *n);
