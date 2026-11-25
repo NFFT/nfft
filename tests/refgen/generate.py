@@ -14,11 +14,11 @@ from tests.refgen import io_format as IO
 from tests.refgen import registration as REG
 from tests.refgen import transforms as T
 
-_MODULES = ("nfft", "nfct", "nfst")
+_MODULES = ("nfft", "nfct", "nfst", "nnfft")
 
 
 def _is_complex(module):
-    return module == "nfft"
+    return module in ("nfft", "nnfft")
 
 
 def _f32(v):
@@ -33,9 +33,9 @@ def _draw_inputs(module, kind, d, N, M, rng):
     and __float128, so the C reader reproduces the input bit-for-bit at *every*
     precision — including the float build — leaving no input-rounding term (only
     summation error). Summation itself is done at the configured high precision."""
-    lo, hi = (-0.5, 0.5) if module == "nfft" else (0.0, 0.5)
+    lo, hi = (0.0, 0.5) if module in ("nfct", "nfst") else (-0.5, 0.5)
     x = [tuple(mpmath.mpf(_f32(rng.uniform(lo, hi))) for _ in range(d)) for _ in range(M)]
-    count = T.nn(module, N) if kind == "trafo" else M
+    count = T.nn(module, N) if kind == "trafo" and module != "nnfft" else M
     if _is_complex(module):
         coeff = [mpmath.mpc(_f32(rng.uniform(-1, 1)), _f32(rng.uniform(-1, 1))) for _ in range(count)]
     else:
@@ -54,24 +54,28 @@ def _gen_module(module, precision, seed, data_dir):
             # processes — unlike the builtin hash() of a tuple.
             rng = random.Random("%d:%s" % (seed, G.basename(module, kind, d, N, M)))
             x, coeff = _draw_inputs(module, kind, d, N, M, rng)
+            v = None
+            if module == "nnfft":
+                # NV = M frequency nodes, drawn after the other inputs.
+                v = [tuple(mpmath.mpf(_f32(rng.uniform(-0.5, 0.5))) for _ in range(d)) for _ in range(M)]
             if kind == "trafo":
                 f_hat = coeff
-                f = T.trafo(module, N, M, x, f_hat)
+                f = T.nn_trafo(N, x, v, f_hat) if v else T.trafo(module, N, M, x, f_hat)
             else:
                 f = coeff
-                f_hat = T.adjoint(module, N, M, x, f)
+                f_hat = T.nn_adjoint(N, x, v, f) if v else T.adjoint(module, N, M, x, f)
             path = os.path.join(data_dir, G.basename(module, kind, d, N, M) + ".txt")
             # trafo: f_hat is the (float-drawn) input, f the computed output;
             # adjoint: the roles swap. Inputs get trailing zeros stripped.
             IO.write_testcase(path, d, N, M, x, f_hat, f,
                               is_complex=is_c, ndig=precision,
-                              input_is_f_hat=(kind == "trafo"))
+                              input_is_f_hat=(kind == "trafo"), v=v)
             print("wrote", path)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--module", choices=("nfft", "nfct", "nfst", "all"), default="all")
+    ap.add_argument("--module", choices=_MODULES + ("all",), default="all")
     ap.add_argument("--precision", type=int, default=64,
                     help="working/printed significant decimal digits (>=34 for quad)")
     ap.add_argument("--seed", type=int, default=1)

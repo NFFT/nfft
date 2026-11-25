@@ -2,7 +2,8 @@
 
 File layout (blank line between sections, one scalar per line):
     d / N[0..d-1] / M / x (M*d node-major) / f_hat (NN) / f (M)
-NFFT scalars are complex ("re im"); NFCT/NFST are real (one value).
+NNFFT adds NV after M and v (NV*d node-major) after x; NN = NV.
+NFFT and NNFFT scalars are complex ("re im"); NFCT/NFST are real (one value).
 """
 import mpmath
 
@@ -24,7 +25,7 @@ def _fmt_real(v, ndig, strip_zeros=False):
     return s
 
 
-def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig, input_is_f_hat=None):
+def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig, input_is_f_hat=None, v=None):
     # Inputs are drawn as floats (exact in every build precision), so their decimals
     # are short — strip trailing zeros to keep the files compact. The high-precision
     # computed *output* keeps the full ndig. The nodes x are always an input; of the
@@ -40,10 +41,14 @@ def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig, input_is_f_hat=
     lines.append("")
     lines.append(str(M))
     lines.append("")
-    for xj in x:  # node-major: node j's d coords contiguous
-        for coord in xj:
-            lines.append(_fmt_real(coord, ndig, strip_zeros=True))
-    lines.append("")
+    if v is not None:
+        lines.append(str(len(v)))
+        lines.append("")
+    for nodes in (x,) if v is None else (x, v):  # node-major
+        for xj in nodes:
+            for coord in xj:
+                lines.append(_fmt_real(coord, ndig, strip_zeros=True))
+        lines.append("")
     for v in f_hat:
         lines.append(fmt_scalar(v, ndig, is_complex, strip_zeros=strip_f_hat))
     lines.append("")
@@ -54,7 +59,7 @@ def write_testcase(path, d, N, M, x, f_hat, f, is_complex, ndig, input_is_f_hat=
         fp.write("\n".join(lines) + "\n")
 
 
-def parse_testcase(path, is_complex):
+def parse_testcase(path, is_complex, has_v=False):
     """Inverse of write_testcase (used by tests; mirrors C setup_file token order)."""
     with open(path) as fp:
         toks = fp.read().split()
@@ -62,9 +67,11 @@ def parse_testcase(path, is_complex):
     d = int(next(it))
     N = [int(next(it)) for _ in range(d)]
     M = int(next(it))
+    NV = int(next(it)) if has_v else 0
     x = []
     for _ in range(M):
         x.append(tuple(mpmath.mpf(next(it)) for _ in range(d)))
+    v = [tuple(mpmath.mpf(next(it)) for _ in range(d)) for _ in range(NV)]
 
     def read_vec(count):
         out = []
@@ -82,7 +89,7 @@ def parse_testcase(path, is_complex):
     remaining = sum(1 for _ in iter(lambda: next(it, None), None))
     # re-tokenize because the generator above exhausted `it`; simpler: re-split.
     toks2 = open(path).read().split()
-    base = 1 + d + 1 + M * d
+    base = 1 + d + 1 + M * d + (1 + NV * d if has_v else 0)
     tail = toks2[base:]
     total_scalars = len(tail) // per
     nn = total_scalars - M
@@ -99,4 +106,6 @@ def parse_testcase(path, is_complex):
 
     f_hat = read_vec2(nn)
     f = read_vec2(M)
+    if has_v:
+        return d, N, M, x, v, f_hat, f
     return d, N, M, x, f_hat, f

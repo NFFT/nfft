@@ -86,3 +86,17 @@ def test_quad_precision_digits(tmp_path):
     out = toks[-1]
     sig = out.replace("-", "").replace(".", "").lstrip("0")
     assert len(sig) >= 34
+
+
+def test_nnfft_roundtrip(tmp_path):
+    mpmath.mp.dps = 64
+    d, N, M = 2, [4, 2], 2
+    x = [(mpmath.mpf("0.1"), mpmath.mpf("-0.2")), (mpmath.mpf("0.3"), mpmath.mpf("0.4"))]
+    v = [(mpmath.mpf("-0.5"), mpmath.mpf("0.25")), (mpmath.mpf("0.125"), mpmath.mpf("0.0625")),
+         (mpmath.mpf("0.375"), mpmath.mpf("-0.125"))]
+    f_hat = [mpmath.mpc("0.5", "-0.25"), mpmath.mpc("0.75", "1"), mpmath.mpc("-1", "0")]
+    f = [mpmath.mpc("0.1", "0.2"), mpmath.mpc("0.3", "0.4")]
+    p = tmp_path / "nnfft_2d_4_2_2.txt"
+    IO.write_testcase(str(p), d, N, M, x, f_hat, f, is_complex=True, ndig=40, v=v)
+    got = IO.parse_testcase(str(p), is_complex=True, has_v=True)
+    assert got == (d, N, M, x, v, f_hat, f)

@@ -80,3 +80,18 @@ def adjoint(module, N, M, x, f):
             acc += f[j] * _basis(module, k, x[j], adjoint=True)
         out.append(acc)
     return out
+
+
+def _nn_basis(N, v, xj, sign):
+    """exp(sign 2 pi i sum_t v_t x_t N_t)."""
+    return mpmath.expj(sign * 2 * mpmath.pi * mpmath.fsum([vt * xt * n for vt, xt, n in zip(v, xj, N)]))
+
+
+def nn_trafo(N, x, v, f_hat):
+    """NNDFT: f[j] = sum_l f_hat[l] exp(-2 pi i sum_t v[l]_t x[j]_t N_t)."""
+    return [mpmath.fsum(fl * _nn_basis(N, vl, xj, -1) for fl, vl in zip(f_hat, v)) for xj in x]
+
+
+def nn_adjoint(N, x, v, f):
+    """Adjoint NNDFT: f_hat[l] = sum_j f[j] exp(+2 pi i sum_t v[l]_t x[j]_t N_t)."""
+    return [mpmath.fsum(fj * _nn_basis(N, vl, xj, 1) for fj, xj in zip(f, x)) for vl in v]

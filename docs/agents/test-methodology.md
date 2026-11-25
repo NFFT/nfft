@@ -47,7 +47,9 @@ Blank-line-separated sections, one scalar per line:
 <d> / <N[0..d-1]> / <M> / <x: M*d node-major> / <f_hat: NN> / <f: M>
 ```
 
-NFFT values are complex (`re im` per line); NFCT/NFST are real (one value).
+NFFT and NNFFT values are complex (`re im` per line); NFCT/NFST are real (one value).
+NNFFT files add `<NV>` after `<M>` and the frequency nodes `v` (NV*d, node-major)
+after `x`; there NN = NV, and the grid has NV = M.
 NN = `∏N` (NFFT/NFCT) or `∏(N-1)` (NFST). Frequency index order is the tensor
 product with dimension 0 lowest; per-dim ranges are `[⌈-N/2⌉..⌊(N-1)/2⌋]` (NFFT),
 `[0..N-1]` (NFCT), `[1..N-1]` (NFST). Filenames:

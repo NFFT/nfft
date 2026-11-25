@@ -67,3 +67,38 @@ def test_ndst_single_term_handcomputed():
     f_hat = [mpmath.mpf(0), mpmath.mpf(5), mpmath.mpf(0)]  # k=1,2,3
     f = T.trafo("nfst", [4], 1, x, f_hat)
     assert abs(f[0] - 5) < mpmath.mpf(10) ** -30
+
+
+def _rand_c(rng):
+    return mpmath.mpc(rng.uniform(-1, 1), rng.uniform(-1, 1))
+
+
+def test_nnfft_integer_v_equals_ndft():
+    # v_l = k_l / N on the NFFT index set turns the NNDFT into the NDFT.
+    import random
+    mpmath.mp.dps = 64
+    rng = random.Random(3)
+    N, M = [4, 6], 5
+    K = T.index_set("nfft", N)
+    v = [tuple(mpmath.mpf(k) / n for k, n in zip(kk, N)) for kk in K]
+    x = [tuple(mpmath.mpf(rng.uniform(-0.5, 0.5)) for _ in N) for _ in range(M)]
+    f_hat = [_rand_c(rng) for _ in K]
+    f = [_rand_c(rng) for _ in range(M)]
+    for a, b in zip(T.nn_trafo(N, x, v, f_hat), T.trafo("nfft", N, M, x, f_hat)):
+        assert abs(a - b) < mpmath.mpf(10) ** -50
+    for a, b in zip(T.nn_adjoint(N, x, v, f), T.adjoint("nfft", N, M, x, f)):
+        assert abs(a - b) < mpmath.mpf(10) ** -50
+
+
+def test_nnfft_adjoint_is_conjugate_transpose():
+    import random
+    mpmath.mp.dps = 64
+    rng = random.Random(4)
+    N, M, NV = [5, 3], 6, 7
+    x = [tuple(mpmath.mpf(rng.uniform(-0.5, 0.5)) for _ in N) for _ in range(M)]
+    v = [tuple(mpmath.mpf(rng.uniform(-0.5, 0.5)) for _ in N) for _ in range(NV)]
+    a = [_rand_c(rng) for _ in range(NV)]
+    b = [_rand_c(rng) for _ in range(M)]
+    lhs = mpmath.fsum(fa * mpmath.conj(fb) for fa, fb in zip(T.nn_trafo(N, x, v, a), b))
+    rhs = mpmath.fsum(fa * mpmath.conj(fb) for fa, fb in zip(a, T.nn_adjoint(N, x, v, b)))
+    assert abs(lhs - rhs) < mpmath.mpf(10) ** -50

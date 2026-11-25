@@ -20,6 +20,9 @@ GRIDS = {
     ),
 }
 
+# NNFFT: the nfft shape, with NV = M frequency nodes.
+GRIDS["nnfft"] = GRIDS["nfft"]
+
 KINDS = ("trafo", "adjoint")  # both forward and adjoint files for every grid entry
 
 

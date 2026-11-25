@@ -1,6 +1,6 @@
 # Reference-data generator
 
-Computes the direct NDFT/NDCT/NDST at arbitrary precision (mpmath) and emits the
+Computes the direct NDFT/NDCT/NDST/NNDFT at arbitrary precision (mpmath) and emits the
 CUnit reference data + generated C registration headers + the data `Makefile.am`
 list. Single source of truth — see `docs/agents/test-methodology.md`.
 
@@ -26,7 +26,7 @@ uv run --with mpmath==1.3.0 --with pytest python -m pytest tests/refgen/tests -q
 
 ## Options
 
-- `--module {nfft,nfct,nfst,all}`
+- `--module {nfft,nfct,nfst,nnfft,all}`
 - `--precision N`   working/printed significant decimal digits (default 64; ≥34 for quad)
 - `--seed N`        PRNG seed (default 1)
 - `--data-dir P`    output dir for *.txt (default tests/data)

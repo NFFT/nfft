@@ -5,7 +5,7 @@ testcases_*_file[] arrays inside tests/<module>.c. The .c #includes it."""
 
 from tests.refgen import grids as G
 
-_MODULES = ("nfft", "nfct", "nfst")
+_MODULES = ("nfft", "nfct", "nfst", "nnfft")
 
 
 def _decl(module, kind, d, N, M):
