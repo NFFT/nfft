@@ -59,9 +59,6 @@ void accuracy(int d)
       if(my_plan.nnfft_flags & PRE_PSI)
       	NNFFT(precompute_psi)(&my_plan);
 
-      if(my_plan.nnfft_flags & PRE_LIN_PSI)
-        NNFFT(precompute_lin_psi)(&my_plan);
-
       if(my_plan.nnfft_flags & PRE_FULL_PSI)
         NNFFT(precompute_full_psi)(&my_plan);
 

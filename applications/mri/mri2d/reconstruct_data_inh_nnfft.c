@@ -106,10 +106,6 @@ static void reconstruct(char* filename,int N,int M,int iteration, int weight)
   NNFFT(init_guru)(&my_plan, 3, N*N, M, my_N,my_n,m,
         PRE_PSI| PRE_PHI_HUT| MALLOC_X| MALLOC_V| MALLOC_F_HAT| MALLOC_F );
 
-  /* precompute lin psi if set */
-  if(my_plan.nnfft_flags & PRE_LIN_PSI)
-    NNFFT(precompute_lin_psi)(&my_plan);
-
   /* set the flags for the infft*/
   if (weight)
     infft_flags = infft_flags | PRECOMPUTE_WEIGHT;

@@ -98,7 +98,7 @@ void X(check_kaiser_bessel_poly)(void)
 
       /* Offsets off the interpolation nodes, where the residual is zero by
        * construction. Runs start in [m, m + 1], anchored at the grid point
-       * below the node; points reach |nx| = m + 2, the PRE_LIN_PSI table. */
+       * below the node; points reach |nx| = m + 2. */
       for (i = 0; i <= 512; i++)
       {
         const R nx0 = (R)m + (R)i / K(512.0);

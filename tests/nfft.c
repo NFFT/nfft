@@ -92,7 +92,6 @@ struct init_delegate_s
   const int m;
   const unsigned flags;
   const unsigned fftw_flags;
-  const int K;
 };
 
 /* Prepare delegate. */
@@ -169,7 +168,6 @@ static init_delegate_t init_3d;
 static init_delegate_t init;
 static init_delegate_t init_advanced_pre_psi;
 static init_delegate_t init_advanced_pre_full_psi;
-static init_delegate_t init_advanced_pre_lin_psi;
 static init_delegate_t init_advanced_no_pre;
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi;
@@ -687,18 +685,6 @@ static void init_advanced_pre_psi_(init_delegate_t *ego, X(plan) *p, const int d
   Y(free)(n);
 }
 
-//static void init_advanced_pre_lin_psi_(init_delegate_t *ego, X(plan) *p, const int d, const int *N, const int M)
-//{
-//  int *n = Y(malloc)((size_t)(d)*sizeof(int));
-//  int i;
-//  for (i = 0; i < d; i++)
-//    n[i] = 2 * (int)(Y(next_power_of_2)(N[i]));
-//  int K = ego->K  * (ego->m + 2);
-//  //printf("\n%d\n", K);
-//  X(init_lin)(p, d, N, M, n, ego->m, K, ego->flags, ego->fftw_flags);
-//  Y(free)(n);
-//}
-
 static init_delegate_t init_direct = {"init_guru ()", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, (DEFAULT_NFFT_FLAGS ^ PRE_PSI), DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_1d = {"init_1d", init_1d_, 0, 0, 0};
 static init_delegate_t init_2d = {"init_2d", init_2d_, 0, 0, 0};
@@ -708,15 +694,7 @@ static init_delegate_t init_advanced_pre_psi = {"init_guru (PRE PSI)", init_adva
 /* Default m gives errors around the round-off floor, so test a half that m to see the approximation error. */
 static init_delegate_t init_advanced_pre_psi_m_half = {"init_guru (PRE PSI, m=half)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m / 2, PRE_PHI_HUT | PRE_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_pre_full_psi = {"init_guru (PRE FULL PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_FULL_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-static init_delegate_t init_advanced_pre_lin_psi = {"init_guru (PRE LIN PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 static init_delegate_t init_advanced_no_pre = {"init_guru (no PRE_PHI_HUT, no PRE_PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
-//static init_delegate_t init_advanced_pre_lin_psi_00 = {"init_guru (PRE LIN PSI) 00", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 23)};
-//static init_delegate_t init_advanced_pre_lin_psi_01 = {"init_guru (PRE LIN PSI) 01", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 24)};
-//static init_delegate_t init_advanced_pre_lin_psi_02 = {"init_guru (PRE LIN PSI) 02", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 25)};
-//static init_delegate_t init_advanced_pre_lin_psi_03 = {"init_guru (PRE LIN PSI) 03", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 26)};
-//static init_delegate_t init_advanced_pre_lin_psi_04 = {"init_guru (PRE LIN PSI) 04", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 27)};
-//static init_delegate_t init_advanced_pre_lin_psi_05 = {"init_guru (PRE LIN PSI) 05", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 28)};
-//static init_delegate_t init_advanced_pre_lin_psi_06 = {"init_guru (PRE LIN PSI) 06", init_advanced_pre_lin_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | PRE_LIN_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS, (1U << 29)};
 #if defined(GAUSSIAN)
 static init_delegate_t init_advanced_pre_fg_psi = {"init_guru (PRE FG PSI)", init_advanced_pre_psi_, WINDOW_HELP_ESTIMATE_m, PRE_PHI_HUT | FG_PSI | PRE_FG_PSI | DEFAULT_NFFT_FLAGS, DEFAULT_FFTW_FLAGS};
 
@@ -866,14 +844,6 @@ static const init_delegate_t* initializers_1d[] =
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
-//  &init_advanced_pre_lin_psi,
-//  &init_advanced_pre_lin_psi_00,
-//  &init_advanced_pre_lin_psi_01,
-//  &init_advanced_pre_lin_psi_02,
-//  &init_advanced_pre_lin_psi_03,
-//  &init_advanced_pre_lin_psi_04,
-//  &init_advanced_pre_lin_psi_05,
-//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -1014,14 +984,6 @@ static const init_delegate_t* initializers_2d[] =
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
-//  &init_advanced_pre_lin_psi,
-//  &init_advanced_pre_lin_psi_00,
-//  &init_advanced_pre_lin_psi_01,
-//  &init_advanced_pre_lin_psi_02,
-//  &init_advanced_pre_lin_psi_03,
-//  &init_advanced_pre_lin_psi_04,
-//  &init_advanced_pre_lin_psi_05,
-//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -1148,14 +1110,6 @@ static const init_delegate_t* initializers_3d[] =
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
-//  &init_advanced_pre_lin_psi,
-//  &init_advanced_pre_lin_psi_00,
-//  &init_advanced_pre_lin_psi_01,
-//  &init_advanced_pre_lin_psi_02,
-//  &init_advanced_pre_lin_psi_03,
-//  &init_advanced_pre_lin_psi_04,
-//  &init_advanced_pre_lin_psi_05,
-//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif
@@ -1263,14 +1217,6 @@ static const init_delegate_t* initializers_4d[] =
   &init_advanced_pre_psi_m_half,
   &init_advanced_pre_full_psi,
   &init_advanced_no_pre,
-//  &init_advanced_pre_lin_psi,
-//  &init_advanced_pre_lin_psi_00,
-//  &init_advanced_pre_lin_psi_01,
-//  &init_advanced_pre_lin_psi_02,
-//  &init_advanced_pre_lin_psi_03,
-//  &init_advanced_pre_lin_psi_04,
-//  &init_advanced_pre_lin_psi_05,
-//  &init_advanced_pre_lin_psi_06,
 #if defined(GAUSSIAN)
   &init_advanced_pre_fg_psi,
 #endif

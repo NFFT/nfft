@@ -8,7 +8,7 @@
 %   M            number of nodes
 %   n1,...,nd    fft lengths
 %   m            cut-off parameter
-%   flags   PRE_PHI_HUT | {FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
+%   flags   PRE_PHI_HUT | {FG_PSI, PRE_FG_PSI, PRE_PSI,
 %	             PRE_FULL_PSI} | FFT_OUT_OF_PLACE
 %   fftw_flags   {FFTW_ESTIMATE, FFTW_MEASURE}
 %

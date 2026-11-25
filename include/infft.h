@@ -499,7 +499,6 @@ typedef ptrdiff_t INT;
 #define FG_RUN_START(buf,d) ((buf) + ((d) < K(0.0) ? 0 : 1))
 
 /* window.c */
-INT Y(m2K)(const INT m);
 
 #if defined(NFFT_LDOUBLE)
 #if HAVE_DECL_COPYSIGNL == 0

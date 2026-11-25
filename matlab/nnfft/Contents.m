@@ -22,7 +22,6 @@
 %   nnfftmex             - Gateway function to NFFT module from NFFT3
 %   PRE_FG_PSI          - Precomputation flag
 %   PRE_FULL_PSI        - Precomputation flag
-%   PRE_LIN_PSI         - Precomputation flag
 %   PRE_PHI_HUT         - Precomputation flag
 %   PRE_PSI             - Precomputation flag
 %   simple_test         - Example program: Basic usage principles

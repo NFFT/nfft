@@ -71,7 +71,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   NFFT(plan) p;
   NFFT(plan) p_pre_phi_hut;
   NFFT(plan) p_fg_psi;
-  NFFT(plan) p_pre_lin_psi;
   NFFT(plan) p_pre_fg_psi;
   NFFT(plan) p_pre_psi;
   NFFT(plan) p_pre_full_psi;
@@ -106,10 +105,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     flags_cp(&p_fg_psi, &p);
     NFFT(precompute_one_psi)(&p_fg_psi);
   }
-
-  NFFT(init_guru)(&p_pre_lin_psi, d, NN, M, nn, m, PRE_LIN_PSI, 0);
-  flags_cp(&p_pre_lin_psi, &p);
-  NFFT(precompute_one_psi)(&p_pre_lin_psi);
 
   if (test_fg)
   {
@@ -162,7 +157,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     NFFT(trafo)(&p_fg_psi);
   else
     p_fg_psi.MEASURE_TIME_t[2] = nan("");
-  NFFT(trafo)(&p_pre_lin_psi);
   if (test_fg)
     NFFT(trafo)(&p_pre_fg_psi);
   else
@@ -182,11 +176,11 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
     e = NFFT_MKNAN("");
 
   printf(
-      "%.2E\t%d\t%.2" NFFT__FES__ "\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\n",
+      "%.2E\t%d\t%.2" NFFT__FES__ "\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\t%.2E\n",
       t_ndft, m, e, p.MEASURE_TIME_t[0], p_pre_phi_hut.MEASURE_TIME_t[0],
       p.MEASURE_TIME_t[1], p.MEASURE_TIME_t[2], p_fg_psi.MEASURE_TIME_t[2],
-      p_pre_lin_psi.MEASURE_TIME_t[2], p_pre_fg_psi.MEASURE_TIME_t[2],
-      p_pre_psi.MEASURE_TIME_t[2], p_pre_full_psi.MEASURE_TIME_t[2]);
+      p_pre_fg_psi.MEASURE_TIME_t[2], p_pre_psi.MEASURE_TIME_t[2],
+      p_pre_full_psi.MEASURE_TIME_t[2]);
 
   fflush(stdout);
 
@@ -196,7 +190,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
   NFFT(finalize)(&p_pre_psi);
   if (test_fg)
     NFFT(finalize)(&p_pre_fg_psi);
-  NFFT(finalize)(&p_pre_lin_psi);
   if (test_fg)
     NFFT(finalize)(&p_fg_psi);
   NFFT(finalize)(&p_pre_phi_hut);
@@ -204,62 +197,6 @@ static void time_accuracy(int d, int N, int M, int n, int m, unsigned test_ndft,
 
   if (test_ndft)
     NFFT(free)(swapndft);
-}
-
-static void accuracy_pre_lin_psi(int d, int N, int M, int n, int m, int K)
-{
-  int r, NN[d], nn[d];
-  NFFT_R e;
-  NFFT_C *swapndft;
-
-  NFFT(plan) p;
-
-  for (r = 0; r < d; r++)
-  {
-    NN[r] = N;
-    nn[r] = n;
-  }
-
-  /* output vector ndft */
-  swapndft = (NFFT_C*) NFFT(malloc)((size_t)(M) * sizeof(NFFT_C));
-
-  NFFT(init_guru)(&p, d, NN, M, nn, m,
-  MALLOC_X | MALLOC_F_HAT | MALLOC_F |
-  PRE_PHI_HUT | PRE_LIN_PSI |
-  FFTW_INIT | FFT_OUT_OF_PLACE,
-  FFTW_MEASURE | FFTW_DESTROY_INPUT);
-
-  /** realloc psi */
-  NFFT(free)(p.psi);
-  p.K = K;
-  p.psi = (NFFT_R*) NFFT(malloc)((size_t)((p.K + 1) * p.d) * sizeof(NFFT_R));
-
-  /** precomputation can be done before the nodes are initialised */
-  NFFT(precompute_one_psi)(&p);
-
-  /** init pseudo random nodes */
-  NFFT(vrand_shifted_unit_double)(p.x, p.d * p.M_total);
-
-  /** init pseudo random Fourier coefficients */
-  NFFT(vrand_unit_complex)(p.f_hat, p.N_total);
-
-  /** compute exact result */
-  NFFT_CSWAP(p.f, swapndft);
-  NFFT(trafo_direct)(&p);
-  NFFT_CSWAP(p.f, swapndft);
-
-  /** NFFT */
-  NFFT(trafo)(&p);
-  e = NFFT(error_l_2_complex)(swapndft, p.f, p.M_total);
-
-  //  printf("%d\t%d\t%d\t%d\t%.2e\n",d,N,m,K,e);
-  printf("$%.1" NFFT__FES__ "$&\t", e);
-
-  fflush(stdout);
-
-  /** finalise */
-  NFFT(finalize)(&p);
-  NFFT(free)(swapndft);
 }
 
 int main(int argc, char **argv)
@@ -282,7 +219,7 @@ int main(int argc, char **argv)
 
   fprintf(stderr, "Testing different precomputation schemes for the nfft.\n");
   fprintf(stderr, "Columns: d, N=M, t_ndft, e_nfft, t_D, t_pre_phi_hut, ");
-  fprintf(stderr, "t_fftw, t_B, t_fg_psi, t_pre_lin_psi, t_pre_fg_psi, ");
+  fprintf(stderr, "t_fftw, t_B, t_fg_psi, t_pre_fg_psi, ");
   fprintf(stderr, "t_pre_psi, t_pre_full_psi\n\n");
 
   int arg2 = atoi(argv[2]);
@@ -318,28 +255,6 @@ int main(int argc, char **argv)
         time_accuracy(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, 1, 1);
       }
     }
-  }
-  else if (atoi(argv[1]) == 2) /* accuracy vs. K for linear interpolation, assumes (m+1)|K */
-  {
-    int d = atoi(argv[5]);
-    int N = atoi(argv[6]);
-    int m = atoi(argv[7]);
-
-    printf("$\\log_2(K/(m+1))$&\t");
-
-    for (l = arg2; l < arg3; l++)
-      printf("$%d$&\t", l);
-
-    printf("$%d$\\\\\n", arg3);
-
-    printf("$\\tilde E_2$&\t");
-    for (l = arg2; l <= arg3; l++)
-    {
-      int x = (m + 1) * (int)(1U << l);
-      accuracy_pre_lin_psi(d, N, (int)(NFFT_LRINT(NFFT_POW((NFFT_R)(N), (NFFT_R)(d)))), 2 * N, m, x);
-    }
-
-    printf("\n");
   }
 
 
