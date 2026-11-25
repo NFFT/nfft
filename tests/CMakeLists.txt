@@ -13,6 +13,9 @@ set(NFFT_TEST_SOURCES
   nfft.c    nfft.h
   nfct.c    nfct.h
   nfst.c    nfst.h)
+if(HAVE_NNFFT)
+  list(APPEND NFFT_TEST_SOURCES nnfft.c nnfft.h)
+endif()
 
   # Non-threaded test program.
 add_executable(checkall ${NFFT_TEST_SOURCES})

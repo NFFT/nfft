@@ -34,7 +34,13 @@ else
   NFST_SOURCES=
 endif
 
-checkall_SOURCES = check.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h window.c window.h kbpoly.c kbpoly.h nfft.c nfft.h $(NFCT_SOURCES) $(NFST_SOURCES)
+if HAVE_NNFFT
+  NNFFT_SOURCES=nnfft.c nnfft.h
+else
+  NNFFT_SOURCES=
+endif
+
+checkall_SOURCES = check.c util.c util.h accuracy_log.c accuracy_log.h reflect.c reflect.h bspline.c bspline.h bessel.c bessel.h window.c window.h kbpoly.c kbpoly.h nfft.c nfft.h $(NFCT_SOURCES) $(NFST_SOURCES) $(NNFFT_SOURCES)
 checkall_LDFLAGS = @fftw3_LDFLAGS@ @cunit_LDFLAGS@
 checkall_LDADD = $(top_builddir)/libnfft3@PREC_SUFFIX@.la @fftw3_LIBS@ @cunit_LIBS@
 

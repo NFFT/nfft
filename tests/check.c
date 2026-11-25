@@ -31,10 +31,16 @@
 #include "nfft.h"
 #include "nfct.h"
 #include "nfst.h"
+#ifdef HAVE_NNFFT
+#include "nnfft.h"
+#endif
 
 int main(void)
 {
   CU_pSuite util, nfft, nfct, nfst;
+#if defined(HAVE_NNFFT) && defined(KAISER_BESSEL)
+  CU_pSuite nnfft;
+#endif
   CU_initialize_registry();
   /*CU_set_output_filename("nfft");*/
 #ifdef _OPENMP
@@ -233,6 +239,11 @@ int main(void)
   CU_add_test(nfst, "nfst_adjoint_4d_online", X(check_adjoint_4d_online));
 #endif
 #endif
+#endif
+#if defined(HAVE_NNFFT) && defined(KAISER_BESSEL)
+  nnfft = CU_add_suite("nnfft", 0, 0);
+  CU_add_test(nnfft, "nnfft_1d_online_edge", nnfft_check_1d_online_edge);
+  CU_add_test(nnfft, "nnfft_adjoint_1d_online_edge", nnfft_check_adjoint_1d_online_edge);
 #endif
   CU_automated_run_tests();
   //CU_basic_run_tests();
