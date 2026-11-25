@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 * Deprecate the Dirac delta window (`--with-window=dirac`/`delta`, `NFFT_WINDOW=dirac`). It will be removed in the next release. @jenskeiner
+* Deprecate the precomputation flags `PRE_LIN_PSI` and `PRE_FULL_PSI` together with `init_lin`, `precompute_lin_psi` and `precompute_full_psi`. They will be removed in the next release. Use `PRE_PSI`, which is as accurate, as fast or faster, and needs less memory. @jenskeiner
 
 ### Fixed
 

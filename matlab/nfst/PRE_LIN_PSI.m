@@ -3,6 +3,8 @@
 %   matrix B) uses linear interpolation from a lookup table of equispaced samples
 %   of the window function instead of exact values of the window function.
 %
+%   Deprecated, removed in the next release. Use PRE_PSI instead.
+%
 %   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
