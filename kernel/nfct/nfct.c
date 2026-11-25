@@ -583,25 +583,6 @@ MACRO_D(T)
 #define MACRO_B_init_result_A memset(f, 0, (size_t)(ths->M_total) * sizeof(R));
 #define MACRO_B_init_result_T memset(g, 0, (size_t)(ths->n_total) * sizeof(R));
 
-#define MACRO_B_PRE_FULL_PSI_compute_A \
-{ \
-  (*fj) += ths->psi[ix] * g[ths->psi_index_g[ix]]; \
-}
-
-#define MACRO_B_PRE_FULL_PSI_compute_T \
-{ \
-  R factor = K(1.0); \
-  INT d = ths->psi_index_g[ix]; \
-  for (t = ths->d - 1; t >= 0; t--) \
-  { \
-    INT m = d % ths->n[t]; \
-    if (m != 0 && m != ths->n[t] - 1) \
-      factor *= K(0.5); \
-    d = d / ths->n[t]; \
-  } \
-  g[ths->psi_index_g[ix]] += factor * ths->psi[ix] * (*fj); \
-}
-
 #define MACRO_B_compute_A \
 { \
   (*fj) += phi_prod[ths->d] * g[ll_plain[ths->d]]; \
@@ -703,7 +684,7 @@ static inline void B_ ## which_one (X(plan) *ths) \
   INT u[ths->d], o[ths->d]; /* multi band with respect to x_j */ \
   INT t, t2; /* index dimensions */ \
   INT j; /* index nodes */ \
-  INT l_L, ix; /* index one row of B */ \
+  INT l_L; /* index one row of B */ \
   INT l[ths->d]; /* multi index u<=l<=o (real index of g in array) */ \
   INT lj[ths->d]; /* multi index 0<=lc<2m+2 */ \
   INT ll_plain[ths->d+1]; /* postfix plain index in g */ \
@@ -726,18 +707,6 @@ static inline void B_ ## which_one (X(plan) *ths) \
   f = (R*)ths->f; g = (R*)ths->g; \
 \
   MACRO_B_init_result_ ## which_one \
-\
-  if (ths->flags & PRE_FULL_PSI) \
-  { \
-    for (ix = 0, j = 0, fj = f; j < ths->M_total; j++, fj++) \
-    { \
-      for (l_L = 0; l_L < ths->psi_index_f[j]; l_L++, ix++) \
-      { \
-        MACRO_B_PRE_FULL_PSI_compute_ ## which_one; \
-      } \
-    } \
-    return; \
-  } \
 \
   phi_prod[0] = K(1.0); \
   ll_plain[0] = 0; \
@@ -873,20 +842,11 @@ void X(trafo)(X(plan) *ths)
       FFTW(execute)(ths->my_fftw_r2r_plan);
       TOC_FFTW(1)
 
-      /*if (ths->flags & PRE_FULL_PSI)
-        full_psi__A(ths);*/
-
       /* Set \f$ f_j = \sum_{l \in I_n,m(x_j)} g_l \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } j=0,\dots,M-1 \f$ */
       TIC(2)
       B_A(ths);
       TOC(2)
-
-      /*if (ths->flags & PRE_FULL_PSI)
-      {
-        Y(free)(ths->psi_index_g);
-        Y(free)(ths->psi_index_f);
-      }*/
     }
   }
 } /* trafo */
@@ -900,9 +860,6 @@ void X(adjoint)(X(plan) *ths)
       /* use ths->my_fftw_plan */
       ths->g_hat = ths->g2;
       ths->g = ths->g1;
-
-      /*if (ths->flags & PRE_FULL_PSI)
-        full_psi__T(ths);*/
 
       /* Set \f$ g_l = \sum_{j=0}^{M-1} f_j \psi\left(x_j-\frac{l}{n}\right)
        * \text{ for } l \in I_n,m(x_j) \f$ */
@@ -1018,65 +975,10 @@ void X(precompute_psi)(X(plan) *ths)
   } /* for (t) */
 } /* precompute_psi */
 
-void X(precompute_full_psi)(X(plan) *ths)
-{
-//#ifdef _OPENMP
-//  sort(ths);
-//
-//  nfft_precompute_full_psi_omp(ths);
-//#else
-  INT t, t2; /* index over all dimensions */
-  INT j; /* index over all nodes */
-  INT l_L; /* plain index 0 <= l_L < lprod */
-  INT l[ths->d]; /* multi index u<=l<=o */
-  INT lj[ths->d]; /* multi index 0<=lj<u+o+1 */
-  INT ll_plain[ths->d+1]; /* postfix plain index */
-  INT lprod; /* 'bandwidth' of matrix B */
-  INT u[ths->d], o[ths->d]; /* depends on x_j */
-  INT count_lg[ths->d];
-  INT lg_offset[ths->d];
-
-  R phi_prod[ths->d+1];
-
-  INT ix, ix_old;
-
-  //sort(ths);
-
-  phi_prod[0] = K(1.0);
-  ll_plain[0]  = 0;
-
-  for (t = 0, lprod = 1; t < ths->d; t++)
-    lprod *= 2 * ths->m + 2;
-
-  for (j = 0, ix = 0, ix_old = 0; j < ths->M_total; j++)
-  {
-    R psij_const[ths->d * (2 * ths->m + 2)];
-
-    MACRO_init_uo_l_lj_t;
-    MACRO_fill_psij_const;
-
-    for (l_L = 0; l_L < lprod; l_L++, ix++)
-    {
-      MACRO_update_phi_prod_ll_plain(A, without_PRE_PSI);
-
-      ths->psi_index_g[ix] = ll_plain[ths->d];
-      ths->psi[ix] = phi_prod[ths->d];
-
-      MACRO_count_uo_l_lj_t;
-    } /* for (l_L) */
-
-    ths->psi_index_f[j] = ix - ix_old;
-    ix_old = ix;
-  } /* for(j) */
-//#endif
-}
-
 void X(precompute_one_psi)(X(plan) *ths)
 {
   if(ths->flags & PRE_PSI)
     X(precompute_psi)(ths);
-  if(ths->flags & PRE_FULL_PSI)
-    X(precompute_full_psi)(ths);
   if(ths->flags & PRE_FG_PSI)
     X(precompute_fg_psi)(ths);
   if(ths->flags & PRE_LIN_PSI)
@@ -1086,7 +988,6 @@ void X(precompute_one_psi)(X(plan) *ths)
 static inline void init_help(X(plan) *ths)
 {
   INT t; /* index over all dimensions */
-  INT lprod; /* 'bandwidth' of matrix B */
 
   if (ths->flags & NFFT_OMP_BLOCKWISE_ADJOINT)
     ths->flags |= NFFT_SORT_NODES;
@@ -1129,17 +1030,6 @@ static inline void init_help(X(plan) *ths)
 
   if (ths->flags & PRE_PSI)
     ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * ths->d * (2 * ths->m + 2 )) * sizeof(R));
-
-  if(ths->flags & PRE_FULL_PSI)
-  {
-      for (t = 0, lprod = 1; t < ths->d; t++)
-        lprod *= 2 * ths->m + 2;
-
-      ths->psi = (R*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(R));
-
-      ths->psi_index_f = (INT*) Y(malloc)((size_t)(ths->M_total) * sizeof(INT));
-      ths->psi_index_g = (INT*) Y(malloc)((size_t)(ths->M_total * lprod) * sizeof(INT));
-  }
 
   if (ths->flags & FFTW_INIT)
   {
@@ -1319,13 +1209,6 @@ void X(finalize)(X(plan) *ths)
       Y(free)(ths->g2);
 
     Y(free)(ths->g1);
-  }
-
-  if(ths->flags & PRE_FULL_PSI)
-  {
-    Y(free)(ths->psi_index_g);
-    Y(free)(ths->psi_index_f);
-    Y(free)(ths->psi);
   }
 
   if (ths->flags & PRE_PSI)

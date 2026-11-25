@@ -152,13 +152,6 @@
  * \author Steffen Klatt
  */
 
-/*! \fn void nfst_full_psi(nfst_plan *ths_plan, R eps)
- *
- *
- * \arg ths_plan The plan for the transform
- *
- */
-
 /*! \fn R nfst_phi_hut(nfst_plan *ths_plan, int k, int d)
  * do some adjustments (N,n) then compute PHI_HUT
  *

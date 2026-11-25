@@ -53,7 +53,7 @@ static void glacier(int N, int M)
   my_N[1] = N;
   my_n[1] = (int)NFFT(next_power_of_2)(N);
   NFFT(init_guru)(&p, 2, my_N, M, my_n, 6,
-  PRE_PHI_HUT | PRE_FULL_PSI |
+  PRE_PHI_HUT | PRE_PSI |
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
@@ -120,7 +120,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   my_N[1] = N;
   my_n[1] = (int)NFFT(next_power_of_2)(N);
   NFFT(init_guru)(&p, 2, my_N, M_re, my_n, 6,
-  PRE_PHI_HUT | PRE_FULL_PSI |
+  PRE_PHI_HUT | PRE_PSI |
   MALLOC_X | MALLOC_F_HAT | MALLOC_F |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
@@ -131,7 +131,7 @@ static void glacier_cv(int N, int M, int M_cv, unsigned solver_flags)
   /* initialise cp for validation */
   cp_y = (NFFT_C*) NFFT(malloc)((size_t)(M) * sizeof(NFFT_C));
   NFFT(init_guru)(&cp, 2, my_N, M, my_n, 6,
-  PRE_PHI_HUT | PRE_FULL_PSI |
+  PRE_PHI_HUT | PRE_PSI |
   MALLOC_X | MALLOC_F |
   FFTW_INIT | FFT_OUT_OF_PLACE,
   FFTW_MEASURE | FFTW_DESTROY_INPUT);
