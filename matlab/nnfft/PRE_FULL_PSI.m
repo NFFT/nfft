@@ -3,6 +3,8 @@
 %   matrix B) uses (2m+2)^dM precomputed values of the window function, in
 %   addition indices of source and target vectors are stored.
 %
+%   Deprecated, removed in the next release. Use PRE_PSI instead.
+%
 %   Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts
 
 % Copyright (c) 2002, 2017 Jens Keiner, Stefan Kunis, Daniel Potts

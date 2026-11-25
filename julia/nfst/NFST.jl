@@ -16,10 +16,10 @@ const lib_path = string( @__DIR__, "/libnfstjulia", ending )
 # NFST flags
 PRE_PHI_HUT = UInt32(1)<<0
 FG_PSI = UInt32(1)<<1
-PRE_LIN_PSI = UInt32(1)<<2 #
+PRE_LIN_PSI = UInt32(1)<<2 # deprecated, removed in the next release
 PRE_FG_PSI = UInt32(1)<<3 #
 PRE_PSI = UInt32(1)<<4 #
-PRE_FULL_PSI = UInt32(1)<<5 #
+PRE_FULL_PSI = UInt32(1)<<5 # deprecated, removed in the next release
 MALLOC_X = UInt32(1)<<6
 MALLOC_F_HAT = UInt32(1)<<7
 MALLOC_F = UInt32(1)<<8
