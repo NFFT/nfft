@@ -395,7 +395,7 @@ typedef struct\
 \
   int d; /**< dimension, rank */\
   R *sigma; /**< oversampling-factor */\
-  R *a; /**< 1 + 2*m/N1 */\
+  R *a; /**< aN1/N1, with aN1 = N1+2m+2 rounded up to even */\
   int *N; /**< cut-off-frequencies */\
   int *N1; /**< sigma*N */\
   int *aN1; /**< sigma*a*N */\

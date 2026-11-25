@@ -168,7 +168,7 @@ static void nnfft_uo(nnfft_plan *ths,int j,int *up,int *op,int act_dim)
       phi_prod[t2+1]=phi_prod[t2]* MACRO_ ## which_one;                       \
       ll_plain[t2+1]=ll_plain[t2]*ths->aN1[t2] +                              \
                      (l[t2]+ths->aN1[t2]*3/2)%ths->aN1[t2];                   \
-      /* 3/2 because of the (not needed) fftshift and to be in [0 aN1[t2]]?!*/\
+      /* l + aN1/2, the index of l in the inner plan's f_hat */             \
     } /* for(t2) */                                                           \
 }
 
@@ -523,11 +523,12 @@ static void nnfft_init_help(nnfft_plan *ths, int m2, unsigned nfft_flags, unsign
   ths->aN1_total=1;
 
   for(t = 0; t<ths->d; t++) {
-    ths->a[t] = 1.0 + (2.0*((double)ths->m))/((double)ths->N1[t]);
-    ths->aN1[t] = ths->a[t] * ((double)ths->N1[t]);
-    /* aN1 should be even */
+    /* The run of a node v in [-1/2, 1/2) spans grid points -N1/2-m-1 ..
+     * N1/2+m, so the inner grid needs N1+2m+2 points, rounded up to even. */
+    ths->aN1[t] = ths->N1[t] + 2 * ths->m + 2;
     if(ths->aN1[t]%2 != 0)
       ths->aN1[t] = ths->aN1[t] +1;
+    ths->a[t] = ((double)ths->aN1[t]) / ((double)ths->N1[t]);
 
     ths->aN1_total*=ths->aN1[t];
     ths->sigma[t] = ((double) ths->N1[t] )/((double) ths->N[t]);;
