@@ -145,13 +145,15 @@ jobs:
           export OMP_PLACES=cores
           export OMP_DYNAMIC=false
           ARGS="--benchmark_min_time=0.1s"
-          # bench_nfft_fast states its own iteration count per case, so min time
+          # bench_n*fft_fast state their own iteration count per case, so min time
           # does not reach it. Each round rebuilds its plan at a different heap
           # placement, and the codspeed walltime default of 5 is too few to
           # average.
           FAST_ARGS="--benchmark_repetitions=25"
-          for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct; do
-            [ "$b" = bench_nfft_fast ] && A="$ARGS $FAST_ARGS" || A="$ARGS"
+          # The NNFFT benchmarks exist only in double builds.
+          for b in bench_nfft_direct bench_nfft_fast bench_nfct_direct bench_nfst_direct bench_nnfft_direct bench_nnfft_fast; do
+            case "$b" in bench_nnfft_*) [ -x ./build-cmake/benchmarks/$b ] || continue ;; esac
+            case "$b" in *_fast) A="$ARGS $FAST_ARGS" ;; *) A="$ARGS" ;; esac
             ./build-cmake/benchmarks/$b $A
             if [ -x ./build-cmake/benchmarks/${b}_omp ]; then
               ./build-cmake/benchmarks/${b}_omp $A

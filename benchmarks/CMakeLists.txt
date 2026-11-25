@@ -93,6 +93,26 @@ if(UNIX)
   target_link_libraries(bench_nfst_direct PRIVATE m)
 endif()
 
+# NNFFT is double only.
+if(HAVE_NNFFT)
+  add_executable(bench_nnfft_direct bench_nnfft_direct.cpp util.h)
+  target_include_directories(bench_nnfft_direct PRIVATE
+    ${NFFT_GENERATED_INCLUDE_DIR}
+    ${PROJECT_SOURCE_DIR}/include)
+  target_link_libraries(bench_nnfft_direct PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
+  if(UNIX)
+    target_link_libraries(bench_nnfft_direct PRIVATE m)
+  endif()
+  add_executable(bench_nnfft_fast bench_nnfft_fast.cpp util.h)
+  target_include_directories(bench_nnfft_fast PRIVATE
+    ${NFFT_GENERATED_INCLUDE_DIR}
+    ${PROJECT_SOURCE_DIR}/include)
+  target_link_libraries(bench_nnfft_fast PRIVATE nfft3 FFTW3::fftw3 benchmark::benchmark)
+  if(UNIX)
+    target_link_libraries(bench_nnfft_fast PRIVATE m)
+  endif()
+endif()
+
 # OpenMP (threaded) benchmark variant.
 if(NFFT_ENABLE_OPENMP)
   # The benchmark TU is C++, so it needs the CXX OpenMP flags — OpenMP::OpenMP_C
@@ -159,5 +179,35 @@ if(NFFT_ENABLE_OPENMP)
   endif()
   if(UNIX)
     target_link_libraries(bench_nfst_direct_omp PRIVATE m)
+  endif()
+  if(HAVE_NNFFT)
+    add_executable(bench_nnfft_direct_omp bench_nnfft_direct.cpp util.h)
+    target_include_directories(bench_nnfft_direct_omp PRIVATE
+      ${NFFT_GENERATED_INCLUDE_DIR}
+      ${PROJECT_SOURCE_DIR}/include)
+    target_link_libraries(bench_nnfft_direct_omp PRIVATE
+      nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
+    if(FFTW3_OMP_FOUND)
+      target_link_libraries(bench_nnfft_direct_omp PRIVATE FFTW3::fftw3_omp)
+    elseif(FFTW3_THREADS_FOUND)
+      target_link_libraries(bench_nnfft_direct_omp PRIVATE FFTW3::fftw3_threads)
+    endif()
+    if(UNIX)
+      target_link_libraries(bench_nnfft_direct_omp PRIVATE m)
+    endif()
+    add_executable(bench_nnfft_fast_omp bench_nnfft_fast.cpp util.h)
+    target_include_directories(bench_nnfft_fast_omp PRIVATE
+      ${NFFT_GENERATED_INCLUDE_DIR}
+      ${PROJECT_SOURCE_DIR}/include)
+    target_link_libraries(bench_nnfft_fast_omp PRIVATE
+      nfft3_omp OpenMP::OpenMP_CXX FFTW3::fftw3 ${NFFT_OPENMP_ATOMIC_LIBS} benchmark::benchmark)
+    if(FFTW3_OMP_FOUND)
+      target_link_libraries(bench_nnfft_fast_omp PRIVATE FFTW3::fftw3_omp)
+    elseif(FFTW3_THREADS_FOUND)
+      target_link_libraries(bench_nnfft_fast_omp PRIVATE FFTW3::fftw3_threads)
+    endif()
+    if(UNIX)
+      target_link_libraries(bench_nnfft_fast_omp PRIVATE m)
+    endif()
   endif()
 endif()
