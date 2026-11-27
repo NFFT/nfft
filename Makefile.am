@@ -90,7 +90,7 @@ endif
 libnfft3@PREC_SUFFIX@_julia_la_LDFLAGS = @fftw3_LDFLAGS@
 endif
 
-EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
+EXTRA_DIST = bootstrap.sh doxygen.dox nfft3.pc.in nfft3_omp.pc.in macos-build-mex.sh linux-build-mex.sh windows-build-dll.sh
 
 if HAVE_NON_DOUBLE_PRECISION
 nfft3@PREC_SUFFIX@.pc: nfft3.pc
@@ -99,6 +99,14 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = nfft3@PREC_SUFFIX@.pc
+
+if ENABLE_OPENMP
+if HAVE_NON_DOUBLE_PRECISION
+nfft3@PREC_SUFFIX@_omp.pc: nfft3_omp.pc
+	cp -f nfft3_omp.pc nfft3@PREC_SUFFIX@_omp.pc
+endif
+pkgconfig_DATA += nfft3@PREC_SUFFIX@_omp.pc
+endif
 
 install-data-hook:
 	if test -f "$(abs_top_srcdir)/doc/html/index.html"; then \

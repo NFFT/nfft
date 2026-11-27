@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=@includedir@
+
+Name: NFFT (OpenMP)
+Description: Nonuniform fast Fourier transform library with OpenMP
+Version: @VERSION@
+Requires: fftw3@PREC_SUFFIX@
+Libs: -L${libdir} -lnfft3@PREC_SUFFIX@_omp
+Libs.private: @NFFT_OMP_PC_LIBS@
+Cflags: -I${includedir}

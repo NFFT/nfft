@@ -456,6 +456,9 @@ AC_SUBST(fftw3_LIBS_omp)
 AM_CONDITIONAL(ENABLE_OPENMP, test "x$enable_threads" = "xyes" )
 AC_SUBST(OPENMP_CFLAGS)
 AC_SUBST(OPENMP_LIBS)
+NFFT_OMP_PC_LIBS="$fftw3_LIBS_omp $OPENMP_CFLAGS $OPENMP_LIBS"
+AC_SUBST([NFFT_OMP_PC_LIBS])
+AS_IF([test "x$enable_threads" = xyes], [AC_CONFIG_FILES([nfft3_omp.pc])])
 
 # Check for MATLAB.
 AX_PROG_MATLAB
